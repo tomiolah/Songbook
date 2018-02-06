@@ -1,0 +1,56 @@
+<div class="container">
+  <br>
+  <mat-card>
+    <mat-card-content>
+
+      <h1>New song</h1>
+
+      <form (ngSubmit)="onSubmit()" [formGroup]="form" class="example-form">
+        <div class="formLayout">
+
+          <div class="example-container">
+            <mat-form-field class="example-full-width">
+              <mat-select placeholder="Language" required [(value)]="selectedLanguage">
+                <mat-option *ngFor="let language of languages" [value]="language">
+                  {{ printLanguage(language) }}
+                </mat-option>
+                <mat-option (click)="openNewLanguageDialog()">
+                  {{'Add new language'}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field class="example-full-width">
+              <input type="text" id="title" formControlName="title" required matInput placeholder="Title">
+            </mat-form-field>
+            <mat-error *ngIf="formErrors.title">
+              <mat-icon class="material-icon">error</mat-icon>
+              {{formErrors.title}}
+            </mat-error>
+
+            <h4>Verses:</h4>
+            <!--suppress JSUnusedLocalSymbols -->
+            <div *ngFor="let verse of verses; let i = index;">
+              <button type="button" mat-icon-button (click)="removeVerse(i)">
+                <mat-icon>remove_circle_outline</mat-icon>
+              </button>
+              <mat-form-field class="example-full-width">
+                <textarea matInput placeholder="Verse {{i+1}}." rows="5" formControlName="verse{{i}}"
+                          maxlength="1000"></textarea>
+              </mat-form-field>
+            </div>
+          </div>
+          <br>
+          <button type="button" mat-icon-button (click)="addNewVerse()" matTooltip="Add a new verse">
+            <mat-icon>add</mat-icon>
+          </button>
+          <br>
+          <br>
+          <button type="submit" class="btn btn-success" [disabled]="!form.valid">Submit</button>
+        </div>
+        <br>
+      </form>
+
+    </mat-card-content>
+  </mat-card>
+  <br>
+</div>

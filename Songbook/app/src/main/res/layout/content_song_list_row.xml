@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:orientation="vertical"
+              android:padding="6dip">
+
+    <TextView
+        android:id="@+id/ordinalNumberTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ha 101"
+        android:textColor="?attr/secondaryTextColor"
+        android:textStyle="italic"/>
+
+    <TextView
+        android:id="@+id/titleTextView"
+        style="@style/SongBookTheme"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="12dp"
+        android:paddingLeft="12dp"
+        android:paddingRight="12dp"
+        android:text="A barány vére megtísztít"
+        android:textColor="?attr/primaryTextColor"
+        android:textSize="15sp"/>
+
+</LinearLayout>

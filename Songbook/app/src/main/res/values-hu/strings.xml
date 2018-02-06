@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Énekeskönyv</string>
+    <string name="search">Keresés</string>
+    <string name="we_need_this_permissions">Szükség van ezekre a jogosultságokra</string>
+    <string name="You_need_to_wait_for_this_feature">Ezt a funkciót meg kell várnia, hogy betöltödjön!</string>
+    <string name="SearchInSongTextIsAvailable">A szövegben való keresés készenlétben!</string>
+    <string name="loading_and_downloading_songs_the_first_time_it_takes_some_time">Énekek letöltése. Első alkalommal eltart egy ideig.</string>
+    <string name="skip">Kihagy</string>
+    <string name="downloading_songs_selected_language">Énekek letöltése. Kiválasztott nyelv:</string>
+    <string name="navigation_drawer_open">Nyissa meg a navigációs fiókot</string>
+    <string name="navigation_drawer_close">Zárja be a navigációs fiókot</string>
+    <string name="language">Nyelv</string>
+    <string name="download_songs">Énekek letöltése</string>
+    <string name="select_languages">Válasszon nyelveket</string>
+    <string name="downloading_songs">Énekek letöltése folyamatban.</string>
+    <string name="filter">Szűrő</string>
+    <string name="sort">Rendez</string>
+    <string name="close">Bezárás</string>
+    <string name="select">Kiválaszt</string>
+    <string name="modified_date">Modosítás dátum</string>
+    <string name="ascending_by_title">Növekvő cím szerint</string>
+    <string name="descending_by_title">Csökkenő cím szerint</string>
+    <string name="descending_by_created_date">Csökkenő létrehozás dátuma szerint</string>
+    <string name="ascending_by_created_date">Növekvő létrehozás dátuma szerint</string>
+    <string name="downloaded">Letöltve</string>
+    <string name="settings">Beállítások</string>
+    <string name="light_theme">Világos téma</string>
+    <string name="maximum_size_of_text">A szöveg maximális mérete</string>
+    <string name="collection">Gyűjtemény</string>
+    <string name="saving_songs">Énekek lementése</string>
+    <string name="downloading_collections">Gyűjtemények letöltése</string>
+    <string name="saving_collections">Gyűjtemények lemetése</string>
+    <string name="completed">Kész</string>
+</resources>

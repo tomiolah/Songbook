@@ -1,0 +1,68 @@
+buildscript {
+    ext {
+        springBootVersion = '1.5.4.RELEASE'
+    }
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    // project dependency
+    compile project(":projector-common")
+
+    compile("org.springframework.boot:spring-boot-starter-data-mongodb")
+    compile 'org.mongodb:mongodb-driver:3.5.0'
+
+    // tag::jetty[]
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude module: "spring-boot-starter-tomcat"
+    }
+    compile("org.springframework.boot:spring-boot-starter-jetty")
+    // end::jetty[]
+    // tag::actuator[]
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+    // end::actuator[]
+
+    // security
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '1.5.6.RELEASE'
+
+    // testCompile("junit:junit")
+    testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '1.5.3.RELEASE'
+    testCompile group: 'org.hsqldb', name: 'hsqldb', version: '2.3.1'
+
+    //mail send
+    compile("org.springframework.boot:spring-boot-starter-mail")
+    compile("org.freemarker:freemarker:2.3.23")
+    // security
+//    compile group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '1.5.6.RELEASE'
+//    compile group: 'org.springframework.security', name: 'spring-security-crypto', version: '3.1.0.RELEASE'
+
+}
+repositories {
+    maven {
+        url 'https://repo.spring.io/libs-milestone'
+    }
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs = ["$project.rootDir/projector-web/dist", "$projectDir/src/main/resources"]
+        }
+    }
+}

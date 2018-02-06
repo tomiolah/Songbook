@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.shape.Line?>
+<?import java.util.ArrayList?>
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="560" prefWidth="800"
+            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="projector.controller.song.SongController">
+    <center>
+        <SplitPane fx:id="horizontalSplitPane" dividerPositions="0.35" BorderPane.alignment="CENTER">
+            <BorderPane fx:id="leftBorderPane" prefHeight="200.0" prefWidth="200.0">
+                <top>
+                    <BorderPane minHeight="100.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+                        <top>
+                            <BorderPane>
+                                <center>
+                                    <HBox>
+                                        <Button fx:id="downloadButton" maxHeight="5.0" mnemonicParsing="false"
+                                                BorderPane.alignment="CENTER">
+                                            <graphic>
+                                                <ImageView fitHeight="21.0" fitWidth="21.0" pickOnBounds="true"
+                                                           preserveRatio="true">
+                                                    <Image url="@../../icons/download-from-cloud.png"/>
+                                                </ImageView>
+                                            </graphic>
+                                            <padding>
+                                                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                            </padding>
+                                            <tooltip>
+                                                <Tooltip text="%Download songs"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="uploadButton" maxHeight="5.0" mnemonicParsing="false"
+                                                BorderPane.alignment="CENTER">
+                                            <graphic>
+                                                <ImageView fitHeight="21.0" fitWidth="21.0" pickOnBounds="true"
+                                                           preserveRatio="true">
+                                                    <Image url="@../../icons/upload-to-cloud.png"/>
+                                                </ImageView>
+                                            </graphic>
+                                            <padding>
+                                                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                            </padding>
+                                            <tooltip>
+                                                <Tooltip text="%Upload"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="importButton" maxHeight="5.0" mnemonicParsing="false"
+                                                BorderPane.alignment="CENTER">
+                                            <graphic>
+                                                <ImageView fitHeight="21.0" fitWidth="21.0" pickOnBounds="true"
+                                                           preserveRatio="true">
+                                                    <Image url="@../../icons/import.png"/>
+                                                </ImageView>
+                                            </graphic>
+                                            <padding>
+                                                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                            </padding>
+                                            <tooltip>
+                                                <Tooltip text="%Import"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="exportButton" maxHeight="5.0" mnemonicParsing="false"
+                                                BorderPane.alignment="CENTER">
+                                            <graphic>
+                                                <ImageView fitHeight="21.0" fitWidth="21.0" pickOnBounds="true"
+                                                           preserveRatio="true">
+                                                    <Image url="@../../icons/export.png"/>
+                                                </ImageView>
+                                            </graphic>
+                                            <padding>
+                                                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                            </padding>
+                                            <tooltip>
+                                                <Tooltip text="%Export"/>
+                                            </tooltip>
+                                        </Button>
+                                        <Button fx:id="newSongButton" maxHeight="5.0" mnemonicParsing="false"
+                                                onAction="#newSongButtonOnAction" prefHeight="5.0" text="%New song"
+                                                BorderPane.alignment="CENTER">
+                                            <BorderPane.margin>
+                                                <Insets bottom="4.0" left="4.0" right="4.0" top="8.0"/>
+                                            </BorderPane.margin>
+                                            <padding>
+                                                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                            </padding>
+                                        </Button>
+                                        <Button fx:id="newSongCollectionButton" maxHeight="5.0" mnemonicParsing="false"
+                                                visible="false"
+                                                onAction="#newSongCollectionButtonOnAction" prefHeight="5.0"
+                                                text="%New song book" BorderPane.alignment="CENTER">
+                                            <BorderPane.margin>
+                                                <Insets bottom="4.0" left="4.0" right="4.0" top="8.0"/>
+                                            </BorderPane.margin>
+                                            <padding>
+                                                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                            </padding>
+                                        </Button>
+                                    </HBox>
+                                </center>
+                                <GridPane.margin>
+                                    <Insets bottom="4.0" top="4.0"/>
+                                </GridPane.margin>
+                            </BorderPane>
+                        </top>
+                        <center>
+                            <BorderPane BorderPane.alignment="CENTER">
+                                <center>
+                                    <ComboBox fx:id="sortComboBox" prefWidth="250" BorderPane.alignment="CENTER"/>
+                                </center>
+                                <padding>
+                                    <Insets top="4.0"/>
+                                </padding>
+                            </BorderPane>
+                        </center>
+                        <bottom>
+                            <BorderPane prefWidth="300.0" BorderPane.alignment="CENTER">
+                                <top>
+                                    <CheckBox fx:id="searchInTextCheckBox" mnemonicParsing="false"
+                                              text="%Search in text" BorderPane.alignment="CENTER">
+                                        <padding>
+                                            <Insets bottom="4.0"/>
+                                        </padding>
+                                    </CheckBox>
+                                </top>
+                                <left>
+                                    <Label text="%Search" BorderPane.alignment="CENTER"/>
+                                </left>
+                                <center>
+                                    <TextField fx:id="searchTextField" prefHeight="31.0" prefWidth="261.0"
+                                               BorderPane.alignment="CENTER">
+                                        <BorderPane.margin>
+                                            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                        </BorderPane.margin>
+                                    </TextField>
+                                </center>
+                                <padding>
+                                    <Insets bottom="4.0" left="4.0" right="4.0" top="7.0"/>
+                                </padding>
+                            </BorderPane>
+                        </bottom>
+                    </BorderPane>
+                </top>
+                <center>
+
+                    <SplitPane fx:id="verticalSplitPane" dividerPositions="0.5" orientation="VERTICAL"
+                               BorderPane.alignment="CENTER">
+                        <ListView fx:id="listView" prefHeight="200.0" prefWidth="200.0">
+                            <GridPane.margin>
+                                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                            </GridPane.margin>
+                            <padding>
+                                <Insets bottom="2.0"/>
+                            </padding>
+                        </ListView>
+                        <ListView fx:id="scheduleListView" prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="1">
+                            <GridPane.margin>
+                                <Insets bottom="4.0" left="4.0" right="4.0"/>
+                            </GridPane.margin>
+                            <padding>
+                                <Insets top="2.0"/>
+                            </padding>
+                        </ListView>
+                    </SplitPane>
+                </center>
+                <padding>
+                    <Insets bottom="2.0" left="2.0" right="2.0"/>
+                </padding>
+            </BorderPane>
+            <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
+                <top>
+                    <BorderPane BorderPane.alignment="CENTER">
+                        <center>
+                            <BorderPane prefWidth="200.0" BorderPane.alignment="CENTER">
+                                <center>
+                                    <ListView fx:id="songCollectionListView" prefHeight="50.0"
+                                              BorderPane.alignment="CENTER">
+                                        <BorderPane.margin>
+                                            <Insets bottom="4.0" right="4.0" top="4.0"/>
+                                        </BorderPane.margin>
+                                    </ListView>
+                                </center>
+                            </BorderPane>
+                        </center>
+                        <bottom>
+                            <BorderPane BorderPane.alignment="CENTER">
+                                <center>
+                                    <BorderPane>
+                                        <padding>
+                                            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                        </padding>
+                                        <left>
+                                            <BorderPane>
+                                                <center>
+                                                    <Button fx:id="nextButton" mnemonicParsing="false" text="%Next"
+                                                            BorderPane.alignment="CENTER"/>
+                                                </center>
+                                                <right>
+                                                    <TextField fx:id="verseTextField" prefHeight="25.0" prefWidth="58.0"
+                                                               promptText="%Verse" BorderPane.alignment="CENTER">
+                                                        <BorderPane.margin>
+                                                            <Insets left="4.0"/>
+                                                        </BorderPane.margin>
+                                                    </TextField>
+                                                </right>
+                                            </BorderPane>
+                                        </left>
+                                        <center>
+                                            <Slider fx:id="songHeightSlider" max="400.0" min="50.0" value="250.0"
+                                                    BorderPane.alignment="CENTER">
+                                                <tooltip>
+                                                    <Tooltip text="%Height of verses"/>
+                                                </tooltip>
+                                            </Slider>
+                                        </center>
+                                        <right>
+                                            <HBox alignment="CENTER" spacing="4.0">
+                                                <ToggleButton fx:id="progressLineToggleButton" contentDisplay="CENTER"
+                                                              graphicTextGap="0.0" layoutX="815.0" layoutY="163.0"
+                                                              maxHeight="-Infinity" maxWidth="-Infinity"
+                                                              mnemonicParsing="false" prefHeight="32.0" prefWidth="32.0"
+                                                              textAlignment="CENTER">
+                                                    <graphic>
+                                                        <ImageView fitHeight="40.0" fitWidth="27.0" pickOnBounds="true"
+                                                                   preserveRatio="true">
+                                                            <Image url="@../../icons/progressBar.png"/>
+                                                        </ImageView>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="%Show progress line"/>
+                                                    </tooltip>
+                                                    <padding>
+                                                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                                    </padding>
+                                                </ToggleButton>
+                                                <CheckBox fx:id="aspectRatioCheckBox" text="%Aspect ratio"
+                                                          BorderPane.alignment="CENTER"/>
+                                            </HBox>
+                                        </right>
+                                    </BorderPane>
+                                </center>
+                            </BorderPane>
+                        </bottom>
+                    </BorderPane>
+                </top>
+                <center>
+                    <ListView fx:id="songListView" prefWidth="200.0" BorderPane.alignment="CENTER">
+                        <BorderPane.margin>
+                            <Insets bottom="4.0" right="4.0" top="4.0"/>
+                        </BorderPane.margin>
+                    </ListView>
+                </center>
+                <bottom>
+                    <Pane prefHeight="21.0" BorderPane.alignment="CENTER">
+                        <padding>
+                            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                        </padding>
+                        <Line fx:id="line1" endX="200.0" layoutX="0" layoutY="0" stroke="rgb(0,128,192)"/>
+                        <Line fx:id="line2" layoutY="2" stroke="rgb(255,0,0)"/>
+                        <Line fx:id="line3" layoutX="0" layoutY="4" stroke="rgb(0,128,192)"/>
+                        <Line fx:id="line4" layoutX="0" layoutY="6" stroke="rgb(255,0,0)"/>
+                        <Line fx:id="line5" layoutX="0" layoutY="8" stroke="rgb(0,128,192)"/>
+                        <Line fx:id="line6" layoutX="0" layoutY="10" stroke="rgb(255,0,0)"/>
+                        <Line fx:id="activeLine" endX="200.0" layoutX="0" layoutY="0" stroke="rgba(255,255,0,0.7)"/>
+                        <fx:define>
+                            <ArrayList fx:id="lineList">
+                                <fx:reference source="line1"/>
+                                <fx:reference source="line2"/>
+                                <fx:reference source="line3"/>
+                                <fx:reference source="line4"/>
+                                <fx:reference source="line5"/>
+                                <fx:reference source="line6"/>
+                            </ArrayList>
+                        </fx:define>
+                    </Pane>
+                </bottom>
+                <padding>
+                    <Insets left="2.0"/>
+                </padding>
+            </BorderPane>
+        </SplitPane>
+    </center>
+</BorderPane>

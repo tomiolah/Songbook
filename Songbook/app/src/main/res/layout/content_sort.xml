@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/sortLayout"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="?attr/primaryDarkColor"
+    android:padding="9dp">
+
+    <RadioGroup
+        android:id="@+id/radioSort"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <RadioButton
+            android:id="@+id/modifiedDateRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:padding="7dp"
+            android:text="@string/modified_date"/>
+
+        <RadioButton
+            android:id="@+id/ascByTitleRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="7dp"
+            android:text="@string/ascending_by_title"/>
+
+        <RadioButton
+            android:id="@+id/descByTitleRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="7dp"
+            android:text="@string/descending_by_title"/>
+
+        <RadioButton
+            android:id="@+id/ascByCreatedDateRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="7dp"
+            android:text="@string/ascending_by_created_date"
+            />
+
+        <RadioButton
+            android:id="@+id/descByCreatedDateRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="7dp"
+            android:text="@string/descending_by_created_date"
+            />
+    </RadioGroup>
+
+</ScrollView>

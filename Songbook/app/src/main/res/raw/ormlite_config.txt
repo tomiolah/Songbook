@@ -1,0 +1,196 @@
+#
+# generated on 2018/01/24 01:58:03
+#
+# --table-start--
+dataClass=com.bence.songbook.models.AbstractModel
+tableName=abstractmodel
+# --table-fields-start--
+# --field-start--
+fieldName=uuid
+indexName=abstractmodel_uuid_idx
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.bence.songbook.models.BaseEntity
+tableName=baseentity
+# --table-fields-start--
+# --field-start--
+fieldName=id
+generatedId=true
+indexName=baseentity_id_idx
+# --field-end--
+# --field-start--
+fieldName=uuid
+indexName=baseentity_uuid_idx
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.bence.songbook.models.Language
+tableName=language
+# --table-fields-start--
+# --field-start--
+fieldName=englishName
+# --field-end--
+# --field-start--
+fieldName=nativeName
+# --field-end--
+# --field-start--
+fieldName=selected
+# --field-end--
+# --field-start--
+fieldName=songForeignCollection
+foreignCollection=true
+# --field-end--
+# --field-start--
+fieldName=id
+generatedId=true
+indexName=language_id_idx
+# --field-end--
+# --field-start--
+fieldName=uuid
+indexName=language_uuid_idx
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.bence.songbook.models.Song
+tableName=song
+# --table-fields-start--
+# --field-start--
+fieldName=title
+# --field-end--
+# --field-start--
+fieldName=strippedTitle
+# --field-end--
+# --field-start--
+fieldName=songVerseForeignCollection
+foreignCollection=true
+# --field-end--
+# --field-start--
+fieldName=createdDate
+# --field-end--
+# --field-start--
+fieldName=modifiedDate
+# --field-end--
+# --field-start--
+fieldName=language
+foreign=true
+indexName=song_language_idx
+# --field-end--
+# --field-start--
+fieldName=lastAccessed
+# --field-end--
+# --field-start--
+fieldName=accessedTimes
+# --field-end--
+# --field-start--
+fieldName=accessedTimeAverage
+# --field-end--
+# --field-start--
+fieldName=id
+generatedId=true
+indexName=song_id_idx
+# --field-end--
+# --field-start--
+fieldName=uuid
+indexName=song_uuid_idx
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.bence.songbook.models.SongCollection
+tableName=songcollection
+# --table-fields-start--
+# --field-start--
+fieldName=songCollectionElementForeignCollection
+foreignCollection=true
+# --field-end--
+# --field-start--
+fieldName=createdDate
+# --field-end--
+# --field-start--
+fieldName=modifiedDate
+# --field-end--
+# --field-start--
+fieldName=name
+# --field-end--
+# --field-start--
+fieldName=language
+foreign=true
+indexName=songcollection_language_idx
+# --field-end--
+# --field-start--
+fieldName=id
+generatedId=true
+indexName=songcollection_id_idx
+# --field-end--
+# --field-start--
+fieldName=uuid
+indexName=songcollection_uuid_idx
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.bence.songbook.models.SongCollectionElement
+tableName=songcollectionelement
+# --table-fields-start--
+# --field-start--
+fieldName=ordinalNumber
+# --field-end--
+# --field-start--
+fieldName=songUuid
+# --field-end--
+# --field-start--
+fieldName=songCollection
+foreign=true
+indexName=songcollectionelement_songCollection_idx
+# --field-end--
+# --field-start--
+fieldName=id
+generatedId=true
+indexName=songcollectionelement_id_idx
+# --field-end--
+# --field-start--
+fieldName=uuid
+indexName=songcollectionelement_uuid_idx
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.bence.songbook.models.SongVerse
+tableName=songverse
+# --table-fields-start--
+# --field-start--
+fieldName=text
+# --field-end--
+# --field-start--
+fieldName=strippedText
+# --field-end--
+# --field-start--
+fieldName=isChorus
+# --field-end--
+# --field-start--
+fieldName=song
+foreign=true
+indexName=songverse_song_idx
+# --field-end--
+# --field-start--
+fieldName=id
+generatedId=true
+indexName=songverse_id_idx
+# --field-end--
+# --field-start--
+fieldName=uuid
+indexName=songverse_uuid_idx
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################

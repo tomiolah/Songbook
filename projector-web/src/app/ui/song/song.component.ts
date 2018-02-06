@@ -1,0 +1,89 @@
+import {Component, OnDestroy, OnInit} from '@angular/core';
+import {ActivatedRoute} from '@angular/router';
+import {Song, SongService} from '../../services/song-service.service';
+import {Subscription} from 'rxjs/Subscription';
+import {AuthService} from '../../services/auth.service';
+
+@Component({
+  selector: 'app-song',
+  templateUrl: './song.component.html',
+  styleUrls: ['./song.component.css']
+})
+export class SongComponent implements OnInit, OnDestroy {
+  song: Song;
+  editing = false;
+  showSimilarities = false;
+  similar: Song[];
+  secondSong: Song;
+  receivedSimilar = false;
+  private sub: Subscription;
+
+  constructor(private activatedRoute: ActivatedRoute,
+              private songService: SongService,
+              public auth: AuthService) {
+    auth.getUserFromLocalStorage();
+  }
+
+  ngOnInit() {
+    this.secondSong = null;
+    this.song = new Song();
+    this.song.title = 'Loading';
+    this.song.songVerseDTOS = [];
+    this.sub = this.activatedRoute.params.subscribe(params => {
+      if (params['id']) {
+        const songId = params['id'];
+        this.songService.getSong(songId).subscribe((song) => {
+          for (const songVerse of song.songVerseDTOS) {
+            songVerse.lines = [];
+            for (const s of songVerse.text.split('\n')) {
+              songVerse.lines.push(s);
+            }
+          }
+          this.song = song;
+        });
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.sub.unsubscribe();
+  }
+
+  deleteSong() {
+    this.songService.deleteById(this.song.uuid).subscribe(() => {
+
+    });
+  }
+
+  eraseSong() {
+    this.songService.eraseById(this.song.uuid).subscribe(() => {
+    });
+  }
+
+  publishSong() {
+    this.songService.publishById(this.song.uuid).subscribe(() => {
+
+    });
+  }
+
+  editSong() {
+    this.editing = true;
+  }
+
+  showSimilar() {
+    this.similar = [];
+    this.receivedSimilar = false;
+    this.songService.getSimilar(this.song).subscribe((songs) => {
+      this.similar = songs;
+      if (songs.length > 0) {
+        this.secondSong = this.similar[0];
+      }
+      this.receivedSimilar = true;
+    });
+    this.showSimilarities = true;
+  }
+
+  selectSecondSong(song: Song) {
+    this.secondSong = song;
+  }
+}

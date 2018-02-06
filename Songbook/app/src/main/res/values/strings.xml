@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Songbook</string>
+    <string name="search">Search</string>
+    <string name="we_need_this_permissions">We need this permissions!</string>
+    <string name="You_need_to_wait_for_this_feature">You need to wait for this feature to load!</string>
+    <string name="SearchInSongTextIsAvailable">Search in song text is available!</string>
+    <string name="loading_and_downloading_songs_the_first_time_it_takes_some_time">Loading and downloading songs. The first time it takes some time.</string>
+    <string name="skip">Skip</string>
+    <string name="downloading_songs_selected_language">Downloading songs.  Selected language:</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="language">Language</string>
+    <string name="download_songs">Download songs</string>
+    <string name="select_languages">Select languages</string>
+    <string name="downloading_songs">Downloading songs.</string>
+    <string name="filter">Filter</string>
+    <string name="sort">Sort</string>
+    <string name="select">Select</string>
+    <string name="modified_date">Modified date</string>
+    <string name="ascending_by_title">Ascending by title</string>
+    <string name="descending_by_title">Descending by title</string>
+    <string name="ascending_by_created_date">Ascending by created date</string>
+    <string name="descending_by_created_date">Descending by created date</string>
+    <string name="close">Close</string>
+    <string name="downloaded">Downloaded</string>
+    <string name="settings">Settings</string>
+    <string name="light_theme">Light theme</string>
+    <string name="maximum_size_of_text">Maximum size of text</string>
+    <string name="collection">Collection</string>
+    <string name="saving_songs">Saving songs</string>
+    <string name="downloading_collections">Downloading collections</string>
+    <string name="saving_collections">Saving collections</string>
+    <string name="completed">Completed</string>
+
+</resources>
