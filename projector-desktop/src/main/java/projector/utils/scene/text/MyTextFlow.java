@@ -567,4 +567,8 @@ public class MyTextFlow extends TextFlow {
             tmpTextFlow = new MyTextFlow(true);
         }
     }
+
+    public void setRawText(String rawText) {
+        this.rawText = rawText;
+    }
 }

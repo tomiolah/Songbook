@@ -81,7 +81,6 @@ public class NewSongController {
     private BorderPane borderPane;
     private SongController songController;
     private Stage stage;
-    private String oldTitle;
     private boolean edit;
     @FXML
     private ProjectionScreenController previewProjectionScreenController;
@@ -93,7 +92,6 @@ public class NewSongController {
     private SongService songService = ServiceManager.getSongService();
     private VerseController lastFocusedVerse;
     private SongVerseService songVerseService = ServiceManager.getSongVerseService();
-    private LanguageService languageService;
     private List<Language> languages;
 
     public void initialize() {
@@ -119,9 +117,11 @@ public class NewSongController {
             String right = text.substring(selection.getEnd(), text.length());
             lastFocusedVerseTextArea.setText(left + "<color=\"" + value.toString() + "\">" + selected + "</color>" + right);
         });
-        languageService = ServiceManager.getLanguageService();
+        LanguageService languageService = ServiceManager.getLanguageService();
         languages = languageService.findAll();
         languageComboBox.getItems().addAll(languages);
+        textAreas.getChildren().clear();
+        verseControllers.clear();
     }
 
     private void initializeNewVerseButton() {
@@ -224,10 +224,6 @@ public class NewSongController {
         this.edit = true;
     }
 
-    void setOldTitle(String oldTitle) {
-        this.oldTitle = oldTitle;
-    }
-
     void setSongController(SongController songController) {
         this.songController = songController;
     }
@@ -292,24 +288,6 @@ public class NewSongController {
         stage.close();
         stage2.close();
         return true;
-    }
-
-    private boolean isAlreadyTheSameTitle(String title) {
-        if (isEdit()) {
-            for (Song song : songController.getSongs()) {
-                if (song.getTitle().toLowerCase().equals(title.toLowerCase())
-                        && !song.getTitle().toLowerCase().equals(oldTitle.toLowerCase())) {
-                    return true;
-                }
-            }
-        } else {
-            for (Song song : songController.getSongs()) {
-                if (song.getTitle().toLowerCase().equals(title.toLowerCase())) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     void setTitleTextFieldText(String text) {

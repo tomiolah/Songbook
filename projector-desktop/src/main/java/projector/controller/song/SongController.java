@@ -58,12 +58,10 @@ import projector.controller.language.DownloadLanguagesController;
 import projector.controller.song.util.LastSearching;
 import projector.controller.song.util.OrderMethod;
 import projector.controller.song.util.SearchedSong;
-import projector.model.Language;
 import projector.model.Song;
 import projector.model.SongCollection;
 import projector.model.SongCollectionElement;
 import projector.model.SongVerse;
-import projector.repository.RepositoryException;
 import projector.service.ServiceException;
 import projector.service.ServiceManager;
 import projector.service.SongCollectionService;
@@ -85,8 +83,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import static projector.utils.StringUtils.stripAccents;
 
@@ -118,8 +114,6 @@ public class SongController {
     private Button uploadButton;
     @FXML
     private Button newSongButton;
-    @FXML
-    private Button newSongCollectionButton;
     @FXML
     private ListView<Text> scheduleListView;
     @FXML
@@ -245,7 +239,7 @@ public class SongController {
                         if (item == null) {
                             setGraphic(null);
                         } else if (empty || item.getSong().getTitle() == null) {
-                            TextFlow textFlow = setTextFlowsText(item, item.getTextFlow(), "");
+                            TextFlow textFlow = setTextFlowsText(item, item.getTextFlow());
                             setGraphic(textFlow);
                         } else {
                             Song song = item.getSong();
@@ -340,7 +334,9 @@ public class SongController {
                             myTextFlow.setTextAlignment(TextAlignment.CENTER);
                             myTextFlow.setBackGroundColor();
                             myTextFlow.setOpacity(minOpacity);
-                            myTextFlow.setText2(songVerse.getText(), width1, size);
+                            String text = songVerse.getText();
+                            myTextFlow.setText2(getColorizedStringByLastSearchedText(text), width1, size);
+                            myTextFlow.setRawText(text);
                             songListViewItems.add(myTextFlow);
                         }
                         myTextFlow = new MyTextFlow();
@@ -460,7 +456,7 @@ public class SongController {
                         projectionScreenController.setText(tmpTextBuffer.toString(), ProjectionType.SONG);
                         lineIndex = 0;
                     }
-                    if (!recentController.getLastItemText().equals(activeSongVersTime.getSongTitle()) &&
+                    if (recentController != null && !recentController.getLastItemText().equals(activeSongVersTime.getSongTitle()) &&
                             ob.size() > 0) {
                         recentController.addRecentSong(activeSongVersTime.getSongTitle(), ProjectionType.SONG);
                     }
@@ -603,8 +599,43 @@ public class SongController {
         }
     }
 
-    private TextFlow setTextFlowsText(SearchedSong item, TextFlow textFlow, String string) {
-        Text text = new Text(string);
+    private String getColorizedStringByLastSearchedText(String text) {
+        StringBuilder s = new StringBuilder();
+        char[] lastSearch = stripAccents(lastSearchText.toLowerCase()).toCharArray();
+        if (lastSearch.length == 0) {
+            return text;
+        }
+        int matchCount = 0;
+        char[] chars = text.toCharArray();
+        StringBuilder tmp = new StringBuilder();
+        for (char c : chars) {
+            String s1 = stripAccents((c + "").toLowerCase());
+            if (!s1.isEmpty()) {
+                if (s1.charAt(0) == lastSearch[matchCount]) {
+                    ++matchCount;
+                    if (matchCount == lastSearch.length) {
+                        matchCount = 0;
+                        s.append("<color=\"0xFFC600FF\">").append(tmp).append(c).append("</color>");
+                        tmp = new StringBuilder();
+                        continue;
+                    }
+                } else {
+                    matchCount = 0;
+                    s.append(tmp);
+                    tmp = new StringBuilder();
+                }
+            }
+            if (matchCount == 0) {
+                s.append(c);
+            } else {
+                tmp.append(c);
+            }
+        }
+        return s.toString();
+    }
+
+    private TextFlow setTextFlowsText(SearchedSong item, TextFlow textFlow) {
+        Text text = new Text("");
         if (textFlow == null) {
             textFlow = new TextFlow(text);
             item.setTextFlow(textFlow);
@@ -1106,42 +1137,6 @@ public class SongController {
 
 //    }
 
-    public void countWords() {
-        try {
-            HashMap<String, Integer> words = new HashMap<>();
-            for (Song song : songs) {
-                for (SongVerse vers : song.getVerses()) {
-                    for (String row : vers.getText().split("\n")) {
-                        String[] split = row.split(" ");
-                        for (String i : split) {
-                            i = i.replaceAll("[^a-zA-ZéáőúöüóűíÉÁŰŐÚÜÓÖÍ]", "");
-                            if (words.containsKey(i)) {
-                                Integer x = words.get(i) + 1;
-                                words.put(i, x);
-                            } else {
-                                words.put(i, 1);
-                            }
-                        }
-                    }
-                }
-            }
-            SortedSet<String> keys = new TreeSet<>(words.keySet());
-            FileOutputStream ofStream;
-            try {
-                ofStream = new FileOutputStream("words2.txt");
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(ofStream, "UTF-8"));
-                for (String i : keys) {
-                    bw.write(i + System.lineSeparator());
-                }
-                bw.close();
-            } catch (IOException e) {
-                LOG.error(e.getMessage(), e);
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
-
     private void initListViewMenuItem() {
         try {
             final ContextMenu cm = new ContextMenu();
@@ -1170,7 +1165,6 @@ public class SongController {
                         NewSongController newSongController = loader.getController();
                         newSongController.setSongController(songController);
                         newSongController.setEdit();
-                        newSongController.setOldTitle(selectedSong.getTitle());
                         newSongController.setSelectedSong(listView.getSelectionModel().getSelectedItem());
                         newSongController.setTitleTextFieldText(selectedSong.getTitle());
                         Scene scene = new Scene(root);
@@ -1713,79 +1707,5 @@ public class SongController {
             }
         });
         thread.start();
-    }
-
-    private void readZefferSzabolcs_sSongs() {
-        FileInputStream fstream;
-        try {
-            fstream = new FileInputStream("songsZSz.txt");
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
-            LinkedList<Song> songs = new LinkedList<>();
-            br.mark(4);
-            if ('\ufeff' != br.read()) {
-                br.reset(); // not the BOM marker
-            }
-            String strLine;
-            String regex = "[HGE] ?[0-9][0-9][0-9][0-9]?A?B?";
-            List<String> lines = new ArrayList<>();
-            while ((strLine = br.readLine()) != null) {
-                lines.add(strLine.trim());
-            }
-            List<Language> languages = ServiceManager.getLanguageService().findAll();
-            Language hungarian = null;
-            for (Language language : languages) {
-                if (language.getNativeName().toLowerCase().equals("magyar")) {
-                    hungarian = language;
-                    break;
-                }
-            }
-            int i = 0;
-            while (i < lines.size()) {
-                strLine = lines.get(i);
-                if (!strLine.matches(regex)) {
-                    ++i;
-                    continue;
-                }
-                Song tmpSong = new Song();
-                List<SongVerse> tmpVerses = new ArrayList<>();
-                tmpSong.setTitle(strLine);
-                tmpSong.setCreatedDate(new Date());
-                tmpSong.setModifiedDate(tmpSong.getCreatedDate());
-                tmpSong.setLanguage(hungarian);
-                ++i;
-                while (i < lines.size() && !lines.get(i).matches(regex)) {
-                    while (i < lines.size() && lines.get(i).isEmpty()) {
-                        ++i;
-                    }
-                    if (i < lines.size() && !lines.get(i).matches(regex)) {
-                        StringBuilder tmpVerse = new StringBuilder().append(lines.get(i));
-                        while (++i < lines.size() && !lines.get(i).isEmpty()) {
-                            tmpVerse.append("\n").append(lines.get(i));
-                        }
-                        final SongVerse songVerse = new SongVerse();
-                        songVerse.setText(tmpVerse.toString());
-                        tmpVerses.add(songVerse);
-                    } else {
-                        break;
-                    }
-                }
-                List<SongVerse> tmpStringVerses = new ArrayList<>(tmpVerses.size());
-                if (tmpVerses.size() > 15) {
-                    System.out.println("d");
-                }
-                tmpStringVerses.addAll(tmpVerses);
-                tmpSong.setVerses(tmpStringVerses);
-                songs.add(tmpSong);
-            }
-            br.close();
-            songService.create(songs);
-            System.out.println("songs.size() = " + songs.size());
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw new RepositoryException("Could not read all Songs");
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RepositoryException("e:Could not read all Songs");
-        }
     }
 }
