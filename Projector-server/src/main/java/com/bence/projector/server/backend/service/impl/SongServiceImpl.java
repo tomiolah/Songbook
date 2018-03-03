@@ -180,7 +180,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         if (song.getTitle() == null || song.getTitle().trim().isEmpty()) {
             throw new ServiceException("No title", HttpStatus.PRECONDITION_FAILED);
         }
-        if (song.isDeleted()) {
+        if (song.isDeleted() && song.getLanguage() == null) {
             return songRepository.save(song);
         }
         if (song.getLanguage() == null) {
@@ -203,15 +203,17 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             }
         }
         songRepository.save(song);
-        boolean was = false;
-        for (Song song1 : language.getSongs()) {
-            if (song1.getId().equals(song.getId())) {
-                was = true;
+        if (languageRepository.findLanguageBySongsContaining(song) == null) {
+            boolean was = false;
+            for (Song song1 : language.getSongs()) {
+                if (song1.getId().equals(song.getId())) {
+                    was = true;
+                }
             }
-        }
-        if (!was) {
-            language.getSongs().add(song);
-            languageRepository.save(language);
+            if (!was) {
+                language.getSongs().add(song);
+                languageRepository.save(language);
+            }
         }
         return song;
     }

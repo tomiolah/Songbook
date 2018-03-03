@@ -16,7 +16,7 @@ public class StringUtils {
         return s;
     }
 
-    public static int highestCommonStringInt(String a, String b) {
+    public synchronized static int highestCommonStringInt(String a, String b) {
         int i;
         int j = 0;
         if (t == null) {

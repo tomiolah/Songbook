@@ -6,9 +6,16 @@
       <mat-card-subtitle>This is a list of hungarian songs:</mat-card-subtitle>
     </mat-card-header>
     <mat-card-content>
+      <!--suppress HtmlUnknownAttribute -->
       <mat-checkbox checked="true" [(ngModel)]="isSortByModifiedDate" (change)="changeSorting()">
         Sort by modified date
       </mat-checkbox>
+      <div *ngIf="auth.isLoggedIn && auth.user.role === 'ROLE_ADMIN'">
+        <!--suppress HtmlUnknownAttribute -->
+        <mat-checkbox checked="false" [(ngModel)]="isShowUploaded" (change)="changeShowUploaded()">
+          Show uploaded
+        </mat-checkbox>
+      </div>
       <form class="example-form">
         <mat-form-field class="example-full-width">
           <input type="text" placeholder="Search" aria-label="Text" matInput [formControl]="songControl">

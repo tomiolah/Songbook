@@ -439,11 +439,10 @@ public class SongController {
                         projectionScreenController.setText(songListViewItems.get(selectedIndex).getRawText(), ProjectionType.SONG);
                         previousSelectedVersIndex = selectedIndex;
                         lineIndex = selectedIndex % lineList.size();
-                        final double i = selectedIndex + 1;
                         if (selectedIndex + 1 == songListViewItems.size()) {
                             projectionScreenController.progressLineSetVisible(false);
                         } else {
-                            projectionScreenController.setLineSize(i / (songListViewItems.size() - 1));
+                            projectionScreenController.setLineSize((double) selectedIndex / (songListViewItems.size() - 2));
                         }
                     } else if (ob.size() > 1) {
                         StringBuilder tmpTextBuffer = new StringBuilder();
@@ -671,11 +670,13 @@ public class SongController {
         verseTextField.addEventFilter(KeyEvent.KEY_TYPED, numeric_Validation());
         verseTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             try {
-                int x = Integer.parseInt(newValue.trim()) - 1;
+                int x = Integer.parseInt(newValue.trim());
                 int size = songListView.getItems().size();
                 if (x >= 0 && x < size && (x + 1) * 10 > size) {
                     songListView.getSelectionModel().clearAndSelect(x);
                     songListView.scrollTo(x);
+                    verseTextField.setText("");
+                } else if ((x + 1) > size * 10) {
                     verseTextField.setText("");
                 }
             } catch (NumberFormatException ignored) {
@@ -683,18 +684,22 @@ public class SongController {
         });
         verseTextField.setOnKeyPressed(event -> {
             if (event.getCode().equals(KeyCode.ENTER)) {
-                try {
-                    int x = Integer.parseInt(verseTextField.getText().trim()) - 1;
-                    int size = songListView.getItems().size();
-                    if (x >= 0 && x < size) {
-                        songListView.getSelectionModel().clearAndSelect(x);
-                        songListView.scrollTo(x);
-                        verseTextField.setText("");
-                    }
-                } catch (NumberFormatException ignored) {
-                }
+                selectByVerseTextFieldNumber();
             }
         });
+    }
+
+    private void selectByVerseTextFieldNumber() {
+        try {
+            int x = Integer.parseInt(verseTextField.getText().trim()) - 1;
+            int size = songListView.getItems().size();
+            if (x >= 0 && x < size) {
+                songListView.getSelectionModel().clearAndSelect(x);
+                songListView.scrollTo(x);
+                verseTextField.setText("");
+            }
+        } catch (NumberFormatException ignored) {
+        }
     }
 
     private EventHandler<KeyEvent> numeric_Validation() {
@@ -1707,5 +1712,16 @@ public class SongController {
             }
         });
         thread.start();
+    }
+
+    public void onKeyPressed(KeyEvent event) {
+        KeyCode keyCode = event.getCode();
+        if (keyCode.isDigitKey()) {
+            verseTextField.setText(verseTextField.getText() + event.getText());
+            verseTextField.requestFocus();
+            event.consume();
+        } else if (keyCode.equals(KeyCode.ENTER)) {
+            selectByVerseTextFieldNumber();
+        }
     }
 }

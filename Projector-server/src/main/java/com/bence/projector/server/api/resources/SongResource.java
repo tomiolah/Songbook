@@ -239,7 +239,7 @@ public class SongResource {
     public ResponseEntity<Object> uploadedSongs(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         final List<Song> all = songService.findAllByUploadedTrueAndDeletedTrue();
-        return new ResponseEntity<>(songAssembler.createDtoList(all), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(songTitleAssembler.createDtoList(all), HttpStatus.ACCEPTED);
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/admin/api/song/{songId}")

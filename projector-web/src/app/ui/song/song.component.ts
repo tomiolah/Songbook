@@ -86,4 +86,22 @@ export class SongComponent implements OnInit, OnDestroy {
   selectSecondSong(song: Song) {
     this.secondSong = song;
   }
+
+  acceptChanges() {
+    let updateSong = new Song();
+    let uuid = this.secondSong.uuid;
+    let id = this.secondSong.id;
+    Object.assign(updateSong, this.song);
+    updateSong.uuid = uuid;
+    updateSong.id = id;
+    updateSong.modifiedDate = this.secondSong.modifiedDate;
+    updateSong.deleted = false;
+    this.songService.updateSong(updateSong).subscribe(
+      () => {
+      },
+      (err) => {
+        console.log(err);
+      }
+    );
+  }
 }

@@ -172,12 +172,12 @@ public class Main extends Application {
                 scene.heightProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
                 canvasStage.show();
                 scene.setOnKeyPressed(event -> {
-                    if (event.getCode() == KeyCode.DOWN || event.getCode() == KeyCode.RIGHT) {
+                    KeyCode keyCode = event.getCode();
+                    if (keyCode == KeyCode.DOWN || keyCode == KeyCode.RIGHT) {
                         myController.goNext();
-                    } else if (event.getCode() == KeyCode.UP || event.getCode() == KeyCode.LEFT) {
+                    } else if (keyCode == KeyCode.UP || keyCode == KeyCode.LEFT) {
                         myController.goPrev();
-                    }
-                    if (event.getCode() == KeyCode.F3) {
+                    } else if (keyCode == KeyCode.F3) {
                         if (tmpStage.isFullScreen()) {
                             tmpStage.setFullScreen(false);
                             primaryStage.requestFocus();
@@ -186,6 +186,7 @@ public class Main extends Application {
                             tmpStage.show();
                         }
                     }
+                    myController.onKeyPressed(event);
                 });
             }
             scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
