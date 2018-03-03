@@ -77,9 +77,9 @@ public class Main extends Application {
                 if (event.getCode() == KeyCode.F1) {
                     myController.setBlank();
                 }
-                if (event.getCode() == KeyCode.F3) {
+//                if (event.getCode() == KeyCode.F3) {
 //                    setCanvasToSecondScreen();
-                }
+//                }
                 if (event.getCode() == KeyCode.F8) {
                     myController.duplicateCanvas();
                 }
@@ -195,6 +195,7 @@ public class Main extends Application {
                 Settings settings = Settings.getInstance();
                 settings.setMainHeight(primaryStage.getScene().getHeight());
                 settings.setMainWidth(primaryStage.getScene().getWidth());
+                settings.increaseCurrentBibleUsage();
                 settings.save();
                 if (tmpStage != null) {
                     tmpStage.close();
