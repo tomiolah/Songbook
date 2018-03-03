@@ -53,7 +53,12 @@
             <a href="/#/song/{{song.uuid}}" target="_blank">{{'. Open'}}</a>
           </mat-list-item>
         </mat-nav-list>
-        <app-compare-songs *ngIf="secondSong!==null" [song]="song" [secondSong]="secondSong"></app-compare-songs>
+        <div *ngIf="secondSong!==null">
+          <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
+          <button mat-button (click)="acceptChanges()">
+            Put changes into similar!
+          </button>
+        </div>
       </div>
       <div *ngIf="similar.length<1&&receivedSimilar">
         <h3>No similar</h3>

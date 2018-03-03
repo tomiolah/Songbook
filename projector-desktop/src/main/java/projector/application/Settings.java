@@ -9,6 +9,7 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.paint.Color;
 import javafx.scene.text.FontWeight;
+import projector.model.Bible;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -28,8 +29,7 @@ import static java.lang.Double.parseDouble;
 public class Settings {
 
     private static Settings instance = null;
-    private List<String> bibleTitles;
-    private List<String> biblePaths;
+    private List<Bible> bibles;
     private int maxFont = 80;
     private boolean withAccents = false;
     private int currentBible = 0;
@@ -85,19 +85,19 @@ public class Settings {
     }
 
     public synchronized List<String> getBibleTitles() {
+        List<String> bibleTitles = new ArrayList<>(bibles.size());
+        for (Bible bible : bibles) {
+            bibleTitles.add(bible.getName());
+        }
         return bibleTitles;
     }
 
-    public synchronized void setBibleTitles(List<String> bibleTitles) {
-        this.bibleTitles = bibleTitles;
-    }
-
     public synchronized List<String> getBiblePaths() {
+        List<String> biblePaths = new ArrayList<>(bibles.size());
+        for (Bible bible : bibles) {
+            biblePaths.add(bible.getPath());
+        }
         return biblePaths;
-    }
-
-    public synchronized void setBiblePaths(List<String> biblePaths) {
-        this.biblePaths = biblePaths;
     }
 
     public synchronized int getMaxFont() {
@@ -262,12 +262,11 @@ public class Settings {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream("settings.ini");
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, "UTF-8"));
-            bw.write(bibleTitles.size() + System.lineSeparator());
-            for (int i = 0; i < bibleTitles.size(); ++i) {
-                bw.write(bibleTitles.get(i) + System.lineSeparator());
-                bw.write(biblePaths.get(i) + System.lineSeparator());
+            bw.write(bibles.size() + System.lineSeparator());
+            for (Bible bible : bibles) {
+                bw.write(bible.getName() + System.lineSeparator());
+                bw.write(bible.getPath() + " " + bible.getUsage() + System.lineSeparator());
             }
-            // bw.write(biblePath + System.lineSeparator());
             bw.write("maxFont" + System.lineSeparator());
             bw.write(maxFont + System.lineSeparator());
             bw.write("withAccents" + System.lineSeparator());
@@ -355,18 +354,28 @@ public class Settings {
         }
     }
 
+    public synchronized void increaseCurrentBibleUsage() {
+        Bible currentBible = bibles.get(this.currentBible);
+        currentBible.setUsage(currentBible.getUsage() + 1);
+    }
+
     private synchronized void load() {
         BufferedReader br = null;
         try {
             FileInputStream fileInputStream = new FileInputStream("settings.ini");
             br = new BufferedReader(new InputStreamReader(fileInputStream, "UTF-8"));
             Integer bibleNumber = Integer.parseInt(br.readLine());
-            // br.readLine();
-            bibleTitles = new ArrayList<>();
-            biblePaths = new ArrayList<>();
+            bibles = new ArrayList<>(bibleNumber);
             for (int i = 0; i < bibleNumber; ++i) {
-                bibleTitles.add(br.readLine());
-                biblePaths.add(br.readLine());
+                Bible bible = new Bible();
+                bible.setName(br.readLine());
+                String[] line = br.readLine().split(" ");
+                bible.setPath(line[0]);
+                try {
+                    bible.setUsage(Integer.parseInt(line[1]));
+                } catch (Exception ignored) {
+                }
+                bibles.add(bible);
             }
             br.readLine();
             maxFont = Integer.parseInt(br.readLine());
@@ -411,7 +420,14 @@ public class Settings {
                 logging = parseBoolean(br.readLine());
             }
             br.readLine();
-            parallelBibleIndex = Integer.parseInt(br.readLine());
+            br.readLine();
+            bibles.sort((l, r) -> Integer.compare(r.getUsage(), l.getUsage()));
+            for (int i = 0; i < bibleNumber; ++i) {
+                if (bibles.get(i).getPath().equals(parallelBiblePath)) {
+                    parallelBibleIndex = i;
+                    break;
+                }
+            }
             br.readLine();
             previewX = parseDouble(br.readLine());
             br.readLine();
@@ -479,7 +495,7 @@ public class Settings {
 
     public synchronized void setParallelBibleIndex(int parallelBibleIndex) {
         this.parallelBibleIndex = parallelBibleIndex;
-        parallelBiblePath = biblePaths.get(parallelBibleIndex);
+        parallelBiblePath = bibles.get(parallelBibleIndex).getPath();
     }
 
     public synchronized double getPreviewX() {

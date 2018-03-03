@@ -5,6 +5,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import projector.application.Settings;
 import projector.controller.song.SongController;
@@ -239,5 +240,9 @@ public class MyController {
 
     public void previewCanvas() {
         projectionScreenController.createPreview();
+    }
+
+    public void onKeyPressed(KeyEvent event) {
+        songController.onKeyPressed(event);
     }
 }
