@@ -653,13 +653,16 @@ public class SongController {
             sortComboBox.getItems().addAll(ascendingByTitle,
                     OrderMethod.DESCENDING_BY_TITLE,
                     OrderMethod.BY_MODIFIED_DATE,
-                    OrderMethod.BY_PUBLISHED);
+                    OrderMethod.BY_PUBLISHED,
+                    OrderMethod.BY_COLLECTION);
             SingleSelectionModel<OrderMethod> selectionModel = sortComboBox.getSelectionModel();
             selectionModel.selectFirst();
+            selectionModel.select(settings.getSongOrderMethod());
             selectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 sortSongs(songs);
                 addAllSongs();
                 addSongCollections();
+                settings.setSongOrderMethod(newValue);
             });
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -1112,7 +1115,21 @@ public class SongController {
                     }
                     return 0;
                 });
+            } else if (selectedItem.equals(OrderMethod.BY_COLLECTION)) {
+                songs.sort((l, r) -> {
+                    SongCollection rSongCollection = r.getSongCollection();
+                    SongCollection lSongCollection = l.getSongCollection();
+                    if (lSongCollection != null && rSongCollection != null) {
+                        return lSongCollection.getName().compareTo(rSongCollection.getName());
+                    } else if (lSongCollection != null) {
+                        return -1;
+                    } else if (rSongCollection != null) {
+                        return 1;
+                    }
+                    return 0;
+                });
             }
+
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

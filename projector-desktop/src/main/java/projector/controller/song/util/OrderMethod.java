@@ -6,7 +6,8 @@ public enum OrderMethod {
     ASCENDING_BY_TITLE("Ascending by title"),
     DESCENDING_BY_TITLE("Descending by title"),
     BY_MODIFIED_DATE("By modified date"),
-    BY_PUBLISHED("By published");
+    BY_PUBLISHED("By published"),
+    BY_COLLECTION("By collection");
     private String text;
 
     OrderMethod(String text) {
