@@ -9,6 +9,7 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.paint.Color;
 import javafx.scene.text.FontWeight;
+import projector.controller.song.util.OrderMethod;
 import projector.model.Bible;
 
 import java.io.BufferedReader;
@@ -72,6 +73,7 @@ public class Settings {
     private SimpleBooleanProperty showProgressLine = new SimpleBooleanProperty(true);
     private Color progressLineColor = new Color(1.0, 1.0, 1.0, 0.7);
     private SimpleBooleanProperty progressLinePositionIsTop = new SimpleBooleanProperty(true);
+    private OrderMethod songOrderMethod = OrderMethod.BY_COLLECTION;
 
     protected Settings() {
         load();
@@ -348,6 +350,8 @@ public class Settings {
             bw.write(progressLinePositionIsTop.get() + System.lineSeparator());
             bw.write("parallelBibleColor" + System.lineSeparator());
             bw.write(parallelBibleColor.toString() + System.lineSeparator());
+            bw.write("songOrderMethod" + System.lineSeparator());
+            bw.write(songOrderMethod.name() + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -469,6 +473,8 @@ public class Settings {
             progressLinePositionIsTop.set(parseBoolean(br.readLine()));
             br.readLine();
             parallelBibleColor = Color.web(br.readLine());
+            br.readLine();
+            songOrderMethod = OrderMethod.valueOf(br.readLine());
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -697,5 +703,13 @@ public class Settings {
 
     public synchronized void setParallelBibleColor(Color parallelBibleColor) {
         this.parallelBibleColor = parallelBibleColor;
+    }
+
+    public synchronized OrderMethod getSongOrderMethod() {
+        return songOrderMethod;
+    }
+
+    public synchronized void setSongOrderMethod(OrderMethod songOrderMethod) {
+        this.songOrderMethod = songOrderMethod;
     }
 }
