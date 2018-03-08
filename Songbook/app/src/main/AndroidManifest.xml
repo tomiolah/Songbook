@@ -41,6 +41,10 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.bence.songbook.ui.activity.MainActivity"/>
         </activity>
+        <activity
+            android:name=".ui.activity.SongActivity"
+            android:theme="@style/SongBookTheme">
+        </activity>
     </application>
 
 </manifest>

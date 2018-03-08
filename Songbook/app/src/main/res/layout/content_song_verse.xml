@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="fill_parent"
+              android:layout_height="wrap_content"
+              android:background="?attr/primaryDarkColor"
+              android:orientation="vertical"
+              android:padding="6dip">
+
+    <TextView
+        android:id="@+id/chorusTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/chorus"
+        android:textColor="@color/secondaryLightColor"
+        />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="6dp"
+        android:text="1. Majd ha Jézus vére érdemében mind
+Látjuk eltörölve minden bűneink,
+Majd ha mind fehér ruhába öltözünk,
+Oly boldogok leszünk."
+        tools:ignore="HardcodedText"/>
+
+</LinearLayout>

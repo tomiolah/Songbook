@@ -32,4 +32,6 @@
     <string name="downloading_collections">Gyűjtemények letöltése</string>
     <string name="saving_collections">Gyűjtemények lemetése</string>
     <string name="completed">Kész</string>
+    <string name="chorus">Refrén</string>
+    <string name="recently_viewed">Mostanában nézett</string>
 </resources>
