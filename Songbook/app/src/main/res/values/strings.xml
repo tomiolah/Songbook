@@ -35,5 +35,7 @@
     <string name="downloading_collections">Downloading collections</string>
     <string name="saving_collections">Saving collections</string>
     <string name="completed">Completed</string>
+    <string name="chorus">Chorus</string>
+    <string name="recently_viewed">Recently viewed</string>
 
 </resources>

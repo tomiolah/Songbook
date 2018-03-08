@@ -50,6 +50,14 @@
             android:padding="7dp"
             android:text="@string/descending_by_created_date"
             />
+
+        <RadioButton
+            android:id="@+id/recentlyViewedRadioButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="7dp"
+            android:text="@string/recently_viewed"
+            />
     </RadioGroup>
 
 </ScrollView>

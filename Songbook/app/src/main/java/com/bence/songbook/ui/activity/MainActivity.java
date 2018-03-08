@@ -4,11 +4,13 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -89,7 +91,7 @@ public class MainActivity extends AppCompatActivity
     private ListView songListView;
     private TextWatcher previousTextWatcher;
     private PopupWindow sortPopupWindow;
-    private int sortMethod = 0;
+    private int sortMethod;
     private PopupWindow collectionPopupWindow;
     private List<SongCollection> songCollections;
     private SongCollectionAdapter songCollectionAdapter;
@@ -112,6 +114,7 @@ public class MainActivity extends AppCompatActivity
         setTheme(Preferences.getTheme(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        initSortMethod();
         editText = findViewById(R.id.titleSearchEditText);
         songListView = findViewById(R.id.listView);
         inSongSearchSwitch = findViewById(R.id.inSongSearchSwitch);
@@ -197,6 +200,11 @@ public class MainActivity extends AppCompatActivity
                 startActivityForResult(loadIntent, 1);
             }
         }
+    }
+
+    private void initSortMethod() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sortMethod = sharedPreferences.getInt("sortMethod", 5);
     }
 
     private void createLoadSongVerseThread() {
@@ -399,7 +407,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void showSongFullscreen(Song song) {
-        Intent intent = new Intent(this, FullscreenActivity.class);
+        Intent intent = new Intent(this, SongActivity.class);
         Song copiedSong = new Song();
         copiedSong.setUuid(song.getUuid());
         copiedSong.setId(song.getId());
@@ -408,6 +416,8 @@ public class MainActivity extends AppCompatActivity
         copiedSong.setAccessedTimes(song.getAccessedTimes());
         copiedSong.setAccessedTimeAverage(song.getAccessedTimeAverage());
         copiedSong.setLastAccessed(song.getLastAccessed());
+        copiedSong.setSongCollection(song.getSongCollection());
+        copiedSong.setSongCollectionElement(song.getSongCollectionElement());
         intent.putExtra("Song", copiedSong);
         intent.putExtra("verseIndex", 0);
         startActivity(intent);
@@ -447,6 +457,13 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public int compare(Song lhs, Song rhs) {
                     return rhs.getCreatedDate().compareTo(lhs.getCreatedDate());
+                }
+            });
+        } else if (sortMethod == 5) {
+            Collections.sort(all, new Comparator<Song>() {
+                @Override
+                public int compare(Song lhs, Song rhs) {
+                    return rhs.getLastAccessed().compareTo(lhs.getLastAccessed());
                 }
             });
         }
@@ -536,6 +553,19 @@ public class MainActivity extends AppCompatActivity
                 LayoutParams.WRAP_CONTENT
         );
         RadioGroup radioGroup = customView.findViewById(R.id.radioSort);
+        if (sortMethod == 0) {
+            radioGroup.check(R.id.modifiedDateRadioButton);
+        } else if (sortMethod == 1) {
+            radioGroup.check(R.id.ascByTitleRadioButton);
+        } else if (sortMethod == 2) {
+            radioGroup.check(R.id.descByTitleRadioButton);
+        } else if (sortMethod == 3) {
+            radioGroup.check(R.id.ascByCreatedDateRadioButton);
+        } else if (sortMethod == 4) {
+            radioGroup.check(R.id.descByCreatedDateRadioButton);
+        } else if (sortMethod == 5) {
+            radioGroup.check(R.id.recentlyViewedRadioButton);
+        }
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -549,7 +579,11 @@ public class MainActivity extends AppCompatActivity
                     sortMethod = 3;
                 } else if (checkedId == R.id.descByCreatedDateRadioButton) {
                     sortMethod = 4;
+                } else if (checkedId == R.id.recentlyViewedRadioButton) {
+                    sortMethod = 5;
                 }
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                sharedPreferences.edit().putInt("sortMethod", sortMethod).apply();
                 loadAll();
                 sortPopupWindow.dismiss();
             }
@@ -622,7 +656,7 @@ public class MainActivity extends AppCompatActivity
                         createCollectionPopup();
                     }
                     hideKeyboard();
-                    filterCollectionByLanguage();
+                    sortCollectionBySelectedLanguages();
                     collectionPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
                 }
             }
@@ -631,7 +665,7 @@ public class MainActivity extends AppCompatActivity
         filterPopupWindow.setOutsideTouchable(true);
     }
 
-    private void filterCollectionByLanguage() {
+    private void sortCollectionBySelectedLanguages() {
         boolean oneLanguageSelected = isOneLanguageSelected();
         LongSparseArray<Object> languageHashMap = new LongSparseArray<>(languages.size());
         for (Language language : languages) {
@@ -646,6 +680,11 @@ public class MainActivity extends AppCompatActivity
         List<SongCollection> filteredSongCollections = new ArrayList<>();
         for (SongCollection songCollection : songCollections) {
             if (songCollection.getLanguage() == null || languageHashMap.get(songCollection.getLanguage().getId()) != null) {
+                filteredSongCollections.add(songCollection);
+            }
+        }
+        for (SongCollection songCollection : songCollections) {
+            if (!filteredSongCollections.contains(songCollection)) {
                 filteredSongCollections.add(songCollection);
             }
         }

@@ -32,8 +32,9 @@ public class Song extends BaseEntity {
     private Long accessedTimes;
     @DatabaseField
     private Long accessedTimeAverage;
-    private transient SongCollection songCollection;
-    private transient SongCollectionElement songCollectionElement;
+    private SongCollection songCollection;
+    private SongCollectionElement songCollectionElement;
+    private Date nullDate = new Date(0);
 
     public Song() {
     }
@@ -121,6 +122,9 @@ public class Song extends BaseEntity {
     }
 
     public Date getLastAccessed() {
+        if (lastAccessed == null) {
+            return nullDate;
+        }
         return lastAccessed;
     }
 
