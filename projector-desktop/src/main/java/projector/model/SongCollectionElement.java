@@ -1,11 +1,14 @@
 package projector.model;
 
+import com.google.gson.annotations.Expose;
 import com.j256.ormlite.field.DatabaseField;
 
 public class SongCollectionElement extends BaseEntity {
 
+    @Expose
     @DatabaseField
     private String ordinalNumber;
+    @Expose
     @DatabaseField
     private String songUuid;
     @DatabaseField(foreign = true, index = true)

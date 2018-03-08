@@ -231,6 +231,7 @@ public class MyController {
                 songController.getSongListView().getSelectionModel()
                         .clearAndSelect(songController.getSongListView().getSelectionModel().getSelectedIndex() + 1);
             }
+            songController.selectNextSongFromScheduleIfLastIndex();
         }
     }
 

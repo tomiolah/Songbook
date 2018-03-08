@@ -45,6 +45,11 @@ public class ScheduleController {
     private int searchSelected;
     private KeyCombination keyShiftUp = new KeyCodeCombination(KeyCode.UP, KeyCombination.SHIFT_DOWN);
     private KeyCombination keyShiftDown = new KeyCodeCombination(KeyCode.DOWN, KeyCombination.SHIFT_DOWN);
+    private int selectedIndex;
+
+    public int getSelectedIndex() {
+        return selectedIndex;
+    }
 
     public ListView<Text> getListView() {
         return listView;
@@ -66,6 +71,9 @@ public class ScheduleController {
             }
         });
         listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (listView.getSelectionModel().getSelectedIndex() != -1) {
+                selectedIndex = listView.getSelectionModel().getSelectedIndex();
+            }
             listView.getSelectionModel().getSelectedItem();
             if (newValue != null && !newValue.getText().isEmpty()) {
                 listView.getSelectionModel().getSelectedItem().setFill(Color.rgb(0, 0, 128));

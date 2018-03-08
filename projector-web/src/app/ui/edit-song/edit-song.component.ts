@@ -84,20 +84,25 @@ export class EditSongComponent implements OnInit {
     if (index > -1) {
       let i = 0;
       const formValue = this.form.value;
+      let verses: string[];
+      verses = [];
       for (const key in formValue) {
         if (formValue.hasOwnProperty(key) && key !== 'title') {
-          this.verses[i] = formValue[key];
+          verses[i] = formValue[key];
           this.verseControls.splice(i, 1);
           this.form.removeControl('verse' + i);
           ++i;
         }
       }
+      verses.splice(index, 1);
       this.verses.splice(index, 1);
       i = 0;
-      for (const verse of this.verses) {
+      for (const verse of verses) {
         const control = new FormControl(verse);
+        control.setValue(verse);
         this.verseControls.push(control);
-        this.form.addControl('verse' + i++, control);
+        this.form.addControl('verse' + i, control);
+        ++i;
       }
     }
   }
