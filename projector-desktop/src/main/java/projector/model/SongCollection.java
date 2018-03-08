@@ -1,5 +1,6 @@
 package projector.model;
 
+import com.google.gson.annotations.Expose;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -13,13 +14,18 @@ import java.util.List;
 public class SongCollection extends BaseEntity {
     @ForeignCollectionField
     private ForeignCollection<SongCollectionElement> songCollectionElementForeignCollection;
+    @Expose
     private List<SongCollectionElement> songCollectionElements;
+    @Expose
     @DatabaseField
     private Date createdDate;
+    @Expose
     @DatabaseField
     private Date modifiedDate;
+    @Expose
     @DatabaseField
     private String name;
+    @Expose
     @DatabaseField(foreign = true, index = true)
     private Language language;
     private boolean selected;
@@ -46,6 +52,9 @@ public class SongCollection extends BaseEntity {
     }
 
     public void setSongCollectionElements(List<SongCollectionElement> songCollectionElements) {
+        for (SongCollectionElement songCollectionElement : songCollectionElements) {
+            songCollectionElement.setSongCollection(this);
+        }
         this.songCollectionElements = songCollectionElements;
     }
 

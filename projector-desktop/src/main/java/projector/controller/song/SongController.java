@@ -389,6 +389,9 @@ public class SongController {
             songListView.setOnKeyPressed(event -> {
                 try {
                     KeyCode keyCode = event.getCode();
+                    if (keyCode == KeyCode.DOWN) {
+                        selectNextSongFromScheduleIfLastIndex();
+                    }
                     if (keyCode == KeyCode.DOWN || keyCode == KeyCode.UP || keyCode == KeyCode.HOME
                             || keyCode == KeyCode.END || keyCode == KeyCode.PAGE_DOWN
                             || keyCode == KeyCode.PAGE_UP) {
@@ -595,6 +598,13 @@ public class SongController {
             importButton.setOnAction(event -> importButtonOnAction());
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+    public void selectNextSongFromScheduleIfLastIndex() {
+        if (songListView.getSelectionModel().getSelectedIndex() == songListView.getItems().size() - 1) {
+            int nextIndex = scheduleController.getSelectedIndex() + 1;
+            scheduleListView.getSelectionModel().select(nextIndex);
         }
     }
 

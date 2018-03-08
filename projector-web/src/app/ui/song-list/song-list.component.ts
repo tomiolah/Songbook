@@ -49,9 +49,16 @@ export class SongListComponent implements OnInit {
     this.filteredSongs = this.songControl.valueChanges
       .startWith(null)
       .map(song => song ? this.filterStates(song) : this.songTitles.slice());
-    this.pageE = new PageEvent();
-    this.pageE.pageSize = 10;
-    this.pageE.pageIndex = 0;
+    let pageEvent = new PageEvent();
+    pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
+    pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
+    if (pageEvent.pageSize == undefined) {
+      pageEvent.pageSize = 10;
+    }
+    if (pageEvent.pageIndex == undefined) {
+      pageEvent.pageIndex = 0;
+    }
+    this.pageE = pageEvent;
   }
 
   ngOnInit() {
@@ -93,6 +100,8 @@ export class SongListComponent implements OnInit {
   pageEvent(pageEvent: PageEvent) {
     this.pageE = pageEvent;
     const start = this.pageE.pageIndex * this.pageE.pageSize;
+    sessionStorage.setItem("pageIndex", JSON.stringify(this.pageE.pageIndex));
+    sessionStorage.setItem("pageSize", JSON.stringify(this.pageE.pageSize));
     const end = (this.pageE.pageIndex + 1) * this.pageE.pageSize;
     this.paginatedSongs = this.filteredSongsList.slice(start, end);
   }
@@ -133,8 +142,14 @@ export class SongListComponent implements OnInit {
           this.sortSongTitles();
           this.songControl.updateValueAndValidity();
           const pageEvent = new PageEvent();
-          pageEvent.pageSize = 10;
-          pageEvent.pageIndex = 0;
+          pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
+          pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
+          if (pageEvent.pageSize == undefined) {
+            pageEvent.pageSize = 10;
+          }
+          if (pageEvent.pageIndex == undefined) {
+            pageEvent.pageIndex = 0;
+          }
           this.pageEvent(pageEvent);
           localStorage.setItem('songTitles', JSON.stringify(this.songTitles));
         }
@@ -146,8 +161,14 @@ export class SongListComponent implements OnInit {
           this.sortSongTitles();
           this.songControl.updateValueAndValidity();
           const pageEvent = new PageEvent();
-          pageEvent.pageSize = 10;
-          pageEvent.pageIndex = 0;
+          pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
+          pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
+          if (pageEvent.pageSize == undefined) {
+            pageEvent.pageSize = 10;
+          }
+          if (pageEvent.pageIndex == undefined) {
+            pageEvent.pageIndex = 0;
+          }
           this.pageEvent(pageEvent);
         }
       );
