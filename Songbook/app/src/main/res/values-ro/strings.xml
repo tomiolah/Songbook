@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Carte de cântări</string>
+    <string name="search">Căutare</string>
+    <string name="we_need_this_permissions">Avem nevoie de aceste permisiuni!</string>
+    <string name="You_need_to_wait_for_this_feature">Trebuie să așteptați încărcarea acestei caracteristici!</string>
+    <string name="SearchInSongTextIsAvailable">Căutarea în text este disponibilă!</string>
+    <string name="loading_and_downloading_songs_the_first_time_it_takes_some_time">Încărcarea și descărcarea cântecelor.</string>
+    <string name="skip">Ocolire</string>
+    <string name="downloading_songs_selected_language">Descărcarea cântecelor. Limba selectată:</string>
+    <string name="navigation_drawer_open">Deschideți sertarul de navigare</string>
+    <string name="navigation_drawer_close">Închideți sertarul de navigare</string>
+    <string name="language">Limba</string>
+    <string name="download_songs">Descărcarea cântecelor</string>
+    <string name="select_languages">Selectați limbile pentru cântece</string>
+    <string name="downloading_songs">Descărcarea cântecelor</string>
+    <string name="filter">Filtrează</string>
+    <string name="sort">Sortează</string>
+    <string name="select">Selectați</string>
+    <string name="modified_date">Data modificata</string>
+    <string name="ascending_by_title">Crescător după titlu</string>
+    <string name="descending_by_title">Descrescător după titlu</string>
+    <string name="ascending_by_created_date">Crescător după data creată</string>
+    <string name="descending_by_created_date">Descrescător după data creată</string>
+    <string name="close">Închide</string>
+    <string name="downloaded">Descărcat</string>
+    <string name="settings">Setări</string>
+    <string name="light_theme">Temă luminoasă</string>
+    <string name="maximum_size_of_text">Dimensiunea maximă a textului</string>
+    <string name="collection">Colecţie</string>
+    <string name="saving_songs">Salvarea cântecelor</string>
+    <string name="downloading_collections">Descărcarea colecțiilor</string>
+    <string name="saving_collections">Salvarea colecțiilor</string>
+    <string name="completed">Terminat</string>
+    <string name="chorus">Cor</string>
+    <string name="recently_viewed">Vizualizate recent</string>
+    <string name="downloading_progress_not_completed">Descărcarea nu s-a încheiat. Apăsați din nou pentru a reveni.</string>
+</resources>
