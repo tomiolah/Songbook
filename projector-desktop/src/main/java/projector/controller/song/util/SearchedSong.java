@@ -1,16 +1,13 @@
 package projector.controller.song.util;
 
-import javafx.scene.text.TextFlow;
 import projector.model.Song;
 
-public class SearchedSong {
+public class SearchedSong extends SongTextFlow {
 
     private String foundAtVerse;
-    private Song song;
-    private TextFlow textFlow;
 
     public SearchedSong(Song song) {
-        this.song = song;
+        super(song);
     }
 
     public String getFoundAtVerse() {
@@ -21,15 +18,4 @@ public class SearchedSong {
         this.foundAtVerse = foundAtVerse;
     }
 
-    public Song getSong() {
-        return song;
-    }
-
-    public TextFlow getTextFlow() {
-        return textFlow;
-    }
-
-    public void setTextFlow(TextFlow textFlow) {
-        this.textFlow = textFlow;
-    }
 }

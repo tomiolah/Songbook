@@ -13,7 +13,7 @@ import java.util.List;
 public class AbstractRepository<T extends BaseEntity> implements CrudDAO<T> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractRepository.class);
 
-    private Dao<T, Long> dao;
+    Dao<T, Long> dao;
     private String simpleName;
     private String simpleNames;
 

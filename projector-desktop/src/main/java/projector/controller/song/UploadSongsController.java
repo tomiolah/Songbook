@@ -74,6 +74,7 @@ public class UploadSongsController {
                         if (!allPublished) {
                             noInternetMessage();
                         } else {
+                            uploadButton.setDisable(true);
                             uploadingLabel.setText("Finished!");
                         }
                     });

@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static projector.utils.StringUtils.stripAccents;
+
 public class SongCollection extends BaseEntity {
     @ForeignCollectionField
     private ForeignCollection<SongCollectionElement> songCollectionElementForeignCollection;
@@ -30,6 +32,7 @@ public class SongCollection extends BaseEntity {
     private Language language;
     private boolean selected;
     private List<Song> songs;
+    private String strippedName;
 
     public SongCollection() {
     }
@@ -83,6 +86,13 @@ public class SongCollection extends BaseEntity {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getStrippedName() {
+        if (strippedName == null) {
+            strippedName = stripAccents(name.toLowerCase());
+        }
+        return strippedName;
     }
 
     public Language getLanguage() {

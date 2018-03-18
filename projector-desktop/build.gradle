@@ -27,6 +27,7 @@ jfx {
 }
 
 dependencies {
+
     compile project(":projector-common")
     compile "com.h2database:h2:1.4.193"
 

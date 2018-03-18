@@ -1,7 +1,5 @@
 package projector.controller;
 
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -45,72 +43,66 @@ public class RecentController {
         songTitles = new LinkedList<>();
         versNumbersListText = new LinkedList<>();
         versNumbersList = new ArrayList<>();
-        listView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
-
-            @Override
-            public void changed(ObservableValue<? extends String> observable, String oldValue, String newValue) {
-                if (!newValue.isEmpty()) {
-                    if (typeList.get(listView.getSelectionModel().getSelectedIndex()) == ProjectionType.SONG) {
-                        // songController.setTitleTextFieldText(newValue);
-                        songController.titleSearchStartWith(newValue);
-                    } else if (typeList.get(listView.getSelectionModel().getSelectedIndex()) == ProjectionType.BIBLE) {
-                        int index = listView.getSelectionModel().selectedIndexProperty().get();
-                        if (index >= 0) {
-                            bibleController.addAllBooks();
-                            while (bibleController.isNotAllBooks()) {
-                                try {
-                                    TimeUnit.MILLISECONDS.sleep(1);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
+        listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.isEmpty()) {
+                if (typeList.get(listView.getSelectionModel().getSelectedIndex()) == ProjectionType.SONG) {
+                    songController.titleSearchStartWith(newValue);
+                } else if (typeList.get(listView.getSelectionModel().getSelectedIndex()) == ProjectionType.BIBLE) {
+                    int index = listView.getSelectionModel().selectedIndexProperty().get();
+                    if (index >= 0) {
+                        bibleController.addAllBooks();
+                        while (bibleController.isNotAllBooks()) {
+                            try {
+                                TimeUnit.MILLISECONDS.sleep(1);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
                             }
-                            if (bibleController.getBookListView().getSelectionModel().getSelectedIndex() != bookI
-                                    .get(index)) {
-                                searchSelected = 1;
-                            } else {
-                                searchSelected = 0;
-                            }
-                            bibleController.getBookListView().getSelectionModel().select(bookI.get(index));
-                            while (searchSelected == 1) {
-                                try {
-                                    TimeUnit.MILLISECONDS.sleep(1);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            bibleController.getBookListView().scrollTo(bookI.get(index));
-                            if (bibleController.getPartListView().getSelectionModel().getSelectedIndex() != partI
-                                    .get(index)) {
-                                searchSelected = 2;
-                            } else {
-                                searchSelected = 0;
-                            }
-                            int p = partI.get(index);
-                            bibleController.getPartListView().getSelectionModel().select(p);
-                            while (searchSelected == 2) {
-                                try {
-                                    TimeUnit.MILLISECONDS.sleep(1);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                            }
-                            bibleController.getPartListView().scrollTo(partI.get(index));
-                            bibleController.getVerseListView().getSelectionModel().clearSelection();
-                            // bibleController.getFullVersListView().getSelectionModel().clearSelection();
-                            bibleController.setSelecting(true);
-                            for (Integer i : versNumbersList.get(index)) {
-                                bibleController.getVerseListView().getSelectionModel().select(i);
-                            }
-                            bibleController.setSelecting(false);
-                            // bibleController.getFullVersListView().getSelectionModel()
-                            // .select(versI.get(index).intValue());
-                            bibleController.getVerseListView().scrollTo(versI.get(index));
-                            // bibleController.getFullVersListView().scrollTo(versI.get(index));
                         }
+                        if (bibleController.getBookListView().getSelectionModel().getSelectedIndex() != bookI
+                                .get(index)) {
+                            searchSelected = 1;
+                        } else {
+                            searchSelected = 0;
+                        }
+                        bibleController.getBookListView().getSelectionModel().select(bookI.get(index));
+                        while (searchSelected == 1) {
+                            try {
+                                TimeUnit.MILLISECONDS.sleep(1);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        bibleController.getBookListView().scrollTo(bookI.get(index));
+                        if (bibleController.getPartListView().getSelectionModel().getSelectedIndex() != partI
+                                .get(index)) {
+                            searchSelected = 2;
+                        } else {
+                            searchSelected = 0;
+                        }
+                        int p = partI.get(index);
+                        bibleController.getPartListView().getSelectionModel().select(p);
+                        while (searchSelected == 2) {
+                            try {
+                                TimeUnit.MILLISECONDS.sleep(1);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        bibleController.getPartListView().scrollTo(partI.get(index));
+                        bibleController.getVerseListView().getSelectionModel().clearSelection();
+                        // bibleController.getFullVersListView().getSelectionModel().clearSelection();
+                        bibleController.setSelecting(true);
+                        for (Integer i : versNumbersList.get(index)) {
+                            bibleController.getVerseListView().getSelectionModel().select(i);
+                        }
+                        bibleController.setSelecting(false);
+                        // bibleController.getFullVersListView().getSelectionModel()
+                        // .select(versI.get(index).intValue());
+                        bibleController.getVerseListView().scrollTo(versI.get(index));
+                        // bibleController.getFullVersListView().scrollTo(versI.get(index));
                     }
                 }
             }
-
         });
         listView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
             @Override
@@ -148,7 +140,7 @@ public class RecentController {
 
     public void addRecentBibleVers(String text, int book, int part, int vers) {
         if (!isBlank) {
-            if (!text.trim().isEmpty() && !isTheLastVers(book, part, vers)) {
+            if (!text.trim().isEmpty()) {
                 typeList.add(ProjectionType.BIBLE);
                 listView.getItems().add(text);
                 bookI.add(book);
@@ -190,10 +182,6 @@ public class RecentController {
         this.searchSelected = searchSelected;
     }
 
-    public boolean isBlank() {
-        return isBlank;
-    }
-
     public void setBlank(boolean isBlank) {
         this.isBlank = isBlank;
     }
@@ -226,7 +214,7 @@ public class RecentController {
     public void addRecentBibleVers(String text, int iBook, int iPart, int iVers, String versNumbers,
                                    ArrayList<Integer> tmpVersNumberList) {
         if (!isBlank) {
-            if (!text.trim().isEmpty() && !isTheLastVers(iBook, iPart, iVers)) {
+            if (!text.trim().isEmpty()) {
                 typeList.add(ProjectionType.BIBLE);
                 listView.getItems().add(text);
                 bookI.add(iBook);
@@ -236,9 +224,5 @@ public class RecentController {
                 versNumbersList.add(tmpVersNumberList);
             }
         }
-    }
-
-    public boolean isTheLastVers(int iBook, int iPart, int iVers) {
-        return false;
     }
 }

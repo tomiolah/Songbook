@@ -16,9 +16,6 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
-<?import javafx.scene.shape.Line?>
-<?import java.util.ArrayList?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="560" prefWidth="800"
             xmlns="http://javafx.com/javafx/8.0.121" fx:controller="projector.controller.song.SongController">
     <center>
@@ -100,17 +97,17 @@
                                                 <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
                                             </padding>
                                         </Button>
-                                        <Button fx:id="newSongCollectionButton" maxHeight="5.0" mnemonicParsing="false"
-                                                visible="false"
-                                                onAction="#newSongCollectionButtonOnAction" prefHeight="5.0"
-                                                text="%New song book" BorderPane.alignment="CENTER">
-                                            <BorderPane.margin>
-                                                <Insets bottom="4.0" left="4.0" right="4.0" top="8.0"/>
-                                            </BorderPane.margin>
-                                            <padding>
-                                                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
-                                            </padding>
-                                        </Button>
+                                        <!--<Button fx:id="newSongCollectionButton" maxHeight="5.0" mnemonicParsing="false"-->
+                                        <!--visible="false"-->
+                                        <!--onAction="#newSongCollectionButtonOnAction" prefHeight="5.0"-->
+                                        <!--text="%New song book" BorderPane.alignment="CENTER">-->
+                                        <!--<BorderPane.margin>-->
+                                        <!--<Insets bottom="4.0" left="4.0" right="4.0" top="8.0"/>-->
+                                        <!--</BorderPane.margin>-->
+                                        <!--<padding>-->
+                                        <!--<Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>-->
+                                        <!--</padding>-->
+                                        <!--</Button>-->
                                     </HBox>
                                 </center>
                                 <GridPane.margin>
@@ -265,30 +262,6 @@
                         </BorderPane.margin>
                     </ListView>
                 </center>
-                <bottom>
-                    <Pane prefHeight="21.0" BorderPane.alignment="CENTER">
-                        <padding>
-                            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
-                        </padding>
-                        <Line fx:id="line1" endX="200.0" layoutX="0" layoutY="0" stroke="rgb(0,128,192)"/>
-                        <Line fx:id="line2" layoutY="2" stroke="rgb(255,0,0)"/>
-                        <Line fx:id="line3" layoutX="0" layoutY="4" stroke="rgb(0,128,192)"/>
-                        <Line fx:id="line4" layoutX="0" layoutY="6" stroke="rgb(255,0,0)"/>
-                        <Line fx:id="line5" layoutX="0" layoutY="8" stroke="rgb(0,128,192)"/>
-                        <Line fx:id="line6" layoutX="0" layoutY="10" stroke="rgb(255,0,0)"/>
-                        <Line fx:id="activeLine" endX="200.0" layoutX="0" layoutY="0" stroke="rgba(255,255,0,0.7)"/>
-                        <fx:define>
-                            <ArrayList fx:id="lineList">
-                                <fx:reference source="line1"/>
-                                <fx:reference source="line2"/>
-                                <fx:reference source="line3"/>
-                                <fx:reference source="line4"/>
-                                <fx:reference source="line5"/>
-                                <fx:reference source="line6"/>
-                            </ArrayList>
-                        </fx:define>
-                    </Pane>
-                </bottom>
                 <padding>
                     <Insets left="2.0"/>
                 </padding>
