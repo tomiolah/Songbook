@@ -14,80 +14,63 @@
             fx:controller="projector.controller.MyController">
     <center>
         <AnchorPane>
-            <children>
-                <TabPane fx:id="tabPane" prefHeight="600" prefWidth="800"
-                         tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0"
-                         AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                         AnchorPane.topAnchor="0.0">
-                    <tabs>
-                        <Tab fx:id="bibleTab" closable="false" text="%Bible">
-                            <content>
-                                <fx:include fx:id="bible" source="Bible.fxml"/>
-                            </content>
-                        </Tab>
-                        <Tab fx:id="bibleSearchTab" closable="false" text="%BibleSearch">
-                            <content>
-                                <fx:include fx:id="bibleSearch" source="BibleSearch.fxml"/>
-                            </content>
-                        </Tab>
-                        <Tab fx:id="songsTab" closable="false" text="%Song">
-                            <content>
-                                <fx:include fx:id="song" source="song/Song.fxml"/>
-                            </content>
-                        </Tab>
-                        <Tab fx:id="recentTab" closable="false" text="%Recent">
-                            <content>
-                                <fx:include fx:id="recent" source="Recent.fxml"/>
-                            </content>
-                        </Tab>
-                        <Tab closable="true" text="%History">
-                            <content>
-                                <fx:include fx:id="history" source="History.fxml"/>
-                            </content>
-                        </Tab>
-                        <!-- Tab closable="false" text="Schedule"> <content> <fx:include fx:id="schedule"
-                            source="Schedule.fxml" /> </content> </Tab -->
-                        <Tab closable="false" text="%Settings">
-                            <content>
-                                <fx:include fx:id="settings" source="Settings.fxml"/>
-                            </content>
-                        </Tab>
-                    </tabs>
-                </TabPane>
+            <TabPane fx:id="tabPane" prefHeight="600" prefWidth="800"
+                     tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0"
 
-                <HBox AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="1.0">
-                    <children>
-                        <!--<Slider fx:id="slider" max="1.0" maxWidth="10" value="1.0"-->
-                        <!--visible="false" />-->
-                        <!--<Text strokeType="OUTSIDE" strokeWidth="0.0" text="Opacity"-->
-                        <!--visible="false" />-->
-                        <ToggleButton fx:id="blankButton" maxHeight="5.0"
-                                      mnemonicParsing="false" onAction="#blankButtonOnAction"
-                                      prefHeight="5.0" text="%Blank">
-                            <HBox.margin>
-                                <Insets right="4.0" top="2.0"/>
-                            </HBox.margin>
-                        </ToggleButton>
+                     AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                     AnchorPane.topAnchor="0.0">
+                <Tab fx:id="bibleTab" closable="false" text="%Bible">
+                    <fx:include fx:id="bible" source="Bible.fxml"/>
+                </Tab>
+                <Tab fx:id="bibleSearchTab" closable="false" text="%BibleSearch">
+                    <fx:include fx:id="bibleSearch" source="BibleSearch.fxml"/>
+                </Tab>
+                <Tab fx:id="songsTab" closable="false" text="%Song">
+                    <fx:include fx:id="song" source="song/Song.fxml"/>
+                </Tab>
+                <Tab fx:id="recentTab" closable="false" text="%Recent">
+                    <fx:include fx:id="recent" source="Recent.fxml"/>
+                </Tab>
+                <Tab text="%History">
+                    <fx:include fx:id="history" source="History.fxml"/>
+                </Tab>
+                <!-- Tab closable="false" text="Schedule"> <content> <fx:include fx:id="schedule"
+                        source="Schedule.fxml" /> </content> </Tab -->
+                <Tab closable="false" text="%Settings">
+                    <fx:include fx:id="settings" source="Settings.fxml"/>
+                </Tab>
+            </TabPane>
 
-                        <Button fx:id="previewButton" maxHeight="5.0"
-                                mnemonicParsing="false" onAction="#previewButtonOnAction"
-                                prefHeight="5.0" prefWidth="90.0" text="%Preview">
-                            <HBox.margin>
-                                <Insets right="4.0" top="2.0"/>
-                            </HBox.margin>
-                        </Button>
+            <HBox AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="1.0">
+                <!--<Slider fx:id="slider" max="1.0" maxWidth="10" value="1.0"-->
+                <!--visible="false" />-->
+                <!--<Text strokeType="OUTSIDE" strokeWidth="0.0" text="Opacity"-->
+                <!--visible="false" />-->
+                <ToggleButton fx:id="blankButton" maxHeight="5.0"
+                              mnemonicParsing="false" onAction="#blankButtonOnAction"
+                              prefHeight="5.0" text="%Blank">
+                    <HBox.margin>
+                        <Insets right="4.0" top="2.0"/>
+                    </HBox.margin>
+                </ToggleButton>
 
-                        <ToggleButton fx:id="lockButton" maxHeight="5.0"
-                                      mnemonicParsing="false" onAction="#lockButtonOnAction"
-                                      prefHeight="5.0" text="%Lock">
-                            <HBox.margin>
-                                <Insets right="4.0" top="2.0"/>
-                            </HBox.margin>
-                        </ToggleButton>
-                    </children>
-                </HBox>
+                <Button fx:id="previewButton" maxHeight="5.0"
+                        mnemonicParsing="false" onAction="#previewButtonOnAction"
+                        prefHeight="5.0" prefWidth="90.0" text="%Preview">
+                    <HBox.margin>
+                        <Insets right="4.0" top="2.0"/>
+                    </HBox.margin>
+                </Button>
 
-            </children>
+                <ToggleButton fx:id="lockButton" maxHeight="5.0"
+                              mnemonicParsing="false" onAction="#lockButtonOnAction"
+                              prefHeight="5.0" text="%Lock">
+                    <HBox.margin>
+                        <Insets right="4.0" top="2.0"/>
+                    </HBox.margin>
+                </ToggleButton>
+            </HBox>
+
         </AnchorPane>
     </center>
 </BorderPane>

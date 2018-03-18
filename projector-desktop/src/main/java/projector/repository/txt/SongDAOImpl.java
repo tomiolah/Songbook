@@ -52,6 +52,7 @@ public class SongDAOImpl implements SongDAO {
                 boolean wasChorus = false;
                 SongVerse tmpChorus = null;
                 while ((strLine = br.readLine()) != null && !strLine.trim().startsWith("qqqqqqq")) {
+                    //noinspection StatementWithEmptyBody
                     while (strLine.trim().isEmpty() && (strLine = br.readLine()) != null) {
 
                     }
@@ -154,6 +155,11 @@ public class SongDAOImpl implements SongDAO {
 
     @Override
     public Song findByUuid(String uuid) {
+        return null;
+    }
+
+    @Override
+    public Song findByTitle(String title) {
         return null;
     }
 }

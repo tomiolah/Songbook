@@ -8,6 +8,7 @@ import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 import projector.application.Settings;
+import projector.controller.song.ScheduleController;
 import projector.controller.song.SongController;
 import projector.network.TCPClient;
 import projector.network.TCPServer;
@@ -93,7 +94,6 @@ public class MyController {
         songController.setScheduleController(scheduleController);
         recentController.setSongController(songController);
         recentController.setBibleController(bibleController);
-        scheduleController.setBibleController(bibleController);
         scheduleController.setSongController(songController);
         settingsController.setSettings(settings);
         settingsController.setBibleController(bibleController);

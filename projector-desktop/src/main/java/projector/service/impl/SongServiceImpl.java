@@ -69,4 +69,14 @@ public class SongServiceImpl extends AbstractService<Song> implements SongServic
             throw new ServiceException(e.getMessage(), e);
         }
     }
+
+    @Override
+    public Song findByTitle(String title) {
+        try {
+            return songDAO.findByTitle(title);
+        } catch (RepositoryException e) {
+            LOG.error(e.getMessage(), e);
+            throw new ServiceException(e.getMessage(), e);
+        }
+    }
 }
