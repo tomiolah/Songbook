@@ -1,7 +1,10 @@
-package projector.controller;
+package projector.controller.song;
 
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.KeyCode;
@@ -11,11 +14,16 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import projector.application.ProjectionType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.application.Settings;
-import projector.controller.song.SongController;
+import projector.controller.song.util.ScheduleSong;
+import projector.model.Song;
+import projector.service.ServiceManager;
+import projector.service.SongService;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,23 +34,20 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
+
+import static projector.controller.song.SongController.setSongCollections;
+import static projector.controller.song.SongController.setTextFlowsText;
 
 public class ScheduleController {
+    private static final Logger LOG = LoggerFactory.getLogger(ScheduleController.class);
+    private final String $id$_ = "$id$ ";
+    private final String $uuid$_ = "$uuid$ ";
 
     @FXML
-    private ListView<Text> listView;
+    private ListView<ScheduleSong> listView;
 
     private SongController songController;
-    private BibleController bibleController;
-    private List<ProjectionType> typeList;
-    private List<Integer> bookI;
-    private List<Integer> partI;
-    private List<Integer> versI;
-    private List<List<Integer>> versNumbersList;
-    private int searchSelected;
     private KeyCombination keyShiftUp = new KeyCodeCombination(KeyCode.UP, KeyCombination.SHIFT_DOWN);
     private KeyCombination keyShiftDown = new KeyCodeCombination(KeyCode.DOWN, KeyCombination.SHIFT_DOWN);
     private int selectedIndex;
@@ -51,20 +56,45 @@ public class ScheduleController {
         return selectedIndex;
     }
 
-    public ListView<Text> getListView() {
+    public ListView<ScheduleSong> getListView() {
         return listView;
     }
 
-    public void setListView(ListView<Text> listView) {
+    public void setListView(ListView<ScheduleSong> listView) {
         this.listView = listView;
     }
 
     public void initialize() {
-        typeList = new LinkedList<>();
-        bookI = new LinkedList<>();
-        partI = new LinkedList<>();
-        versI = new LinkedList<>();
-        versNumbersList = new ArrayList<>();
+
+        listView.setCellFactory(param -> new ListCell<ScheduleSong>() {
+            @Override
+            protected void updateItem(ScheduleSong item, boolean empty) {
+                try {
+                    super.updateItem(item, empty);
+                    if (item == null) {
+                        setGraphic(null);
+                    } else if (empty || item.getSong().getTitle() == null) {
+                        TextFlow textFlow = setTextFlowsText(item, item.getTextFlow());
+                        setGraphic(textFlow);
+                        item.setTextFlow(textFlow);
+                    } else {
+                        Song song = item.getSong();
+                        TextFlow textFlow = item.getTextFlow();
+                        if (textFlow == null) {
+                            textFlow = new TextFlow();
+                        } else {
+                            textFlow.getChildren().clear();
+                        }
+                        ObservableList<Node> children = textFlow.getChildren();
+                        children.add(new Text(song.getTitle()));
+                        setGraphic(textFlow);
+                        item.setTextFlow(textFlow);
+                    }
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
+            }
+        });
         listView.focusedProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue) {
                 listView.getSelectionModel().clearSelection();
@@ -74,63 +104,12 @@ public class ScheduleController {
             if (listView.getSelectionModel().getSelectedIndex() != -1) {
                 selectedIndex = listView.getSelectionModel().getSelectedIndex();
             }
-            listView.getSelectionModel().getSelectedItem();
-            if (newValue != null && !newValue.getText().isEmpty()) {
-                listView.getSelectionModel().getSelectedItem().setFill(Color.rgb(0, 0, 128));
-                if (typeList.get(listView.getSelectionModel().getSelectedIndex()) == ProjectionType.SONG) {
-                    if (!songController.titleSearchStartWith(newValue.getText())) {
-                        songController.setTitleTextFieldText(newValue.getText());
-                    }
-                } else if (typeList.get(listView.getSelectionModel().getSelectedIndex()) == ProjectionType.BIBLE) {
-                    int index = listView.getSelectionModel().selectedIndexProperty().get();
-                    if (index >= 0) {
-                        bibleController.addAllBooks();
-                        while (bibleController.isNotAllBooks()) {
-                            try {
-                                TimeUnit.MILLISECONDS.sleep(1);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        if (bibleController.getBookListView().getSelectionModel().getSelectedIndex() != bookI
-                                .get(index)) {
-                            searchSelected = 1;
-                        } else {
-                            searchSelected = 0;
-                        }
-                        bibleController.getBookListView().getSelectionModel().select(bookI.get(index));
-                        while (searchSelected == 1) {
-                            try {
-                                TimeUnit.MILLISECONDS.sleep(1);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        bibleController.getBookListView().scrollTo(bookI.get(index));
-                        if (bibleController.getPartListView().getSelectionModel().getSelectedIndex() != partI
-                                .get(index)) {
-                            searchSelected = 2;
-                        } else {
-                            searchSelected = 0;
-                        }
-                        int p = partI.get(index);
-                        bibleController.getPartListView().getSelectionModel().select(p);
-                        while (searchSelected == 2) {
-                            try {
-                                TimeUnit.MILLISECONDS.sleep(1);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        bibleController.getPartListView().scrollTo(partI.get(index));
-                        bibleController.getVerseListView().getSelectionModel().clearSelection();
-                        bibleController.setSelecting(true);
-                        for (Integer i : versNumbersList.get(index)) {
-                            bibleController.getVerseListView().getSelectionModel().select(i);
-                        }
-                        bibleController.setSelecting(false);
-                        bibleController.getVerseListView().scrollTo(versI.get(index));
-                    }
+            ScheduleSong selectedItem = listView.getSelectionModel().getSelectedItem();
+            if (newValue != null) {
+                String text = newValue.getSong().getTitle();
+                if (!text.isEmpty()) {
+                    setTextColor(selectedItem, Color.rgb(0, 0, 128));
+                    songController.selectSong(newValue.getSong());
                 }
             }
         });
@@ -175,8 +154,14 @@ public class ScheduleController {
                 try {
                     ofStream = new FileOutputStream(selectedFile);
                     BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(ofStream, "UTF-8"));
-                    for (Text i : listView.getItems()) {
-                        bw.write(i.getText() + System.lineSeparator());
+                    for (ScheduleSong i : listView.getItems()) {
+                        Song song = i.getSong();
+                        if (song.getUuid() == null) {
+                            bw.write($id$_ + song.getId() + System.lineSeparator());
+                        } else {
+                            bw.write($uuid$_ + song.getUuid() + System.lineSeparator());
+                        }
+                        bw.write(song.getTitle() + System.lineSeparator());
                     }
                     bw.close();
                 } catch (IOException e) {
@@ -196,12 +181,39 @@ public class ScheduleController {
                     ifStream = new FileInputStream(selectedFile);
                     BufferedReader br = new BufferedReader(new InputStreamReader(ifStream, "UTF-8"));
                     listView.getItems().clear();
+                    SongService songService = ServiceManager.getSongService();
                     String tmp = br.readLine();
+                    List<Song> readSongs = new ArrayList<>();
                     while (tmp != null) {
-                        addRecentSong(tmp, ProjectionType.SONG);
+                        Song byId;
+                        if (tmp.startsWith($id$_)) {
+                            byId = songService.findById(Long.parseLong(tmp.substring($id$_.length())));
+                        } else if (tmp.startsWith($uuid$_)) {
+                            byId = songService.findByUuid(tmp.substring($uuid$_.length()));
+                        } else {
+                            Song byTitle = songService.findByTitle(tmp);
+                            if (byTitle != null) {
+                                readSongs.add(byTitle);
+                            }
+                            tmp = br.readLine();
+                            continue;
+                        }
+                        if (byId == null) {
+                            Song byTitle = songService.findByTitle(br.readLine());
+                            if (byTitle != null) {
+                                readSongs.add(byTitle);
+                            }
+                        } else {
+                            br.readLine();
+                            readSongs.add(byId);
+                        }
                         tmp = br.readLine();
                     }
                     br.close();
+                    setSongCollections(readSongs);
+                    for (Song song : readSongs) {
+                        addSong(song);
+                    }
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -211,20 +223,20 @@ public class ScheduleController {
             if (keyShiftUp.match(event)) {
                 int selectedIndex = listView.getSelectionModel().getSelectedIndex();
                 if (selectedIndex > 0) {
-                    Text tmp = listView.getSelectionModel().getSelectedItem();
+                    ScheduleSong tmp = listView.getSelectionModel().getSelectedItem();
                     listView.getSelectionModel().clearSelection();
                     listView.getSelectionModel().select(selectedIndex - 1);
-                    listView.getSelectionModel().getSelectedItem().setFill(Color.rgb(72, 57, 0));
+                    setTextColor(listView.getSelectionModel().getSelectedItem(), Color.rgb(72, 57, 0));
                     listView.getItems().remove(selectedIndex);
                     listView.getItems().add(selectedIndex - 1, tmp);
                 }
             } else if (keyShiftDown.match(event)) {
                 int selectedIndex = listView.getSelectionModel().getSelectedIndex();
                 if (selectedIndex < listView.getItems().size() - 1) {
-                    Text tmp = listView.getSelectionModel().getSelectedItem();
+                    ScheduleSong tmp = listView.getSelectionModel().getSelectedItem();
                     listView.getSelectionModel().clearSelection();
                     listView.getSelectionModel().select(selectedIndex + 1);
-                    listView.getSelectionModel().getSelectedItem().setFill(Color.rgb(72, 57, 0));
+                    setTextColor(listView.getSelectionModel().getSelectedItem(), Color.rgb(72, 57, 0));
                     listView.getItems().remove(selectedIndex);
                     listView.getItems().add(selectedIndex + 1, tmp);
                 }
@@ -233,11 +245,21 @@ public class ScheduleController {
 
     }
 
+    private void setTextColor(ScheduleSong selectedItem, Color color) {
+        TextFlow textFlow = selectedItem.getTextFlow();
+        if (textFlow != null) {
+            for (Node node : textFlow.getChildren()) {
+                Text text1 = (Text) node;
+                text1.setFill(color);
+            }
+        }
+    }
+
     private void moveUp() {
         int selectedIndex = listView.getSelectionModel().getSelectedIndex();
         if (selectedIndex > 0) {
-            listView.getSelectionModel().getSelectedItem().setFill(Color.rgb(72, 57, 0));
-            Text tmp = listView.getSelectionModel().getSelectedItem();
+            setTextColor(listView.getSelectionModel().getSelectedItem(), Color.rgb(72, 57, 0));
+            ScheduleSong tmp = listView.getSelectionModel().getSelectedItem();
             listView.getSelectionModel().clearSelection();
             listView.getItems().remove(selectedIndex);
             listView.getItems().add(selectedIndex - 1, tmp);
@@ -247,45 +269,22 @@ public class ScheduleController {
     private void moveDown() {
         int selectedIndex = listView.getSelectionModel().getSelectedIndex();
         if (selectedIndex < listView.getItems().size() - 1) {
-            listView.getSelectionModel().getSelectedItem().setFill(Color.rgb(72, 57, 0));
-            Text tmp = listView.getSelectionModel().getSelectedItem();
+            setTextColor(listView.getSelectionModel().getSelectedItem(), Color.rgb(72, 57, 0));
+            ScheduleSong tmp = listView.getSelectionModel().getSelectedItem();
             listView.getSelectionModel().clearSelection();
             listView.getItems().remove(selectedIndex);
             listView.getItems().add(selectedIndex + 1, tmp);
         }
     }
 
-    public void addRecentSong(String text, ProjectionType type) {
-        if (!text.trim().isEmpty()) {
-            typeList.add(type);
-            Text tmpText = new Text(text);
-            listView.getItems().add(tmpText);
-            bookI.add(-1);
-            partI.add(0);
-            versI.add(0);
-            ArrayList<Integer> tmp = new ArrayList<>();
-            tmp.add(-1);
-            versNumbersList.add(tmp);
+    public void addSong(Song song) {
+        if (song != null) {
+            listView.getItems().add(new ScheduleSong(song));
         }
     }
 
-    public void setPrefHeight(double d) {
-        double c = 0.705357143;
-        d -= 40;
-        listView.setLayoutY(d * c);
-        listView.setPrefHeight((d - 14) - d * c);
-    }
-
-    public void setPrefWidth(double d) {
-        listView.setPrefWidth(listView.getWidth() + d);
-    }
-
-    void setSongController(SongController songController) {
+    public void setSongController(SongController songController) {
         this.songController = songController;
-    }
-
-    void setBibleController(BibleController bibleController) {
-        this.bibleController = bibleController;
     }
 
 }

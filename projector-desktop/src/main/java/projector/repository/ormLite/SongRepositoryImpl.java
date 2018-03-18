@@ -1,5 +1,7 @@
 package projector.repository.ormLite;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.model.Song;
 import projector.repository.RepositoryException;
 import projector.repository.SongDAO;
@@ -8,6 +10,7 @@ import java.sql.SQLException;
 import java.util.List;
 
 public class SongRepositoryImpl extends AbstractRepository<Song> implements SongDAO {
+    private static final Logger LOG = LoggerFactory.getLogger(SongRepositoryImpl.class);
 
     private SongVerseRepositoryImpl songVerseRepository;
 
@@ -51,5 +54,20 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
             delete(song);
         }
         return true;
+    }
+
+    @Override
+    public Song findByTitle(String title) {
+        String msg = "Could not find song";
+        try {
+            List<Song> songs = dao.queryForEq("title", title);
+            if (songs != null && songs.size() > 0) {
+                return songs.get(0);
+            }
+            return null;
+        } catch (Exception e) {
+            LOG.error(msg);
+            throw new RepositoryException(msg, e);
+        }
     }
 }

@@ -35,7 +35,6 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
@@ -52,12 +51,13 @@ import projector.controller.MyController;
 import projector.controller.ProjectionScreenController;
 import projector.controller.ProjectionTextChangeListener;
 import projector.controller.RecentController;
-import projector.controller.ScheduleController;
 import projector.controller.eventHandler.NextButtonEventHandler;
 import projector.controller.language.DownloadLanguagesController;
 import projector.controller.song.util.LastSearching;
 import projector.controller.song.util.OrderMethod;
+import projector.controller.song.util.ScheduleSong;
 import projector.controller.song.util.SearchedSong;
+import projector.controller.song.util.SongTextFlow;
 import projector.model.Song;
 import projector.model.SongCollection;
 import projector.model.SongCollectionElement;
@@ -115,7 +115,7 @@ public class SongController {
     @FXML
     private Button newSongButton;
     @FXML
-    private ListView<Text> scheduleListView;
+    private ListView<ScheduleSong> scheduleListView;
     @FXML
     private ListView<SongCollection> songCollectionListView;
     @FXML
@@ -144,12 +144,7 @@ public class SongController {
     private long timeStart;
     private List<SongVersTime> previousSongVersTimeList;
     private int previousSelectedVersIndex;
-    @FXML
-    private List<Line> lineList;
-    @FXML
-    private Line activeLine;
     private ObservableList<MyTextFlow> songSelectedItems;
-    private int lineIndex = -1;
     private Thread previousLineThread;
     private SongVersTimes songVersTimes;
     private double[] times;
@@ -190,6 +185,28 @@ public class SongController {
                 }
             }
         }
+    }
+
+    static TextFlow setTextFlowsText(SongTextFlow item, TextFlow textFlow) {
+        Text text = new Text("");
+        if (textFlow == null) {
+            textFlow = new TextFlow(text);
+            item.setTextFlow(textFlow);
+        } else {
+            ObservableList<Node> children = textFlow.getChildren();
+            children.clear();
+            children.add(text);
+        }
+        return textFlow;
+    }
+
+    static void setSongCollections(List<Song> songs) {
+        List<SongCollection> songCollections = ServiceManager.getSongCollectionService().findAll();
+        HashMap<String, Song> hashMap = new HashMap<>(songs.size());
+        for (Song song : songs) {
+            hashMap.put(song.getUuid(), song);
+        }
+        setSongCollectionForSongsInHashMap(songCollections, hashMap);
     }
 
     public synchronized void initialize() {
@@ -352,10 +369,6 @@ public class SongController {
                         }
                         activeSongVersTime = new SongVersTime(selectedSong.getTitle(), songListViewItems.size() - 1);
                         previousSelectedVersIndex = -1;
-                        for (Line aLineList : lineList) {
-                            aLineList.setEndY(aLineList.getStartY());
-                        }
-                        lineIndex = -1;
                         times = songVersTimes.getAverageTimes(selectedSong.getTitle());
                         if (times == null) {
                             times = new double[songListViewItems.size() - 1];
@@ -364,9 +377,6 @@ public class SongController {
                                 i = i.replaceAll("[^aeiouAEIOUéáőúöüóűíÉÁŰŐÚÜÓÖÍâÂăĂîÎ]", "");
                                 times[j] = i.length() * 0.72782;
                             }
-                        }
-                        for (int j = 0; j < times.length && j < lineList.size(); ++j) {
-                            lineList.get(j).setEndX(times[j] * 10 + lineList.get(j).getStartX());
                         }
                     }
                 } catch (Exception e) {
@@ -435,13 +445,9 @@ public class SongController {
                             double x = System.currentTimeMillis() - timeStart;
                             x /= 1000;
                             activeSongVersTime.getVersTimes()[previousSelectedVersIndex] = x;
-
-                            lineList.get(previousSelectedVersIndex % lineList.size()).setEndX(
-                                    x * 10 + lineList.get(previousSelectedVersIndex % lineList.size()).getStartX());
                         }
                         projectionScreenController.setText(songListViewItems.get(selectedIndex).getRawText(), ProjectionType.SONG);
                         previousSelectedVersIndex = selectedIndex;
-                        lineIndex = selectedIndex % lineList.size();
                         if (selectedIndex + 1 == songListViewItems.size()) {
                             projectionScreenController.progressLineSetVisible(false);
                         } else {
@@ -456,19 +462,12 @@ public class SongController {
                             }
                         }
                         projectionScreenController.setText(tmpTextBuffer.toString(), ProjectionType.SONG);
-                        lineIndex = 0;
                     }
                     if (recentController != null && !recentController.getLastItemText().equals(activeSongVersTime.getSongTitle()) &&
                             ob.size() > 0) {
                         recentController.addRecentSong(activeSongVersTime.getSongTitle(), ProjectionType.SONG);
                     }
                     timeStart = System.currentTimeMillis();
-                    if (lineIndex >= lineList.size()) {
-                        lineIndex = 0;
-                    }
-                    activeLine.setStartY(lineIndex * 2);
-                    activeLine.setEndY(lineIndex * 2);
-                    activeLine.setStrokeWidth(3);
                     if (previousLineThread == null) {
                         Thread thread = new Thread() {
 
@@ -476,16 +475,12 @@ public class SongController {
                             synchronized public void run() {
                                 try {
                                     double x;
+                                    //noinspection InfiniteLoopStatement
                                     do {
                                         if (!isBlank && timeStart != 0 && previousSelectedVersIndex >= 0
-                                                && previousSelectedVersIndex < activeSongVersTime.getVersTimes().length
-                                                && lineIndex >= 0) {
+                                                && previousSelectedVersIndex < activeSongVersTime.getVersTimes().length) {
                                             x = System.currentTimeMillis() - timeStart;
                                             x /= 1000;
-                                            if (x < 100) {
-                                                activeLine.setEndX(x * 10 + lineList.get(lineIndex).getStartY());
-                                            }
-
                                             double sum = 0.0;
                                             for (int i : songListView.getSelectionModel().getSelectedIndices()) {
                                                 if (times.length > i) {
@@ -641,19 +636,6 @@ public class SongController {
             }
         }
         return s.toString();
-    }
-
-    private TextFlow setTextFlowsText(SearchedSong item, TextFlow textFlow) {
-        Text text = new Text("");
-        if (textFlow == null) {
-            textFlow = new TextFlow(text);
-            item.setTextFlow(textFlow);
-        } else {
-            ObservableList<Node> children = textFlow.getChildren();
-            children.clear();
-            children.add(text);
-        }
-        return textFlow;
     }
 
     private void initializeSortComboBox() {
@@ -1002,11 +984,25 @@ public class SongController {
 
     private void titleSearch(String text) {
         try {
+            text = text.trim();
             lastSearching = LastSearching.IN_TITLE;
             lastSearchText = text;
             listView.getItems().clear();
             String[] split = text.split(" ");
             String firstWord = split[0];
+            String ordinalNumber = firstWord;
+            String collectionName = "";
+            if (!firstWord.matches("^[0-9]+.*")) {
+                char[] chars = firstWord.toCharArray();
+                int i;
+                for (i = 0; i < chars.length; ++i) {
+                    if (chars[i] >= '0' && chars[i] <= '9') {
+                        break;
+                    }
+                }
+                collectionName = stripAccents(firstWord.substring(0, i).toLowerCase());
+                ordinalNumber = firstWord.substring(i, firstWord.length());
+            }
             String remainingText = "";
             try {
                 remainingText = text.substring(firstWord.length() + 1, text.length());
@@ -1019,7 +1015,8 @@ public class SongController {
                 SongCollectionElement songCollectionElement = song.getSongCollectionElement();
                 boolean contains = false;
                 if (songCollectionElement != null) {
-                    if (songCollectionElement.getOrdinalNumber().contains(firstWord) && (remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
+                    String name = song.getSongCollection().getStrippedName();
+                    if ((name.contains(collectionName)) && songCollectionElement.getOrdinalNumber().contains(ordinalNumber) && (remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
                         contains = true;
                     }
                 }
@@ -1083,13 +1080,7 @@ public class SongController {
     private void readSongs() {
         try {
             songs = songService.findAll();
-
-            List<SongCollection> songCollections = ServiceManager.getSongCollectionService().findAll();
-            HashMap<String, Song> hashMap = new HashMap<>(songs.size());
-            for (Song song : songs) {
-                hashMap.put(song.getUuid(), song);
-            }
-            setSongCollectionForSongsInHashMap(songCollections, hashMap);
+            setSongCollections(songs);
         } catch (ServiceException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -1244,7 +1235,7 @@ public class SongController {
             addScheduleMenuItem.setOnAction(event -> {
                 try {
                     Song tmp = listView.getSelectionModel().getSelectedItem().getSong();
-                    scheduleController.addRecentSong(tmp.getTitle(), ProjectionType.SONG);
+                    scheduleController.addSong(tmp);
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
                 }
@@ -1408,14 +1399,6 @@ public class SongController {
             LOG.error(e.getMessage(), e);
         }
         return null;
-    }
-
-    public void setTitleTextFieldText(String title) {
-        try {
-            searchTextField.setText(title);
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
     }
 
     public void newSongButtonOnAction() {
@@ -1750,5 +1733,12 @@ public class SongController {
         } else if (keyCode.equals(KeyCode.ENTER)) {
             selectByVerseTextFieldNumber();
         }
+    }
+
+    public void selectSong(Song song) {
+        ObservableList<SearchedSong> listViewItems = listView.getItems();
+        listViewItems.clear();
+        listViewItems.add(new SearchedSong(song));
+        listView.getSelectionModel().selectFirst();
     }
 }
