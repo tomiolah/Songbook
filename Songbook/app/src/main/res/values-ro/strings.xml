@@ -12,7 +12,7 @@
     <string name="navigation_drawer_close">Închideți sertarul de navigare</string>
     <string name="language">Limba</string>
     <string name="download_songs">Descărcarea cântecelor</string>
-    <string name="select_languages">Selectați limbile</string>
+    <string name="select_languages">Selectați limbile pentru cântece</string>
     <string name="downloading_songs">Descărcarea cântecelor</string>
     <string name="filter">Filtrează</string>
     <string name="sort">Sortează</string>
@@ -34,4 +34,5 @@
     <string name="completed">Terminat</string>
     <string name="chorus">Cor</string>
     <string name="recently_viewed">Vizualizate recent</string>
+    <string name="downloading_progress_not_completed">Descărcarea nu s-a încheiat. Apăsați din nou pentru a reveni.</string>
 </resources>

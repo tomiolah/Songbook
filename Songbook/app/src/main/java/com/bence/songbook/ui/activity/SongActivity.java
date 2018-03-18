@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -46,6 +47,7 @@ public class SongActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                fullScreenIntent.putExtra("verseIndex", 0);
                 startActivity(fullScreenIntent);
             }
         });
@@ -62,6 +64,16 @@ public class SongActivity extends AppCompatActivity {
                 R.layout.content_song_verse, song.getVerses());
         ListView listView = findViewById(R.id.listView);
         listView.setAdapter(dataAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view,
+                                    int position, long id) {
+                fullScreenIntent.putExtra("verseIndex", position);
+                startActivity(fullScreenIntent);
+            }
+
+        });
     }
 
     @Override

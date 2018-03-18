@@ -15,7 +15,7 @@
 
     <string name="language">Language</string>
     <string name="download_songs">Download songs</string>
-    <string name="select_languages">Select languages</string>
+    <string name="select_languages">Select song languages</string>
     <string name="downloading_songs">Downloading songs.</string>
     <string name="filter">Filter</string>
     <string name="sort">Sort</string>
@@ -37,5 +37,5 @@
     <string name="completed">Completed</string>
     <string name="chorus">Chorus</string>
     <string name="recently_viewed">Recently viewed</string>
-
+    <string name="downloading_progress_not_completed">Downloading progress not completed.  Press again to go back.</string>
 </resources>

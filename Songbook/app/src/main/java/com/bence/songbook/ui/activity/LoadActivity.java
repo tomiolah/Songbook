@@ -42,6 +42,7 @@ public class LoadActivity extends AppCompatActivity {
     private LoadActivity loadActivity;
     private int startedCount = 0;
     private int downloadedSongs = 0;
+    private boolean backPressed = false;
 
     @SuppressLint({"ShowToast", "DefaultLocale", "SetTextI18n"})
     @Override
@@ -62,6 +63,16 @@ public class LoadActivity extends AppCompatActivity {
                 R.layout.content_language_download_progress, selectedLanguages);
         ListView listView = findViewById(R.id.listView);
         listView.setAdapter(dataAdapter);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!backPressed) {
+            Toast.makeText(this, R.string.downloading_progress_not_completed, Toast.LENGTH_LONG).show();
+        } else {
+            super.onBackPressed();
+        }
+        backPressed = true;
     }
 
     private void sortSongs(List<Song> all) {
