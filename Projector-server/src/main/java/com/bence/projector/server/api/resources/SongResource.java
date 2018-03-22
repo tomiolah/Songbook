@@ -262,6 +262,22 @@ public class SongResource {
         return updateSong(songId, songDTO);
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/admin/removeDuplicates")
+    public void removeDuplicates(HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        List<Song> songs = songRepository.findAll();
+        for (Song uploaded : songService.findAllByUploadedTrueAndDeletedTrue()) {
+            for (Song song : songs) {
+                if (!uploaded.getId().equals(song.getId()) && songService.matches(uploaded, song)) {
+                    if (songRepository.findOne(song.getId()) != null) {
+                        songService.delete(uploaded.getId());
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     @RequestMapping(method = RequestMethod.PUT, value = "/password/api/song/{songId}")
     public ResponseEntity<Object> updateSongByPassword(@PathVariable final String songId,
                                                        @RequestBody final LoginSongDTO loginSongDTO,
