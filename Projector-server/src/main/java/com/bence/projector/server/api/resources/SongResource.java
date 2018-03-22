@@ -7,6 +7,7 @@ import com.bence.projector.server.api.assembler.SongAssembler;
 import com.bence.projector.server.api.assembler.SongTitleAssembler;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.User;
+import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
@@ -45,6 +46,8 @@ import static com.bence.projector.server.api.resources.StatisticsResource.saveSt
 @RestController
 public class SongResource {
 
+    @Autowired
+    private SongRepository songRepository;
     @Autowired
     private SongService songService;
     @Autowired
@@ -223,7 +226,18 @@ public class SongResource {
         if (savedSong != null) {
             Thread thread = new Thread(() -> {
                 try {
-                    sendEmail(savedSong);
+                    List<Song> songs = songRepository.findAll();
+                    boolean deleted = false;
+                    for (Song song1 : songs) {
+                        if (songService.matches(savedSong, song1)) {
+                            songService.delete(savedSong.getId());
+                            deleted = true;
+                            break;
+                        }
+                    }
+                    if (!deleted) {
+                        sendEmail(savedSong);
+                    }
                 } catch (MessagingException e) {
                     e.printStackTrace();
                 }

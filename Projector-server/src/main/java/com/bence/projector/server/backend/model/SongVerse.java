@@ -35,4 +35,8 @@ public class SongVerse extends BaseEntity {
     public void setChorus(boolean chorus) {
         isChorus = chorus;
     }
+
+    public boolean matches(SongVerse songVerse) {
+        return text.equals(songVerse.text) && isChorus == songVerse.isChorus;
+    }
 }
