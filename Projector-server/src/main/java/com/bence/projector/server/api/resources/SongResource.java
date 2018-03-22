@@ -7,6 +7,7 @@ import com.bence.projector.server.api.assembler.SongAssembler;
 import com.bence.projector.server.api.assembler.SongTitleAssembler;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.User;
+import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
@@ -45,6 +46,8 @@ import static com.bence.projector.server.api.resources.StatisticsResource.saveSt
 @RestController
 public class SongResource {
 
+    @Autowired
+    private SongRepository songRepository;
     @Autowired
     private SongService songService;
     @Autowired
@@ -223,7 +226,18 @@ public class SongResource {
         if (savedSong != null) {
             Thread thread = new Thread(() -> {
                 try {
-                    sendEmail(savedSong);
+                    List<Song> songs = songRepository.findAll();
+                    boolean deleted = false;
+                    for (Song song1 : songs) {
+                        if (songService.matches(savedSong, song1)) {
+                            songService.delete(savedSong.getId());
+                            deleted = true;
+                            break;
+                        }
+                    }
+                    if (!deleted) {
+                        sendEmail(savedSong);
+                    }
                 } catch (MessagingException e) {
                     e.printStackTrace();
                 }
@@ -246,6 +260,22 @@ public class SongResource {
     public ResponseEntity<Object> updateSongByAdmin(@PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         return updateSong(songId, songDTO);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/admin/removeDuplicates")
+    public void removeDuplicates(HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        List<Song> songs = songRepository.findAll();
+        for (Song uploaded : songService.findAllByUploadedTrueAndDeletedTrue()) {
+            for (Song song : songs) {
+                if (!uploaded.getId().equals(song.getId()) && songService.matches(uploaded, song)) {
+                    if (songRepository.findOne(song.getId()) != null) {
+                        songService.delete(uploaded.getId());
+                        break;
+                    }
+                }
+            }
+        }
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/password/api/song/{songId}")

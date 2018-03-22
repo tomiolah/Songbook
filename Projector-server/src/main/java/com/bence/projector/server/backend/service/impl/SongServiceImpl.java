@@ -129,6 +129,24 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return similar;
     }
 
+    @Override
+    public boolean matches(Song song, Song song2) {
+        if (!song.getTitle().equals(song2.getTitle())) {
+            return false;
+        }
+        List<SongVerse> songVerses = song.getVerses();
+        List<SongVerse> song2Verses = song2.getVerses();
+        if (songVerses.size() != song2Verses.size()) {
+            return false;
+        }
+        for (int i = 0; i < songVerses.size(); ++i) {
+            if (!songVerses.get(i).matches(song2Verses.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     @SuppressWarnings("Duplicates")
     private String getText(Song song) {
         ArrayList<SongVerse> verseList = new ArrayList<>(song.getVerses().size());

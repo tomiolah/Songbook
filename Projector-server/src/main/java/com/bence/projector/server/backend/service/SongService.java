@@ -15,4 +15,6 @@ public interface SongService extends BaseService<Song> {
     List<Song> findAllByUploadedTrueAndDeletedTrue();
 
     List<Song> findAllSimilar(Song song);
+
+    boolean matches(Song song, Song song2);
 }
