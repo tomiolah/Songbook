@@ -33,6 +33,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         songDTO.setDeleted(song.isDeleted());
         songDTO.setLanguageDTO(languageAssembler.createDto(song.getLanguage()));
         songDTO.setUploaded(song.getUploaded());
+        songDTO.setViews(song.getViews());
         return songDTO;
     }
 

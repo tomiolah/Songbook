@@ -12,6 +12,7 @@ public class SongDTO extends BaseDTO {
     private boolean deleted = false;
     private LanguageDTO languageDTO;
     private Boolean uploaded;
+    private long views;
 
     public SongDTO() {
     }
@@ -78,5 +79,13 @@ public class SongDTO extends BaseDTO {
 
     public void setUploaded(Boolean uploaded) {
         this.uploaded = uploaded;
+    }
+
+    public long getViews() {
+        return views;
+    }
+
+    public void setViews(long views) {
+        this.views = views;
     }
 }
