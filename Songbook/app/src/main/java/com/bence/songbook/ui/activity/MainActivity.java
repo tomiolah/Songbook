@@ -195,6 +195,50 @@ public class MainActivity extends AppCompatActivity
 //                TODO
 //                new Downloader().execute();
                 loadSongVersesThread.start();
+                Thread uploadViews = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                        Date lastUploadedViewsDate = new Date(sharedPreferences.getLong("lastUploadedViewsDate", 0));
+                        Date now = new Date();
+                        long lastInterval = 86400000; // one day
+                        long nowTime = now.getTime();
+                        long lastUploadedViewsDateTime = lastUploadedViewsDate.getTime();
+                        if (nowTime - lastUploadedViewsDateTime > lastInterval) {
+                            SongApiBean songApiBean = new SongApiBean();
+                            List<Song> uploadingSongs = new ArrayList<>();
+                            for (Song song : songs) {
+                                if (song.getLastAccessed().getTime() > lastUploadedViewsDateTime) {
+                                    uploadingSongs.add(song);
+                                }
+                            }
+                            Collections.sort(uploadingSongs, new Comparator<Song>() {
+                                @Override
+                                public int compare(Song song1, Song song2) {
+                                    return song1.getLastAccessed().compareTo(song2.getLastAccessed());
+                                }
+                            });
+                            boolean oneUploaded = false;
+                            boolean successfully = true;
+                            for (Song song : uploadingSongs) {
+                                if (songApiBean.uploadView(song) == null) {
+                                    successfully = false;
+                                    break;
+                                } else {
+                                    oneUploaded = true;
+                                    lastUploadedViewsDateTime = song.getLastAccessed().getTime();
+                                }
+                            }
+                            if (successfully) {
+                                lastUploadedViewsDateTime = nowTime;
+                            }
+                            if (oneUploaded) {
+                                sharedPreferences.edit().putLong("lastUploadedViewsDate", lastUploadedViewsDateTime).apply();
+                            }
+                        }
+                    }
+                });
+                uploadViews.start();
             } else {
                 Intent loadIntent = new Intent(this, LanguagesActivity.class);
                 startActivityForResult(loadIntent, 1);

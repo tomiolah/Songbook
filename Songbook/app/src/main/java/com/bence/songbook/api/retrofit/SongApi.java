@@ -6,6 +6,7 @@ import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.http.GET;
+import retrofit2.http.PUT;
 import retrofit2.http.Path;
 
 public interface SongApi {
@@ -20,4 +21,7 @@ public interface SongApi {
 
     @GET("/api/songs/language/{language}/modifiedDate/{modifiedDate}")
     Call<List<SongDTO>> getSongsByLanguageAndAfterModifiedDate(@Path("language") String languageUuid, @Path("modifiedDate") Long modifiedDate);
+
+    @PUT("/api/song/{uuid}/incViews")
+    Call<SongDTO> uploadView(@Path("uuid") String uuid);
 }
