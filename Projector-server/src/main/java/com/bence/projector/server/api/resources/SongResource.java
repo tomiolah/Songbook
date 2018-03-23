@@ -229,7 +229,7 @@ public class SongResource {
                     List<Song> songs = songRepository.findAll();
                     boolean deleted = false;
                     for (Song song1 : songs) {
-                        if (songService.matches(savedSong, song1)) {
+                        if (!savedSong.getId().equals(song.getId()) && songService.matches(savedSong, song1)) {
                             songService.delete(savedSong.getId());
                             deleted = true;
                             break;
