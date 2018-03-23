@@ -101,4 +101,14 @@ public class SongApiBean {
         }
         return songs;
     }
+
+    public SongDTO uploadView(Song song) {
+        Call<SongDTO> call = songApi.uploadView(song.getUuid());
+        try {
+            return call.execute().body();
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return null;
+    }
 }

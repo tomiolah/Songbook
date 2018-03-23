@@ -15,6 +15,8 @@ public class Song extends BaseEntity {
     @Transient
     private Language language;
     private Boolean uploaded;
+    private long views;
+    private Date lastIncrementViewDate;
 
     public Song() {
     }
@@ -78,5 +80,25 @@ public class Song extends BaseEntity {
 
     public void setUploaded(boolean uploaded) {
         this.uploaded = uploaded;
+    }
+
+    public void incrementViews() {
+        ++this.views;
+    }
+
+    public long getViews() {
+        return views;
+    }
+
+    public void setViews(long views) {
+        this.views = views;
+    }
+
+    public Date getLastIncrementViewDate() {
+        return lastIncrementViewDate;
+    }
+
+    public void setLastIncrementViewDate(Date lastIncrementViewDate) {
+        this.lastIncrementViewDate = lastIncrementViewDate;
     }
 }

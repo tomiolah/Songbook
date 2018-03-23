@@ -325,4 +325,14 @@ public class SongResource {
         final List<Song> similar = songService.findAllSimilar(song);
         return new ResponseEntity<>(songAssembler.createDtoList(similar), HttpStatus.ACCEPTED);
     }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/api/song/{songId}/incViews")
+    public ResponseEntity<Object> incrementViews(@PathVariable("songId") String songId, HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        Song song = songService.findOne(songId);
+        song.incrementViews();
+        song.setLastIncrementViewDate(new Date());
+        songRepository.save(song);
+        return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
+    }
 }
