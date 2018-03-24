@@ -14,9 +14,12 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 
+import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
+import com.bence.songbook.network.ProjectionTextChangeListener;
+import com.bence.songbook.network.TCPServer;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 
 import java.util.ArrayList;
@@ -78,12 +81,30 @@ public class FullscreenActivity extends AppCompatActivity {
     private long startTime;
     private long duration = 0;
     private SongRepositoryImpl songRepository;
+    private List<ProjectionTextChangeListener> projectionTextChangeListeners;
+    private boolean sharedOnNetwork = false;
 
     @SuppressLint("CutPasteId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
+            Memory memory = Memory.getInstance();
+            if (memory.isShareOnNetwork()) {
+                sharedOnNetwork = memory.isSharedOnNetwork();
+                if (!sharedOnNetwork) {
+                    try {
+                        projectionTextChangeListeners = new ArrayList<>();
+                        TCPServer.startShareNetwork(projectionTextChangeListeners);
+                        sharedOnNetwork = true;
+                        memory.setSharedOnNetwork();
+                        memory.setProjectionTextChangeListeners(projectionTextChangeListeners);
+                    } catch (Exception ignored) {
+                    }
+                } else {
+                    projectionTextChangeListeners = memory.getProjectionTextChangeListeners();
+                }
+            }
             Intent intent = getIntent();
             song = (Song) intent.getSerializableExtra("Song");
             verseList = new ArrayList<>(song.getVerses().size());
@@ -145,7 +166,7 @@ public class FullscreenActivity extends AppCompatActivity {
                 textView.setBackgroundResource(R.color.black);
                 textView.setTextColor(getResources().getColor(R.color.white));
             }
-            textView.setText(verseList.get(verseIndex).getText());
+            setText(verseList.get(verseIndex).getText());
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -244,14 +265,27 @@ public class FullscreenActivity extends AppCompatActivity {
     private void setPreviousVerse() {
         if (verseIndex > 0) {
             --verseIndex;
-            textView.setText(verseList.get(verseIndex).getText());
+            setText(verseList.get(verseIndex).getText());
         }
     }
 
     private void setNextVerse() {
         if (verseIndex + 1 < verseList.size()) {
             ++verseIndex;
-            textView.setText(verseList.get(verseIndex).getText());
+            setText(verseList.get(verseIndex).getText());
+        }
+    }
+
+    private void setText(String text) {
+        textView.setText(text);
+        sendTextToListeners(text);
+    }
+
+    private synchronized void sendTextToListeners(final String text) {
+        if (sharedOnNetwork) {
+            for (int i = 0; i < projectionTextChangeListeners.size(); ++i) {
+                projectionTextChangeListeners.get(i).onSetText(text);
+            }
         }
     }
 }
