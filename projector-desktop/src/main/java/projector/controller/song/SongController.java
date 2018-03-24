@@ -706,7 +706,7 @@ public class SongController {
             if (selectedIndex < 0) {
                 return "";
             }
-            if (selectedIndex == selectedSongVerseList.size()) {
+            if (selectedIndex >= selectedSongVerseList.size()) {
                 return "";
             }
             SongVerse songVerse = selectedSongVerseList.get(selectedIndex);
