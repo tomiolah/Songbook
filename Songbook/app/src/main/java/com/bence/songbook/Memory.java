@@ -2,6 +2,7 @@ package com.bence.songbook;
 
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
+import com.bence.songbook.network.ProjectionTextChangeListener;
 
 import java.util.List;
 
@@ -9,8 +10,10 @@ public class Memory {
 
     private static Memory instance;
     private List<Song> songs;
-    private List<Song> strippedSongs;
     private List<SongCollection> songCollections;
+    private boolean sharedOnNetwork;
+    private List<ProjectionTextChangeListener> projectionTextChangeListeners;
+    private boolean shareOnNetwork;
 
     private Memory() {
 
@@ -23,10 +26,6 @@ public class Memory {
         return instance;
     }
 
-    public synchronized void setInstance(Memory instance) {
-        Memory.instance = instance;
-    }
-
     public synchronized List<Song> getSongs() {
         return songs;
     }
@@ -35,19 +34,35 @@ public class Memory {
         this.songs = songs;
     }
 
-    public synchronized List<Song> getStrippedSongs() {
-        return strippedSongs;
-    }
-
-    public synchronized void setStrippedSongs(List<Song> strippedSongs) {
-        this.strippedSongs = strippedSongs;
-    }
-
     public List<SongCollection> getSongCollections() {
         return songCollections;
     }
 
     public void setSongCollections(List<SongCollection> songCollections) {
         this.songCollections = songCollections;
+    }
+
+    public boolean isSharedOnNetwork() {
+        return sharedOnNetwork;
+    }
+
+    public void setSharedOnNetwork() {
+        this.sharedOnNetwork = true;
+    }
+
+    public List<ProjectionTextChangeListener> getProjectionTextChangeListeners() {
+        return projectionTextChangeListeners;
+    }
+
+    public void setProjectionTextChangeListeners(List<ProjectionTextChangeListener> projectionTextChangeListeners) {
+        this.projectionTextChangeListeners = projectionTextChangeListeners;
+    }
+
+    public boolean isShareOnNetwork() {
+        return shareOnNetwork;
+    }
+
+    public void setShareOnNetwork() {
+        this.shareOnNetwork = true;
     }
 }
