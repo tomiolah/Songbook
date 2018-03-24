@@ -432,7 +432,7 @@ public class SongController {
                         }
                         if (settings.isShareOnNetwork() && projectionTextChangeListeners != null) {
                             try {
-                                String secondText = getSecondText(selectedIndex);
+                                String secondText = getSecondText(selectedIndex - 1);
                                 for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
                                     projectionTextChangeListener.onSetText(secondText, ProjectionType.SONG);
                                 }
@@ -703,7 +703,10 @@ public class SongController {
 
     private String getSecondText(int selectedIndex) {
         try {
-            if (selectedIndex == selectedSongVerseList.size()) {
+            if (selectedIndex < 0) {
+                return "";
+            }
+            if (selectedIndex >= selectedSongVerseList.size()) {
                 return "";
             }
             SongVerse songVerse = selectedSongVerseList.get(selectedIndex);
