@@ -40,4 +40,8 @@
     <string name="blank_at_end_of_song">Üres megjelenítése az utolsó vers után</string>
     <string name="advanced_options">Haladó beállítások</string>
     <string name="share_on_network">Megosztás hálózaton</string>
+    <string name="no_connections">Nincsenek megosztott kapcsolatok!</string>
+    <string name="connection_successfully_wait_">Csatlakozás sikeresen! Várjon bejövõ szövegeket.</string>
+    <string name="select_one_below">Válasszon az alábbiak közül:</string>
+    <string name="connect_to_shared">Csatlakozás a megosztotthoz</string>
 </resources>

@@ -9,6 +9,8 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.bence.songbook.network.TCPClient.PORT;
+
 public class TCPServer {
 
     private static final String TAG = TCPServer.class.getName();
@@ -23,7 +25,7 @@ public class TCPServer {
             @Override
             public void run() {
                 try {
-                    welcomeSocket = new ServerSocket(21041);
+                    welcomeSocket = new ServerSocket(PORT);
                     while (!closed) {
                         Socket connectionSocket = welcomeSocket.accept();
                         if (!connectionSocket.isClosed()) {

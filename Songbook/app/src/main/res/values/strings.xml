@@ -43,4 +43,8 @@
     <string name="blank_at_end_of_song">Blank after the last verse</string>
     <string name="advanced_options">Advanced options</string>
     <string name="share_on_network">Share on network</string>
+    <string name="no_connections">There is no shared connections!</string>
+    <string name="select_one_below">Select one below:</string>
+    <string name="connect_to_shared">Connect to shared</string>
+    <string name="connection_successfully_wait_">Connection successfully!  Wait for incoming texts.</string>
 </resources>
