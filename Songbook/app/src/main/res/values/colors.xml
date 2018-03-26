@@ -8,7 +8,7 @@
 
     <color name="primaryColor">#1b5e20</color>
     <color name="primaryLightColor">#4c8c4a</color>
-    <color name="primaryDarkColor">#eb1b4015</color>
+    <color name="primaryDarkColor">#eb14350e</color>
     <color name="secondaryColor">#4a148c</color>
     <color name="secondaryLightColor">#7c43bd</color>
     <color name="secondaryDarkColor">#12005e</color>
@@ -17,7 +17,7 @@
 
     <color name="primaryColor2">#fc8c4a</color>
     <color name="primaryLightColor2">#fb5e20</color>
-    <color name="primaryDarkColor2">#717bf5</color>
+    <color name="primaryDarkColor2">#def6f7ff</color>
     <color name="secondaryColor2">#1030f0</color>
     <color name="secondaryLightColor2">#0c43bd</color>
     <color name="secondaryDarkColor2">#02005e</color>

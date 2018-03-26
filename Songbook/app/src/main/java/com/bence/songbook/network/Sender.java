@@ -115,8 +115,8 @@ class Sender {
             Log.e(TAG, e.getMessage(), e);
         }
         closeConnections();
-        writer.stop();
-        reader.stop();
+        writer.interrupt();
+        reader.interrupt();
         Thread.currentThread().interrupt();
     }
 }

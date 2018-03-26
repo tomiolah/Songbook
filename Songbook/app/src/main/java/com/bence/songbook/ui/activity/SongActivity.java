@@ -3,7 +3,9 @@ package com.bence.songbook.ui.activity;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -17,9 +19,11 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
+import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.ui.utils.Preferences;
 
 import java.util.ArrayList;
@@ -69,7 +73,9 @@ public class SongActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                fullScreenIntent.putExtra("verseIndex", position);
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                boolean show_title_switch = sharedPreferences.getBoolean("show_title_switch", false);
+                fullScreenIntent.putExtra("verseIndex", position + (show_title_switch ? 1 : 0));
                 startActivity(fullScreenIntent);
             }
 
@@ -80,8 +86,27 @@ public class SongActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
             finish();
+            setBlank();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        setBlank();
+    }
+
+    private void setBlank() {
+        Memory memory = Memory.getInstance();
+        if (memory.isShareOnNetwork()) {
+            List<ProjectionTextChangeListener> projectionTextChangeListeners = memory.getProjectionTextChangeListeners();
+            if (projectionTextChangeListeners != null) {
+                for (int i = 0; i < projectionTextChangeListeners.size(); ++i) {
+                    projectionTextChangeListeners.get(i).onSetText("");
+                }
+            }
+        }
     }
 
     @SuppressWarnings("ConstantConditions")
