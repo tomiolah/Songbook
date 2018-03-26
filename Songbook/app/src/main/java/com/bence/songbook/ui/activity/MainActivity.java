@@ -375,9 +375,6 @@ public class MainActivity extends AppCompatActivity
                     String enteredText = editable.toString().trim();
                     search(enteredText, adapter);
                     lastSearchedText = enteredText;
-                    if (enteredText.equals("share on network")) {
-                        memory.setShareOnNetwork();
-                    }
                 }
             };
             if (previousTextWatcher != null) {

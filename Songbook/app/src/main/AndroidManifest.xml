@@ -45,6 +45,16 @@
             android:name=".ui.activity.SongActivity"
             android:theme="@style/SongBookTheme">
         </activity>
+        <activity
+            android:name=".ui.activity.ConnectToSharedActivity"
+            android:label="Connect to shared"
+            android:theme="@style/SongBookTheme">
+        </activity>
+        <activity
+            android:name=".ui.activity.ConnectToSharedFullscreenActivity"
+            android:label="Connect to shared"
+            android:theme="@style/SongBookTheme">
+        </activity>
     </application>
 
 </manifest>

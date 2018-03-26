@@ -35,4 +35,13 @@
     <string name="chorus">Refrén</string>
     <string name="recently_viewed">Mostanában nézett</string>
     <string name="downloading_progress_not_completed">A letöltés nem fejeződött be. Nyomja meg ismét a gombot, hogy visszatérjen.</string>
+    <string name="press_twice">Nyomja meg kétszer az első szakasz visszatérésére!</string>
+    <string name="show_title_as_first_verse">A cím megjelenítése első versként</string>
+    <string name="blank_at_end_of_song">Üres megjelenítése az utolsó vers után</string>
+    <string name="advanced_options">Haladó beállítások</string>
+    <string name="share_on_network">Megosztás hálózaton</string>
+    <string name="no_connections">Nincsenek megosztott kapcsolatok!</string>
+    <string name="connection_successfully_wait_">Csatlakozás sikeresen! Várjon bejövõ szövegeket.</string>
+    <string name="select_one_below">Válasszon az alábbiak közül:</string>
+    <string name="connect_to_shared">Csatlakozás a megosztotthoz</string>
 </resources>

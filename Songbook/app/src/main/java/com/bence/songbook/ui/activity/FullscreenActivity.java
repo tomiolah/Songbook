@@ -13,13 +13,14 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
+import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
-import com.bence.songbook.network.TCPServer;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 
 import java.util.ArrayList;
@@ -83,6 +84,8 @@ public class FullscreenActivity extends AppCompatActivity {
     private SongRepositoryImpl songRepository;
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
     private boolean sharedOnNetwork = false;
+    private Date lastDatePressedAtEnd = null;
+    private boolean show_title_switch;
 
     @SuppressLint("CutPasteId")
     @Override
@@ -91,19 +94,8 @@ public class FullscreenActivity extends AppCompatActivity {
         try {
             Memory memory = Memory.getInstance();
             if (memory.isShareOnNetwork()) {
-                sharedOnNetwork = memory.isSharedOnNetwork();
-                if (!sharedOnNetwork) {
-                    try {
-                        projectionTextChangeListeners = new ArrayList<>();
-                        TCPServer.startShareNetwork(projectionTextChangeListeners);
-                        sharedOnNetwork = true;
-                        memory.setSharedOnNetwork();
-                        memory.setProjectionTextChangeListeners(projectionTextChangeListeners);
-                    } catch (Exception ignored) {
-                    }
-                } else {
-                    projectionTextChangeListeners = memory.getProjectionTextChangeListeners();
-                }
+                sharedOnNetwork = true;
+                projectionTextChangeListeners = memory.getProjectionTextChangeListeners();
             }
             Intent intent = getIntent();
             song = (Song) intent.getSerializableExtra("Song");
@@ -165,6 +157,24 @@ public class FullscreenActivity extends AppCompatActivity {
             } else {
                 textView.setBackgroundResource(R.color.black);
                 textView.setTextColor(getResources().getColor(R.color.white));
+            }
+            show_title_switch = sharedPreferences.getBoolean("show_title_switch", false);
+            if (show_title_switch) {
+                SongVerse songVerse = new SongVerse();
+                String title = "";
+                SongCollection songCollection = song.getSongCollection();
+                if (songCollection != null) {
+                    title = songCollection.getName() + "\n";
+                }
+                title += song.getTitle();
+                songVerse.setText(title);
+                verseList.add(0, songVerse);
+            }
+            boolean blank_switch = sharedPreferences.getBoolean("blank_switch", false);
+            if (blank_switch) {
+                SongVerse songVerse = new SongVerse();
+                songVerse.setText("");
+                verseList.add(songVerse);
             }
             setText(verseList.get(verseIndex).getText());
             Thread thread = new Thread(new Runnable() {
@@ -273,6 +283,24 @@ public class FullscreenActivity extends AppCompatActivity {
         if (verseIndex + 1 < verseList.size()) {
             ++verseIndex;
             setText(verseList.get(verseIndex).getText());
+        } else {
+            Date now = new Date();
+            int interval = 300;
+            if (lastDatePressedAtEnd != null) {
+                if (now.getTime() - lastDatePressedAtEnd.getTime() >= interval) {
+                    Toast.makeText(this, R.string.press_twice, Toast.LENGTH_SHORT).show();
+                } else {
+                    if (show_title_switch) {
+                        verseIndex = 1;
+                    } else {
+                        verseIndex = 0;
+                    }
+                    setText(verseList.get(verseIndex).getText());
+                    lastDatePressedAtEnd = null;
+                    return;
+                }
+            }
+            lastDatePressedAtEnd = now;
         }
     }
 

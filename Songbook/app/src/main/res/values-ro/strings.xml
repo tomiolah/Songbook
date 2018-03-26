@@ -35,4 +35,13 @@
     <string name="chorus">Cor</string>
     <string name="recently_viewed">Vizualizate recent</string>
     <string name="downloading_progress_not_completed">Descărcarea nu s-a încheiat. Apăsați din nou pentru a reveni.</string>
+    <string name="press_twice">Apăsați de două ori pentru a merge la primul verset!</string>
+    <string name="show_title_as_first_verse">Titlul ca primul vers</string>
+    <string name="blank_at_end_of_song">Gol după ultimul verset</string>
+    <string name="advanced_options">Opțiuni avansate</string>
+    <string name="share_on_network">Share on network</string>
+    <string name="no_connections">Nu există conexiuni!</string>
+    <string name="connection_successfully_wait_">Conectarea cu succes! Așteptați texte trimise.</string>
+    <string name="select_one_below">Alegeți una mai jos:</string>
+    <string name="connect_to_shared">Connectare</string>
 </resources>

@@ -11,7 +11,6 @@ public class Memory {
     private static Memory instance;
     private List<Song> songs;
     private List<SongCollection> songCollections;
-    private boolean sharedOnNetwork;
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
     private boolean shareOnNetwork;
 
@@ -42,14 +41,6 @@ public class Memory {
         this.songCollections = songCollections;
     }
 
-    public boolean isSharedOnNetwork() {
-        return sharedOnNetwork;
-    }
-
-    public void setSharedOnNetwork() {
-        this.sharedOnNetwork = true;
-    }
-
     public List<ProjectionTextChangeListener> getProjectionTextChangeListeners() {
         return projectionTextChangeListeners;
     }
@@ -62,7 +53,8 @@ public class Memory {
         return shareOnNetwork;
     }
 
-    public void setShareOnNetwork() {
-        this.shareOnNetwork = true;
+    public void setShareOnNetwork(boolean shareOnNetwork) {
+        this.shareOnNetwork = shareOnNetwork;
     }
+
 }

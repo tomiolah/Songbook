@@ -38,4 +38,13 @@
     <string name="chorus">Chorus</string>
     <string name="recently_viewed">Recently viewed</string>
     <string name="downloading_progress_not_completed">Downloading progress not completed.  Press again to go back.</string>
+    <string name="press_twice">Press twice to go to the first verse!</string>
+    <string name="show_title_as_first_verse">Show title as first verse</string>
+    <string name="blank_at_end_of_song">Blank after the last verse</string>
+    <string name="advanced_options">Advanced options</string>
+    <string name="share_on_network">Share on network</string>
+    <string name="no_connections">There is no shared connections!</string>
+    <string name="select_one_below">Select one below:</string>
+    <string name="connect_to_shared">Connect to shared</string>
+    <string name="connection_successfully_wait_">Connection successfully!  Wait for incoming texts.</string>
 </resources>
