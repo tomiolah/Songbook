@@ -17,7 +17,7 @@ export class SongVerseDTO {
   lines: string[];
   colorLines: ColorLine[];
   text = '';
-  chorus: false;
+  chorus: boolean;
 
   constructor(values: Object = {}) {
     Object.assign(this, values);
