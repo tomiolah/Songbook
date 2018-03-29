@@ -47,8 +47,7 @@
             </div>
             <div *ngIf="editorType==='raw'">
               <mat-form-field class="example-full-width">
-                <textarea matInput placeholder="Text" rows="20" formControlName="songText"
-                          maxlength="1000"></textarea>
+                <textarea matInput placeholder="Text" rows="20" formControlName="songText"></textarea>
               </mat-form-field>
               <h5>You need to switch back to verseEditor in order to submit</h5>
             </div>
@@ -59,7 +58,7 @@
           </button>
           <br>
           <br>
-          <button type="submit" class="btn btn-success" [disabled]="!form.valid||editorType==='raw'">Submit</button>
+          <button type="submit" class="btn btn-success" [disabled]="needToDisable()">Submit</button>
         </div>
         <br>
       </form>

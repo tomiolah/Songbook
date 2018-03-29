@@ -218,6 +218,10 @@ export class EditSongComponent implements OnInit {
     }
   }
 
+  needToDisable() {
+    return !this.form.valid || this.editorType === 'raw';
+  }
+
   private addVerses() {
     for (const songVerse of this.song.songVerseDTOS) {
       const control = new FormControl('');
