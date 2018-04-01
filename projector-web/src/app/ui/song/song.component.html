@@ -29,13 +29,13 @@
       </button>
     </div>
     <div *ngIf="!song.uploaded">
-      <button *ngIf="!song.deleted" mat-button (click)="deleteSong()">
-        Delete
-      </button>
       <button *ngIf="song.deleted" mat-button (click)="publishSong()">
         Remove deleted
       </button>
     </div>
+    <button *ngIf="!song.deleted" mat-button (click)="deleteSong()">
+      Delete
+    </button>
     <br>
     <button mat-button (click)="editSong()">
       Edit
