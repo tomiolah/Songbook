@@ -704,6 +704,9 @@ public class SongController {
     private String getSecondText(int selectedIndex) {
         try {
             if (selectedIndex < 0) {
+                if (selectedIndex == -1) {
+                    return songListView.getItems().get(0).getRawText();
+                }
                 return "";
             }
             if (selectedIndex >= selectedSongVerseList.size()) {
