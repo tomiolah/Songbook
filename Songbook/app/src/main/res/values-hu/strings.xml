@@ -45,4 +45,14 @@
     <string name="select_one_below">Válasszon az alábbiak közül:</string>
     <string name="connect_to_shared">Csatlakozás a megosztotthoz</string>
     <string name="similar">Hasonló</string>
+    <string name="new_song">Új ének</string>
+    <string name="no_title">Nincs cím</string>
+    <string name="empty_verses">Üres versszakok</string>
+    <string name="title_of_the_song">Az ének címe</string>
+    <string name="verses">Versszakok:</string>
+    <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Írja ide az ének verszakait egy üres sorral elválasztva.</string>
+    <string name="your_email">Email:</string>
+    <string name="languageD">Nyelv:</string>
+    <string name="title">Cím:</string>
+    <string name="language_of_the_song">Az ének nyelve</string>
 </resources>

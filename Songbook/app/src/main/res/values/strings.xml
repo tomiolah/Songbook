@@ -48,4 +48,14 @@
     <string name="connect_to_shared">Connect to shared</string>
     <string name="connection_successfully_wait_">Connection successfully!  Wait for incoming texts.</string>
     <string name="similar">Similar</string>
+    <string name="new_song">New song</string>
+    <string name="no_title">No title</string>
+    <string name="empty_verses">Empty verses</string>
+    <string name="title_of_the_song">Title of the song</string>
+    <string name="verses">Verses:</string>
+    <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Insert here the song verses\n  separated by an empty line.\n\n  1. Example\n\n  2. Example</string>
+    <string name="your_email">Your email:</string>
+    <string name="languageD">Language:</string>
+    <string name="title">Title:</string>
+    <string name="language_of_the_song">Language of the song</string>
 </resources>

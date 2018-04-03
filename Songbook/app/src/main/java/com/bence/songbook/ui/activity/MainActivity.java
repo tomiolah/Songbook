@@ -578,6 +578,9 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_settings) {
             Intent loadIntent = new Intent(this, SettingsActivity.class);
             startActivityForResult(loadIntent, 2);
+        } else if (id == R.id.nav_new_song) {
+            Intent loadIntent = new Intent(this, NewSongActivity.class);
+            startActivity(loadIntent);
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

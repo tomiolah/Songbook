@@ -55,6 +55,9 @@
             android:label="Connect to shared"
             android:theme="@style/SongBookTheme">
         </activity>
+        <activity
+            android:name=".ui.activity.NewSongActivity"
+            android:theme="@style/SongBookTheme"/>
     </application>
 
 </manifest>
