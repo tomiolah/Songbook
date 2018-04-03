@@ -43,6 +43,9 @@
 
     <style name="SongBookTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
 
-    <style name="SongBookTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light"/>
+    <style name="SongBookTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light">
+        <item name="android:itemBackground">@color/primaryTextColor</item>
+        <item name="android:actionBarItemBackground">@color/primaryTextColor</item>
+    </style>
 
 </resources>

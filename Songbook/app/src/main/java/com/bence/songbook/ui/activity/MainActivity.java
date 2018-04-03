@@ -289,6 +289,9 @@ public class MainActivity extends AppCompatActivity
             }
         } else if (requestCode == 2) {
             recreate();
+        } else if (requestCode == 3 && resultCode == 1) {
+            values.clear();
+            values.addAll(memory.getValues());
         }
     }
 
@@ -375,6 +378,10 @@ public class MainActivity extends AppCompatActivity
                     String enteredText = editable.toString().trim();
                     search(enteredText, adapter);
                     lastSearchedText = enteredText;
+                    if (enteredText.equals("show similar")) {
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                        sharedPreferences.edit().putBoolean("show_similar", true).apply();
+                    }
                 }
             };
             if (previousTextWatcher != null) {
@@ -464,7 +471,7 @@ public class MainActivity extends AppCompatActivity
         copiedSong.setSongCollectionElement(song.getSongCollectionElement());
         intent.putExtra("Song", copiedSong);
         intent.putExtra("verseIndex", 0);
-        startActivity(intent);
+        startActivityForResult(intent, 3);
     }
 
     private void sortSongs(List<Song> all) {
@@ -832,15 +839,13 @@ public class MainActivity extends AppCompatActivity
         selectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                languageRepository.save(languages);
                 filter();
                 loadAll();
                 selectLanguagePopupWindow.dismiss();
                 filterPopupWindow.dismiss();
             }
         });
-        for (Language language : languages) {
-            language.setSelected(false);
-        }
         LanguageAdapter dataAdapter = new LanguageAdapter(mainActivity,
                 R.layout.activity_language_checkbox_row, languages);
         ListView listView = customView.findViewById(R.id.listView);

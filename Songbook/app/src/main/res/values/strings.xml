@@ -47,4 +47,5 @@
     <string name="select_one_below">Select one below:</string>
     <string name="connect_to_shared">Connect to shared</string>
     <string name="connection_successfully_wait_">Connection successfully!  Wait for incoming texts.</string>
+    <string name="similar">Similar</string>
 </resources>

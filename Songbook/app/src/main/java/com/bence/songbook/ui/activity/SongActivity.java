@@ -11,6 +11,7 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,12 +19,14 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
+import com.bence.songbook.service.SongService;
 import com.bence.songbook.ui.utils.Preferences;
 
 import java.util.ArrayList;
@@ -31,14 +34,18 @@ import java.util.List;
 
 public class SongActivity extends AppCompatActivity {
 
+    private Song song;
+    private Memory memory;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(Preferences.getTheme(this));
         super.onCreate(savedInstanceState);
+        memory = Memory.getInstance();
         setContentView(R.layout.activity_song);
         Toolbar toolbar = findViewById(R.id.toolbar);
         Intent intent = getIntent();
-        Song song = (Song) intent.getSerializableExtra("Song");
+        song = (Song) intent.getSerializableExtra("Song");
         toolbar.setTitle(song.getTitle());
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -84,9 +91,19 @@ public class SongActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == android.R.id.home) {
+        int itemId = item.getItemId();
+        if (itemId == android.R.id.home) {
             finish();
             setBlank();
+        } else if (itemId == R.id.action_similar) {
+            List<Song> allSimilar = SongService.findAllSimilar(song, memory.getSongs());
+            memory.setValues(allSimilar);
+            if (allSimilar.size() > 0) {
+                setResult(1);
+                finish();
+            } else {
+                Toast.makeText(this, "No similar found", Toast.LENGTH_SHORT).show();
+            }
         }
         return super.onOptionsItemSelected(item);
     }
@@ -98,7 +115,6 @@ public class SongActivity extends AppCompatActivity {
     }
 
     private void setBlank() {
-        Memory memory = Memory.getInstance();
         if (memory.isShareOnNetwork()) {
             List<ProjectionTextChangeListener> projectionTextChangeListeners = memory.getProjectionTextChangeListeners();
             if (projectionTextChangeListeners != null) {
@@ -107,6 +123,20 @@ public class SongActivity extends AppCompatActivity {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.content_song_menu, menu);
+        MenuItem item = menu.findItem(R.id.action_similar);
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean show_similar = sharedPreferences.getBoolean("show_similar", false);
+        if (!show_similar) {
+            item.setVisible(false);
+            menu.removeItem(item.getItemId());
+        }
+        return true;
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -155,4 +185,5 @@ public class SongActivity extends AppCompatActivity {
         }
 
     }
+
 }

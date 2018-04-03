@@ -44,4 +44,5 @@
     <string name="connection_successfully_wait_">Conectarea cu succes! Așteptați texte trimise.</string>
     <string name="select_one_below">Alegeți una mai jos:</string>
     <string name="connect_to_shared">Connectare</string>
+    <string name="similar">Asemănător</string>
 </resources>
