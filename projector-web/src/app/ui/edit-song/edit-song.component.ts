@@ -161,7 +161,7 @@ export class EditSongComponent implements OnInit {
     if (this.verses[i].chorus) {
       return 'green';
     } else {
-      return 'black';
+      return 'rgb(216, 205, 205)';
     }
   }
 
@@ -173,7 +173,6 @@ export class EditSongComponent implements OnInit {
       for (const key in formValue) {
         if (formValue.hasOwnProperty(key) && key.startsWith('verse')) {
           const value = formValue[key];
-          const songVerseDTO = new SongVerseDTO();
           if (text.length > 0) {
             text = text + "\n\n";
           }
@@ -181,7 +180,6 @@ export class EditSongComponent implements OnInit {
             text = text + "[Chorus]\n";
           }
           text = text + value;
-          this.song.songVerseDTOS.push(songVerseDTO);
           i = i + 1;
         }
       }

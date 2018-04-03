@@ -5,6 +5,10 @@
 
       <h1>New song</h1>
 
+      <mat-radio-group class="example-radio-group" [(ngModel)]="editorType" (change)="editorTypeChange()">
+        <mat-radio-button class="example-radio-button" [value]="'verse'">Verse editor</mat-radio-button>
+        <mat-radio-button class="example-radio-button" [value]="'raw'">Raw editor</mat-radio-button>
+      </mat-radio-group>
       <form (ngSubmit)="onSubmit()" [formGroup]="form" class="example-form">
         <div class="formLayout">
 
@@ -27,16 +31,25 @@
               {{formErrors.title}}
             </mat-error>
 
-            <h4>Verses:</h4>
-            <!--suppress JSUnusedLocalSymbols -->
-            <div *ngFor="let verse of verses; let i = index;">
-              <button type="button" mat-icon-button (click)="removeVerse(i)">
-                <mat-icon>remove_circle_outline</mat-icon>
-              </button>
+            <div *ngIf="editorType==='verse'">
+              <h4>Verses:</h4>
+              <!--suppress JSUnusedLocalSymbols -->
+              <div *ngFor="let verse of verses; let i = index;">
+                <button type="button" mat-icon-button (click)="setChorus(i)">
+                  <mat-icon [style.color]="isChorus(i)">group</mat-icon>
+                  Chorus
+                </button>
+                <mat-form-field class="example-full-width">
+                  <textarea matInput placeholder="Verse {{i+1}}." rows="5" formControlName="verse{{i}}"
+                            maxlength="1000"></textarea>
+                </mat-form-field>
+              </div>
+            </div>
+            <div *ngIf="editorType==='raw'">
               <mat-form-field class="example-full-width">
-                <textarea matInput placeholder="Verse {{i+1}}." rows="5" formControlName="verse{{i}}"
-                          maxlength="1000"></textarea>
+                <textarea matInput placeholder="Text" rows="20" formControlName="songText"></textarea>
               </mat-form-field>
+              <h5>You need to switch back to verse editor in order to submit</h5>
             </div>
           </div>
           <br>
@@ -45,11 +58,12 @@
           </button>
           <br>
           <br>
-          <button type="submit" class="btn btn-success" [disabled]="!form.valid">Submit</button>
+          <button type="submit" class="btn btn-success" [disabled]="needToDisable()">Submit</button>
         </div>
         <br>
       </form>
 
     </mat-card-content>
   </mat-card>
+  <br>
 </div>

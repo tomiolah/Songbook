@@ -167,6 +167,14 @@ public class SongResource {
         song.setModifiedDate(date);
         final Song savedSong = songService.save(song);
         if (savedSong != null) {
+            Thread thread = new Thread(() -> {
+                try {
+                    sendEmail(song);
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
+            });
+            thread.start();
             SongDTO dto = songAssembler.createDto(savedSong);
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
         }
