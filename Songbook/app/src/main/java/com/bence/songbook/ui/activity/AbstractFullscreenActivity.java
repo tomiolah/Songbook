@@ -126,6 +126,12 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
         mHideHandler.postDelayed(mHideRunnable, 1);
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        hide();
+    }
+
     public void setText(String text) {
         String s = text.replaceAll("<color=\"0x(.{0,6})..\">", "<font color='0x$1'>")
                 .replaceAll("</color>", "</font>")
