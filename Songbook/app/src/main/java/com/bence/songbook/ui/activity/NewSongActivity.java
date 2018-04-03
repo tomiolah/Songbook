@@ -1,11 +1,14 @@
 package com.bence.songbook.ui.activity;
 
+import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,7 +17,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.bence.songbook.Memory;
 import com.bence.songbook.R;
+import com.bence.songbook.api.SongApiBean;
 import com.bence.songbook.models.Language;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
@@ -45,8 +50,8 @@ public class NewSongActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        View editText = findViewById(R.id.text);
-        editText.setOnTouchListener(new View.OnTouchListener() {
+        View editTextView = findViewById(R.id.text);
+        editTextView.setOnTouchListener(new View.OnTouchListener() {
 
             public boolean onTouch(View v, MotionEvent event) {
 
@@ -87,12 +92,59 @@ public class NewSongActivity extends AppCompatActivity {
                 createSong(languages);
             }
         });
+
+        @SuppressLint("CutPasteId") final EditText editText = findViewById(R.id.text);
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (count > 2) {
+                    CharSequence previousSequence = s.subSequence(0, start);
+                    CharSequence charSequence = s.subSequence(start, start + count);
+                    String newString = charSequence.toString();
+                    System.out.println("s = " + newString);
+                    String parse = newString.replaceAll("\\h", " ").replaceAll(" {2}", " ");
+                    while (parse.contains("  ")) {
+                        parse = parse.replaceAll(" {2}", " ");
+                    }
+                    int countEmptyLine = 0;
+                    for (int i = 1; i < charSequence.length(); ++i) {
+                        if (charSequence.charAt(i - 1) == '\n' && charSequence.charAt(i) == '\n') {
+                            ++countEmptyLine;
+                        }
+                    }
+                    double x = countEmptyLine;
+                    x /= count;
+                    if (x > 0.07214) {
+                        while (parse.contains("\n\n")) {
+                            parse = parse.replaceAll("\n{2}", "\n");
+                        }
+                        String text = previousSequence.toString() + parse;
+                        editText.setText(text);
+                        return;
+                    }
+                    if (parse.length() != count) {
+                        String text = previousSequence.toString() + parse;
+                        editText.setText(text);
+                    }
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
     }
 
     private void createSong(List<Language> languages) {
-        Song song = new Song();
+        final Song song = new Song();
         EditText titleEditText = findViewById(R.id.title);
-        String title = titleEditText.getText().toString().trim();
+        String title = titleEditText.getText().toString().replaceAll("(?:\\n| {2}|\\n | \\n)", " ").trim();
         if (title.isEmpty()) {
             Toast.makeText(this, R.string.no_title, Toast.LENGTH_SHORT).show();
             return;
@@ -123,8 +175,31 @@ public class NewSongActivity extends AppCompatActivity {
         song.setCreatedDate(new Date());
         song.setModifiedDate(song.getCreatedDate());
         song.setLanguage(languages.get(languageSpinner.getSelectedItemPosition()));
-        SongRepository songRepository = new SongRepositoryImpl(this);
+        final SongRepository songRepository = new SongRepositoryImpl(this);
         songRepository.save(song);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SongApiBean songApiBean = new SongApiBean();
+                final Song uploadedSong = songApiBean.uploadSong(song);
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (uploadedSong != null) {
+                            song.setUuid(uploadedSong.getUuid());
+                            songRepository.save(song);
+                            Toast.makeText(NewSongActivity.this, R.string.successfully_uploaded, Toast.LENGTH_SHORT).show();
+                            Memory.getInstance().getSongs().add(song);
+                            setResult(1);
+                            finish();
+                        } else {
+                            Toast.makeText(NewSongActivity.this, R.string.upload_failed, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
+        thread.start();
     }
 
     @Override

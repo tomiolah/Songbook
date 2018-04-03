@@ -292,6 +292,9 @@ public class MainActivity extends AppCompatActivity
         } else if (requestCode == 3 && resultCode == 1) {
             values.clear();
             values.addAll(memory.getValues());
+        } else if (requestCode == 4 && resultCode == 1) {
+            songs = memory.getSongs();
+            loadAll();
         }
     }
 
@@ -580,7 +583,7 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(loadIntent, 2);
         } else if (id == R.id.nav_new_song) {
             Intent loadIntent = new Intent(this, NewSongActivity.class);
-            startActivity(loadIntent);
+            startActivityForResult(loadIntent, 4);
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);

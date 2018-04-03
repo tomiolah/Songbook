@@ -1,6 +1,7 @@
 package com.bence.songbook.api.retrofit;
 
 import com.bence.projector.common.serializer.DateDeserializer;
+import com.bence.projector.common.serializer.DateSerializer;
 import com.google.gson.GsonBuilder;
 
 import java.util.Date;
@@ -22,7 +23,8 @@ public class ApiManager {
                 .readTimeout(100, TimeUnit.SECONDS)
                 .addInterceptor(httpLoggingInterceptor).build();
         GsonBuilder gsonBuilder = new GsonBuilder();
-        gsonBuilder.registerTypeAdapter(Date.class, new DateDeserializer());
+        gsonBuilder.registerTypeAdapter(Date.class, new DateDeserializer()).registerTypeAdapter(Date.class,
+                new DateSerializer());
         GsonConverterFactory factory = GsonConverterFactory.create(gsonBuilder.create());
         return new Retrofit.Builder()
                 .baseUrl(BASE_URL)

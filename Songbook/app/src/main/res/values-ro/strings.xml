@@ -55,4 +55,6 @@
     <string name="languageD">Limba:</string>
     <string name="title">Titlu:</string>
     <string name="language_of_the_song">Limba cântecului</string>
+    <string name="successfully_uploaded">S-a încărcat cu succes!</string>
+    <string name="upload_failed">Încărcare eșuată</string>
 </resources>

@@ -60,6 +60,7 @@
                 android:ems="12"
                 android:hint="@string/title_of_the_song"
                 android:inputType="text|textCapSentences"
+                android:maxLength="50"
                 />
         </GridLayout>
 

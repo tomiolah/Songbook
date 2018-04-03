@@ -11,6 +11,7 @@ import com.bence.songbook.models.Language;
 import com.bence.songbook.models.Song;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
 
@@ -86,7 +87,7 @@ public class SongApiBean {
 
     public List<Song> getSongsByLanguageAndAfterModifiedDate(Language language, Long modifiedDate, ProgressMessage progressMessage) {
         Call<List<SongDTO>> call = songApi.getSongsByLanguageAndAfterModifiedDate(language.getUuid(), modifiedDate);
-        List<Song> songs = null;
+        List<Song> songs;
         try {
             List<SongDTO> songDTOs = call.execute().body();
             if (songDTOs != null) {
@@ -99,7 +100,7 @@ public class SongApiBean {
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
         }
-        return songs;
+        return null;
     }
 
     public SongDTO uploadView(Song song) {
@@ -111,4 +112,23 @@ public class SongApiBean {
         }
         return null;
     }
+
+    private Song doCallSong(Call<SongDTO> call) {
+        try {
+            SongDTO songDTO = call.execute().body();
+            return songAssembler.createModel(songDTO);
+        } catch (UnknownHostException e) {
+            return null;
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public Song uploadSong(Song song) {
+        final SongDTO dto = songAssembler.createDto(song);
+        Call<SongDTO> call = songApi.uploadSong(dto);
+        return doCallSong(call);
+    }
+
 }

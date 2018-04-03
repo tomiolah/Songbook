@@ -58,4 +58,6 @@
     <string name="languageD">Language:</string>
     <string name="title">Title:</string>
     <string name="language_of_the_song">Language of the song</string>
+    <string name="successfully_uploaded">Successfully uploaded!</string>
+    <string name="upload_failed">Upload failed</string>
 </resources>

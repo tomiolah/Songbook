@@ -55,4 +55,6 @@
     <string name="languageD">Nyelv:</string>
     <string name="title">Cím:</string>
     <string name="language_of_the_song">Az ének nyelve</string>
+    <string name="successfully_uploaded">Sikeresen feltöltve!</string>
+    <string name="upload_failed">Feltöltés sikertelen</string>
 </resources>

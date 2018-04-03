@@ -11,6 +11,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
 
     private static SongAssembler instance;
     private static SongVerseAssembler songVerseAssembler = SongVerseAssembler.getInstance();
+    private static LanguageAssembler languageAssembler = LanguageAssembler.getInstance();
 
     private SongAssembler() {
     }
@@ -63,5 +64,15 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             progressMessage.onProgress(++i);
         }
         return models;
+    }
+
+    public SongDTO createDto(Song song) {
+        SongDTO songDTO = new SongDTO();
+        songDTO.setTitle(song.getTitle());
+        songDTO.setCreatedDate(song.getCreatedDate());
+        songDTO.setModifiedDate(song.getModifiedDate());
+        songDTO.setLanguageDTO(languageAssembler.createDTO(song.getLanguage()));
+        songDTO.setSongVerseDTOS(songVerseAssembler.createDTOS(song.getVerses()));
+        return songDTO;
     }
 }
