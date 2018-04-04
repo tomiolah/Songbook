@@ -23,11 +23,13 @@ export class NewSongComponent implements OnInit {
       'required': 'Required field',
     }
   };
-  verses: string[];
+  verses: SongVerseDTO[];
   verseControls: FormControl[];
   languages: Language[];
   selectedLanguage;
+  editorType = 'verse';
   private song: Song;
+  private songTextFormControl: FormControl;
 
   constructor(private fb: FormBuilder,
               private songService: SongService,
@@ -63,37 +65,17 @@ export class NewSongComponent implements OnInit {
     });
     this.verseControls = [];
     this.addNewVerse();
+    this.songTextFormControl = new FormControl('');
+    this.form.addControl('songText', this.songTextFormControl);
     this.form.valueChanges.subscribe(() => this.onValueChanged());
     this.onValueChanged();
   }
 
   addNewVerse() {
     const control = new FormControl('');
-    this.verses.push('');
+    this.verses.push(new SongVerseDTO());
     this.verseControls.push(control);
     this.form.addControl('verse' + (this.verses.length - 1), control);
-  }
-
-  removeVerse(index) {
-    if (index > -1) {
-      let i = 0;
-      const formValue = this.form.value;
-      for (const key in formValue) {
-        if (formValue.hasOwnProperty(key) && key !== 'title') {
-          this.verses[i] = formValue[key];
-          this.verseControls.splice(i, 1);
-          this.form.removeControl('verse' + i);
-          ++i;
-        }
-      }
-      this.verses.splice(index, 1);
-      i = 0;
-      for (const verse of this.verses) {
-        const control = new FormControl(verse);
-        this.verseControls.push(control);
-        this.form.addControl('verse' + i++, control);
-      }
-    }
   }
 
   onValueChanged() {
@@ -125,12 +107,15 @@ export class NewSongComponent implements OnInit {
     this.song.title = formValue.title;
     this.song.songVerseDTOS = [];
     this.song.languageDTO = this.selectedLanguage;
+    let i = 0;
     for (const key in formValue) {
-      if (formValue.hasOwnProperty(key) && key !== 'title') {
+      if (formValue.hasOwnProperty(key) && key.startsWith('verse')) {
         const value = formValue[key];
         const songVerseDTO = new SongVerseDTO();
         songVerseDTO.text = value;
+        songVerseDTO.chorus = this.verses[i].chorus;
         this.song.songVerseDTOS.push(songVerseDTO);
+        i = i + 1;
       }
     }
     this.songService.createSong(this.song).subscribe(
@@ -159,5 +144,72 @@ export class NewSongComponent implements OnInit {
       return language.englishName;
     }
     return language.englishName + " | " + language.nativeName;
+  }
+
+  setChorus(verseNumber) {
+    this.verses[verseNumber].chorus = !this.verses[verseNumber].chorus;
+  }
+
+  isChorus(i) {
+    if (this.verses[i].chorus) {
+      return 'green';
+    } else {
+      return 'rgb(216, 205, 205)';
+    }
+  }
+
+  editorTypeChange() {
+    if (this.editorType === 'raw') {
+      const formValue = this.form.value;
+      let i = 0;
+      let text = '';
+      for (const key in formValue) {
+        if (formValue.hasOwnProperty(key) && key.startsWith('verse')) {
+          const value = formValue[key];
+          if (text.length > 0) {
+            text = text + "\n\n";
+          }
+          if (this.verses[i].chorus) {
+            text = text + "[Chorus]\n";
+          }
+          text = text + value;
+          i = i + 1;
+        }
+      }
+      this.songTextFormControl.patchValue(text);
+    } else {
+      let i = 0;
+      const formValue = this.form.value;
+      for (const key in formValue) {
+        if (formValue.hasOwnProperty(key) && key.startsWith('verse')) {
+          this.form.removeControl(key);
+          ++i;
+        }
+      }
+      this.verses.splice(0, this.verses.length);
+      this.verseControls.splice(0, this.verseControls.length);
+      i = 0;
+      for (const verseI of this.songTextFormControl.value.split("\n\n")) {
+        const songVerseDTO = new SongVerseDTO();
+        songVerseDTO.chorus = false;
+        const chorusString = "[Chorus]\n";
+        let verse = verseI;
+        if (verse.startsWith(chorusString)) {
+          songVerseDTO.chorus = true;
+          verse = verseI.substring(chorusString.length, verseI.length);
+        }
+        const control = new FormControl(verse);
+        control.setValue(verse);
+        this.verseControls.push(control);
+        this.form.addControl('verse' + i, control);
+        control.patchValue(verse);
+        this.verses.push(songVerseDTO);
+        ++i;
+      }
+    }
+  }
+
+  needToDisable() {
+    return !this.form.valid || this.editorType === 'raw';
   }
 }
