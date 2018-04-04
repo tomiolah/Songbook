@@ -42,4 +42,19 @@ public class SongVerseAssembler implements GeneralAssembler<SongVerse, SongVerse
         }
         return models;
     }
+
+    List<SongVerseDTO> createDTOS(List<SongVerse> verses) {
+        List<SongVerseDTO> songVerseDTOS = new ArrayList<>(verses.size());
+        for (SongVerse songVerse : verses) {
+            songVerseDTOS.add(createDTO(songVerse));
+        }
+        return songVerseDTOS;
+    }
+
+    private SongVerseDTO createDTO(SongVerse songVerse) {
+        SongVerseDTO songVerseDTO = new SongVerseDTO();
+        songVerseDTO.setText(songVerse.getText());
+        songVerseDTO.setChorus(songVerse.isChorus());
+        return songVerseDTO;
+    }
 }

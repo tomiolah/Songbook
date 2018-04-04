@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity
     private LanguageRepositoryImpl languageRepository;
     private SongCollectionRepositoryImpl songCollectionRepository;
     private int collectionPosition;
+    private SongAdapter adapter;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -204,11 +205,11 @@ public class MainActivity extends AppCompatActivity
                         long lastInterval = 86400000; // one day
                         long nowTime = now.getTime();
                         long lastUploadedViewsDateTime = lastUploadedViewsDate.getTime();
+                        SongApiBean songApiBean = new SongApiBean();
                         if (nowTime - lastUploadedViewsDateTime > lastInterval) {
-                            SongApiBean songApiBean = new SongApiBean();
                             List<Song> uploadingSongs = new ArrayList<>();
                             for (Song song : songs) {
-                                if (song.getLastAccessed().getTime() > lastUploadedViewsDateTime) {
+                                if (song.getLastAccessed().getTime() > lastUploadedViewsDateTime && song.getModifiedDate().getTime() != 123L) {
                                     uploadingSongs.add(song);
                                 }
                             }
@@ -234,6 +235,22 @@ public class MainActivity extends AppCompatActivity
                             }
                             if (oneUploaded) {
                                 sharedPreferences.edit().putLong("lastUploadedViewsDate", lastUploadedViewsDateTime).apply();
+                            }
+                        }
+
+                        // upload songs
+                        List<Song> uploadingSongs = new ArrayList<>();
+                        for (Song song : songs) {
+                            if (song.getModifiedDate().getTime() == 123L) {
+                                uploadingSongs.add(song);
+                            }
+                        }
+                        for (Song song : uploadingSongs) {
+                            final Song uploadedSong = songApiBean.uploadSong(song);
+                            if (uploadedSong != null && !uploadedSong.getUuid().trim().isEmpty()) {
+                                song.setUuid(uploadedSong.getUuid());
+                                song.setModifiedDate(uploadedSong.getModifiedDate());
+                                songRepository.save(song);
                             }
                         }
                     }
@@ -289,6 +306,14 @@ public class MainActivity extends AppCompatActivity
             }
         } else if (requestCode == 2) {
             recreate();
+        } else if (requestCode == 3 && resultCode == 1) {
+            values.clear();
+            values.addAll(memory.getValues());
+        } else if (requestCode == 4 && resultCode == 1) {
+            songs = memory.getSongs();
+            values.clear();
+            values.add(songs.get(songs.size() - 1));
+            adapter.setSongList(values);
         }
     }
 
@@ -346,7 +371,7 @@ public class MainActivity extends AppCompatActivity
             sortSongs(songs);
             values = new ArrayList<>();
             values.addAll(songs);
-            final SongAdapter adapter = new SongAdapter(this, R.layout.content_song_list_row, values);
+            adapter = new SongAdapter(this, R.layout.content_song_list_row, values);
             songListView.setAdapter(adapter);
             titleSearch("");
             songListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -375,6 +400,10 @@ public class MainActivity extends AppCompatActivity
                     String enteredText = editable.toString().trim();
                     search(enteredText, adapter);
                     lastSearchedText = enteredText;
+                    if (enteredText.equals("show similar")) {
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                        sharedPreferences.edit().putBoolean("show_similar", true).apply();
+                    }
                 }
             };
             if (previousTextWatcher != null) {
@@ -464,7 +493,7 @@ public class MainActivity extends AppCompatActivity
         copiedSong.setSongCollectionElement(song.getSongCollectionElement());
         intent.putExtra("Song", copiedSong);
         intent.putExtra("verseIndex", 0);
-        startActivity(intent);
+        startActivityForResult(intent, 3);
     }
 
     private void sortSongs(List<Song> all) {
@@ -571,6 +600,9 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_settings) {
             Intent loadIntent = new Intent(this, SettingsActivity.class);
             startActivityForResult(loadIntent, 2);
+        } else if (id == R.id.nav_new_song) {
+            Intent loadIntent = new Intent(this, NewSongActivity.class);
+            startActivityForResult(loadIntent, 4);
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -832,15 +864,13 @@ public class MainActivity extends AppCompatActivity
         selectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                languageRepository.save(languages);
                 filter();
                 loadAll();
                 selectLanguagePopupWindow.dismiss();
                 filterPopupWindow.dismiss();
             }
         });
-        for (Language language : languages) {
-            language.setSelected(false);
-        }
         LanguageAdapter dataAdapter = new LanguageAdapter(mainActivity,
                 R.layout.activity_language_checkbox_row, languages);
         ListView listView = customView.findViewById(R.id.listView);

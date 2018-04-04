@@ -211,7 +211,7 @@ public class AutoResizeTextView extends AppCompatTextView {
         if (size != 0) {
             return size;
         }
-        size = linearSearch(start, end, sizeTester, availableSpace);
+        size = linearSearch(start, end, sizeTester, availableSpace) - 1;
         mTextCachedSizes.put(key, size);
         return size;
     }

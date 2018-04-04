@@ -46,4 +46,12 @@ public class LanguageAssembler implements GeneralAssembler<Language, LanguageDTO
         }
         return models;
     }
+
+    LanguageDTO createDTO(Language language) {
+        LanguageDTO languageDTO = new LanguageDTO();
+        languageDTO.setEnglishName(language.getEnglishName());
+        languageDTO.setNativeName(language.getNativeName());
+        languageDTO.setUuid(language.getUuid());
+        return languageDTO;
+    }
 }

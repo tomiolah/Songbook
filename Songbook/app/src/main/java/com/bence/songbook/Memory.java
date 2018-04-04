@@ -13,6 +13,7 @@ public class Memory {
     private List<SongCollection> songCollections;
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
     private boolean shareOnNetwork;
+    private List<Song> values;
 
     private Memory() {
 
@@ -57,4 +58,11 @@ public class Memory {
         this.shareOnNetwork = shareOnNetwork;
     }
 
+    public List<Song> getValues() {
+        return values;
+    }
+
+    public void setValues(List<Song> values) {
+        this.values = values;
+    }
 }

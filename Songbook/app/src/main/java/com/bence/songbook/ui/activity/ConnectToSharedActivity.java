@@ -61,15 +61,15 @@ public class ConnectToSharedActivity extends AppCompatActivity {
         MyCustomAdapter dataAdapter = new MyCustomAdapter(this,
                 R.layout.content_connect_to_shared, openIps);
         listView.setAdapter(dataAdapter);
-
+        if (openIps.size() == 1) {
+            connect(openIps.get(0));
+        }
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                final Intent fullScreenIntent = new Intent(ConnectToSharedActivity.this, ConnectToSharedFullscreenActivity.class);
-                fullScreenIntent.putExtra("connectToShared", openIps.get(position));
-                startActivity(fullScreenIntent);
+                connect(openIps.get(position));
             }
 
         });
@@ -77,6 +77,12 @@ public class ConnectToSharedActivity extends AppCompatActivity {
             TextView textView = findViewById(R.id.textView);
             textView.setText(R.string.no_connections);
         }
+    }
+
+    private void connect(String ip) {
+        final Intent fullScreenIntent = new Intent(this, ConnectToSharedFullscreenActivity.class);
+        fullScreenIntent.putExtra("connectToShared", ip);
+        startActivity(fullScreenIntent);
     }
 
     private void findShared(final List<String> openIps) {

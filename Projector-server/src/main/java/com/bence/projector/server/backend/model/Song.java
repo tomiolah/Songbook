@@ -17,6 +17,7 @@ public class Song extends BaseEntity {
     private Boolean uploaded;
     private long views;
     private Date lastIncrementViewDate;
+    private String createdByEmail;
 
     public Song() {
     }
@@ -100,5 +101,13 @@ public class Song extends BaseEntity {
 
     public void setLastIncrementViewDate(Date lastIncrementViewDate) {
         this.lastIncrementViewDate = lastIncrementViewDate;
+    }
+
+    public String getCreatedByEmail() {
+        return createdByEmail;
+    }
+
+    public void setCreatedByEmail(String createdByEmail) {
+        this.createdByEmail = createdByEmail;
     }
 }

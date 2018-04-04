@@ -34,6 +34,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         songDTO.setLanguageDTO(languageAssembler.createDto(song.getLanguage()));
         songDTO.setUploaded(song.getUploaded());
         songDTO.setViews(song.getViews());
+        songDTO.setCreatedByEmail(song.getCreatedByEmail());
         return songDTO;
     }
 
@@ -54,7 +55,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         song.setTitle(songDTO.getTitle());
         Date modifiedDate = songDTO.getModifiedDate();
         if (modifiedDate == null || modifiedDate.getTime() < 1000) {
-            song.setCreatedDate(new Date());
+            song.setModifiedDate(new Date());
         } else {
             song.setModifiedDate(modifiedDate);
         }
@@ -64,6 +65,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         if (!songDTO.isDeleted() && songDTO.getLanguageDTO() != null) {
             song.setLanguage(languageRepository.findOne(songDTO.getLanguageDTO().getUuid()));
         }
+        song.setCreatedByEmail(songDTO.getCreatedByEmail());
         return song;
     }
 }

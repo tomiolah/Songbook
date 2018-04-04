@@ -23,7 +23,7 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_song"/>
+    <include layout="@layout/content_new_song"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -33,6 +33,7 @@
         android:layout_margin="@dimen/fab_margin"
         android:tint="@color/primaryTextColor"
         app:backgroundTint="@color/primaryDarkColor"
-        app:srcCompat="@drawable/ic_slideshow_black"/>
+        app:fabSize="auto"
+        app:srcCompat="@drawable/ic_done_black_24dp"/>
 
 </android.support.design.widget.CoordinatorLayout>

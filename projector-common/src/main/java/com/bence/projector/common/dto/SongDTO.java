@@ -13,6 +13,7 @@ public class SongDTO extends BaseDTO {
     private LanguageDTO languageDTO;
     private Boolean uploaded;
     private long views;
+    private String createdByEmail;
 
     public SongDTO() {
     }
@@ -87,5 +88,13 @@ public class SongDTO extends BaseDTO {
 
     public void setViews(long views) {
         this.views = views;
+    }
+
+    public String getCreatedByEmail() {
+        return createdByEmail;
+    }
+
+    public void setCreatedByEmail(String createdByEmail) {
+        this.createdByEmail = createdByEmail;
     }
 }
