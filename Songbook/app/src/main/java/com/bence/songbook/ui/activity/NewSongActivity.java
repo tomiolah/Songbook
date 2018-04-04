@@ -50,11 +50,10 @@ public class NewSongActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        View editTextView = findViewById(R.id.text);
+        final View editTextView = findViewById(R.id.text);
         editTextView.setOnTouchListener(new View.OnTouchListener() {
 
             public boolean onTouch(View v, MotionEvent event) {
-
                 v.getParent().requestDisallowInterceptTouchEvent(true);
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_UP:
@@ -62,6 +61,7 @@ public class NewSongActivity extends AppCompatActivity {
                         return true;
                 }
                 v.performClick();
+                editTextView.requestFocus();
                 return false;
             }
         });
@@ -172,8 +172,9 @@ public class NewSongActivity extends AppCompatActivity {
         EditText emailEditText = findViewById(R.id.email);
         String email = emailEditText.getText().toString().trim();
         sharedPreferences.edit().putString("email", email).apply();
+        song.setCreatedByEmail(email);
         song.setCreatedDate(new Date());
-        song.setModifiedDate(song.getCreatedDate());
+        song.setModifiedDate(new Date(123L)); // Means it's not uploaded yet
         song.setLanguage(languages.get(languageSpinner.getSelectedItemPosition()));
         final SongRepository songRepository = new SongRepositoryImpl(this);
         songRepository.save(song);
@@ -185,13 +186,11 @@ public class NewSongActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        if (uploadedSong != null) {
+                        if (uploadedSong != null && !uploadedSong.getUuid().trim().isEmpty()) {
                             song.setUuid(uploadedSong.getUuid());
+                            song.setModifiedDate(uploadedSong.getModifiedDate());
                             songRepository.save(song);
                             Toast.makeText(NewSongActivity.this, R.string.successfully_uploaded, Toast.LENGTH_SHORT).show();
-                            Memory.getInstance().getSongs().add(song);
-                            setResult(1);
-                            finish();
                         } else {
                             Toast.makeText(NewSongActivity.this, R.string.upload_failed, Toast.LENGTH_SHORT).show();
                         }
@@ -200,6 +199,9 @@ public class NewSongActivity extends AppCompatActivity {
             }
         });
         thread.start();
+        Memory.getInstance().getSongs().add(song);
+        setResult(1);
+        finish();
     }
 
     @Override

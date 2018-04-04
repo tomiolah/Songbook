@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity
     private LanguageRepositoryImpl languageRepository;
     private SongCollectionRepositoryImpl songCollectionRepository;
     private int collectionPosition;
+    private SongAdapter adapter;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -204,11 +205,11 @@ public class MainActivity extends AppCompatActivity
                         long lastInterval = 86400000; // one day
                         long nowTime = now.getTime();
                         long lastUploadedViewsDateTime = lastUploadedViewsDate.getTime();
+                        SongApiBean songApiBean = new SongApiBean();
                         if (nowTime - lastUploadedViewsDateTime > lastInterval) {
-                            SongApiBean songApiBean = new SongApiBean();
                             List<Song> uploadingSongs = new ArrayList<>();
                             for (Song song : songs) {
-                                if (song.getLastAccessed().getTime() > lastUploadedViewsDateTime) {
+                                if (song.getLastAccessed().getTime() > lastUploadedViewsDateTime && song.getModifiedDate().getTime() != 123L) {
                                     uploadingSongs.add(song);
                                 }
                             }
@@ -234,6 +235,22 @@ public class MainActivity extends AppCompatActivity
                             }
                             if (oneUploaded) {
                                 sharedPreferences.edit().putLong("lastUploadedViewsDate", lastUploadedViewsDateTime).apply();
+                            }
+                        }
+
+                        // upload songs
+                        List<Song> uploadingSongs = new ArrayList<>();
+                        for (Song song : songs) {
+                            if (song.getModifiedDate().getTime() == 123L) {
+                                uploadingSongs.add(song);
+                            }
+                        }
+                        for (Song song : uploadingSongs) {
+                            final Song uploadedSong = songApiBean.uploadSong(song);
+                            if (uploadedSong != null && !uploadedSong.getUuid().trim().isEmpty()) {
+                                song.setUuid(uploadedSong.getUuid());
+                                song.setModifiedDate(uploadedSong.getModifiedDate());
+                                songRepository.save(song);
                             }
                         }
                     }
@@ -294,7 +311,9 @@ public class MainActivity extends AppCompatActivity
             values.addAll(memory.getValues());
         } else if (requestCode == 4 && resultCode == 1) {
             songs = memory.getSongs();
-            loadAll();
+            values.clear();
+            values.add(songs.get(songs.size() - 1));
+            adapter.setSongList(values);
         }
     }
 
@@ -352,7 +371,7 @@ public class MainActivity extends AppCompatActivity
             sortSongs(songs);
             values = new ArrayList<>();
             values.addAll(songs);
-            final SongAdapter adapter = new SongAdapter(this, R.layout.content_song_list_row, values);
+            adapter = new SongAdapter(this, R.layout.content_song_list_row, values);
             songListView.setAdapter(adapter);
             titleSearch("");
             songListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

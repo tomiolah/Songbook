@@ -37,6 +37,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             song.setModifiedDate(songDTO.getModifiedDate());
             song.setVerses(songVerseAssembler.createModelList(songDTO.getSongVerseDTOS()));
             song.setDeleted(songDTO.isDeleted());
+            song.setCreatedByEmail(songDTO.getCreatedByEmail());
         }
         return song;
     }
@@ -73,6 +74,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         songDTO.setModifiedDate(song.getModifiedDate());
         songDTO.setLanguageDTO(languageAssembler.createDTO(song.getLanguage()));
         songDTO.setSongVerseDTOS(songVerseAssembler.createDTOS(song.getVerses()));
+        songDTO.setCreatedByEmail(song.getCreatedByEmail());
         return songDTO;
     }
 }
