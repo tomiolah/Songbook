@@ -211,6 +211,7 @@ public class SongResource {
             helper.getMimeMessage().setContent("<div>\n" +
                     "    <h3>Új ének: " + song.getTitle() + "</h3>\n" +
                     "    <a href=\"https://projector-songbook.herokuapp.com/#/song/" + song.getId() + "\">Link</a>\n" +
+                    "  <h3>Email </h3><h4>" + song.getCreatedByEmail() + "</h4>" +
                     "</div>", "text/html;charset=utf-8");
         }
         sender.send(message);
@@ -220,6 +221,7 @@ public class SongResource {
         Map<String, Object> data = new HashMap<>();
         data.put("title", song.getTitle());
         data.put("songUuid", song.getId());
+        data.put("email", song.getCreatedByEmail());
 
         return data;
     }
