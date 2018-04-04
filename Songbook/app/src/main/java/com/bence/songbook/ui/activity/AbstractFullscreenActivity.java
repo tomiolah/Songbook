@@ -2,12 +2,14 @@ package com.bence.songbook.ui.activity;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
+import android.text.Layout;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -26,7 +28,7 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
      */
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
-    private TextView textView;
+    TextView textView;
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
         @Override
@@ -71,11 +73,13 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
             mControlsView = findViewById(R.id.fullscreen_content_controls);
             textView = findViewById(R.id.fullscreen_content);
             textView.setSingleLine(false);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                textView.setBreakStrategy(Layout.BREAK_STRATEGY_SIMPLE);
+            }
             // Set up the user interaction to manually show or hide the system UI.
             // Upon interacting with UI controls, delay any scheduled hide()
             // operations to prevent the jarring behavior of controls going away
             // while interacting with the UI.
-            TextView textView = findViewById(R.id.fullscreen_content);
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
             int max_text_size = sharedPreferences.getInt("max_text_size", -1);
             if (max_text_size > 0) {
@@ -104,7 +108,7 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
         delayedHide();
     }
 
-    private void hide() {
+    void hide() {
         // Hide UI first
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -132,7 +136,7 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
         hide();
     }
 
-    public void setText(String text) {
+    void setText(String text) {
         String s = text.replaceAll("<color=\"0x(.{0,6})..\">", "<font color='0x$1'>")
                 .replaceAll("</color>", "</font>")
                 .replaceAll("\\[", "<i>")
