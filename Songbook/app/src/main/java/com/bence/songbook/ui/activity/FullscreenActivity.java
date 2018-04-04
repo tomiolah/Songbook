@@ -1,6 +1,5 @@
 package com.bence.songbook.ui.activity;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -40,7 +39,6 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
     private Date lastDatePressedAtEnd = null;
     private boolean show_title_switch;
 
-    @SuppressLint({"CutPasteId", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,18 +71,18 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             }
             verseIndex = intent.getIntExtra("verseIndex", 0);
 
-            // Set up the user interaction to manually show or hide the system UI.
-            textView.setOnTouchListener(new View.OnTouchListener() {
+            final View mContentView = findViewById(R.id.fullscreen_content);
+            mContentView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View view, MotionEvent motionEvent) {
                     if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                        if (motionEvent.getX() < textView.getWidth() / 2) {
+                        if (motionEvent.getX() < mContentView.getWidth() / 2) {
                             setPreviousVerse();
                         } else {
                             setNextVerse();
                         }
+                        view.performClick();
                     }
-                    view.performClick();
                     return true;
                 }
             });

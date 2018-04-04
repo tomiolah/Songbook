@@ -40,7 +40,6 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
         super.onCreate(savedInstanceState);
         texts = new ArrayList<>();
         final View mContentView = findViewById(R.id.fullscreen_content);
-        // Set up the user interaction to manually show or hide the system UI.
         mContentView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
