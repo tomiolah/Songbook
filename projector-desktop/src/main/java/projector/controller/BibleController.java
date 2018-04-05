@@ -887,7 +887,7 @@ public class BibleController {
                     final Text e = new Text(text);
                     e.setFont(verseFont);
                     textFlow.getChildren().add(e);
-                    textFlow.setTextAlignment(TextAlignment.JUSTIFY);
+                    textFlow.setTextAlignment(TextAlignment.LEFT);
                     textFlow.setPrefWidth(verseListView.getWidth() - verseRightMargin);
                     MarkTextFlow markTextFlow = new MarkTextFlow(textFlow);
                     verseListView.getItems().add(markTextFlow);
@@ -977,7 +977,7 @@ public class BibleController {
                                 text1.setFont(verseFont);
                                 textFlow.getChildren().add(text1);
                             }
-                            textFlow.setTextAlignment(TextAlignment.JUSTIFY);
+                            textFlow.setTextAlignment(TextAlignment.LEFT);
                             textFlow.setPrefWidth(verseListView.getWidth() - verseRightMargin);
                             tmpSearchListView.add(textFlow);
 //                    }
@@ -1753,30 +1753,28 @@ public class BibleController {
                         int book2 = Integer.parseInt(split[3]);
                         int part2 = Integer.parseInt(split[4]) - 1;
                         int verse2 = Integer.parseInt(split[5]) - 1;
-                        if (verse1 < verse2) {
-                            result += "\n" + (verse1 + 1) + ". "
-                                    + parallelBible.getBooks()[book1].getChapters()[part1].getVerses()[verse1] + "\n"
-                                    + (verse2 + 1) + ". "
-                                    + parallelBible.getBooks()[book2].getChapters()[part2].getVerses()[verse2];
-                            result += "\n";
-                            if (settings.isReferenceItalic()) {
-                                result += "[";
-                            }
-                            result += parallelBible.getBooks()[book1].getTitle().trim() + " ";
-                            result += (part1 + 1) + ":" + (verse1 + 1);
-                            if (book1 == book2) {
-                                if (part1 == part2) {
-                                    result += "," + (verse2 + 1);
-                                } else {
-                                    result += "; " + (part2 + 1) + ":" + (verse2 + 1);
-                                }
+                        result += "\n" + (verse1 + 1) + ". "
+                                + parallelBible.getBooks()[book1].getChapters()[part1].getVerses()[verse1] + "\n"
+                                + (verse2 + 1) + ". "
+                                + parallelBible.getBooks()[book2].getChapters()[part2].getVerses()[verse2];
+                        result += "\n";
+                        if (settings.isReferenceItalic()) {
+                            result += "[";
+                        }
+                        result += parallelBible.getBooks()[book1].getTitle().trim() + " ";
+                        result += (part1 + 1) + ":" + (verse1 + 1);
+                        if (book1 == book2) {
+                            if (part1 == part2) {
+                                result += "," + (verse2 + 1);
                             } else {
-                                result += "; " + parallelBible.getBooks()[book2].getTitle().trim() + " " + (part2 + 1) + ":"
-                                        + (verse2 + 1);
+                                result += "; " + (part2 + 1) + ":" + (verse2 + 1);
                             }
-                            if (settings.isReferenceItalic()) {
-                                result += "]";
-                            }
+                        } else {
+                            result += "; " + parallelBible.getBooks()[book2].getTitle().trim() + " " + (part2 + 1) + ":"
+                                    + (verse2 + 1);
+                        }
+                        if (settings.isReferenceItalic()) {
+                            result += "]";
                         }
                     }
                 }
