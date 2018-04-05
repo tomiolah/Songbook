@@ -62,4 +62,8 @@
     <string name="upload_failed">Upload failed</string>
     <string name="suggest_edits">Suggest edits</string>
     <string name="short_description_of_the_suggestion">Short description of the suggestion:</string>
+    <string name="submit">Submit</string>
+    <string name="other">Other</string>
+    <string name="edit">Edit</string>
+    <string name="no_description">No description!</string>
 </resources>

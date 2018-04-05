@@ -105,7 +105,7 @@ public class SongActivity extends AppCompatActivity {
                 Toast.makeText(this, "No similar found", Toast.LENGTH_SHORT).show();
             }
         } else if (itemId == R.id.action_suggest_edits) {
-            Intent intent = new Intent(this, SuggestEditsActivity.class);
+            Intent intent = new Intent(this, SuggestEditsChooseActivity.class);
             Song copiedSong = new Song();
             copiedSong.setUuid(song.getUuid());
             copiedSong.setId(song.getId());
@@ -140,12 +140,12 @@ public class SongActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.content_song_menu, menu);
-        MenuItem item = menu.findItem(R.id.action_similar);
+        MenuItem showSimilarMenuItem = menu.findItem(R.id.action_similar);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean show_similar = sharedPreferences.getBoolean("show_similar", false);
         if (!show_similar) {
-            item.setVisible(false);
-            menu.removeItem(item.getItemId());
+            showSimilarMenuItem.setVisible(false);
+            menu.removeItem(showSimilarMenuItem.getItemId());
         }
         return true;
     }
