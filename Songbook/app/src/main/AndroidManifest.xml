@@ -58,6 +58,16 @@
         <activity
             android:name=".ui.activity.NewSongActivity"
             android:theme="@style/SongBookTheme"/>
+        <activity
+            android:name=".ui.activity.SuggestEditsActivity"
+            android:label="@string/suggest_edits"
+            android:theme="@style/SongBookTheme">
+        </activity>
+        <activity
+            android:name=".ui.activity.SuggestEditsChooseActivity"
+            android:label="@string/suggest_edits"
+            android:theme="@style/SongBookTheme">
+        </activity>
     </application>
 
 </manifest>

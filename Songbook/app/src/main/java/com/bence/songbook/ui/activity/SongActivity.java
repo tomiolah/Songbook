@@ -104,6 +104,17 @@ public class SongActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "No similar found", Toast.LENGTH_SHORT).show();
             }
+        } else if (itemId == R.id.action_suggest_edits) {
+            Intent intent = new Intent(this, SuggestEditsChooseActivity.class);
+            Song copiedSong = new Song();
+            copiedSong.setUuid(song.getUuid());
+            copiedSong.setId(song.getId());
+            copiedSong.setTitle(song.getTitle());
+            copiedSong.setVerses(song.getVerses());
+            copiedSong.setSongCollection(song.getSongCollection());
+            copiedSong.setSongCollectionElement(song.getSongCollectionElement());
+            intent.putExtra("Song", copiedSong);
+            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -129,12 +140,12 @@ public class SongActivity extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.content_song_menu, menu);
-        MenuItem item = menu.findItem(R.id.action_similar);
+        MenuItem showSimilarMenuItem = menu.findItem(R.id.action_similar);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean show_similar = sharedPreferences.getBoolean("show_similar", false);
         if (!show_similar) {
-            item.setVisible(false);
-            menu.removeItem(item.getItemId());
+            showSimilarMenuItem.setVisible(false);
+            menu.removeItem(showSimilarMenuItem.getItemId());
         }
         return true;
     }
