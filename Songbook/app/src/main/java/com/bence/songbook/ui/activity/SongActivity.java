@@ -104,6 +104,17 @@ public class SongActivity extends AppCompatActivity {
             } else {
                 Toast.makeText(this, "No similar found", Toast.LENGTH_SHORT).show();
             }
+        } else if (itemId == R.id.action_suggest_edits) {
+            Intent intent = new Intent(this, SuggestEditsActivity.class);
+            Song copiedSong = new Song();
+            copiedSong.setUuid(song.getUuid());
+            copiedSong.setId(song.getId());
+            copiedSong.setTitle(song.getTitle());
+            copiedSong.setVerses(song.getVerses());
+            copiedSong.setSongCollection(song.getSongCollection());
+            copiedSong.setSongCollectionElement(song.getSongCollectionElement());
+            intent.putExtra("Song", copiedSong);
+            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }

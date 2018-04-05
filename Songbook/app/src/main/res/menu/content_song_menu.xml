@@ -12,4 +12,10 @@
         android:orderInCategory="100"
         android:title="@string/similar"
         app:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_suggest_edits"
+        android:icon="@drawable/ic_rate_review_black"
+        android:orderInCategory="10"
+        android:title="@string/suggest_edits"
+        app:showAsAction="ifRoom"/>
 </menu>

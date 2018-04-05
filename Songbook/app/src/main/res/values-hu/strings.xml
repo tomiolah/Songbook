@@ -57,4 +57,6 @@
     <string name="language_of_the_song">Az ének nyelve</string>
     <string name="successfully_uploaded">Sikeresen feltöltve!</string>
     <string name="upload_failed">Feltöltés sikertelen</string>
+    <string name="suggest_edits">Javasoljon módosításokat</string>
+    <string name="short_description_of_the_suggestion">A javaslat rövid leírása:</string>
 </resources>

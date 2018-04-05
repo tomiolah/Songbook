@@ -60,4 +60,6 @@
     <string name="language_of_the_song">Language of the song</string>
     <string name="successfully_uploaded">Successfully uploaded!</string>
     <string name="upload_failed">Upload failed</string>
+    <string name="suggest_edits">Suggest edits</string>
+    <string name="short_description_of_the_suggestion">Short description of the suggestion:</string>
 </resources>
