@@ -101,6 +101,8 @@ public class MainActivity extends AppCompatActivity
     private int collectionPosition;
     private SongAdapter adapter;
     private boolean reverseSortMethod;
+    private boolean shortCollectionName;
+    private boolean light_theme_switch;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -116,7 +118,8 @@ public class MainActivity extends AppCompatActivity
         setTheme(Preferences.getTheme(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initSortMethod();
+        initPreferences();
+        memory.setMainActivity(this);
         editText = findViewById(R.id.titleSearchEditText);
         songListView = findViewById(R.id.listView);
         inSongSearchSwitch = findViewById(R.id.inSongSearchSwitch);
@@ -264,10 +267,11 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void initSortMethod() {
+    private void initPreferences() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sortMethod = sharedPreferences.getInt("sortMethod", 5);
         reverseSortMethod = sharedPreferences.getBoolean("reverseSortMethod", false);
+        shortCollectionName = sharedPreferences.getBoolean("shortCollectionName", false);
     }
 
     private void createLoadSongVerseThread() {
@@ -307,7 +311,10 @@ public class MainActivity extends AppCompatActivity
                 toast.show();
             }
         } else if (requestCode == 2) {
-            recreate();
+            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            if (light_theme_switch != sharedPreferences.getBoolean("light_theme_switch", false)) {
+                recreate();
+            }
         } else if (requestCode == 3 && resultCode == 1) {
             values.clear();
             values.addAll(memory.getValues());
@@ -621,6 +628,8 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(loadIntent, 1);
         } else if (id == R.id.nav_settings) {
             Intent loadIntent = new Intent(this, SettingsActivity.class);
+            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            light_theme_switch = sharedPreferences.getBoolean("light_theme_switch", false);
             startActivityForResult(loadIntent, 2);
         } else if (id == R.id.nav_new_song) {
             Intent loadIntent = new Intent(this, NewSongActivity.class);
@@ -946,6 +955,23 @@ public class MainActivity extends AppCompatActivity
         return false;
     }
 
+    private String getShortName(String name) {
+        StringBuilder shortName = new StringBuilder();
+        String[] split = name.trim().split(" ");
+        if (split.length > 1) {
+            for (String s : split) {
+                shortName.append((s.charAt(0) + "").toUpperCase());
+            }
+        } else {
+            return (name.trim().charAt(0) + "").toUpperCase();
+        }
+        return shortName.toString();
+    }
+
+    public void setShortCollectionName(boolean shortCollectionName) {
+        this.shortCollectionName = shortCollectionName;
+    }
+
     private class LanguageAdapter extends ArrayAdapter<Language> {
 
         private List<Language> languageList;
@@ -1098,7 +1124,11 @@ public class MainActivity extends AppCompatActivity
             Song song = songList.get(position);
             SongCollection songCollection = song.getSongCollection();
             if (songCollection != null) {
-                String text = songCollection.getName() + " " + song.getSongCollectionElement().getOrdinalNumber();
+                String collectionName = songCollection.getName();
+                if (shortCollectionName) {
+                    collectionName = getShortName(songCollection.getName());
+                }
+                String text = collectionName + " " + song.getSongCollectionElement().getOrdinalNumber();
                 holder.ordinalNumberTextView.setText(text);
 //                For some reason this is not working...
 //                holder.ordinalNumberTextView.setVisibility(View.VISIBLE);
@@ -1179,5 +1209,4 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
-
 }

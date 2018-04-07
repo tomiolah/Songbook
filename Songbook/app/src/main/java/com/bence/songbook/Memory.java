@@ -3,6 +3,7 @@ package com.bence.songbook;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.network.ProjectionTextChangeListener;
+import com.bence.songbook.ui.activity.MainActivity;
 
 import java.util.List;
 
@@ -14,6 +15,7 @@ public class Memory {
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
     private boolean shareOnNetwork;
     private List<Song> values;
+    private MainActivity mainActivity;
 
     private Memory() {
 
@@ -64,5 +66,13 @@ public class Memory {
 
     public void setValues(List<Song> values) {
         this.values = values;
+    }
+
+    public MainActivity getMainActivity() {
+        return mainActivity;
+    }
+
+    public void setMainActivity(MainActivity mainActivity) {
+        this.mainActivity = mainActivity;
     }
 }

@@ -67,4 +67,6 @@
     <string name="by_created_date">Létrhozás dátum szerint</string>
     <string name="by_collection">Gyűjtemény szeint</string>
     <string name="reverse">Fordított</string>
+    <string name="short_collection_name">Gyűjtemény nevének rövidítése</string>
+    <string name="no_change">Nincs módosítás</string>
 </resources>

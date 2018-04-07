@@ -3,6 +3,7 @@ package com.bence.songbook.ui.activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -86,5 +87,20 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
                 Log.e(ConnectToSharedFullscreenActivity.class.getSimpleName(), message);
             }
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        switch (keyCode) {
+            case KeyEvent.KEYCODE_VOLUME_UP:
+                setPreviousVerse();
+                break;
+            case KeyEvent.KEYCODE_VOLUME_DOWN:
+                setNextVerse();
+                break;
+            default:
+                return super.onKeyDown(keyCode, event);
+        }
+        return true;
     }
 }

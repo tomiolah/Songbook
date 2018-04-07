@@ -70,4 +70,6 @@
     <string name="by_created_date">By created date</string>
     <string name="by_collection">By collection</string>
     <string name="reverse">Reverse</string>
+    <string name="short_collection_name">Short collection name</string>
+    <string name="no_change">No change</string>
 </resources>
