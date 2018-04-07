@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity
     private SongCollectionRepositoryImpl songCollectionRepository;
     private int collectionPosition;
     private SongAdapter adapter;
+    private boolean reverseSortMethod;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -266,6 +267,7 @@ public class MainActivity extends AppCompatActivity
     private void initSortMethod() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sortMethod = sharedPreferences.getInt("sortMethod", 5);
+        reverseSortMethod = sharedPreferences.getBoolean("reverseSortMethod", false);
     }
 
     private void createLoadSongVerseThread() {
@@ -511,25 +513,11 @@ public class MainActivity extends AppCompatActivity
                     return lhs.getStrippedTitle().compareTo(rhs.getStrippedTitle());
                 }
             });
-        } else if (sortMethod == 2) {
-            Collections.sort(all, new Comparator<Song>() {
-                @Override
-                public int compare(Song lhs, Song rhs) {
-                    return rhs.getStrippedTitle().compareTo(lhs.getStrippedTitle());
-                }
-            });
         } else if (sortMethod == 3) {
             Collections.sort(all, new Comparator<Song>() {
                 @Override
                 public int compare(Song lhs, Song rhs) {
                     return lhs.getCreatedDate().compareTo(rhs.getCreatedDate());
-                }
-            });
-        } else if (sortMethod == 4) {
-            Collections.sort(all, new Comparator<Song>() {
-                @Override
-                public int compare(Song lhs, Song rhs) {
-                    return rhs.getCreatedDate().compareTo(lhs.getCreatedDate());
                 }
             });
         } else if (sortMethod == 5) {
@@ -539,6 +527,40 @@ public class MainActivity extends AppCompatActivity
                     return rhs.getLastAccessed().compareTo(lhs.getLastAccessed());
                 }
             });
+        } else if (sortMethod == 6) {
+            Collections.sort(all, new Comparator<Song>() {
+                @Override
+                public int compare(Song lhs, Song rhs) {
+                    try {
+                        SongCollection lhsSongCollection = lhs.getSongCollection();
+                        SongCollection rhsSongCollection = rhs.getSongCollection();
+                        if (lhsSongCollection == null) {
+                            if (rhsSongCollection == null) {
+                                return lhs.getTitle().compareTo(rhs.getTitle());
+                            } else {
+                                return 1;
+                            }
+                        } else {
+                            if (rhsSongCollection == null) {
+                                return -1;
+                            } else {
+                                int compareTo = lhsSongCollection.getName().compareTo(rhsSongCollection.getName());
+                                if (compareTo == 0) {
+                                    String lhsOrdinalNumber = lhs.getSongCollectionElement().getOrdinalNumber();
+                                    String rhsOrdinalNumber = rhs.getSongCollectionElement().getOrdinalNumber();
+                                    return lhsOrdinalNumber.compareTo(rhsOrdinalNumber);
+                                }
+                                return compareTo;
+                            }
+                        }
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                }
+            });
+        }
+        if (reverseSortMethod) {
+            Collections.reverse(all);
         }
     }
 
@@ -628,35 +650,52 @@ public class MainActivity extends AppCompatActivity
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT
         );
+        final Switch reverseSwitch = customView.findViewById(R.id.reverseSwitch);
         RadioGroup radioGroup = customView.findViewById(R.id.radioSort);
         if (sortMethod == 0) {
             radioGroup.check(R.id.modifiedDateRadioButton);
         } else if (sortMethod == 1) {
-            radioGroup.check(R.id.ascByTitleRadioButton);
-        } else if (sortMethod == 2) {
-            radioGroup.check(R.id.descByTitleRadioButton);
+            radioGroup.check(R.id.byTitleRadioButton);
         } else if (sortMethod == 3) {
-            radioGroup.check(R.id.ascByCreatedDateRadioButton);
-        } else if (sortMethod == 4) {
-            radioGroup.check(R.id.descByCreatedDateRadioButton);
+            radioGroup.check(R.id.byCreatedDateRadioButton);
         } else if (sortMethod == 5) {
             radioGroup.check(R.id.recentlyViewedRadioButton);
+        } else if (sortMethod == 6) {
+            radioGroup.check(R.id.byCollectionRadioButton);
+        } else if (sortMethod == 2) {
+            reverseSortMethod = true;
+            sortMethod = 1;
+            saveReverseSortMethod();
+            radioGroup.check(R.id.byTitleRadioButton);
+        } else if (sortMethod == 4) {
+            reverseSortMethod = true;
+            sortMethod = 3;
+            saveReverseSortMethod();
+            radioGroup.check(R.id.byCreatedDateRadioButton);
         }
+        reverseSwitch.setChecked(reverseSortMethod);
+        reverseSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                reverseSortMethod = reverseSwitch.isChecked();
+                saveReverseSortMethod();
+                loadAll();
+                sortPopupWindow.dismiss();
+            }
+        });
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId == R.id.modifiedDateRadioButton) {
                     sortMethod = 0;
-                } else if (checkedId == R.id.ascByTitleRadioButton) {
+                } else if (checkedId == R.id.byTitleRadioButton) {
                     sortMethod = 1;
-                } else if (checkedId == R.id.descByTitleRadioButton) {
-                    sortMethod = 2;
-                } else if (checkedId == R.id.ascByCreatedDateRadioButton) {
+                } else if (checkedId == R.id.byCreatedDateRadioButton) {
                     sortMethod = 3;
-                } else if (checkedId == R.id.descByCreatedDateRadioButton) {
-                    sortMethod = 4;
                 } else if (checkedId == R.id.recentlyViewedRadioButton) {
                     sortMethod = 5;
+                } else if (checkedId == R.id.byCollectionRadioButton) {
+                    sortMethod = 6;
                 }
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                 sharedPreferences.edit().putInt("sortMethod", sortMethod).apply();
@@ -669,6 +708,11 @@ public class MainActivity extends AppCompatActivity
         }
         sortPopupWindow.setBackgroundDrawable(new BitmapDrawable());
         sortPopupWindow.setOutsideTouchable(true);
+    }
+
+    private void saveReverseSortMethod() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        sharedPreferences.edit().putBoolean("reverseSortMethod", reverseSortMethod).apply();
     }
 
     public void onFilterButtonClick(View view) {
