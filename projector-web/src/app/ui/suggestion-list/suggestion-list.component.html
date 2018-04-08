@@ -1,0 +1,46 @@
+<!--suppress UnnecessaryLabelJS -->
+<div>
+  <br>
+  <mat-card>
+    <mat-card-content style="overflow-x: auto">
+      <div class="example-container mat-elevation-z8">
+        <mat-table #table [dataSource]="dataSource" class="example-table">
+
+          <ng-container matColumnDef="Nr">
+            <mat-header-cell *matHeaderCellDef class="example-header-cell"> Nr</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="example-cell"> {{row.nr}}</mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="createdDate">
+            <mat-header-cell *matHeaderCellDef class="example-header-cell"> {{'Created Date'}}</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="example-cell"> {{row.createdDate | date:'yyyy/MM/dd HH:mm'}}
+            </mat-cell>
+          </ng-container>
+
+          <ng-container matColumnDef="title">
+            <mat-header-cell *matHeaderCellDef class="example-header-cell">{{'Title'}}</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="example-cell">{{row.title}}</mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="description">
+            <mat-header-cell *matHeaderCellDef class="example-header-cell">{{'Description'}}</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="example-cell">{{row.description}}</mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="email">
+            <mat-header-cell *matHeaderCellDef class="example-header-cell">{{'Email'}}</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="example-cell">{{row.createdByEmail}}</mat-cell>
+          </ng-container>
+          <ng-container matColumnDef="applied">
+            <mat-header-cell *matHeaderCellDef class="example-header-cell">{{'Applied'}}</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="example-cell">{{row.applied}}</mat-cell>
+          </ng-container>
+
+
+          <mat-header-row *matHeaderRowDef="displayedColumns" class="example-header-row"></mat-header-row>
+          <mat-row *matRowDef="let row; columns: displayedColumns;" class="example-row" (click)="onClick(row)">
+          </mat-row>
+        </mat-table>
+      </div>
+
+    </mat-card-content>
+  </mat-card>
+</div>

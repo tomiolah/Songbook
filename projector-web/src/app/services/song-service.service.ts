@@ -25,6 +25,9 @@ export class SongVerseDTO {
 }
 
 export class Song extends BaseModel {
+
+  static PUBLIC = "PUBLIC";
+  static UPLOADED = "UPLOADED";
   title = '';
   songVerseDTOS: SongVerseDTO[];
   modifiedDate: number;
@@ -60,7 +63,7 @@ export class SongService {
     return this.api.getAttribute(Song, 'api/song?title=' + title);
   }
 
-  getSong(id: number) {
+  getSong(id) {
     return this.api.getById(Song, 'api/song/', id);
   }
 

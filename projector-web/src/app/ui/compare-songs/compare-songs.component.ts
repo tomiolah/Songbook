@@ -12,8 +12,15 @@ export class CompareSongsComponent implements OnChanges {
   song: Song;
   @Input()
   secondSong: Song;
+  repeatChorus: boolean;
 
   constructor() {
+    const text = localStorage.getItem("repeatChorus");
+    if (text === undefined || text == null || text.trim().length == 0) {
+      this.repeatChorus = false;
+    } else {
+      this.repeatChorus = JSON.parse(text);
+    }
   }
 
   public static highestCommonStrings(a: string, b: string) {
@@ -68,37 +75,6 @@ export class CompareSongsComponent implements OnChanges {
       }
     }
     return strings.reverse();
-  }
-
-  private static getText(song: Song) {
-    let verseList: SongVerseDTO[];
-    verseList = [];
-    let verses = song.songVerseDTOS;
-    let chorus = new SongVerseDTO();
-    let size = verses.length;
-    for (let i = 0; i < size; ++i) {
-      let songVerse = verses[i];
-      verseList.push(songVerse);
-      if (songVerse.chorus) {
-        Object.assign(chorus, songVerse);
-      } else if (chorus.chorus !== null && chorus.chorus) {
-        if (i + 1 < size) {
-          if (!verses[i + 1].chorus) {
-            verseList.push(chorus);
-          }
-        } else {
-          verseList.push(chorus);
-        }
-      }
-    }
-    song.songVerseDTOS = verseList;
-    let text = '';
-    for (let songVerse of verseList) {
-      for (let line of songVerse.lines) {
-        text += line;
-      }
-    }
-    return text;
   }
 
   private static getTextFromReverseLetters(r: any[]) {
@@ -165,8 +141,41 @@ export class CompareSongsComponent implements OnChanges {
     }
   }
 
+  private static getText(song: Song, repeatChorus: boolean) {
+    let verseList: SongVerseDTO[];
+    verseList = [];
+    let verses = song.songVerseDTOS;
+    let chorus = new SongVerseDTO();
+    let size = verses.length;
+    for (let i = 0; i < size; ++i) {
+      let songVerse = verses[i];
+      verseList.push(songVerse);
+      if (repeatChorus) {
+        if (songVerse.chorus) {
+          Object.assign(chorus, songVerse);
+        } else if (chorus.chorus !== null && chorus.chorus) {
+          if (i + 1 < size) {
+            if (!verses[i + 1].chorus) {
+              verseList.push(chorus);
+            }
+          } else {
+            verseList.push(chorus);
+          }
+        }
+      }
+    }
+    song.songVerseDTOS = verseList;
+    let text = '';
+    for (let songVerse of verseList) {
+      for (let line of songVerse.lines) {
+        text += line;
+      }
+    }
+    return text;
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
-    this.calculateDifferences();
+    this.calculateDifferences(this.repeatChorus);
   }
 
 // noinspection JSMethodCanBeStatic
@@ -174,11 +183,17 @@ export class CompareSongsComponent implements OnChanges {
     return colorText.color ? '#000000' : '#ff0c00';
   }
 
-  private calculateDifferences() {
+  changeRepeatChorus() {
+    this.repeatChorus = !this.repeatChorus;
+    this.calculateDifferences(this.repeatChorus);
+    localStorage.setItem("repeatChorus", JSON.stringify(this.repeatChorus));
+  }
+
+  private calculateDifferences(repeatChorus: boolean) {
     CompareSongsComponent.createLines(this.song);
     CompareSongsComponent.createLines(this.secondSong);
-    let a = CompareSongsComponent.getText(this.song);
-    let b = CompareSongsComponent.getText(this.secondSong);
+    let a = CompareSongsComponent.getText(this.song, repeatChorus);
+    let b = CompareSongsComponent.getText(this.secondSong, repeatChorus);
     console.log(a);
     console.log(b);
     let commonStrings = CompareSongsComponent.highestCommonStrings(a, b);

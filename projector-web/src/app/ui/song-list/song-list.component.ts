@@ -24,9 +24,9 @@ export class SongListComponent implements OnInit {
   paginatedSongs: Song[];
   isSortByModifiedDate = true;
   songTitlesLocalStorage: Song[];
-  isShowUploaded = false;
+  songsType = 'PUBLIC';
   private songListComponent_sortByModifiedDate = 'songListComponent_sortByModifiedDate';
-  private songListComponent_showUploaded = 'songListComponent_showUploaded';
+  private songListComponent_songsType = 'songListComponent_songsType';
 
   constructor(private songServiceService: SongService,
               private router: Router,
@@ -63,7 +63,7 @@ export class SongListComponent implements OnInit {
 
   ngOnInit() {
     this.isSortByModifiedDate = JSON.parse(localStorage.getItem(this.songListComponent_sortByModifiedDate));
-    this.isShowUploaded = JSON.parse(localStorage.getItem(this.songListComponent_showUploaded));
+    this.songsType = localStorage.getItem(this.songListComponent_songsType);
     this.loadSongs();
 
     this.songControl.valueChanges.subscribe(value => {
@@ -115,63 +115,66 @@ export class SongListComponent implements OnInit {
     this.songControl.updateValueAndValidity();
   }
 
-  changeShowUploaded() {
-    localStorage.setItem(this.songListComponent_showUploaded, JSON.stringify(this.isShowUploaded));
+  songsTypeChange() {
+    localStorage.setItem(this.songListComponent_songsType, this.songsType);
     this.loadSongs();
   }
 
   private loadSongs() {
-    if (!this.isShowUploaded) {
-      this.songServiceService.getAllSongTitlesAfterModifiedDate(this.songTitles[0].modifiedDate).subscribe(
-        (songTitles) => {
-          for (const song of songTitles) {
-            if (song.deleted) {
-              this.removeSong(song);
-              const index = songTitles.indexOf(song, 0);
-              if (index > -1) {
-                songTitles.splice(index, 1);
-              }
-            } else {
-              const index = this.containsInLocalStorage(song);
-              if (index > -1) {
-                this.songTitlesLocalStorage.splice(index, 1);
+    switch (this.songsType) {
+      case Song.PUBLIC:
+        this.songServiceService.getAllSongTitlesAfterModifiedDate(this.songTitles[0].modifiedDate).subscribe(
+          (songTitles) => {
+            for (const song of songTitles) {
+              if (song.deleted) {
+                this.removeSong(song);
+                const index = songTitles.indexOf(song, 0);
+                if (index > -1) {
+                  songTitles.splice(index, 1);
+                }
+              } else {
+                const index = this.containsInLocalStorage(song);
+                if (index > -1) {
+                  this.songTitlesLocalStorage.splice(index, 1);
+                }
               }
             }
+            this.songTitles = this.songTitlesLocalStorage.concat(songTitles);
+            this.sortSongTitles();
+            this.songControl.updateValueAndValidity();
+            const pageEvent = new PageEvent();
+            pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
+            pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
+            if (pageEvent.pageSize == undefined) {
+              pageEvent.pageSize = 10;
+            }
+            if (pageEvent.pageIndex == undefined) {
+              pageEvent.pageIndex = 0;
+            }
+            this.pageEvent(pageEvent);
+            localStorage.setItem('songTitles', JSON.stringify(this.songTitles));
           }
-          this.songTitles = this.songTitlesLocalStorage.concat(songTitles);
-          this.sortSongTitles();
-          this.songControl.updateValueAndValidity();
-          const pageEvent = new PageEvent();
-          pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
-          pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
-          if (pageEvent.pageSize == undefined) {
-            pageEvent.pageSize = 10;
+        );
+        break;
+      case Song.UPLOADED:
+        this.songServiceService.getAllUploadedSongTitles().subscribe(
+          (songTitles) => {
+            this.songTitles = songTitles;
+            this.sortSongTitles();
+            this.songControl.updateValueAndValidity();
+            const pageEvent = new PageEvent();
+            pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
+            pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
+            if (pageEvent.pageSize == undefined) {
+              pageEvent.pageSize = 10;
+            }
+            if (pageEvent.pageIndex == undefined) {
+              pageEvent.pageIndex = 0;
+            }
+            this.pageEvent(pageEvent);
           }
-          if (pageEvent.pageIndex == undefined) {
-            pageEvent.pageIndex = 0;
-          }
-          this.pageEvent(pageEvent);
-          localStorage.setItem('songTitles', JSON.stringify(this.songTitles));
-        }
-      );
-    } else {
-      this.songServiceService.getAllUploadedSongTitles().subscribe(
-        (songTitles) => {
-          this.songTitles = songTitles;
-          this.sortSongTitles();
-          this.songControl.updateValueAndValidity();
-          const pageEvent = new PageEvent();
-          pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
-          pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
-          if (pageEvent.pageSize == undefined) {
-            pageEvent.pageSize = 10;
-          }
-          if (pageEvent.pageIndex == undefined) {
-            pageEvent.pageIndex = 0;
-          }
-          this.pageEvent(pageEvent);
-        }
-      );
+        );
+        break;
     }
   }
 
@@ -235,3 +238,4 @@ export class SongListComponent implements OnInit {
     });
   }
 }
+
