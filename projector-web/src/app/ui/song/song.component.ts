@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, Input, OnDestroy, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {Song, SongService} from '../../services/song-service.service';
 import {Subscription} from 'rxjs/Subscription';
@@ -24,11 +24,24 @@ export class SongComponent implements OnInit, OnDestroy {
     auth.getUserFromLocalStorage();
   }
 
+  @Input()
+  set i_song(song: Song) {
+    for (const songVerse of song.songVerseDTOS) {
+      songVerse.lines = [];
+      for (const s of songVerse.text.split('\n')) {
+        songVerse.lines.push(s);
+      }
+    }
+    this.song = song;
+  }
+
   ngOnInit() {
     this.secondSong = null;
-    this.song = new Song();
-    this.song.title = 'Loading';
-    this.song.songVerseDTOS = [];
+    if (this.song === undefined) {
+      this.song = new Song();
+      this.song.title = 'Loading';
+      this.song.songVerseDTOS = [];
+    }
     this.sub = this.activatedRoute.params.subscribe(params => {
       if (params['id']) {
         const songId = params['id'];
@@ -91,6 +104,7 @@ export class SongComponent implements OnInit, OnDestroy {
     let updateSong = new Song();
     let uuid = this.secondSong.uuid;
     let id = this.secondSong.id;
+    console.log(this.song);
     Object.assign(updateSong, this.song);
     updateSong.uuid = uuid;
     updateSong.id = id;

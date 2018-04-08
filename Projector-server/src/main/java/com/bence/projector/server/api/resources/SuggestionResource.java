@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -48,6 +49,13 @@ public class SuggestionResource {
     public List<SuggestionDTO> getSuggestions() {
         List<Suggestion> all = suggestionService.findAll();
         return suggestionAssembler.createDtoList(all);
+    }
+
+    @RequestMapping(value = "admin/api/suggestion/{id}", method = RequestMethod.GET)
+    public SuggestionDTO getSuggestion(@PathVariable final String id, HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        Suggestion suggestion = suggestionService.findOne(id);
+        return suggestionAssembler.createDto(suggestion);
     }
 
     @RequestMapping(value = "api/suggestion", method = RequestMethod.POST)

@@ -58,6 +58,9 @@ import {EditSongComponent} from './ui/edit-song/edit-song.component';
 import {LanguageDataService} from "./services/language-data.service";
 import {NewLanguageComponent} from "./ui/new-language/new-language.component";
 import {CompareSongsComponent} from './ui/compare-songs/compare-songs.component';
+import {SuggestionComponent} from './ui/suggestion/suggestion.component';
+import {SuggestionDataService} from "./services/suggestion-data.service";
+import {SuggestionListComponent} from "./ui/suggestion-list/suggestion-list.component";
 
 @NgModule({
   exports: [
@@ -97,7 +100,6 @@ import {CompareSongsComponent} from './ui/compare-songs/compare-songs.component'
 })
 export class PlunkerMaterialModule {
 }
-
 @NgModule({
   declarations: [
     AppComponent,
@@ -111,6 +113,8 @@ export class PlunkerMaterialModule {
     EditSongComponent,
     NewLanguageComponent,
     CompareSongsComponent,
+    SuggestionComponent,
+    SuggestionListComponent,
   ],
   imports: [
     BrowserModule,
@@ -133,6 +137,7 @@ export class PlunkerMaterialModule {
     SongService,
     UserDataService,
     StatisticsDataService,
+    SuggestionDataService,
     LanguageDataService,
   ],
   bootstrap: [AppComponent]
