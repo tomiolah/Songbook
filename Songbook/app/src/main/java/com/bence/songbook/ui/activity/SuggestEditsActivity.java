@@ -100,8 +100,13 @@ public class SuggestEditsActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.no_title, Toast.LENGTH_SHORT).show();
                 return;
             }
+            String text = textEditText.getText().toString().trim();
+            if (song.getTitle().equals(title) && getText(song).equals(text)) {
+                Toast.makeText(this, R.string.no_change, Toast.LENGTH_SHORT).show();
+                return;
+            }
             suggestionDTO.setTitle(title);
-            String[] split = textEditText.getText().toString().trim().split("\n\n");
+            String[] split = text.split("\n\n");
             List<SongVerseDTO> songVerseDTOList = new ArrayList<>(song.getVerses().size());
             for (String s : split) {
                 SongVerseDTO songVerseDTO = new SongVerseDTO();

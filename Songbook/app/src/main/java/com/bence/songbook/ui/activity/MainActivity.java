@@ -100,6 +100,9 @@ public class MainActivity extends AppCompatActivity
     private SongCollectionRepositoryImpl songCollectionRepository;
     private int collectionPosition;
     private SongAdapter adapter;
+    private boolean reverseSortMethod;
+    private boolean shortCollectionName;
+    private boolean light_theme_switch;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -115,7 +118,8 @@ public class MainActivity extends AppCompatActivity
         setTheme(Preferences.getTheme(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initSortMethod();
+        initPreferences();
+        memory.setMainActivity(this);
         editText = findViewById(R.id.titleSearchEditText);
         songListView = findViewById(R.id.listView);
         inSongSearchSwitch = findViewById(R.id.inSongSearchSwitch);
@@ -263,9 +267,11 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void initSortMethod() {
+    private void initPreferences() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sortMethod = sharedPreferences.getInt("sortMethod", 5);
+        reverseSortMethod = sharedPreferences.getBoolean("reverseSortMethod", false);
+        shortCollectionName = sharedPreferences.getBoolean("shortCollectionName", false);
     }
 
     private void createLoadSongVerseThread() {
@@ -305,7 +311,10 @@ public class MainActivity extends AppCompatActivity
                 toast.show();
             }
         } else if (requestCode == 2) {
-            recreate();
+            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            if (light_theme_switch != sharedPreferences.getBoolean("light_theme_switch", false)) {
+                recreate();
+            }
         } else if (requestCode == 3 && resultCode == 1) {
             values.clear();
             values.addAll(memory.getValues());
@@ -444,15 +453,67 @@ public class MainActivity extends AppCompatActivity
 
     public void titleSearch(String title) {
         values.clear();
-        String text = stripAccents(title.toLowerCase());
+        String text = title.toLowerCase();
+        String stripped = stripAccents(text);
+        String firstWord = stripAccents(text.split(" ")[0].toLowerCase());
+        String other;
+        if (text.length() > firstWord.length()) {
+            other = stripAccents(text.substring(firstWord.length() + 1, text.length()).toLowerCase());
+        } else {
+            other = "";
+        }
+        String ordinalNumber = firstWord;
+        String collectionName = "";
+        if (!firstWord.matches("^[0-9]+.*")) {
+            char[] chars = firstWord.toCharArray();
+            int i;
+            for (i = 0; i < chars.length; ++i) {
+                if (chars[i] >= '0' && chars[i] <= '9') {
+                    break;
+                }
+            }
+            collectionName = stripAccents(firstWord.substring(0, i).toLowerCase());
+            ordinalNumber = firstWord.substring(i, firstWord.length());
+        }
         for (int i = 0; i < songs.size(); ++i) {
             Song song = songs.get(i);
-            SongCollectionElement songCollectionElement = song.getSongCollectionElement();
-            if (song.getStrippedTitle().contains(text) ||
-                    (songCollectionElement != null && songCollectionElement.getOrdinalNumber().contains(text.split(" ")[0]))) {
+            if (containsInTitle(stripped, song, other, collectionName, ordinalNumber)) {
                 values.add(song);
             }
         }
+    }
+
+    private boolean containsInTitle(String stripped, Song song, String other, String collectionName, String ordinalNumber) {
+        String strippedTitle = song.getStrippedTitle();
+        if (strippedTitle.contains(stripped)) {
+            return true;
+        }
+        SongCollectionElement songCollectionElement = song.getSongCollectionElement();
+        SongCollection songCollection = song.getSongCollection();
+        if (songCollection == null) {
+            return false;
+        }
+        if (collectionName.isEmpty()) {
+            String songOrdinalNumber = songCollectionElement.getOrdinalNumber().toLowerCase();
+            if (other.isEmpty()) {
+                return !ordinalNumber.isEmpty() && songOrdinalNumber.contains(ordinalNumber);
+            }
+            return !ordinalNumber.isEmpty() && songOrdinalNumber.contains(ordinalNumber) && strippedTitle.contains(other);
+        }
+        String name = song.getSongCollection().getName().toLowerCase();
+        String shortName = getShortName(songCollection.getName()).toLowerCase();
+        boolean b = name.contains(collectionName) || shortName.contains(collectionName);
+        if (ordinalNumber.isEmpty()) {
+            if (other.isEmpty()) {
+                return b;
+            }
+            return b && strippedTitle.contains(other);
+        }
+        boolean b1 = songCollectionElement.getOrdinalNumber().contains(ordinalNumber);
+        if (other.isEmpty()) {
+            return b && b1;
+        }
+        return b && b1 && strippedTitle.contains(other);
     }
 
     public void inSongSearch(String title) {
@@ -511,25 +572,11 @@ public class MainActivity extends AppCompatActivity
                     return lhs.getStrippedTitle().compareTo(rhs.getStrippedTitle());
                 }
             });
-        } else if (sortMethod == 2) {
-            Collections.sort(all, new Comparator<Song>() {
-                @Override
-                public int compare(Song lhs, Song rhs) {
-                    return rhs.getStrippedTitle().compareTo(lhs.getStrippedTitle());
-                }
-            });
         } else if (sortMethod == 3) {
             Collections.sort(all, new Comparator<Song>() {
                 @Override
                 public int compare(Song lhs, Song rhs) {
                     return lhs.getCreatedDate().compareTo(rhs.getCreatedDate());
-                }
-            });
-        } else if (sortMethod == 4) {
-            Collections.sort(all, new Comparator<Song>() {
-                @Override
-                public int compare(Song lhs, Song rhs) {
-                    return rhs.getCreatedDate().compareTo(lhs.getCreatedDate());
                 }
             });
         } else if (sortMethod == 5) {
@@ -539,6 +586,40 @@ public class MainActivity extends AppCompatActivity
                     return rhs.getLastAccessed().compareTo(lhs.getLastAccessed());
                 }
             });
+        } else if (sortMethod == 6) {
+            Collections.sort(all, new Comparator<Song>() {
+                @Override
+                public int compare(Song lhs, Song rhs) {
+                    try {
+                        SongCollection lhsSongCollection = lhs.getSongCollection();
+                        SongCollection rhsSongCollection = rhs.getSongCollection();
+                        if (lhsSongCollection == null) {
+                            if (rhsSongCollection == null) {
+                                return lhs.getTitle().compareTo(rhs.getTitle());
+                            } else {
+                                return 1;
+                            }
+                        } else {
+                            if (rhsSongCollection == null) {
+                                return -1;
+                            } else {
+                                int compareTo = lhsSongCollection.getName().compareTo(rhsSongCollection.getName());
+                                if (compareTo == 0) {
+                                    String lhsOrdinalNumber = lhs.getSongCollectionElement().getOrdinalNumber();
+                                    String rhsOrdinalNumber = rhs.getSongCollectionElement().getOrdinalNumber();
+                                    return lhsOrdinalNumber.compareTo(rhsOrdinalNumber);
+                                }
+                                return compareTo;
+                            }
+                        }
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                }
+            });
+        }
+        if (reverseSortMethod) {
+            Collections.reverse(all);
         }
     }
 
@@ -599,6 +680,8 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(loadIntent, 1);
         } else if (id == R.id.nav_settings) {
             Intent loadIntent = new Intent(this, SettingsActivity.class);
+            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            light_theme_switch = sharedPreferences.getBoolean("light_theme_switch", false);
             startActivityForResult(loadIntent, 2);
         } else if (id == R.id.nav_new_song) {
             Intent loadIntent = new Intent(this, NewSongActivity.class);
@@ -628,35 +711,52 @@ public class MainActivity extends AppCompatActivity
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT
         );
+        final Switch reverseSwitch = customView.findViewById(R.id.reverseSwitch);
         RadioGroup radioGroup = customView.findViewById(R.id.radioSort);
         if (sortMethod == 0) {
             radioGroup.check(R.id.modifiedDateRadioButton);
         } else if (sortMethod == 1) {
-            radioGroup.check(R.id.ascByTitleRadioButton);
-        } else if (sortMethod == 2) {
-            radioGroup.check(R.id.descByTitleRadioButton);
+            radioGroup.check(R.id.byTitleRadioButton);
         } else if (sortMethod == 3) {
-            radioGroup.check(R.id.ascByCreatedDateRadioButton);
-        } else if (sortMethod == 4) {
-            radioGroup.check(R.id.descByCreatedDateRadioButton);
+            radioGroup.check(R.id.byCreatedDateRadioButton);
         } else if (sortMethod == 5) {
             radioGroup.check(R.id.recentlyViewedRadioButton);
+        } else if (sortMethod == 6) {
+            radioGroup.check(R.id.byCollectionRadioButton);
+        } else if (sortMethod == 2) {
+            reverseSortMethod = true;
+            sortMethod = 1;
+            saveReverseSortMethod();
+            radioGroup.check(R.id.byTitleRadioButton);
+        } else if (sortMethod == 4) {
+            reverseSortMethod = true;
+            sortMethod = 3;
+            saveReverseSortMethod();
+            radioGroup.check(R.id.byCreatedDateRadioButton);
         }
+        reverseSwitch.setChecked(reverseSortMethod);
+        reverseSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                reverseSortMethod = reverseSwitch.isChecked();
+                saveReverseSortMethod();
+                loadAll();
+                sortPopupWindow.dismiss();
+            }
+        });
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 if (checkedId == R.id.modifiedDateRadioButton) {
                     sortMethod = 0;
-                } else if (checkedId == R.id.ascByTitleRadioButton) {
+                } else if (checkedId == R.id.byTitleRadioButton) {
                     sortMethod = 1;
-                } else if (checkedId == R.id.descByTitleRadioButton) {
-                    sortMethod = 2;
-                } else if (checkedId == R.id.ascByCreatedDateRadioButton) {
+                } else if (checkedId == R.id.byCreatedDateRadioButton) {
                     sortMethod = 3;
-                } else if (checkedId == R.id.descByCreatedDateRadioButton) {
-                    sortMethod = 4;
                 } else if (checkedId == R.id.recentlyViewedRadioButton) {
                     sortMethod = 5;
+                } else if (checkedId == R.id.byCollectionRadioButton) {
+                    sortMethod = 6;
                 }
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
                 sharedPreferences.edit().putInt("sortMethod", sortMethod).apply();
@@ -669,6 +769,11 @@ public class MainActivity extends AppCompatActivity
         }
         sortPopupWindow.setBackgroundDrawable(new BitmapDrawable());
         sortPopupWindow.setOutsideTouchable(true);
+    }
+
+    private void saveReverseSortMethod() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        sharedPreferences.edit().putBoolean("reverseSortMethod", reverseSortMethod).apply();
     }
 
     public void onFilterButtonClick(View view) {
@@ -902,6 +1007,23 @@ public class MainActivity extends AppCompatActivity
         return false;
     }
 
+    private String getShortName(String name) {
+        StringBuilder shortName = new StringBuilder();
+        String[] split = name.trim().split(" ");
+        if (split.length > 1) {
+            for (String s : split) {
+                shortName.append((s.charAt(0) + "").toUpperCase());
+            }
+        } else {
+            return (name.trim().charAt(0) + "").toUpperCase();
+        }
+        return shortName.toString();
+    }
+
+    public void setShortCollectionName(boolean shortCollectionName) {
+        this.shortCollectionName = shortCollectionName;
+    }
+
     private class LanguageAdapter extends ArrayAdapter<Language> {
 
         private List<Language> languageList;
@@ -1054,7 +1176,11 @@ public class MainActivity extends AppCompatActivity
             Song song = songList.get(position);
             SongCollection songCollection = song.getSongCollection();
             if (songCollection != null) {
-                String text = songCollection.getName() + " " + song.getSongCollectionElement().getOrdinalNumber();
+                String collectionName = songCollection.getName();
+                if (shortCollectionName) {
+                    collectionName = getShortName(songCollection.getName());
+                }
+                String text = collectionName + " " + song.getSongCollectionElement().getOrdinalNumber();
                 holder.ordinalNumberTextView.setText(text);
 //                For some reason this is not working...
 //                holder.ordinalNumberTextView.setVisibility(View.VISIBLE);
@@ -1135,5 +1261,4 @@ public class MainActivity extends AppCompatActivity
             }
         }
     }
-
 }
