@@ -453,15 +453,67 @@ public class MainActivity extends AppCompatActivity
 
     public void titleSearch(String title) {
         values.clear();
-        String text = stripAccents(title.toLowerCase());
+        String text = title.toLowerCase();
+        String stripped = stripAccents(text);
+        String firstWord = stripAccents(text.split(" ")[0].toLowerCase());
+        String other;
+        if (text.length() > firstWord.length()) {
+            other = stripAccents(text.substring(firstWord.length() + 1, text.length()).toLowerCase());
+        } else {
+            other = "";
+        }
+        String ordinalNumber = firstWord;
+        String collectionName = "";
+        if (!firstWord.matches("^[0-9]+.*")) {
+            char[] chars = firstWord.toCharArray();
+            int i;
+            for (i = 0; i < chars.length; ++i) {
+                if (chars[i] >= '0' && chars[i] <= '9') {
+                    break;
+                }
+            }
+            collectionName = stripAccents(firstWord.substring(0, i).toLowerCase());
+            ordinalNumber = firstWord.substring(i, firstWord.length());
+        }
         for (int i = 0; i < songs.size(); ++i) {
             Song song = songs.get(i);
-            SongCollectionElement songCollectionElement = song.getSongCollectionElement();
-            if (song.getStrippedTitle().contains(text) ||
-                    (songCollectionElement != null && songCollectionElement.getOrdinalNumber().contains(text.split(" ")[0]))) {
+            if (containsInTitle(stripped, song, other, collectionName, ordinalNumber)) {
                 values.add(song);
             }
         }
+    }
+
+    private boolean containsInTitle(String stripped, Song song, String other, String collectionName, String ordinalNumber) {
+        String strippedTitle = song.getStrippedTitle();
+        if (strippedTitle.contains(stripped)) {
+            return true;
+        }
+        SongCollectionElement songCollectionElement = song.getSongCollectionElement();
+        SongCollection songCollection = song.getSongCollection();
+        if (songCollection == null) {
+            return false;
+        }
+        if (collectionName.isEmpty()) {
+            String songOrdinalNumber = songCollectionElement.getOrdinalNumber().toLowerCase();
+            if (other.isEmpty()) {
+                return !ordinalNumber.isEmpty() && songOrdinalNumber.contains(ordinalNumber);
+            }
+            return !ordinalNumber.isEmpty() && songOrdinalNumber.contains(ordinalNumber) && strippedTitle.contains(other);
+        }
+        String name = song.getSongCollection().getName().toLowerCase();
+        String shortName = getShortName(songCollection.getName()).toLowerCase();
+        boolean b = name.contains(collectionName) || shortName.contains(collectionName);
+        if (ordinalNumber.isEmpty()) {
+            if (other.isEmpty()) {
+                return b;
+            }
+            return b && strippedTitle.contains(other);
+        }
+        boolean b1 = songCollectionElement.getOrdinalNumber().contains(ordinalNumber);
+        if (other.isEmpty()) {
+            return b && b1;
+        }
+        return b && b1 && strippedTitle.contains(other);
     }
 
     public void inSongSearch(String title) {
