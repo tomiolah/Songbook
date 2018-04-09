@@ -8,10 +8,10 @@ import {ColorLine, ColorText, Song, SongVerseDTO} from "../../services/song-serv
 })
 export class CompareSongsComponent implements OnChanges {
 
-  @Input()
-  song: Song;
-  @Input()
-  secondSong: Song;
+  m_song: Song;
+  m_secondSong: Song;
+  originalSong1: Song;
+  originalSong2: Song;
   repeatChorus: boolean;
 
   constructor() {
@@ -21,6 +21,18 @@ export class CompareSongsComponent implements OnChanges {
     } else {
       this.repeatChorus = JSON.parse(text);
     }
+  }
+
+  @Input()
+  set song(song: Song) {
+    this.m_song = new Song(song);
+    this.originalSong1 = new Song(song);
+  }
+
+  @Input()
+  set secondSong(secondSong: Song) {
+    this.m_secondSong = new Song(secondSong);
+    this.originalSong2 = new Song(secondSong);
   }
 
   public static highestCommonStrings(a: string, b: string) {
@@ -190,15 +202,17 @@ export class CompareSongsComponent implements OnChanges {
   }
 
   private calculateDifferences(repeatChorus: boolean) {
-    CompareSongsComponent.createLines(this.song);
-    CompareSongsComponent.createLines(this.secondSong);
-    let a = CompareSongsComponent.getText(this.song, repeatChorus);
-    let b = CompareSongsComponent.getText(this.secondSong, repeatChorus);
+    Object.assign(this.m_song, this.originalSong1);
+    Object.assign(this.m_secondSong, this.originalSong2);
+    CompareSongsComponent.createLines(this.m_song);
+    CompareSongsComponent.createLines(this.m_secondSong);
+    let a = CompareSongsComponent.getText(this.m_song, repeatChorus);
+    let b = CompareSongsComponent.getText(this.m_secondSong, repeatChorus);
     console.log(a);
     console.log(b);
     let commonStrings = CompareSongsComponent.highestCommonStrings(a, b);
     console.log(commonStrings);
-    CompareSongsComponent.createColorLines(this.song, commonStrings);
-    CompareSongsComponent.createColorLines(this.secondSong, commonStrings);
+    CompareSongsComponent.createColorLines(this.m_song, commonStrings);
+    CompareSongsComponent.createColorLines(this.m_secondSong, commonStrings);
   }
 }

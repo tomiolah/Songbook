@@ -140,7 +140,7 @@ public class SuggestionResource {
             createdByEmail = "";
         }
         data.put("title", title);
-        data.put("songUuid", suggestion.getId());
+        data.put("id", suggestion.getId());
         data.put("email", createdByEmail);
         data.put("description", description);
         return data;

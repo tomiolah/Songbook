@@ -20,6 +20,15 @@
 
   <div *ngIf="auth.isLoggedIn && auth.user.role === 'ROLE_ADMIN'">
     <br>
+    <div *ngIf="song.originalId!==undefined">
+      <h4>Uploaded modified song:</h4>
+      <div *ngIf="secondSong!==null">
+        <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
+        <button mat-button (click)="acceptChanges()">
+          Put changes into similar!
+        </button>
+      </div>
+    </div>
     <div *ngIf="song.uploaded && song.deleted">
       <button mat-button (click)="publishSong()">
         Publish
@@ -41,30 +50,31 @@
       Edit
     </button>
     <app-edit-song [song]="song" *ngIf="editing"></app-edit-song>
-
-    <button mat-button (click)="showSimilar()">
-      Similarities
-    </button>
-    <div *ngIf="showSimilarities">
-      <div *ngIf="similar.length>0">
-        <mat-nav-list>
-          <mat-list-item *ngFor="let song of similar" (click)="selectSecondSong(song)">
-            <a>{{ song.title + " "}}</a>
-            <a href="/#/song/{{song.uuid}}" target="_blank">{{'. Open'}}</a>
-          </mat-list-item>
-        </mat-nav-list>
-        <div *ngIf="secondSong!==null">
-          <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
-          <button mat-button (click)="acceptChanges()">
-            Put changes into similar!
-          </button>
+    <div *ngIf="song.originalId===undefined">
+      <button mat-button (click)="showSimilar()">
+        Similarities
+      </button>
+      <div *ngIf="showSimilarities">
+        <div *ngIf="similar.length>0">
+          <mat-nav-list>
+            <mat-list-item *ngFor="let song of similar" (click)="selectSecondSong(song)">
+              <a>{{ song.title + " "}}</a>
+              <a href="/#/song/{{song.uuid}}" target="_blank">{{'. Open'}}</a>
+            </mat-list-item>
+          </mat-nav-list>
+          <div *ngIf="secondSong!==null">
+            <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
+            <button mat-button (click)="acceptChanges()">
+              Put changes into similar!
+            </button>
+          </div>
         </div>
-      </div>
-      <div *ngIf="similar.length<1&&receivedSimilar">
-        <h3>No similar</h3>
-      </div>
-      <div *ngIf="similar.length<1&&!receivedSimilar">
-        <h3>Getting similar</h3>
+        <div *ngIf="similar.length<1&&receivedSimilar">
+          <h3>No similar</h3>
+        </div>
+        <div *ngIf="similar.length<1&&!receivedSimilar">
+          <h3>Getting similar</h3>
+        </div>
       </div>
     </div>
   </div>

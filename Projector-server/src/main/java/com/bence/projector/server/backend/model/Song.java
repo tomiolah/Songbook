@@ -7,6 +7,7 @@ import java.util.List;
 
 public class Song extends BaseEntity {
 
+    private String originalId;
     private String title;
     private List<SongVerse> verses;
     private Date createdDate;
@@ -109,5 +110,13 @@ public class Song extends BaseEntity {
 
     public void setCreatedByEmail(String createdByEmail) {
         this.createdByEmail = createdByEmail;
+    }
+
+    public String getOriginalId() {
+        return originalId;
+    }
+
+    public void setOriginalId(String originalId) {
+        this.originalId = originalId;
     }
 }

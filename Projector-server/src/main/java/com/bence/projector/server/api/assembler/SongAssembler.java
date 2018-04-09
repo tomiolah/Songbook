@@ -26,6 +26,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         }
         SongDTO songDTO = new SongDTO();
         songDTO.setUuid(song.getId());
+        songDTO.setOriginalId(song.getOriginalId());
         songDTO.setTitle(song.getTitle());
         songDTO.setCreatedDate(song.getCreatedDate());
         songDTO.setModifiedDate(song.getModifiedDate());
@@ -52,6 +53,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
 
     @Override
     public Song updateModel(Song song, SongDTO songDTO) {
+        song.setOriginalId(songDTO.getOriginalId());
         song.setTitle(songDTO.getTitle());
         Date modifiedDate = songDTO.getModifiedDate();
         if (modifiedDate == null || modifiedDate.getTime() < 1000) {
