@@ -8,7 +8,7 @@
     {{suggestion.description}}
   </textarea>
 
-  <div *ngIf="secondSong!==null">
+  <div *ngIf="suggestionSong!==null">
     <app-compare-songs [song]="suggestionSong" [secondSong]="song"></app-compare-songs>
   </div>
 </div>

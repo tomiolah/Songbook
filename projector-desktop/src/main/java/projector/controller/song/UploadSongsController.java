@@ -59,6 +59,10 @@ public class UploadSongsController {
                         }
                         Song uploadedSong = songApi.uploadSong(song);
                         if (uploadedSong != null) {
+                            String uuid = song.getUuid();
+                            if (uuid != null && !uuid.trim().isEmpty()) {
+                                uploadedSong.setUuid(uuid);
+                            }
                             uploadedSong.setId(song.getId());
                             uploadedSong.setPublished(true);
                             songService.update(uploadedSong);

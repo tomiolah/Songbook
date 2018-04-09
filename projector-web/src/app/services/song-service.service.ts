@@ -28,6 +28,7 @@ export class Song extends BaseModel {
 
   static PUBLIC = "PUBLIC";
   static UPLOADED = "UPLOADED";
+  originalId: string;
   title = '';
   songVerseDTOS: SongVerseDTO[];
   modifiedDate: number;

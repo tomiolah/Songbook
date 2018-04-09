@@ -11,6 +11,7 @@ import {AuthService} from '../../services/auth.service';
 })
 export class SongComponent implements OnInit, OnDestroy {
   song: Song;
+  originalSong: Song;
   editing = false;
   showSimilarities = false;
   similar: Song[];
@@ -32,6 +33,12 @@ export class SongComponent implements OnInit, OnDestroy {
         songVerse.lines.push(s);
       }
     }
+    if (song.originalId !== undefined) {
+      this.songService.getSong(song.originalId).subscribe((song) => {
+        this.secondSong = song;
+      });
+    }
+    this.originalSong = new Song(song);
     this.song = song;
   }
 
@@ -53,6 +60,12 @@ export class SongComponent implements OnInit, OnDestroy {
             }
           }
           this.song = song;
+          this.originalSong = new Song(song);
+          if (song.originalId !== undefined) {
+            this.songService.getSong(song.originalId).subscribe((song) => {
+              this.secondSong = song;
+            });
+          }
         });
       }
     });
@@ -104,8 +117,7 @@ export class SongComponent implements OnInit, OnDestroy {
     let updateSong = new Song();
     let uuid = this.secondSong.uuid;
     let id = this.secondSong.id;
-    console.log(this.song);
-    Object.assign(updateSong, this.song);
+    Object.assign(updateSong, this.originalSong);
     updateSong.uuid = uuid;
     updateSong.id = id;
     updateSong.modifiedDate = this.secondSong.modifiedDate;

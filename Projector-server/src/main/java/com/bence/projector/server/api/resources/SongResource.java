@@ -230,6 +230,7 @@ public class SongResource {
     public ResponseEntity<Object> uploadSong(@RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         final Song song = songAssembler.createModel(songDTO);
+        song.setOriginalId(songDTO.getUuid());
         song.setDeleted(true);
         song.setUploaded(true);
         final Song savedSong = songService.save(song);
