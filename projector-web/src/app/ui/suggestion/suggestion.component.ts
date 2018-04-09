@@ -15,8 +15,8 @@ export class SuggestionComponent implements OnInit, OnDestroy {
 
   song: Song;
   suggestionSong: Song;
+  suggestion: Suggestion;
   private sub: Subscription;
-  private suggestion: Suggestion;
 
   constructor(private activatedRoute: ActivatedRoute,
               private suggestionService: SuggestionDataService,
