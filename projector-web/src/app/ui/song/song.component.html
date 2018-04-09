@@ -23,6 +23,7 @@
     <div *ngIf="song.originalId!==undefined">
       <h4>Uploaded modified song:</h4>
       <div *ngIf="secondSong!==null">
+        <a href="/#/song/{{song.originalId}}" target="_blank">{{'Open original song'}}</a>
         <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
         <button mat-button (click)="acceptChanges()">
           Put changes into similar!
