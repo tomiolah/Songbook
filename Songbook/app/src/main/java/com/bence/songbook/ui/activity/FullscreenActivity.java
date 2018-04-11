@@ -14,6 +14,7 @@ import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
+import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
@@ -94,7 +95,15 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                 String title = "";
                 SongCollection songCollection = song.getSongCollection();
                 if (songCollection != null) {
-                    title = songCollection.getName() + "\n";
+                    String name = songCollection.getName();
+                    SongCollectionElement songCollectionElement = song.getSongCollectionElement();
+                    if (songCollectionElement != null) {
+                        String ordinalNumber = songCollectionElement.getOrdinalNumber().trim();
+                        if (!ordinalNumber.isEmpty()) {
+                            name += " " + ordinalNumber;
+                        }
+                    }
+                    title = name + "\n";
                 }
                 title += song.getTitle();
                 songVerse.setText(title);
