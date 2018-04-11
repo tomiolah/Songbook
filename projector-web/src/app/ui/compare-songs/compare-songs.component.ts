@@ -165,6 +165,7 @@ export class CompareSongsComponent implements OnChanges {
       verseList.push(songVerse);
       if (repeatChorus) {
         if (songVerse.chorus) {
+          chorus = new SongVerseDTO();
           Object.assign(chorus, songVerse);
         } else if (chorus.chorus !== null && chorus.chorus) {
           if (i + 1 < size) {

@@ -3,12 +3,15 @@
   <app-song [i_song]="song"></app-song>
   <h4>Applied: {{suggestion.applied}}</h4>
   {{suggestion.createdByEmail}}
-  {{suggestion.title}}
-  <textarea>
+  <label>
+    {{suggestion.title}}
+    <textarea>
     {{suggestion.description}}
   </textarea>
+  </label>
 
   <div *ngIf="suggestionSong!==null">
+    <a href="/#/song/{{song.uuid}}" target="_blank">{{'Open original song'}}</a>
     <app-compare-songs [song]="suggestionSong" [secondSong]="song"></app-compare-songs>
   </div>
 </div>
