@@ -1,6 +1,7 @@
 <mat-checkbox [checked]="repeatChorus" (change)="changeRepeatChorus()">
   Repeat chorus
 </mat-checkbox>
+<h4>Matches: {{percentage*100 | number :'1.0-2'}}%</h4>
 <mat-grid-list cols="2" rowHeight="700px">
   <mat-grid-tile style="overflow-y: auto;"
                  [colspan]="1"
@@ -14,9 +15,7 @@
           <mat-card-content>
             <div *ngFor="let colorLine of songVerse.colorLines">
               <h4>
-                <span *ngFor="let colorText of colorLine.texts" [style.color]="getColor(colorText)">
-                  {{colorText.text}}
-                </span>
+                <span *ngFor="let colorText of colorLine.texts" [style.color]="getColor(colorText)">{{colorText.text}}</span>
               </h4>
             </div>
           </mat-card-content>
@@ -35,9 +34,7 @@
           <mat-card-content>
             <div *ngFor="let colorLine of songVerse.colorLines">
               <h4>
-                <span *ngFor="let colorText of colorLine.texts" [style.color]="getColor(colorText)">
-                  {{colorText.text}}
-                </span>
+                <span *ngFor="let colorText of colorLine.texts" [style.color]="getColor(colorText)">{{colorText.text}}</span>
               </h4>
             </div>
           </mat-card-content>

@@ -61,6 +61,7 @@ import {CompareSongsComponent} from './ui/compare-songs/compare-songs.component'
 import {SuggestionComponent} from './ui/suggestion/suggestion.component';
 import {SuggestionDataService} from "./services/suggestion-data.service";
 import {SuggestionListComponent} from "./ui/suggestion-list/suggestion-list.component";
+import {DownloadAppComponent} from './ui/download-app/download-app.component';
 
 @NgModule({
   exports: [
@@ -115,6 +116,7 @@ export class PlunkerMaterialModule {
     CompareSongsComponent,
     SuggestionComponent,
     SuggestionListComponent,
+    DownloadAppComponent,
   ],
   imports: [
     BrowserModule,

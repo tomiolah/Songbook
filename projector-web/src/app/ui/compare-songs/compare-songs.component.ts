@@ -13,6 +13,7 @@ export class CompareSongsComponent implements OnChanges {
   originalSong1: Song;
   originalSong2: Song;
   repeatChorus: boolean;
+  percentage = 0;
 
   constructor() {
     const text = localStorage.getItem("repeatChorus");
@@ -208,10 +209,12 @@ export class CompareSongsComponent implements OnChanges {
     CompareSongsComponent.createLines(this.m_secondSong);
     let a = CompareSongsComponent.getText(this.m_song, repeatChorus);
     let b = CompareSongsComponent.getText(this.m_secondSong, repeatChorus);
-    console.log(a);
-    console.log(b);
     let commonStrings = CompareSongsComponent.highestCommonStrings(a, b);
-    console.log(commonStrings);
+    let x = commonStrings.length;
+    x = x / a.length;
+    let y = commonStrings.length;
+    y = y / b.length;
+    this.percentage = (x + y) / 2;
     CompareSongsComponent.createColorLines(this.m_song, commonStrings);
     CompareSongsComponent.createColorLines(this.m_secondSong, commonStrings);
   }

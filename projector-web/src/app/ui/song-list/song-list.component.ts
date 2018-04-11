@@ -24,7 +24,7 @@ export class SongListComponent implements OnInit {
   paginatedSongs: Song[];
   isSortByModifiedDate = true;
   songTitlesLocalStorage: Song[];
-  songsType = 'PUBLIC';
+  songsType = Song.PUBLIC;
   private songListComponent_sortByModifiedDate = 'songListComponent_sortByModifiedDate';
   private songListComponent_songsType = 'songListComponent_songsType';
 
@@ -64,6 +64,9 @@ export class SongListComponent implements OnInit {
   ngOnInit() {
     this.isSortByModifiedDate = JSON.parse(localStorage.getItem(this.songListComponent_sortByModifiedDate));
     this.songsType = localStorage.getItem(this.songListComponent_songsType);
+    if (this.songsType === null) {
+      this.songsType = Song.PUBLIC;
+    }
     this.loadSongs();
 
     this.songControl.valueChanges.subscribe(value => {
