@@ -29,4 +29,7 @@ public interface SongApi {
 
     @POST("/api/song/upload")
     Call<SongDTO> uploadSong(@Body SongDTO songDTO);
+
+    @GET("/api/song/{uuid}")
+    Call<SongDTO> getSong(@Path("uuid") String uuid);
 }

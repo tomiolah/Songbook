@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -263,6 +264,40 @@ public class MainActivity extends AppCompatActivity
             } else {
                 Intent loadIntent = new Intent(this, LanguagesActivity.class);
                 startActivityForResult(loadIntent, 1);
+            }
+        }
+        Intent appLinkIntent = getIntent();
+        Uri appLinkData = appLinkIntent.getData();
+        if (appLinkData != null) {
+            try {
+                String text = appLinkData.toString();
+                String str = "/#/song/";
+                if (text != null && text.contains(str)) {
+                    final String songUuid = text.substring(text.lastIndexOf(str) + str.length(), text.length());
+                    Song song = null;
+                    for (Song song1 : songs) {
+                        if (song1.getUuid().equals(songUuid)) {
+                            song = song1;
+                            break;
+                        }
+                    }
+                    if (song != null) {
+                        showSongFullscreen(song);
+                    } else {
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                SongApiBean songApiBean = new SongApiBean();
+                                Song song1 = songApiBean.getSong(songUuid);
+                                if (song1 != null) {
+                                    showSongFullscreen(song1);
+                                }
+                            }
+                        });
+                        thread.start();
+                    }
+                }
+            } catch (Exception ignored) {
             }
         }
     }

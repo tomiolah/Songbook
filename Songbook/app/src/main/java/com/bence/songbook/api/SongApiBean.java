@@ -131,4 +131,14 @@ public class SongApiBean {
         return doCallSong(call);
     }
 
+    public Song getSong(String songUuid) {
+        Call<SongDTO> call = songApi.getSong(songUuid);
+        try {
+            SongDTO songDTO = call.execute().body();
+            return songAssembler.createModel(songDTO);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return null;
+    }
 }
