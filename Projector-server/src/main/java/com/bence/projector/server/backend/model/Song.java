@@ -19,6 +19,8 @@ public class Song extends BaseEntity {
     private long views;
     private Date lastIncrementViewDate;
     private String createdByEmail;
+    @Transient
+    transient private double percentage;
 
     public Song() {
     }
@@ -118,5 +120,13 @@ public class Song extends BaseEntity {
 
     public void setOriginalId(String originalId) {
         this.originalId = originalId;
+    }
+
+    public double getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(double percentage) {
+        this.percentage = percentage;
     }
 }

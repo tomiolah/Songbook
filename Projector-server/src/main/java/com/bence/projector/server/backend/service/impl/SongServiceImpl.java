@@ -114,14 +114,23 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             double x = count;
             x /= size;
             if (x > 0.5) {
-                x = StringUtils.highestCommonStringInt(text, secondText);
+                int highestCommonStringInt = StringUtils.highestCommonStringInt(text, secondText);
+                x = highestCommonStringInt;
                 x = x / text.length();
                 if (x > 0.55) {
                     double y;
-                    y = StringUtils.highestCommonStringInt(text, secondText);
+                    y = highestCommonStringInt;
                     y = y / secondText.length();
                     if (y > 0.55) {
-                        similar.add(databaseSong);
+                        int i = 0;
+                        x = (x + y) / 2;
+                        databaseSong.setPercentage(x);
+                        for (; i < similar.size(); ++i) {
+                            if (similar.get(i).getPercentage() < x) {
+                                break;
+                            }
+                        }
+                        similar.add(i, databaseSong);
                     }
                 }
             }
