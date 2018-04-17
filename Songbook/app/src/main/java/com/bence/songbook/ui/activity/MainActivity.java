@@ -587,6 +587,7 @@ public class MainActivity extends AppCompatActivity
         copiedSong.setLastAccessed(song.getLastAccessed());
         copiedSong.setSongCollection(song.getSongCollection());
         copiedSong.setSongCollectionElement(song.getSongCollectionElement());
+        copiedSong.setVersionGroup(song.getVersionGroup());
         intent.putExtra("Song", copiedSong);
         intent.putExtra("verseIndex", 0);
         startActivityForResult(intent, 3);

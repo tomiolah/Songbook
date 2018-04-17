@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface SongCollectionElementRepository extends BaseRepository<SongCollectionElement> {
     void save(List<SongCollectionElement> songCollectionElements, ProgressBar progressBar);
+
+    SongCollectionElement findSongCollectionElementBySongUuid(String uuid);
 }

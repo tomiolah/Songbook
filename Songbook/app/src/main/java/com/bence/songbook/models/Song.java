@@ -36,6 +36,8 @@ public class Song extends BaseEntity {
     private SongCollectionElement songCollectionElement;
     private Date nullDate = new Date(0);
     private String createdByEmail;
+    @DatabaseField
+    private String versionGroup;
 
     public Song() {
     }
@@ -177,5 +179,13 @@ public class Song extends BaseEntity {
 
     public void setCreatedByEmail(String createdByEmail) {
         this.createdByEmail = createdByEmail;
+    }
+
+    public String getVersionGroup() {
+        return versionGroup;
+    }
+
+    public void setVersionGroup(String versionGroup) {
+        this.versionGroup = versionGroup;
     }
 }
