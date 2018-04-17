@@ -1,4 +1,4 @@
-package com.bence.projector.server.api;
+package com.bence.projector.server.api.siteMap;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;

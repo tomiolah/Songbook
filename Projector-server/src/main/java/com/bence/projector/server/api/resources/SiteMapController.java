@@ -1,7 +1,7 @@
 package com.bence.projector.server.api.resources;
 
-import com.bence.projector.server.api.XmlUrl;
-import com.bence.projector.server.api.XmlUrlSet;
+import com.bence.projector.server.api.siteMap.XmlUrl;
+import com.bence.projector.server.api.siteMap.XmlUrlSet;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
