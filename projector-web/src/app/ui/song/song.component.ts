@@ -17,12 +17,20 @@ export class SongComponent implements OnInit, OnDestroy {
   similar: Song[];
   secondSong: Song;
   receivedSimilar = false;
+  markText = "Mark for version group";
+  marked = false;
+  markedVersionGroup: string;
+  songsByVersionGroup: Song[] = [];
   private sub: Subscription;
 
   constructor(private activatedRoute: ActivatedRoute,
               private songService: SongService,
               public auth: AuthService) {
     auth.getUserFromLocalStorage();
+    this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
+    if (this.markedVersionGroup == 'null') {
+      this.markedVersionGroup = null;
+    }
   }
 
   @Input()
@@ -40,6 +48,8 @@ export class SongComponent implements OnInit, OnDestroy {
     }
     this.originalSong = new Song(song);
     this.song = song;
+    this.songsByVersionGroup = [];
+    this.loadVersionGroup();
   }
 
   ngOnInit() {
@@ -66,9 +76,25 @@ export class SongComponent implements OnInit, OnDestroy {
               this.secondSong = song;
             });
           }
+          this.loadVersionGroup();
         });
       }
     });
+  }
+
+  loadVersionGroup() {
+    let id = this.song.versionGroup;
+    if (id == null && this.song.uuid != undefined) {
+      id = this.song.uuid;
+    }
+    this.songService.getSongsByVersionGroup(id).subscribe((songs) => {
+      for (const song of songs) {
+        if (song.uuid != this.song.uuid) {
+          this.songsByVersionGroup.push(song);
+        }
+      }
+    });
+
   }
 
   ngOnDestroy(): void {
@@ -124,6 +150,38 @@ export class SongComponent implements OnInit, OnDestroy {
     updateSong.deleted = false;
     this.songService.updateSong(updateSong).subscribe(
       () => {
+      },
+      (err) => {
+        console.log(err);
+      }
+    );
+  }
+
+  markForVersionGroup() {
+    this.markedVersionGroup = null;
+    this.marked = !this.marked;
+    if (this.marked) {
+      this.markText = "Remove mark for version group";
+      let versionGroup = this.song.uuid;
+      if (this.song.versionGroup != null) {
+        versionGroup = this.song.versionGroup;
+      }
+      localStorage.setItem("markedVersionGroup", versionGroup);
+    } else {
+      this.markText = "Mark for version group";
+      localStorage.setItem("markedVersionGroup", null);
+    }
+  }
+
+  mergeVersionGroup() {
+    this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
+    if (this.markedVersionGroup == 'null') {
+      this.markedVersionGroup = null;
+      return;
+    }
+    this.songService.mergeVersionGroup(this.song.uuid, this.markedVersionGroup).subscribe(
+      () => {
+        this.markedVersionGroup = null;
       },
       (err) => {
         console.log(err);

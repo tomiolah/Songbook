@@ -36,6 +36,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         songDTO.setUploaded(song.getUploaded());
         songDTO.setViews(song.getViews());
         songDTO.setCreatedByEmail(song.getCreatedByEmail());
+        songDTO.setVersionGroup(song.getVersionGroup());
         return songDTO;
     }
 
@@ -72,6 +73,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             song.setLanguage(languageRepository.findOne(songDTO.getLanguageDTO().getUuid()));
         }
         song.setCreatedByEmail(songDTO.getCreatedByEmail());
+        song.setVersionGroup(songDTO.getVersionGroup());
         return song;
     }
 }

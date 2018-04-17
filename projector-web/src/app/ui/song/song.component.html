@@ -78,5 +78,21 @@
         </div>
       </div>
     </div>
+    <div>
+      <button mat-button (click)="markForVersionGroup()">
+        {{markText}}
+      </button>
+      <button *ngIf="markedVersionGroup!==null" mat-button (click)="mergeVersionGroup()">
+        Merge version group
+      </button>
+    </div>
+  </div>
+  <div *ngIf="songsByVersionGroup.length>0">
+    <mat-nav-list>
+      <mat-list-item *ngFor="let song of songsByVersionGroup" (click)="selectSecondSong(song)">
+        <a>{{ song.title + " "}}</a>
+        <a href="/#/song/{{song.uuid}}" target="_blank">{{'. Open'}}</a>
+      </mat-list-item>
+    </mat-nav-list>
   </div>
 </div>
