@@ -21,6 +21,7 @@ public class Song extends BaseEntity {
     private String createdByEmail;
     @Transient
     transient private double percentage;
+    private String versionGroup;
 
     public Song() {
     }
@@ -128,5 +129,13 @@ public class Song extends BaseEntity {
 
     public void setPercentage(double percentage) {
         this.percentage = percentage;
+    }
+
+    public String getVersionGroup() {
+        return versionGroup;
+    }
+
+    public void setVersionGroup(String versionGroup) {
+        this.versionGroup = versionGroup;
     }
 }

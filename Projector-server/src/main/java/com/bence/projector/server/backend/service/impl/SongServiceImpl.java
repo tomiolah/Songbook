@@ -156,6 +156,13 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return true;
     }
 
+    @Override
+    public List<Song> findAllByVersionGroup(String versionGroup) {
+        List<Song> allByVersionGroup = songRepository.findAllByVersionGroup(versionGroup);
+        allByVersionGroup.add(songRepository.findOne(versionGroup));
+        return allByVersionGroup;
+    }
+
     @SuppressWarnings("Duplicates")
     private String getText(Song song) {
         ArrayList<SongVerse> verseList = new ArrayList<>(song.getVerses().size());

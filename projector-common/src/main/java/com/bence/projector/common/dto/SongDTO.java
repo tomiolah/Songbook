@@ -15,6 +15,7 @@ public class SongDTO extends BaseDTO {
     private long views;
     private String createdByEmail;
     private String originalId;
+    private String versionGroup;
 
     public SongDTO() {
     }
@@ -105,5 +106,13 @@ public class SongDTO extends BaseDTO {
 
     public void setOriginalId(String originalId) {
         this.originalId = originalId;
+    }
+
+    public String getVersionGroup() {
+        return versionGroup;
+    }
+
+    public void setVersionGroup(String versionGroup) {
+        this.versionGroup = versionGroup;
     }
 }
