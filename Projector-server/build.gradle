@@ -22,6 +22,7 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 dependencies {
+
     // project dependency
     compile project(":projector-common")
 
@@ -32,6 +33,10 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-web") {
         exclude module: "spring-boot-starter-tomcat"
     }
+
+    compile("org.springframework.boot:spring-boot-starter-thymeleaf")
+    compile("org.springframework.boot:spring-boot-devtools")
+
     compile("org.springframework.boot:spring-boot-starter-jetty")
     // end::jetty[]
     // tag::actuator[]
