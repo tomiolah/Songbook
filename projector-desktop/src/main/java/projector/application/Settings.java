@@ -74,6 +74,8 @@ public class Settings {
     private Color progressLineColor = new Color(1.0, 1.0, 1.0, 0.7);
     private SimpleBooleanProperty progressLinePositionIsTop = new SimpleBooleanProperty(true);
     private OrderMethod songOrderMethod = OrderMethod.BY_COLLECTION;
+    private boolean breakLines = true;
+    private int breakAfter = 77;
 
     protected Settings() {
         load();
@@ -711,5 +713,21 @@ public class Settings {
 
     public synchronized void setSongOrderMethod(OrderMethod songOrderMethod) {
         this.songOrderMethod = songOrderMethod;
+    }
+
+    public synchronized boolean isBreakLines() {
+        return breakLines;
+    }
+
+    public synchronized void setBreakLines(boolean breakLines) {
+        this.breakLines = breakLines;
+    }
+
+    public synchronized int getBreakAfter() {
+        return breakAfter;
+    }
+
+    public synchronized void setBreakAfter(int breakAfter) {
+        this.breakAfter = breakAfter;
     }
 }

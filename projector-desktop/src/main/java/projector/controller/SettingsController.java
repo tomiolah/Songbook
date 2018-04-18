@@ -36,6 +36,10 @@ import java.util.Objects;
 
 public class SettingsController {
     @FXML
+    private CheckBox breakLinesCheckbox;
+    @FXML
+    private Slider breakAfterSlider;
+    @FXML
     private ColorPicker parallelBibleColorPicker;
     @FXML
     private Button connectToSharedButton;
@@ -126,6 +130,11 @@ public class SettingsController {
         parallelCheckBox.setSelected(Settings.getInstance().isParallel());
         slider.setValue(Settings.getInstance().getLineSpace());
         maxFontSlider.setValue(settings.getMaxFont());
+        boolean breakLines = settings.isBreakLines();
+        breakLinesCheckbox.setSelected(breakLines);
+        breakAfterSlider.setDisable(breakLines);
+        breakAfterSlider.setValue(settings.getBreakAfter());
+        breakLinesCheckbox.selectedProperty().addListener((observable, oldValue, newValue) -> breakAfterSlider.setDisable(newValue));
         String iK = Settings.getInstance().getFont();
         Text tmpK = new Text(iK);
         tmpK.setFont(Font.font(iK));
@@ -242,6 +251,8 @@ public class SettingsController {
     public synchronized void onSaveButtonAction() {
         // settings.setBiblePath(biblePathTextField.getText());
         settings.setMaxFont((int) maxFontSlider.getValue());
+        settings.setBreakLines(breakLinesCheckbox.isSelected());
+        settings.setBreakAfter((int) breakAfterSlider.getValue());
         settings.setWithAccents(accentsCheckBox.isSelected());
         settings.setBackgroundColor(backgroundColorPicker.getValue());
         settings.setColor(colorPicker.getValue());
