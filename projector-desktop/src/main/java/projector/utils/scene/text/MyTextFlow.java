@@ -77,6 +77,7 @@ public class MyTextFlow extends TextFlow {
     private Text prevText = null;
     private boolean prevItalic = false;
     private Color prevColor = null;
+    private int prefLineCount;
 
     public MyTextFlow() {
     }
@@ -430,45 +431,96 @@ public class MyTextFlow extends TextFlow {
         if (size2 > size) {
             size = size2;
         }
+        int prefMinSize = (int) (size * (((double) settings.getBreakAfter()) / 100));
         int a = 2, b = size;
-        do {
-            setSize(size);
-            if (trueWidth == 0) {
-                return;
-            }
-            Bounds value = boundsReadOnlyObjectProperty.getValue();
-            w = (int) value.getWidth();
-            h = (int) value.getHeight();
-            if (size > 1) {
-                double i = w;
-                i /= trueWidth;
-                if (i > 1.03 || h > height) {
-                    if (a < b) {
-                        b = size - 1;
-                        size = (a + b) / 2;
+        boolean b2 = !settings.isBreakLines();
+        if (b2) {
+            prefLineCount = getLineCount();
+            do {
+                setSize(size);
+                if (trueWidth == 0) {
+                    return;
+                }
+                Bounds value = boundsReadOnlyObjectProperty.getValue();
+                w = (int) value.getWidth();
+                h = (int) value.getHeight();
+                if (size > 1) {
+                    double i = w;
+                    i /= trueWidth;
+                    int lineCount = getLineCount();
+                    boolean b1 = lineCount > prefLineCount;
+                    if (i > 1.03 || h > height || b1) {
+                        if (a < b || b1) {
+                            b = size - 1;
+                            size = (a + b) / 2;
+                        } else {
+                            decreaseSizeWhileNotGood(trueWidth, height);
+                            break;
+                        }
                     } else {
-                        do {
-                            setSize(--size);
-                            value = boundsReadOnlyObjectProperty.getValue();
-                            w = (int) value.getWidth();
-                            h = (int) value.getHeight();
-                            i = w;
-                            i /= trueWidth;
-                        } while ((i > 1.01 || h > height) && size > 1);
-                        break;
+                        if (a < b) {
+                            a = size + 1;
+                            size = (a + b) / 2;
+                        } else {
+                            break;
+                        }
                     }
                 } else {
-                    if (a < b) {
-                        a = size + 1;
-                        size = (a + b) / 2;
-                    } else {
-                        break;
-                    }
+                    break;
                 }
-            } else {
-                break;
+            } while (true);
+        }
+        if (size < prefMinSize || !b2) {
+            size = (int) (settings.getMaxFont() * (((double) (height)) / (double) (768)));
+            if (size2 > size) {
+                size = size2;
             }
-        } while (true);
+            a = 2;
+            b = size;
+            do {
+                setSize(size);
+                Bounds value = boundsReadOnlyObjectProperty.getValue();
+                w = (int) value.getWidth();
+                h = (int) value.getHeight();
+                if (size > 1) {
+                    double i = w;
+                    i /= trueWidth;
+                    if (i > 1.03 || h > height) {
+                        if (a < b) {
+                            b = size - 1;
+                            size = (a + b) / 2;
+                        } else {
+                            decreaseSizeWhileNotGood(trueWidth, height);
+                            break;
+                        }
+                    } else {
+                        if (a < b) {
+                            a = size + 1;
+                            size = (a + b) / 2;
+                        } else {
+                            break;
+                        }
+                    }
+                } else {
+                    break;
+                }
+            } while (true);
+        }
+    }
+
+    private void decreaseSizeWhileNotGood(int trueWidth, int height) {
+        Bounds value;
+        int w;
+        int h;
+        double i;
+        do {
+            setSize(--size);
+            value = boundsReadOnlyObjectProperty.getValue();
+            w = (int) value.getWidth();
+            h = (int) value.getHeight();
+            i = w;
+            i /= trueWidth;
+        } while ((i > 1.01 || h > height) && size > 1);
     }
 
     private void calculateMaxSizeByLetters(int height) {
@@ -489,6 +541,10 @@ public class MyTextFlow extends TextFlow {
 
     public String getRawText() {
         return rawText;
+    }
+
+    public void setRawText(String rawText) {
+        this.rawText = rawText;
     }
 
     public void setBackGroundColor() {
@@ -566,9 +622,5 @@ public class MyTextFlow extends TextFlow {
         if (tmpTextFlow == null) {
             tmpTextFlow = new MyTextFlow(true);
         }
-    }
-
-    public void setRawText(String rawText) {
-        this.rawText = rawText;
     }
 }
