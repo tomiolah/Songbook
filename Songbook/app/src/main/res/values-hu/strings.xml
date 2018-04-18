@@ -57,4 +57,16 @@
     <string name="language_of_the_song">Az ének nyelve</string>
     <string name="successfully_uploaded">Sikeresen feltöltve!</string>
     <string name="upload_failed">Feltöltés sikertelen</string>
+    <string name="suggest_edits">Javasoljon módosításokat</string>
+    <string name="short_description_of_the_suggestion">A javaslat rövid leírása:</string>
+    <string name="submit">Beküldés</string>
+    <string name="other">Egyéb</string>
+    <string name="edit">Szerkeszt</string>
+    <string name="no_description">Nincs leírás!</string>
+    <string name="by_title">Cím szerint</string>
+    <string name="by_created_date">Létrhozás dátum szerint</string>
+    <string name="by_collection">Gyűjtemény szeint</string>
+    <string name="reverse">Fordított</string>
+    <string name="short_collection_name">Gyűjtemény nevének rövidítése</string>
+    <string name="no_change">Nincs módosítás</string>
 </resources>

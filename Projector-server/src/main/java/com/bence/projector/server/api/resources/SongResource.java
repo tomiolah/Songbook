@@ -230,6 +230,7 @@ public class SongResource {
     public ResponseEntity<Object> uploadSong(@RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         final Song song = songAssembler.createModel(songDTO);
+        song.setOriginalId(songDTO.getUuid());
         song.setDeleted(true);
         song.setUploaded(true);
         final Song savedSong = songService.save(song);
@@ -344,5 +345,49 @@ public class SongResource {
         song.setLastIncrementViewDate(new Date());
         songRepository.save(song);
         return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "admin/api/songVersionGroup/{songId1}/{songId2}")
+    public ResponseEntity<Object> mergeSongVersionGroup(@PathVariable("songId1") String songId1, @PathVariable("songId2") String songId2, HttpServletRequest httpServletRequest) {
+        if (songId1.equals(songId2)) {
+            return new ResponseEntity<>("Same song", HttpStatus.CONFLICT);
+        }
+        Date date = new Date();
+        Song song1 = songService.findOne(songId1);
+        Song song2 = songService.findOne(songId2);
+        if (song1 == null || song2 == null) {
+            return new ResponseEntity<>("Null", HttpStatus.NO_CONTENT);
+        }
+        saveStatistics(httpServletRequest, statisticsService);
+        String song1VersionGroup = song1.getVersionGroup();
+        String song2VersionGroup = song2.getVersionGroup();
+        if (song1VersionGroup == null) {
+            song1VersionGroup = song1.getId();
+        }
+        if (song2VersionGroup == null) {
+            song2VersionGroup = song2.getId();
+        }
+        List<Song> allByVersionGroup1 = songService.findAllByVersionGroup(song1VersionGroup);
+        List<Song> allByVersionGroup2 = songService.findAllByVersionGroup(song2VersionGroup);
+        if (allByVersionGroup1.size() < allByVersionGroup2.size()) {
+            for (Song song : allByVersionGroup1) {
+                song.setVersionGroup(song2VersionGroup);
+                song.setModifiedDate(date);
+            }
+            songRepository.save(allByVersionGroup1);
+        } else {
+            for (Song song : allByVersionGroup2) {
+                song.setVersionGroup(song1VersionGroup);
+                song.setModifiedDate(date);
+            }
+            songRepository.save(allByVersionGroup2);
+        }
+        return new ResponseEntity<>("Merged", HttpStatus.ACCEPTED);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/api/songs/versionGroup/{id}")
+    public List<SongDTO> getSongsByVersionGroup(@PathVariable("id") String id) {
+        List<Song> allByVersionGroup = songService.findAllByVersionGroup(id);
+        return songAssembler.createDtoList(allByVersionGroup);
     }
 }

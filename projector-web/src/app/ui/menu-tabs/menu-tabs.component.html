@@ -1,8 +1,15 @@
 <div class="original">
   <nav mat-tab-nav-bar>
 
-    <ng-container class="container">
+    <ng-container class="container" *ngIf="!auth.isLoggedIn || auth.user.role !== 'ROLE_ADMIN'">
       <a mat-tab-link *ngFor="let tab of menuTabs" [routerLink]="tab.link" routerLinkActive
+         #rla="routerLinkActive" [active]="rla.isActive">
+        <mat-icon>{{tab.icon}}</mat-icon>
+        <span>{{tab.title}}</span>
+      </a>
+    </ng-container>
+    <ng-container class="container" *ngIf="auth.isLoggedIn && auth.user.role === 'ROLE_ADMIN'">
+      <a mat-tab-link *ngFor="let tab of adminMenuTabs" [routerLink]="tab.link" routerLinkActive
          #rla="routerLinkActive" [active]="rla.isActive">
         <mat-icon>{{tab.icon}}</mat-icon>
         <span>{{tab.title}}</span>

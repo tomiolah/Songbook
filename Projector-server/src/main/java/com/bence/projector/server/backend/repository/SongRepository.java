@@ -10,4 +10,6 @@ public interface SongRepository extends MongoRepository<Song, String> {
     List<Song> findAllByModifiedDateGreaterThan(Date modifiedDate);
 
     List<Song> findAllByUploadedTrueAndDeletedTrue();
+
+    List<Song> findAllByVersionGroup(String versionGroup);
 }

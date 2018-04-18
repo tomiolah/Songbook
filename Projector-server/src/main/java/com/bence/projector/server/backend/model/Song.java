@@ -7,6 +7,7 @@ import java.util.List;
 
 public class Song extends BaseEntity {
 
+    private String originalId;
     private String title;
     private List<SongVerse> verses;
     private Date createdDate;
@@ -18,6 +19,9 @@ public class Song extends BaseEntity {
     private long views;
     private Date lastIncrementViewDate;
     private String createdByEmail;
+    @Transient
+    transient private double percentage;
+    private String versionGroup;
 
     public Song() {
     }
@@ -109,5 +113,29 @@ public class Song extends BaseEntity {
 
     public void setCreatedByEmail(String createdByEmail) {
         this.createdByEmail = createdByEmail;
+    }
+
+    public String getOriginalId() {
+        return originalId;
+    }
+
+    public void setOriginalId(String originalId) {
+        this.originalId = originalId;
+    }
+
+    public double getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(double percentage) {
+        this.percentage = percentage;
+    }
+
+    public String getVersionGroup() {
+        return versionGroup;
+    }
+
+    public void setVersionGroup(String versionGroup) {
+        this.versionGroup = versionGroup;
     }
 }

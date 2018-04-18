@@ -25,6 +25,10 @@ export class SongVerseDTO {
 }
 
 export class Song extends BaseModel {
+
+  static PUBLIC = "PUBLIC";
+  static UPLOADED = "UPLOADED";
+  originalId: string;
   title = '';
   songVerseDTOS: SongVerseDTO[];
   modifiedDate: number;
@@ -32,6 +36,7 @@ export class Song extends BaseModel {
   uuid: '';
   languageDTO: Language;
   uploaded: Boolean;
+  versionGroup: '';
 
   constructor(values: Object = {}) {
     super(values);
@@ -60,7 +65,7 @@ export class SongService {
     return this.api.getAttribute(Song, 'api/song?title=' + title);
   }
 
-  getSong(id: number) {
+  getSong(id) {
     return this.api.getById(Song, 'api/song/', id);
   }
 
@@ -95,5 +100,13 @@ export class SongService {
 
   getAllUploadedSongTitles() {
     return this.api.getAll(Song, 'api/songs/upload');
+  }
+
+  mergeVersionGroup(songId1, songId2) {
+    return this.api.post('admin/api/songVersionGroup/' + songId1 + '/' + songId2);
+  }
+
+  getSongsByVersionGroup(id) {
+    return this.api.getAll(Song, '/api/songs/versionGroup/' + id);
   }
 }

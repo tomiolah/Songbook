@@ -78,6 +78,17 @@ public class SettingsActivity extends AppCompatActivity {
                 sharedPreferences.edit().putBoolean("blank_switch", blankSwitch.isChecked()).apply();
             }
         });
+        boolean shortCollection_switch = sharedPreferences.getBoolean("shortCollectionName", false);
+        final Switch shortCollectionSwitch = findViewById(R.id.shortCollectionSwitch);
+        shortCollectionSwitch.setChecked(shortCollection_switch);
+        shortCollectionSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean checked = shortCollectionSwitch.isChecked();
+                sharedPreferences.edit().putBoolean("shortCollectionName", checked).apply();
+                Memory.getInstance().getMainActivity().setShortCollectionName(checked);
+            }
+        });
         final Switch shareOnNetworkSwitch = findViewById(R.id.shareOnNetworkSwitch);
         final Memory memory = Memory.getInstance();
         shareOnNetworkSwitch.setChecked(memory.isShareOnNetwork());

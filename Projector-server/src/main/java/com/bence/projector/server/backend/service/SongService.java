@@ -17,4 +17,6 @@ public interface SongService extends BaseService<Song> {
     List<Song> findAllSimilar(Song song);
 
     boolean matches(Song song, Song song2);
+
+    List<Song> findAllByVersionGroup(String versionGroup);
 }

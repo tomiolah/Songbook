@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  </meta>
+  <meta name="description" th:attr="content=${song.verses.get(0).text}">
+
+  </meta>
+  <meta name="keywords" th:attr="content=${keywords}">
+
+  </meta>
+  <title th:text="${title}">Song</title>
+</head>
+<body>
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    window.location.replace(window.location.href.replace('/song/', '/#/song/'));
+
+    /*]]>*/
+</script>
+<div>
+  <h2 th:text="${title}">title</h2>
+  <p th:each="verse : ${song.verses}">
+    <span th:text="${verse.text}">Text</span>
+  </p>
+  <a href="../">Home</a>
+</div>
+</body>
+</html>

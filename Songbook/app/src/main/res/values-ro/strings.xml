@@ -57,4 +57,16 @@
     <string name="language_of_the_song">Limba cântecului</string>
     <string name="successfully_uploaded">S-a încărcat cu succes!</string>
     <string name="upload_failed">Încărcare eșuată</string>
+    <string name="suggest_edits">Sugerează modificări</string>
+    <string name="short_description_of_the_suggestion">Scurta descriere a sugestii:</string>
+    <string name="submit">Afirmă</string>
+    <string name="other">Altă</string>
+    <string name="edit">Editare</string>
+    <string name="no_description">Descrierea lipsește!</string>
+    <string name="reverse">Invers</string>
+    <string name="by_title">După titlu</string>
+    <string name="by_created_date">După data dreată</string>
+    <string name="by_collection">După colecție</string>
+    <string name="short_collection_name">Abrevierea numelui colecției</string>
+    <string name="no_change">Nici o schimbare</string>
 </resources>

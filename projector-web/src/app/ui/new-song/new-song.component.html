@@ -44,6 +44,10 @@
                             maxlength="1000"></textarea>
                 </mat-form-field>
               </div>
+              <br>
+              <button type="button" mat-icon-button (click)="addNewVerse()" matTooltip="Add a new verse">
+                <mat-icon>add</mat-icon>
+              </button>
             </div>
             <div *ngIf="editorType==='raw'">
               <mat-form-field class="example-full-width">
@@ -52,10 +56,6 @@
               <h5>You need to switch back to verse editor in order to submit</h5>
             </div>
           </div>
-          <br>
-          <button type="button" mat-icon-button (click)="addNewVerse()" matTooltip="Add a new verse">
-            <mat-icon>add</mat-icon>
-          </button>
           <br>
           <br>
           <button type="submit" class="btn btn-success" [disabled]="needToDisable()">Submit</button>

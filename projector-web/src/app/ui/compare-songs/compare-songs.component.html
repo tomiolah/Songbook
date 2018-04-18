@@ -1,19 +1,21 @@
+<mat-checkbox [checked]="repeatChorus" (change)="changeRepeatChorus()">
+  Repeat chorus
+</mat-checkbox>
+<h4>Matches: {{percentage*100 | number :'1.0-2'}}%</h4>
 <mat-grid-list cols="2" rowHeight="700px">
   <mat-grid-tile style="overflow-y: auto;"
                  [colspan]="1"
                  [rowspan]="1">
     <mat-card class="example-card">
       <mat-card-header>
-        <mat-card-title>{{song.title}}</mat-card-title>
+        <mat-card-title>{{m_song.title}}</mat-card-title>
       </mat-card-header>
       <mat-card-content [style.overflow]="'auto'" [style.height.px]="'600'">
-        <mat-card *ngFor="let songVerse of song.songVerseDTOS">
+        <mat-card *ngFor="let songVerse of m_song.songVerseDTOS">
           <mat-card-content>
             <div *ngFor="let colorLine of songVerse.colorLines">
               <h4>
-                <span *ngFor="let colorText of colorLine.texts" [style.color]="getColor(colorText)">
-                  {{colorText.text}}
-                </span>
+                <span *ngFor="let colorText of colorLine.texts" [style.color]="getColor(colorText)">{{colorText.text}}</span>
               </h4>
             </div>
           </mat-card-content>
@@ -25,16 +27,14 @@
                  [rowspan]="1">
     <mat-card class="example-card">
       <mat-card-header>
-        <mat-card-title>{{secondSong.title}}</mat-card-title>
+        <mat-card-title>{{m_secondSong.title}}</mat-card-title>
       </mat-card-header>
       <mat-card-content [style.overflow]="'auto'" [style.height.px]="'600'">
-        <mat-card *ngFor="let songVerse of secondSong.songVerseDTOS">
+        <mat-card *ngFor="let songVerse of m_secondSong.songVerseDTOS">
           <mat-card-content>
             <div *ngFor="let colorLine of songVerse.colorLines">
               <h4>
-                <span *ngFor="let colorText of colorLine.texts" [style.color]="getColor(colorText)">
-                  {{colorText.text}}
-                </span>
+                <span *ngFor="let colorText of colorLine.texts" [style.color]="getColor(colorText)">{{colorText.text}}</span>
               </h4>
             </div>
           </mat-card-content>
