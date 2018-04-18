@@ -32,6 +32,6 @@ public class SiteMapController {
     }
 
     private void create(XmlUrlSet xmlUrlSet, String uuid, Date date) {
-        xmlUrlSet.addUrl(new XmlUrl("https://projector-songbook.herokuapp.com/#/song/" + uuid, date));
+        xmlUrlSet.addUrl(new XmlUrl("https://projector-songbook.herokuapp.com/song/" + uuid, date));
     }
 }
