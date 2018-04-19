@@ -60,6 +60,7 @@ public class SongActivity extends AppCompatActivity {
     private void loadSongView(Song song) {
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(song.getTitle());
+        setSupportActionBar(toolbar);
         TextView collectionTextView = findViewById(R.id.collectionTextView);
         if (song.getSongCollection() != null) {
             String text = song.getSongCollection().getName() + " " + song.getSongCollectionElement().getOrdinalNumber();
@@ -122,7 +123,7 @@ public class SongActivity extends AppCompatActivity {
             copiedSong.setSongCollection(song.getSongCollection());
             copiedSong.setSongCollectionElement(song.getSongCollectionElement());
             intent.putExtra("Song", copiedSong);
-            startActivity(intent);
+            startActivityForResult(intent, 2);
         } else if (itemId == R.id.action_versions) {
             Intent intent = new Intent(this, VersionsActivity.class);
             intent.putExtra("uuid", song.getUuid());
@@ -143,6 +144,8 @@ public class SongActivity extends AppCompatActivity {
         if (requestCode == 1 && resultCode == 1) {
             song = memory.getSong();
             loadSongView(song);
+        } else if (requestCode == 2 && resultCode == SuggestEditsChooseActivity.LINKING) {
+            finish();
         }
     }
 
@@ -178,12 +181,14 @@ public class SongActivity extends AppCompatActivity {
                 if (versionGroup == null) {
                     versionGroup = song.getUuid();
                 }
-                List<Song> allByVersionGroup = songRepository.findAllByVersionGroup(versionGroup);
                 boolean was = false;
-                for (Song song1 : allByVersionGroup) {
-                    if (!song1.getUuid().equals(song.getUuid())) {
-                        was = true;
-                        break;
+                if (versionGroup != null) {
+                    List<Song> allByVersionGroup = songRepository.findAllByVersionGroup(versionGroup);
+                    for (Song song1 : allByVersionGroup) {
+                        if (!song1.getUuid().equals(song.getUuid())) {
+                            was = true;
+                            break;
+                        }
                     }
                 }
                 final boolean finalWas = was;
@@ -239,6 +244,8 @@ public class SongActivity extends AppCompatActivity {
             holder.textView.setText(songVerse.getText());
             if (!songVerse.isChorus()) {
                 holder.chorusTextView.setVisibility(View.GONE);
+            } else {
+                holder.chorusTextView.setVisibility(View.VISIBLE);
             }
             return convertView;
         }

@@ -73,4 +73,6 @@
     <string name="short_collection_name">Short collection name</string>
     <string name="no_change">No change</string>
     <string name="versions">Versions</string>
+    <string name="linking_to_another_version">Linking to another version</string>
+    <string name="link_with_this_song">Link with this song</string>
 </resources>

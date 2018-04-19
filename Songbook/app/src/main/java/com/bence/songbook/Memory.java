@@ -17,6 +17,7 @@ public class Memory {
     private List<Song> values;
     private MainActivity mainActivity;
     private Song song;
+    private Song songForLinking;
 
     private Memory() {
 
@@ -83,5 +84,13 @@ public class Memory {
 
     public void setSong(Song song) {
         this.song = song;
+    }
+
+    public Song getSongForLinking() {
+        return songForLinking;
+    }
+
+    public void setSongForLinking(Song songForLinking) {
+        this.songForLinking = songForLinking;
     }
 }

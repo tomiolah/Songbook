@@ -3,7 +3,6 @@ package com.bence.songbook.models;
 import com.j256.ormlite.field.DatabaseField;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 public abstract class AbstractModel implements Serializable {
 
@@ -34,17 +33,10 @@ public abstract class AbstractModel implements Serializable {
     }
 
     public String getUuid() {
-        ensureUuid();
         return uuid;
     }
 
     public void setUuid(final String uuid) {
         this.uuid = uuid;
-    }
-
-    private void ensureUuid() {
-        if (uuid == null) {
-            setUuid(UUID.randomUUID().toString());
-        }
     }
 }
