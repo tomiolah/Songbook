@@ -1,8 +1,18 @@
 package projector.application;
 
+import com.bence.projector.common.dto.ProjectorVersionDTO;
 import javafx.application.Platform;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import projector.Main;
+import projector.api.ProjectorVersionApiBean;
+import projector.controller.UpdateController;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,10 +22,14 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.util.List;
 
 public class Updater {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Updater.class);
     private static Updater instance;
+    @SuppressWarnings("FieldCanBeLocal")
+    private final int projectorVersionNumber = 0;
 
     private Updater() {
     }
@@ -25,6 +39,38 @@ public class Updater {
             instance = new Updater();
         }
         return instance;
+    }
+
+    public void checkForUpdate() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    ProjectorVersionApiBean projectorVersionApiBean = new ProjectorVersionApiBean();
+                    List<ProjectorVersionDTO> projectorVersionsAfterNr = projectorVersionApiBean.getProjectorVersionsAfterNr(projectorVersionNumber);
+                    if (projectorVersionsAfterNr.size() > 0) {
+                        FXMLLoader loader = new FXMLLoader();
+                        loader.setLocation(Main.class.getResource("/view/UpdateAvailable.fxml"));
+                        loader.setResources(Settings.getInstance().getResourceBundle());
+                        Pane root = loader.load();
+                        UpdateController updateController = loader.getController();
+                        updateController.setProjectorVersions(projectorVersionsAfterNr);
+                        Scene scene = new Scene(root);
+                        scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                        Platform.runLater(() -> {
+                            Stage stage = new Stage();
+                            stage.setTitle("Update available");
+                            stage.setScene(scene);
+                            stage.show();
+                        });
+                    }
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
+
+            }
+        });
+        thread.start();
     }
 
     public void updateExe() {
@@ -43,9 +89,7 @@ public class Updater {
                 // alert.showAndWait();
                 URL website;
                 try {
-                    // website = new
-                    // URL("https://sites.google.com/site/vetitoprogram/home/projector.exee?attredirects=0&d=1");
-                    website = new URL("http://www.ktgykolozsvar.ro/misc/projector/projector2.exe");
+                    website = new URL("http://localhost/projector.exe");
                     ReadableByteChannel rbc = Channels.newChannel(website.openStream());
                     File dir = new File("utils");
                     if (!dir.mkdir()) {

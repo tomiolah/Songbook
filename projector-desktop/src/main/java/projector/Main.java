@@ -15,6 +15,7 @@ import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import projector.application.Settings;
+import projector.application.Updater;
 import projector.controller.MyController;
 import projector.controller.ProjectionScreenController;
 import projector.repository.ormLite.ConvertSongs;
@@ -228,6 +229,7 @@ public class Main extends Application {
         primaryStage.requestFocus();
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
         myController.setProjectionScreenController(projectionScreenController);
+        Updater.getInstance().checkForUpdate();
     }
 
     private void setCanvasToSecondScreen() {
