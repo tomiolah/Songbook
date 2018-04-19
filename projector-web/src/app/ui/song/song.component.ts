@@ -50,7 +50,7 @@ export class SongComponent implements OnInit, OnDestroy {
     this.song = song;
     this.songsByVersionGroup = [];
     this.loadVersionGroup();
-    history.pushState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
+    history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
   }
 
   ngOnInit() {
@@ -71,7 +71,7 @@ export class SongComponent implements OnInit, OnDestroy {
             }
           }
           this.song = song;
-          history.pushState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
+          history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
           this.originalSong = new Song(song);
           if (song.originalId !== undefined) {
             this.songService.getSong(song.originalId).subscribe((song) => {
