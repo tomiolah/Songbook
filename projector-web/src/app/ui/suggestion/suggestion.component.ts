@@ -38,9 +38,13 @@ export class SuggestionComponent implements OnInit, OnDestroy {
         const suggestionId = params['suggestionId'];
         this.suggestionService.getSuggestion(suggestionId).subscribe((suggestion) => {
           this.suggestion = suggestion;
-          this.suggestionSong = new Song();
-          this.suggestionSong.title = this.suggestion.title;
-          this.suggestionSong.songVerseDTOS = this.suggestion.verses;
+          if (this.suggestion.title != undefined) {
+            this.suggestionSong = new Song();
+            this.suggestionSong.title = this.suggestion.title;
+            this.suggestionSong.songVerseDTOS = this.suggestion.verses;
+          } else {
+            this.suggestionSong = undefined;
+          }
           this.songService.getSong(suggestion.songId).subscribe((song) => {
             this.song = song;
           });

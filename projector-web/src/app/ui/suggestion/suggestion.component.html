@@ -10,7 +10,7 @@
   </textarea>
   </label>
 
-  <div *ngIf="suggestionSong!==null">
+  <div *ngIf="suggestionSong!==undefined&&song!==undefined">
     <a href="/#/song/{{song.uuid}}" target="_blank">{{'Open original song'}}</a>
     <app-compare-songs [song]="suggestionSong" [secondSong]="song"></app-compare-songs>
   </div>
