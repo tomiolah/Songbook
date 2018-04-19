@@ -1,10 +1,10 @@
 package com.bence.projector.server.api.resources;
 
-import com.bence.projector.common.dto.SuggestionDTO;
-import com.bence.projector.server.api.assembler.SuggestionAssembler;
-import com.bence.projector.server.backend.model.Suggestion;
+import com.bence.projector.common.dto.SongLinkDTO;
+import com.bence.projector.server.api.assembler.SongLinkAssembler;
+import com.bence.projector.server.backend.model.SongLink;
+import com.bence.projector.server.backend.service.SongLinkService;
 import com.bence.projector.server.backend.service.StatisticsService;
-import com.bence.projector.server.backend.service.SuggestionService;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,53 +32,53 @@ import java.util.Map;
 import static com.bence.projector.server.api.resources.StatisticsResource.saveStatistics;
 
 @RestController
-public class SuggestionResource {
+public class SongLinkResource {
     @Autowired
     private StatisticsService statisticsService;
     @Autowired
-    private SuggestionService suggestionService;
+    private SongLinkService songLinkService;
     @Autowired
-    private SuggestionAssembler suggestionAssembler;
+    private SongLinkAssembler songLinkAssembler;
     @Autowired
     private FreemarkerConfiguration freemarkerConfiguration;
     @Qualifier("javaMailSender")
     @Autowired
     private JavaMailSender sender;
 
-    @RequestMapping(value = "admin/api/suggestions", method = RequestMethod.GET)
-    public List<SuggestionDTO> getSuggestions() {
-        List<Suggestion> all = suggestionService.findAll();
-        return suggestionAssembler.createDtoList(all);
+    @RequestMapping(value = "admin/api/songLinks", method = RequestMethod.GET)
+    public List<SongLinkDTO> getSongLinks() {
+        List<SongLink> all = songLinkService.findAll();
+        return songLinkAssembler.createDtoList(all);
     }
 
-    @RequestMapping(value = "admin/api/suggestion/{id}", method = RequestMethod.GET)
-    public SuggestionDTO getSuggestion(@PathVariable final String id, HttpServletRequest httpServletRequest) {
+    @RequestMapping(value = "admin/api/songLink/{id}", method = RequestMethod.GET)
+    public SongLinkDTO getSongLink(@PathVariable final String id, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        Suggestion suggestion = suggestionService.findOne(id);
-        return suggestionAssembler.createDto(suggestion);
+        SongLink songLink = songLinkService.findOne(id);
+        return songLinkAssembler.createDto(songLink);
     }
 
-    @RequestMapping(value = "api/suggestion", method = RequestMethod.POST)
-    public SuggestionDTO suggestion(@RequestBody final SuggestionDTO suggestionDTO, HttpServletRequest httpServletRequest) {
+    @RequestMapping(value = "api/songLink", method = RequestMethod.POST)
+    public SongLinkDTO songLink(@RequestBody final SongLinkDTO songLinkDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        Suggestion model = suggestionAssembler.createModel(suggestionDTO);
+        SongLink model = songLinkAssembler.createModel(songLinkDTO);
         if (model != null) {
-            Suggestion suggestion = suggestionService.save(model);
+            SongLink songLink = songLinkService.save(model);
             Thread thread = new Thread(() -> {
                 try {
-                    sendEmail(suggestion);
+                    sendEmail(songLink);
                 } catch (MessagingException e) {
                     e.printStackTrace();
                 }
             });
             thread.start();
         }
-        return suggestionAssembler.createDto(model);
+        return songLinkAssembler.createDto(model);
     }
 
-    private void sendEmail(Suggestion suggestion)
+    private void sendEmail(SongLink songLink)
             throws MessagingException, MailSendException {
-        final String freemarkerName = FreemarkerConfiguration.NEW_SUGGESTION + ".ftl";
+        final String freemarkerName = FreemarkerConfiguration.NEW_SONG_LINK + ".ftl";
         FreeMarkerConfigurer freemarkerConfigurer = freemarkerConfiguration.freemarkerConfig();
         freemarker.template.Configuration config = freemarkerConfigurer.getConfiguration();
         config.setDefaultEncoding("UTF-8");
@@ -92,57 +92,41 @@ public class SuggestionResource {
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setTo(new InternetAddress("bakobence@yahoo.com"));
         helper.setFrom(new InternetAddress("noreply@songbook"));
-        helper.setSubject("Új javaslat");
+        helper.setSubject("Új verzió összekötés");
 
         try {
             Template template = config.getTemplate(freemarkerName);
 
             StringWriter writer = new StringWriter();
-            template.process(createPattern(suggestion), writer);
+            template.process(createPattern(songLink), writer);
 
             helper.getMimeMessage().setContent(writer.toString(), "text/html;charset=utf-8");
         } catch (Exception e) {
             e.printStackTrace();
-            String title = suggestion.getTitle();
-            if (title == null) {
-                title = "";
-            }
-            String description = suggestion.getDescription();
-            if (description == null) {
-                description = "";
-            }
-            String createdByEmail = suggestion.getCreatedByEmail();
+            String createdByEmail = songLink.getCreatedByEmail();
             if (createdByEmail == null) {
                 createdByEmail = "";
             }
             helper.getMimeMessage().setContent("<div>\n" +
-                    "    <h3>Új javaslat: " + title + "</h3>\n" +
-                    "    <a href=\"https://projector-songbook.herokuapp.com/#/admin/suggestion/" + suggestion.getId() + "\">Link</a>\n" +
+                    "    <h3>Új verzió összekötés: </h3>\n" +
+                    "    <a href=\"https://projector-songbook.herokuapp.com/#/song/" + songLink.getSongId1() + "\">Link1</a>\n" +
+                    "<br><a href=\"https://projector-songbook.herokuapp.com/#/song/" + songLink.getSongId2() + "\">Link2</a>\n" +
                     "  <h3>Email </h3><h4>" + createdByEmail + "</h4>" +
-                    "  <h3>" + description + "</h3>" +
                     "</div>", "text/html;charset=utf-8");
         }
         sender.send(message);
     }
 
-    private Map<String, Object> createPattern(Suggestion suggestion) {
+    private Map<String, Object> createPattern(SongLink songLink) {
         Map<String, Object> data = new HashMap<>();
-        String title = suggestion.getTitle();
-        String createdByEmail = suggestion.getCreatedByEmail();
-        String description = suggestion.getDescription();
-        if (title == null) {
-            title = "";
-        }
-        if (description == null) {
-            description = "";
-        }
+        String createdByEmail = songLink.getCreatedByEmail();
         if (createdByEmail == null) {
             createdByEmail = "";
         }
-        data.put("title", title);
-        data.put("id", suggestion.getId());
+        data.put("id", songLink.getId());
         data.put("email", createdByEmail);
-        data.put("description", description);
+        data.put("song1", songLink.getSongId1());
+        data.put("song2", songLink.getSongId2());
         return data;
     }
 }
