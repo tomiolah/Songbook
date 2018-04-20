@@ -85,6 +85,21 @@ public class SongApiBean {
         return songs;
     }
 
+    public List<Song> getSongsByLanguageAndAfterModifiedDate(Language language, Long modifiedDate) {
+        Call<List<SongDTO>> call = songApi.getSongsByLanguageAndAfterModifiedDate(language.getUuid(), modifiedDate);
+        List<Song> songs;
+        try {
+            List<SongDTO> songDTOs = call.execute().body();
+            songs = songAssembler.createModelList(songDTOs);
+            return songs;
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage(), e);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return null;
+    }
+
     public List<Song> getSongsByLanguageAndAfterModifiedDate(Language language, Long modifiedDate, ProgressMessage progressMessage) {
         Call<List<SongDTO>> call = songApi.getSongsByLanguageAndAfterModifiedDate(language.getUuid(), modifiedDate);
         List<Song> songs;

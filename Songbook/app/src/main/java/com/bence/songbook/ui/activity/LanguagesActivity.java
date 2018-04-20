@@ -3,8 +3,10 @@ package com.bence.songbook.ui.activity;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -15,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +33,7 @@ import java.util.List;
 
 public class LanguagesActivity extends AppCompatActivity {
 
+    public static String syncAutomatically = "syncAutomatically";
     MyCustomAdapter dataAdapter = null;
     private List<Language> languages;
     private LanguagesActivity languagesActivity;
@@ -45,6 +49,17 @@ public class LanguagesActivity extends AppCompatActivity {
         languages = languageRepository.findAll();
         noInternetConnectionToast = Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_LONG);
         new Downloader().execute();
+
+        final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        final boolean syncAutomatically = sharedPreferences.getBoolean(LanguagesActivity.syncAutomatically, true);
+        CheckBox checkBox = findViewById(R.id.checkBox);
+        checkBox.setChecked(syncAutomatically);
+        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                sharedPreferences.edit().putBoolean(LanguagesActivity.syncAutomatically, isChecked).apply();
+            }
+        });
     }
 
     private void displayListView() {

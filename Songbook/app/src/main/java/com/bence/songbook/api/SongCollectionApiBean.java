@@ -26,6 +26,23 @@ public class SongCollectionApiBean {
         songCollectionAssembler = SongCollectionAssembler.getInstance();
     }
 
+    public List<SongCollection> getSongCollections(Language language, Date lastModifiedDate) {
+        Call<List<SongCollectionDTO>> call = songCollectionApi.getSongCollections(language.getUuid(), lastModifiedDate.getTime());
+        try {
+            List<SongCollectionDTO> songCollectionDTOs = call.execute().body();
+            List<SongCollection> songCollections = songCollectionAssembler.createModelList(songCollectionDTOs);
+            for (SongCollection songCollection : songCollections) {
+                songCollection.setLanguage(language);
+            }
+            return songCollections;
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage(), e);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return null;
+    }
+
     public List<SongCollection> getSongCollections(Language language, Date lastModifiedDate, ProgressMessage progressMessage) {
         Call<List<SongCollectionDTO>> call = songCollectionApi.getSongCollections(language.getUuid(), lastModifiedDate.getTime());
         try {
