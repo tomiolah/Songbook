@@ -139,6 +139,25 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
     }
 
     @Override
+    public List<Song> findAllByVersionGroup(String versionGroup) {
+        String msg = "Could not find song versions";
+        try {
+            List<Song> songs = songDao.queryForEq("versionGroup", versionGroup);
+            Song byUUID = findByUUID(versionGroup);
+            if (byUUID != null) {
+                songs.add(byUUID);
+            }
+            return songs;
+        } catch (SQLException e) {
+            Log.e(TAG, msg);
+            throw new RepositoryException(msg, e);
+        } catch (Exception e) {
+            Log.e(TAG, msg);
+            throw new RepositoryException(msg, e);
+        }
+    }
+
+    @Override
     public void delete(final Song song) {
         try {
             if (song != null) {

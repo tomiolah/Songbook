@@ -10,4 +10,6 @@ public interface SongRepository extends BaseRepository<Song> {
     void save(List<Song> newSongs, ProgressBar progressBar);
 
     Song findByUUID(String uuid);
+
+    List<Song> findAllByVersionGroup(String versionGroup);
 }

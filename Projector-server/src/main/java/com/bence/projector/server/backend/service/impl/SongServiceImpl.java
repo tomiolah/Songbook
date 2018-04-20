@@ -159,7 +159,13 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     @Override
     public List<Song> findAllByVersionGroup(String versionGroup) {
         List<Song> allByVersionGroup = songRepository.findAllByVersionGroup(versionGroup);
-        allByVersionGroup.add(songRepository.findOne(versionGroup));
+        Song one = songRepository.findOne(versionGroup);
+        if (one != null) {
+            String group = one.getVersionGroup();
+            if (group == null || !group.equals(versionGroup)) {
+                allByVersionGroup.add(one);
+            }
+        }
         return allByVersionGroup;
     }
 

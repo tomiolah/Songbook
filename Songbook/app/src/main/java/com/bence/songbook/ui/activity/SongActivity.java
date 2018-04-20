@@ -26,6 +26,8 @@ import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
+import com.bence.songbook.repository.SongRepository;
+import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.SongService;
 import com.bence.songbook.ui.utils.Preferences;
 
@@ -44,14 +46,29 @@ public class SongActivity extends AppCompatActivity {
         memory = Memory.getInstance();
         setContentView(R.layout.activity_song);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        Intent intent = getIntent();
-        song = (Song) intent.getSerializableExtra("Song");
-        toolbar.setTitle(song.getTitle());
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
+
+        Intent intent = getIntent();
+        song = (Song) intent.getSerializableExtra("Song");
+        loadSongView(song);
+    }
+
+    private void loadSongView(Song song) {
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        toolbar.setTitle(song.getTitle());
+        setSupportActionBar(toolbar);
+        TextView collectionTextView = findViewById(R.id.collectionTextView);
+        if (song.getSongCollection() != null) {
+            String text = song.getSongCollection().getName() + " " + song.getSongCollectionElement().getOrdinalNumber();
+            collectionTextView.setText(text);
+        } else {
+            collectionTextView.setVisibility(View.GONE);
+        }
+
         final Intent fullScreenIntent = new Intent(this, FullscreenActivity.class);
         fullScreenIntent.putExtra("Song", song);
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -62,14 +79,6 @@ public class SongActivity extends AppCompatActivity {
                 startActivity(fullScreenIntent);
             }
         });
-
-        TextView collectionTextView = findViewById(R.id.collectionTextView);
-        if (song.getSongCollection() != null) {
-            String text = song.getSongCollection().getName() + " " + song.getSongCollectionElement().getOrdinalNumber();
-            collectionTextView.setText(text);
-        } else {
-            collectionTextView.setVisibility(View.GONE);
-        }
 
         MyCustomAdapter dataAdapter = new MyCustomAdapter(this,
                 R.layout.content_song_verse, song.getVerses());
@@ -114,7 +123,11 @@ public class SongActivity extends AppCompatActivity {
             copiedSong.setSongCollection(song.getSongCollection());
             copiedSong.setSongCollectionElement(song.getSongCollectionElement());
             intent.putExtra("Song", copiedSong);
-            startActivity(intent);
+            startActivityForResult(intent, 2);
+        } else if (itemId == R.id.action_versions) {
+            Intent intent = new Intent(this, VersionsActivity.class);
+            intent.putExtra("uuid", song.getUuid());
+            startActivityForResult(intent, 1);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -123,6 +136,17 @@ public class SongActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         setBlank();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == 1) {
+            song = memory.getSong();
+            loadSongView(song);
+        } else if (requestCode == 2 && resultCode == SuggestEditsChooseActivity.LINKING) {
+            finish();
+        }
     }
 
     private void setBlank() {
@@ -137,7 +161,7 @@ public class SongActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
+    public boolean onCreateOptionsMenu(final Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.content_song_menu, menu);
         MenuItem showSimilarMenuItem = menu.findItem(R.id.action_similar);
@@ -147,6 +171,40 @@ public class SongActivity extends AppCompatActivity {
             showSimilarMenuItem.setVisible(false);
             menu.removeItem(showSimilarMenuItem.getItemId());
         }
+        final MenuItem versionsMenuItem = menu.findItem(R.id.action_versions);
+        versionsMenuItem.setVisible(false);
+        final SongRepository songRepository = new SongRepositoryImpl(this);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String versionGroup = song.getVersionGroup();
+                if (versionGroup == null) {
+                    versionGroup = song.getUuid();
+                }
+                boolean was = false;
+                if (versionGroup != null) {
+                    List<Song> allByVersionGroup = songRepository.findAllByVersionGroup(versionGroup);
+                    for (Song song1 : allByVersionGroup) {
+                        if (!song1.getUuid().equals(song.getUuid())) {
+                            was = true;
+                            break;
+                        }
+                    }
+                }
+                final boolean finalWas = was;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (finalWas) {
+                            versionsMenuItem.setVisible(true);
+                        } else {
+                            menu.removeItem(versionsMenuItem.getItemId());
+                        }
+                    }
+                });
+            }
+        });
+        thread.start();
         return true;
     }
 
@@ -186,6 +244,8 @@ public class SongActivity extends AppCompatActivity {
             holder.textView.setText(songVerse.getText());
             if (!songVerse.isChorus()) {
                 holder.chorusTextView.setVisibility(View.GONE);
+            } else {
+                holder.chorusTextView.setVisibility(View.VISIBLE);
             }
             return convertView;
         }

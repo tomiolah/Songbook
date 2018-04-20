@@ -32,7 +32,7 @@
         android:padding="12dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:context="com.bence.songbook.ui.activity.SuggestEditsActivity"
-        tools:showIn="@layout/activity_suggest_message">
+        tools:showIn="@layout/activity_suggest_choose">
 
         <TextView
             android:layout_width="match_parent"

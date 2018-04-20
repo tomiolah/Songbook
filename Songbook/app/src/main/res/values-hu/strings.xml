@@ -69,4 +69,8 @@
     <string name="reverse">Fordított</string>
     <string name="short_collection_name">Gyűjtemény nevének rövidítése</string>
     <string name="no_change">Nincs módosítás</string>
+    <string name="versions">Változatok</string>
+    <string name="linking_to_another_version">Összekapcsolás egy másik verzióval</string>
+    <string name="link_with_this_song">Összekapcsolás az énekkel</string>
+    <string name="sync_automatically">Automatikus szinkronizálás</string>
 </resources>

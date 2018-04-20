@@ -15,6 +15,7 @@ import java.io.IOException;
 public class FreemarkerConfiguration extends WebMvcConfigurerAdapter {
     public static final String NEW_SONG = "newSongPage";
     public static final String NEW_SUGGESTION = "newSuggestionPage";
+    public static final String NEW_SONG_LINK = "newSongLinkPage";
     private static final String[] CLASSPATH_RESOURCE_LOCATIONS = {"classpath:/resources/", "classpath:/static/",
             "classpath:/webapp/"};
 

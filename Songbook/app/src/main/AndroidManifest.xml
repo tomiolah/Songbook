@@ -30,8 +30,7 @@
 
                 <data
                     android:host="projector-songbook.herokuapp.com"
-                    android:scheme="https"
-                    />
+                    android:scheme="https"/>
             </intent-filter>
         </activity>
         <activity
@@ -81,6 +80,10 @@
             android:name=".ui.activity.SuggestEditsChooseActivity"
             android:label="@string/suggest_edits"
             android:theme="@style/SongBookTheme">
+        </activity>
+        <activity
+            android:name=".ui.activity.VersionsActivity"
+            android:label="@string/versions">
         </activity>
     </application>
 

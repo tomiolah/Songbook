@@ -128,7 +128,6 @@ public class SuggestEditsActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         if (uploadedSuggestion != null && !uploadedSuggestion.getUuid().trim().isEmpty()) {
-                            song.setUuid(uploadedSuggestion.getUuid());
                             Toast.makeText(SuggestEditsActivity.this, R.string.successfully_uploaded, Toast.LENGTH_SHORT).show();
                             setResult(1);
                             finish();

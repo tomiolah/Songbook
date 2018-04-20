@@ -60,6 +60,7 @@ import com.bence.songbook.repository.impl.ormLite.LanguageRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.ui.utils.Preferences;
+import com.bence.songbook.ui.utils.SyncInBackground;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -298,10 +299,30 @@ public class MainActivity extends AppCompatActivity
                                 });
                                 thread.start();
                             }
+                            break;
                         }
                     }
                 }
             } catch (Exception ignored) {
+            }
+        }
+        syncDatabase();
+    }
+
+    private void syncDatabase() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean syncAutomatically = sharedPreferences.getBoolean(LanguagesActivity.syncAutomatically, true);
+        if (syncAutomatically) {
+            String syncDateTime = "lastSyncDateTime";
+            long lastSyncDateTime = sharedPreferences.getLong(syncDateTime, 0);
+            Date date = new Date();
+            if (date.getTime() - 1000 * 60 * 60 * 24 > lastSyncDateTime) {
+                SyncInBackground syncInBackground = SyncInBackground.getInstance();
+                if (lastSyncDateTime == 0) {
+                    syncInBackground.setSyncFrom();
+                }
+                syncInBackground.sync(getApplicationContext());
+                sharedPreferences.edit().putLong(syncDateTime, date.getTime()).apply();
             }
         }
     }
@@ -591,6 +612,7 @@ public class MainActivity extends AppCompatActivity
         copiedSong.setLastAccessed(song.getLastAccessed());
         copiedSong.setSongCollection(song.getSongCollection());
         copiedSong.setSongCollectionElement(song.getSongCollectionElement());
+        copiedSong.setVersionGroup(song.getVersionGroup());
         intent.putExtra("Song", copiedSong);
         intent.putExtra("verseIndex", 0);
         startActivityForResult(intent, 3);
