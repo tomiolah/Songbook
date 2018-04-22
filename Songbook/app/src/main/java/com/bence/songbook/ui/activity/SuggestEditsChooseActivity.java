@@ -75,6 +75,7 @@ public class SuggestEditsChooseActivity extends AppCompatActivity {
             setResult(LINKING);
         } else {
             submit(songForLinking, song);
+            memory.setSongForLinking(null);
         }
         finish();
     }

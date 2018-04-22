@@ -71,9 +71,11 @@ public class VersionsActivity extends AppCompatActivity {
                         song.setSongCollection(songCollection);
                         song.setSongCollectionElement(songCollectionElement);
                         songs.add(song);
+                        hashMap.remove(songUuid);
                     }
                 }
             }
+            songs.addAll(hashMap.values());
             SongAdapter adapter = new SongAdapter(this, R.layout.content_song_list_row, songs);
             ListView songListView = findViewById(R.id.listView);
             songListView.setAdapter(adapter);
