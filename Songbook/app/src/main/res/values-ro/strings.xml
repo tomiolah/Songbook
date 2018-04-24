@@ -73,4 +73,5 @@
     <string name="linking_to_another_version">Conectarea cu o altă versiune</string>
     <string name="link_with_this_song">Connectare</string>
     <string name="sync_automatically">Sincronizare automată</string>
+    <string name="too_short_text">Textul e prea scurt!</string>
 </resources>

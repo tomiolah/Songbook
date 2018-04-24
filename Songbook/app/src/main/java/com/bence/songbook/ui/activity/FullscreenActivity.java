@@ -192,7 +192,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             setText(verseList.get(verseIndex).getText());
         } else {
             Date now = new Date();
-            int interval = 300;
+            int interval = 777;
             if (lastDatePressedAtEnd != null) {
                 if (now.getTime() - lastDatePressedAtEnd.getTime() >= interval) {
                     Toast.makeText(this, R.string.press_twice, Toast.LENGTH_SHORT).show();

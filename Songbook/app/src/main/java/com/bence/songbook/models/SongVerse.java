@@ -4,7 +4,7 @@ import com.j256.ormlite.field.DatabaseField;
 
 import java.io.Serializable;
 
-import static com.bence.songbook.utils.StringUtils.stripAccents;
+import static com.bence.songbook.ui.utils.StringUtils.stripAccents;
 
 public class SongVerse extends BaseEntity implements Serializable {
 
