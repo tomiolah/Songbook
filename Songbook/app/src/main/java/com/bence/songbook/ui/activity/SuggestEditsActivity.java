@@ -105,6 +105,10 @@ public class SuggestEditsActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.no_change, Toast.LENGTH_SHORT).show();
                 return;
             }
+            if (text.toLowerCase().equals("text")) {
+                Toast.makeText(this, R.string.too_short_text, Toast.LENGTH_SHORT).show();
+                return;
+            }
             suggestionDTO.setTitle(title);
             String[] split = text.split("\n\n");
             List<SongVerseDTO> songVerseDTOList = new ArrayList<>(song.getVerses().size());
@@ -129,8 +133,6 @@ public class SuggestEditsActivity extends AppCompatActivity {
                     public void run() {
                         if (uploadedSuggestion != null && !uploadedSuggestion.getUuid().trim().isEmpty()) {
                             Toast.makeText(SuggestEditsActivity.this, R.string.successfully_uploaded, Toast.LENGTH_SHORT).show();
-                            setResult(1);
-                            finish();
                         } else {
                             Toast.makeText(SuggestEditsActivity.this, R.string.upload_failed, Toast.LENGTH_SHORT).show();
                         }
@@ -139,6 +141,7 @@ public class SuggestEditsActivity extends AppCompatActivity {
             }
         });
         thread.start();
+        finish();
     }
 
     @Override

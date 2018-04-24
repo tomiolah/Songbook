@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static com.bence.songbook.utils.StringUtils.stripAccents;
+import static com.bence.songbook.ui.utils.StringUtils.stripAccents;
 
 public class Song extends BaseEntity {
 

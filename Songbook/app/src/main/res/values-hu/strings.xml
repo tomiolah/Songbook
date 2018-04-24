@@ -73,4 +73,5 @@
     <string name="linking_to_another_version">Összekapcsolás egy másik verzióval</string>
     <string name="link_with_this_song">Összekapcsolás az énekkel</string>
     <string name="sync_automatically">Automatikus szinkronizálás</string>
+    <string name="too_short_text">Túl rövid szöveg!</string>
 </resources>

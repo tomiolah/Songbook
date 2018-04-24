@@ -76,4 +76,5 @@
     <string name="linking_to_another_version">Linking to another version</string>
     <string name="link_with_this_song">Link with this song</string>
     <string name="sync_automatically">Sync automatically</string>
+    <string name="too_short_text">Too short text!</string>
 </resources>

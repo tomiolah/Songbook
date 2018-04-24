@@ -38,12 +38,15 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
 
     @Override
     public Song findOne(final Long id) {
+        String msg = "Could not find song";
         try {
             return songDao.queryForId(id);
         } catch (SQLException e) {
-            String msg = "Could not find song";
             Log.e(TAG, msg);
             throw new RepositoryException(msg, e);
+        } catch (Exception e) {
+            Log.e(TAG, msg, e);
+            return null;
         }
     }
 

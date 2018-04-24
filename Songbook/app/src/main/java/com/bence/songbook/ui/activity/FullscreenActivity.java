@@ -149,15 +149,18 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    Song song = songRepository.findOne(FullscreenActivity.this.song.getId());
-                    Date date = new Date();
-                    long endTime = date.getTime();
-                    duration += endTime - startTime;
-                    song.setLastAccessed(date);
-                    Long accessedTimes = song.getAccessedTimes();
-                    song.setAccessedTimes(accessedTimes + 1);
-                    song.setAccessedTimeAverage((accessedTimes * song.getAccessedTimeAverage() + duration) / song.getAccessedTimes());
-                    songRepository.save(song);
+                    try {
+                        Song song = songRepository.findOne(FullscreenActivity.this.song.getId());
+                        Date date = new Date();
+                        long endTime = date.getTime();
+                        duration += endTime - startTime;
+                        song.setLastAccessed(date);
+                        Long accessedTimes = song.getAccessedTimes();
+                        song.setAccessedTimes(accessedTimes + 1);
+                        song.setAccessedTimeAverage((accessedTimes * song.getAccessedTimeAverage() + duration) / song.getAccessedTimes());
+                        songRepository.save(song);
+                    } catch (Exception ignored) {
+                    }
                 }
             });
             thread.start();
@@ -192,7 +195,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             setText(verseList.get(verseIndex).getText());
         } else {
             Date now = new Date();
-            int interval = 300;
+            int interval = 777;
             if (lastDatePressedAtEnd != null) {
                 if (now.getTime() - lastDatePressedAtEnd.getTime() >= interval) {
                     Toast.makeText(this, R.string.press_twice, Toast.LENGTH_SHORT).show();

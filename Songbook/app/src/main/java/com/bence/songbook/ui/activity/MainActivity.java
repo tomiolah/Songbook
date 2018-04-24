@@ -8,7 +8,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -133,6 +132,7 @@ public class MainActivity extends AppCompatActivity
         songCollectionRepository = new SongCollectionRepositoryImpl(getApplicationContext());
         if (songCollections == null) {
             songCollections = songCollectionRepository.findAll();
+            setShortNamesForSongCollections(songCollections);
             memory.setSongCollections(songCollections);
         }
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -199,8 +199,6 @@ public class MainActivity extends AppCompatActivity
                 memory.setSongs(songs);
                 filter();
                 loadAll();
-//                TODO
-//                new Downloader().execute();
                 loadSongVersesThread.start();
                 Thread uploadViews = new Thread(new Runnable() {
                     @Override
@@ -359,6 +357,7 @@ public class MainActivity extends AppCompatActivity
                 memory.setSongs(songs);
                 languages = languageRepository.findAll();
                 songCollections = songCollectionRepository.findAll();
+                setShortNamesForSongCollections(songCollections);
                 memory.setSongCollections(songCollections);
                 selectLanguagePopupWindow = null;
                 collectionPopupWindow = null;
@@ -384,6 +383,62 @@ public class MainActivity extends AppCompatActivity
             values.add(songs.get(songs.size() - 1));
             adapter.setSongList(values);
         }
+    }
+
+    private void setShortNamesForSongCollections(List<SongCollection> songCollections) {
+        HashMap<String, SongCollection> hashMap = new HashMap<>();
+        List<SongCollection> collectionList = new ArrayList<>(songCollections.size());
+        collectionList.addAll(songCollections);
+        Collections.sort(collectionList, new Comparator<SongCollection>() {
+            @Override
+            public int compare(SongCollection lhs, SongCollection rhs) {
+                return rhs.getSongCollectionElements().size() > lhs.getSongCollectionElements().size() ? 1 : -1;
+            }
+        });
+        for (SongCollection songCollection : collectionList) {
+            String shortName = songCollection.getShortName();
+            if (hashMap.containsKey(shortName)) {
+                SongCollection sameShortNameSongCollection = hashMap.get(shortName);
+                String a = sameShortNameSongCollection.getName();
+                String b = songCollection.getName();
+                String newA = removeCommonString(a, b);
+                if (newA == null) {
+                    String newB = removeCommonString(b, a);
+                    sameShortNameSongCollection.setShortName(newB);
+                } else {
+                    shortName = newA;
+                }
+            }
+            songCollection.setShortName(shortName);
+            hashMap.put(shortName, songCollection);
+        }
+    }
+
+    private String removeCommonString(String a, String b) {
+        StringBuilder newA;
+        int k = 1;
+        String[] splitA = a.split(" ");
+        String[] splitB = b.split(" ");
+        int i;
+        for (i = 0; i < splitA.length && i < splitB.length; ++i) {
+            try {
+                String sA = splitA[i];
+                String sB = splitB[i];
+                if (sA.length() > k && sB.length() > k && sA.charAt(k) != sB.charAt(k)) {
+                    newA = new StringBuilder();
+                    for (int j = 0; j < splitB.length; ++j) {
+                        newA.append((splitB[j].charAt(0) + "").toUpperCase());
+                        if (j == i) {
+                            newA.append(splitB[j].substring(1, k + 1).toLowerCase());
+                        }
+                    }
+                    return newA.toString();
+                }
+            } catch (StringIndexOutOfBoundsException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
 
     @Override
@@ -560,8 +615,8 @@ public class MainActivity extends AppCompatActivity
             }
             return !ordinalNumber.isEmpty() && songOrdinalNumber.contains(ordinalNumber) && strippedTitle.contains(other);
         }
-        String name = song.getSongCollection().getName().toLowerCase();
-        String shortName = getShortName(songCollection.getName()).toLowerCase();
+        String name = songCollection.getStripedName();
+        String shortName = songCollection.getStrippedShortName();
         boolean b = name.contains(collectionName) || shortName.contains(collectionName);
         if (ordinalNumber.isEmpty()) {
             if (other.isEmpty()) {
@@ -1239,7 +1294,7 @@ public class MainActivity extends AppCompatActivity
             if (songCollection != null) {
                 String collectionName = songCollection.getName();
                 if (shortCollectionName) {
-                    collectionName = getShortName(songCollection.getName());
+                    collectionName = songCollection.getShortName();
                 }
                 String text = collectionName + " " + song.getSongCollectionElement().getOrdinalNumber();
                 holder.ordinalNumberTextView.setText(text);
@@ -1274,52 +1329,4 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    @SuppressLint("StaticFieldLeak")
-    class Downloader extends AsyncTask<Void, Integer, Void> {
-
-        private List<Song> newSongs;
-        private List<Song> songsAfterModifiedDate;
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            final SongApiBean songApiBean = new SongApiBean();
-            Date modifiedDate = songs.get(0).getModifiedDate();
-            songsAfterModifiedDate = songApiBean.getSongsAfterModifiedDate(modifiedDate);
-            if (songsAfterModifiedDate != null) {
-                newSongs = new ArrayList<>();
-                for (Song modifiedSong : songsAfterModifiedDate) {
-                    Song song = songRepository.findByUUID(modifiedSong.getUuid());
-                    if (song == null && !modifiedSong.isDeleted()) {
-                        newSongs.add(modifiedSong);
-                    } else {
-                        songRepository.delete(song);
-                        if (!modifiedSong.isDeleted()) {
-                            songRepository.save(modifiedSong);
-                        }
-                    }
-                }
-                songRepository.save(newSongs);
-            }
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            if (newSongs != null && songsAfterModifiedDate != null && songsAfterModifiedDate.size() > 0) {
-                if (newSongs.size() == songsAfterModifiedDate.size()) {
-                    songs.addAll(newSongs);
-                } else {
-                    songs = songRepository.findAll();
-                }
-                memory.setSongs(songs);
-                loadAll();
-                if (loadSongVersesThread.isAlive()) {
-                    loadSongVersesThread.interrupt();
-                }
-                createLoadSongVerseThread();
-                loadSongVersesThread.start();
-            }
-        }
-    }
 }

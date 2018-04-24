@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.bence.songbook.ui.utils.StringUtils.stripAccents;
+
 public class SongCollection extends BaseEntity {
     @ForeignCollectionField
     private ForeignCollection<SongCollectionElement> songCollectionElementForeignCollection;
@@ -18,6 +20,9 @@ public class SongCollection extends BaseEntity {
     private Date modifiedDate;
     @DatabaseField
     private String name;
+    private String stripedName;
+    private String shortName;
+    private String strippedShortName;
     @DatabaseField(foreign = true, index = true)
     private Language language;
     private boolean selected;
@@ -80,5 +85,53 @@ public class SongCollection extends BaseEntity {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public String getShortName() {
+        if (shortName == null) {
+            return parseToShortName();
+        }
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+    }
+
+    private String parseToShortName() {
+        StringBuilder shortName = new StringBuilder();
+        String[] split = name.trim().split(" ");
+        if (split.length > 1) {
+            for (String s : split) {
+                try {
+                    shortName.append((s.charAt(0) + "").toUpperCase());
+                    int i = 1;
+                    while (i < s.length() && Character.isUpperCase(s.charAt(i))) {
+                        shortName.append(s.charAt(i));
+                        ++i;
+                    }
+                } catch (Exception e) {
+                    shortName.append(s);
+                }
+            }
+        } else {
+            return (name.trim().charAt(0) + "").toUpperCase();
+        }
+        return shortName.toString();
+    }
+
+    public String getStrippedShortName() {
+        if (strippedShortName == null) {
+            String shortName = getShortName();
+            strippedShortName = stripAccents(shortName.toLowerCase());
+        }
+        return strippedShortName;
+    }
+
+    public String getStripedName() {
+        if (stripedName == null) {
+            stripedName = stripAccents(name.toLowerCase());
+        }
+        return stripedName;
     }
 }

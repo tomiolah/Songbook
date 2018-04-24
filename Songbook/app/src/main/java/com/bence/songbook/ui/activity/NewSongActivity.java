@@ -160,6 +160,10 @@ public class NewSongActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.empty_verses, Toast.LENGTH_SHORT).show();
             return;
         }
+        if (replaceAll.toLowerCase().length() < 10) {
+            Toast.makeText(this, R.string.too_short_text, Toast.LENGTH_SHORT).show();
+            return;
+        }
         String[] split = replaceAll.split("\n\n");
         List<SongVerse> songVerses = new ArrayList<>(split.length);
         for (String verse : split) {
