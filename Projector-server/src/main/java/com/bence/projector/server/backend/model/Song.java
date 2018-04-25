@@ -83,10 +83,6 @@ public class Song extends BaseEntity {
         return uploaded;
     }
 
-    public void setUploaded(boolean uploaded) {
-        this.uploaded = uploaded;
-    }
-
     public void incrementViews() {
         ++this.views;
     }
@@ -137,5 +133,13 @@ public class Song extends BaseEntity {
 
     public void setVersionGroup(String versionGroup) {
         this.versionGroup = versionGroup;
+    }
+
+    public boolean isUploaded() {
+        return uploaded != null && uploaded;
+    }
+
+    public void setUploaded(boolean uploaded) {
+        this.uploaded = uploaded;
     }
 }

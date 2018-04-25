@@ -13,16 +13,23 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
 @Service
 public class SongServiceImpl extends BaseServiceImpl<Song> implements SongService {
+    private final SongRepository songRepository;
+    private final LanguageRepository languageRepository;
+    private HashMap<String, Song> songsHashMap;
+    private long lastModifiedDateTime = 0;
+
     @Autowired
-    private SongRepository songRepository;
-    @Autowired
-    private LanguageRepository languageRepository;
+    public SongServiceImpl(SongRepository songRepository, LanguageRepository languageRepository) {
+        this.songRepository = songRepository;
+        this.languageRepository = languageRepository;
+    }
 
     @Override
     public List<Song> findAllAfterModifiedDate(Date lastModifiedDate) {
@@ -82,7 +89,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public List<Song> findAllSimilar(Song song) {
-        List<Song> all = songRepository.findAll();
+        Collection<Song> all = getSongs();
         List<Song> similar = new ArrayList<>();
         String text = getText(song);
         String songId = song.getId();
@@ -136,6 +143,37 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             }
         }
         return similar;
+    }
+
+    private Collection<Song> getSongs() {
+        if (songsHashMap == null) {
+            songsHashMap = new HashMap<>(6000);
+            for (Song song : songRepository.findAll()) {
+                putInMap(song);
+            }
+        } else {
+            for (Song song : songRepository.findAllByModifiedDateGreaterThan(new Date(lastModifiedDateTime))) {
+                if (!songsHashMap.containsKey(song.getId())) {
+                    putInMap(song);
+                } else {
+                    songsHashMap.replace(song.getId(), song);
+                    checkLastModifiedDate(song);
+                }
+            }
+        }
+        return songsHashMap.values();
+    }
+
+    private void checkLastModifiedDate(Song song) {
+        long time = song.getModifiedDate().getTime();
+        if (time > lastModifiedDateTime) {
+            lastModifiedDateTime = time;
+        }
+    }
+
+    private void putInMap(Song song) {
+        songsHashMap.put(song.getId(), song);
+        checkLastModifiedDate(song);
     }
 
     @Override

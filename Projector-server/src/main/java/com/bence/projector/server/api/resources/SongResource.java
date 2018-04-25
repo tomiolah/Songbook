@@ -46,24 +46,27 @@ import static com.bence.projector.server.api.resources.StatisticsResource.saveSt
 @RestController
 public class SongResource {
 
-    @Autowired
-    private SongRepository songRepository;
-    @Autowired
-    private SongService songService;
-    @Autowired
-    private SongAssembler songAssembler;
-    @Autowired
-    private SongTitleAssembler songTitleAssembler;
-    @Autowired
-    private StatisticsService statisticsService;
-    @Autowired
-    private UserService userService;
+    private final SongRepository songRepository;
+    private final SongService songService;
+    private final SongAssembler songAssembler;
+    private final SongTitleAssembler songTitleAssembler;
+    private final StatisticsService statisticsService;
+    private final UserService userService;
+    private final JavaMailSender sender;
+    private final FreemarkerConfiguration freemarkerConfiguration;
     private PasswordEncoder passwordEncoder;
-    @Qualifier("javaMailSender")
+
     @Autowired
-    private JavaMailSender sender;
-    @Autowired
-    private FreemarkerConfiguration freemarkerConfiguration;
+    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, @Qualifier("javaMailSender") JavaMailSender sender, FreemarkerConfiguration freemarkerConfiguration) {
+        this.songRepository = songRepository;
+        this.songService = songService;
+        this.songAssembler = songAssembler;
+        this.songTitleAssembler = songTitleAssembler;
+        this.statisticsService = statisticsService;
+        this.userService = userService;
+        this.sender = sender;
+        this.freemarkerConfiguration = freemarkerConfiguration;
+    }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs")
     public List<SongDTO> findAll(HttpServletRequest httpServletRequest) {
@@ -367,20 +370,22 @@ public class SongResource {
         if (song2VersionGroup == null) {
             song2VersionGroup = song2.getId();
         }
-        List<Song> allByVersionGroup1 = songService.findAllByVersionGroup(song1VersionGroup);
-        List<Song> allByVersionGroup2 = songService.findAllByVersionGroup(song2VersionGroup);
-        if (allByVersionGroup1.size() < allByVersionGroup2.size()) {
-            for (Song song : allByVersionGroup1) {
-                song.setVersionGroup(song2VersionGroup);
-                song.setModifiedDate(date);
+        if (!song1VersionGroup.equals(song2VersionGroup)) {
+            List<Song> allByVersionGroup1 = songService.findAllByVersionGroup(song1VersionGroup);
+            List<Song> allByVersionGroup2 = songService.findAllByVersionGroup(song2VersionGroup);
+            if (allByVersionGroup1.size() < allByVersionGroup2.size()) {
+                for (Song song : allByVersionGroup1) {
+                    song.setVersionGroup(song2VersionGroup);
+                    song.setModifiedDate(date);
+                }
+                songRepository.save(allByVersionGroup1);
+            } else {
+                for (Song song : allByVersionGroup2) {
+                    song.setVersionGroup(song1VersionGroup);
+                    song.setModifiedDate(date);
+                }
+                songRepository.save(allByVersionGroup2);
             }
-            songRepository.save(allByVersionGroup1);
-        } else {
-            for (Song song : allByVersionGroup2) {
-                song.setVersionGroup(song1VersionGroup);
-                song.setModifiedDate(date);
-            }
-            songRepository.save(allByVersionGroup2);
         }
         return new ResponseEntity<>("Merged", HttpStatus.ACCEPTED);
     }
