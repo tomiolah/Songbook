@@ -3,6 +3,7 @@ import {ActivatedRoute} from '@angular/router';
 import {Song, SongService} from '../../services/song-service.service';
 import {Subscription} from 'rxjs/Subscription';
 import {AuthService} from '../../services/auth.service';
+import {Title} from "@angular/platform-browser";
 
 @Component({
   selector: 'app-song',
@@ -25,7 +26,8 @@ export class SongComponent implements OnInit, OnDestroy {
 
   constructor(private activatedRoute: ActivatedRoute,
               private songService: SongService,
-              public auth: AuthService) {
+              public auth: AuthService,
+              private titleService: Title) {
     auth.getUserFromLocalStorage();
     this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
     if (this.markedVersionGroup == 'null') {
@@ -48,6 +50,7 @@ export class SongComponent implements OnInit, OnDestroy {
     }
     this.originalSong = new Song(song);
     this.song = song;
+    this.titleService.setTitle(this.song.title);
     this.songsByVersionGroup = [];
     this.loadVersionGroup();
     history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
@@ -71,6 +74,7 @@ export class SongComponent implements OnInit, OnDestroy {
             }
           }
           this.song = song;
+          this.titleService.setTitle(this.song.title);
           history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
           this.originalSong = new Song(song);
           if (song.originalId !== undefined) {

@@ -37,6 +37,7 @@ export class Song extends BaseModel {
   languageDTO: Language;
   uploaded: Boolean;
   versionGroup: '';
+  views = 0;
 
   constructor(values: Object = {}) {
     super(values);

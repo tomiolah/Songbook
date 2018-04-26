@@ -16,7 +16,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 @Service
 public class SongServiceImpl extends BaseServiceImpl<Song> implements SongService {
@@ -205,6 +207,25 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             }
         }
         return allByVersionGroup;
+    }
+
+    @Override
+    public Song getRandomSong() {
+        Random random = new Random();
+        Collection<Song> songs = getSongs();
+        int n = random.nextInt(songs.size());
+        Iterator<Song> iterator = songs.iterator();
+        for (int i = 0; i < n && iterator.hasNext(); ++i) {
+            iterator.next();
+        }
+        if (!iterator.hasNext()) {
+            return songs.iterator().next();
+        }
+        Song song = iterator.next();
+        while (song.isDeleted() && iterator.hasNext()) {
+            song = iterator.next();
+        }
+        return song;
     }
 
     @SuppressWarnings("Duplicates")
