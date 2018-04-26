@@ -619,6 +619,9 @@ public class Settings {
             case "hu":
                 preferredLanguage = new Locale(language, "HU");
                 break;
+            case "ro":
+                preferredLanguage = new Locale(language, "RO");
+                break;
             default:
                 preferredLanguage = new Locale("en", "US");
         }

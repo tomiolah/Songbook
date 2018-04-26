@@ -112,7 +112,7 @@ public class SettingsController {
         ToggleGroup group = new ToggleGroup();
         colorRadioButton.setToggleGroup(group);
         imageRadioButton.setToggleGroup(group);
-        languageComboBox.getItems().addAll("en", "hu");
+        languageComboBox.getItems().addAll("en", "hu", "ro");
         languageComboBox.setValue(settings.getPreferredLanguage().getLanguage());
         backgroundColorPicker.setValue(Settings.getInstance().getBackgroundColor());
         colorPicker.setValue(Settings.getInstance().getColor());
