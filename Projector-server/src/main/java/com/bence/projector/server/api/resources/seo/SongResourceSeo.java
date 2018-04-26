@@ -19,8 +19,12 @@ import java.util.Set;
 
 @Controller
 public class SongResourceSeo {
+    private final SongService songService;
+
     @Autowired
-    private SongService songService;
+    public SongResourceSeo(SongService songService) {
+        this.songService = songService;
+    }
 
     @GetMapping("/song/{id}")
     public String song(Model model, @PathVariable("id") String id) {
@@ -30,6 +34,8 @@ public class SongResourceSeo {
         }
         model.addAttribute("title", song.getTitle());
         model.addAttribute("song", song);
+        Song randomSong = songService.getRandomSong();
+        model.addAttribute("randomSongUrl", "/song/" + randomSong.getId());
         HashMap<String, Integer> hashMap = new HashMap<>();
         for (SongVerse songVerse : song.getVerses()) {
             for (String s : songVerse.getText().replaceAll("[.!?,;'\\\\:\"|<>{}\\[\\]_\\-=+0-9@#$%^&*()`~\\n]+", " ").split(" ")) {

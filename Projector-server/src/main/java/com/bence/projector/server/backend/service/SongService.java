@@ -19,4 +19,6 @@ public interface SongService extends BaseService<Song> {
     boolean matches(Song song, Song song2);
 
     List<Song> findAllByVersionGroup(String versionGroup);
+
+    Song getRandomSong();
 }

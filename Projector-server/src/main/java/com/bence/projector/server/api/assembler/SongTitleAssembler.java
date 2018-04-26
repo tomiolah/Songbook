@@ -14,6 +14,7 @@ public class SongTitleAssembler implements GeneralAssembler<Song, SongTitleDTO> 
         songTitleDTO.setTitle(song.getTitle());
         songTitleDTO.setModifiedDate(song.getModifiedDate());
         songTitleDTO.setDeleted(song.isDeleted());
+        songTitleDTO.setViews(song.getViews());
         return songTitleDTO;
     }
 

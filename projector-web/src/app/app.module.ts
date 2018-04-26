@@ -1,4 +1,4 @@
-import {BrowserModule} from '@angular/platform-browser';
+import {BrowserModule, Title} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 
 import {
@@ -101,6 +101,7 @@ import {DownloadAppComponent} from './ui/download-app/download-app.component';
 })
 export class PlunkerMaterialModule {
 }
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -141,6 +142,7 @@ export class PlunkerMaterialModule {
     StatisticsDataService,
     SuggestionDataService,
     LanguageDataService,
+    Title,
   ],
   bootstrap: [AppComponent]
 })
