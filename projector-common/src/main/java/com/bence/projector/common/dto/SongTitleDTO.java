@@ -7,6 +7,7 @@ public class SongTitleDTO extends BaseDTO {
     private String title;
     private Date modifiedDate;
     private boolean deleted;
+    private long views;
 
     public String getTitle() {
         return title;
@@ -30,5 +31,13 @@ public class SongTitleDTO extends BaseDTO {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public long getViews() {
+        return views;
+    }
+
+    public void setViews(long views) {
+        this.views = views;
     }
 }

@@ -22,7 +22,7 @@ export class SongListComponent implements OnInit {
   song: Song;
   pageE: PageEvent;
   paginatedSongs: Song[];
-  isSortByModifiedDate = true;
+  sortType = "MODIFIED_DATE";
   songTitlesLocalStorage: Song[];
   songsType = Song.PUBLIC;
   private songListComponent_sortByModifiedDate = 'songListComponent_sortByModifiedDate';
@@ -62,7 +62,10 @@ export class SongListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.isSortByModifiedDate = JSON.parse(localStorage.getItem(this.songListComponent_sortByModifiedDate));
+    this.sortType = JSON.parse(localStorage.getItem("sortType"));
+    if (this.sortType === null) {
+      this.sortType = "MODIFIED_DATE";
+    }
     this.songsType = localStorage.getItem(this.songListComponent_songsType);
     if (this.songsType === null) {
       this.songsType = Song.PUBLIC;
@@ -110,7 +113,7 @@ export class SongListComponent implements OnInit {
   }
 
   changeSorting() {
-    localStorage.setItem(this.songListComponent_sortByModifiedDate, JSON.stringify(this.isSortByModifiedDate));
+    localStorage.setItem("sortType", JSON.stringify(this.sortType));
     this.sortSongTitles();
     this.filteredSongs = this.songControl.valueChanges
       .startWith(null)
@@ -214,8 +217,18 @@ export class SongListComponent implements OnInit {
   }
 
   private sortSongTitles() {
-    if (this.isSortByModifiedDate) {
+    if (this.sortType === "MODIFIED_DATE") {
       this.sortSongTitlesByModifiedDate();
+    } else if (this.sortType === "VIEWS") {
+      this.songTitles.sort((song1, song2) => {
+        if (song1.views < song2.views) {
+          return 1;
+        }
+        if (song1.views > song2.views) {
+          return -1;
+        }
+        return 0;
+      });
     } else {
       this.songTitles.sort((song1, song2) => {
         if (song1.title.toLocaleLowerCase() > song2.title.toLocaleLowerCase()) {
