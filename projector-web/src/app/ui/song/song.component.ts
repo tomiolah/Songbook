@@ -4,6 +4,8 @@ import {Song, SongService} from '../../services/song-service.service';
 import {Subscription} from 'rxjs/Subscription';
 import {AuthService} from '../../services/auth.service';
 import {Title} from "@angular/platform-browser";
+import {MatDialog} from "@angular/material";
+import {ShareComponent} from "../share/share.component";
 
 @Component({
   selector: 'app-song',
@@ -26,6 +28,7 @@ export class SongComponent implements OnInit, OnDestroy {
 
   constructor(private activatedRoute: ActivatedRoute,
               private songService: SongService,
+              private dialog: MatDialog,
               public auth: AuthService,
               private titleService: Title) {
     auth.getUserFromLocalStorage();
@@ -54,6 +57,11 @@ export class SongComponent implements OnInit, OnDestroy {
     this.songsByVersionGroup = [];
     this.loadVersionGroup();
     history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
+  }
+
+  // noinspection JSMethodCanBeStatic
+  public openInNewTab(song: Song) {
+    window.open('/#/song/' + song.uuid);
   }
 
   ngOnInit() {
@@ -193,5 +201,18 @@ export class SongComponent implements OnInit, OnDestroy {
         console.log(err);
       }
     );
+  }
+
+  openShareDialog(): void {
+    const config = {
+      data: {
+        uuid: this.song.uuid,
+        title: this.song.title,
+      }
+    };
+    const dialogRef = this.dialog.open(ShareComponent, config);
+
+    dialogRef.afterClosed().subscribe(() => {
+    });
   }
 }

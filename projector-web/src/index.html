@@ -15,9 +15,47 @@
 </head>
 <body style="background-color:#bafffe;">
 <app-root>
-  <div>
-    <h1>How Great Thou Art</h1>
-    <a href="/song/5ae2143a463e3a0004f67a86">Link</a>
+  <style>
+    .loader {
+      align-self: center;
+      border: 16px solid #f3f3f3;
+      border-radius: 50%;
+      border-top: 16px solid #006605;
+      width: 120px;
+      height: 120px;
+      -webkit-animation: spin 2s linear infinite; /* Safari */
+      animation: spin 2s linear infinite;
+    }
+
+    @-webkit-keyframes spin {
+      0% {
+        -webkit-transform: rotate(0deg);
+      }
+      100% {
+        -webkit-transform: rotate(360deg);
+      }
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .hidden {
+      color: #b8fdfc;
+      opacity: 0.1;
+    }
+  </style>
+  <div align="center" style="padding-top: 50px">
+    <div class="loader"></div>
+    <div class="hidden">
+      <h1>How Great Thou Art</h1>
+      <a href="/song/5ae2143a463e3a0004f67a86">Link</a>
+    </div>
   </div>
 </app-root>
 </body>

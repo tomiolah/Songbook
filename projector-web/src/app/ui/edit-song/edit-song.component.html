@@ -48,6 +48,9 @@
               <button type="button" mat-icon-button (click)="addNewVerse()" matTooltip="Add a new verse">
                 <mat-icon>add</mat-icon>
               </button>
+              <button type="button" mat-icon-button (click)="refactor()">
+                <mat-icon svgIcon="magic_tool">magic_tool</mat-icon>
+              </button>
             </div>
             <div *ngIf="editorType==='raw'">
               <mat-form-field class="example-full-width">

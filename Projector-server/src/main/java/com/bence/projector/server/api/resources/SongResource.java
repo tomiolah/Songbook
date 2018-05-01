@@ -373,7 +373,24 @@ public class SongResource {
         if (!song1VersionGroup.equals(song2VersionGroup)) {
             List<Song> allByVersionGroup1 = songService.findAllByVersionGroup(song1VersionGroup);
             List<Song> allByVersionGroup2 = songService.findAllByVersionGroup(song2VersionGroup);
-            if (allByVersionGroup1.size() < allByVersionGroup2.size()) {
+            int size1 = allByVersionGroup1.size();
+            int size2 = allByVersionGroup2.size();
+            if (size1 == size2) {
+                double sum1 = 0;
+                for (Song song : allByVersionGroup1) {
+                    sum1 += song.getModifiedDate().getTime();
+                }
+                double sum2 = 0;
+                for (Song song : allByVersionGroup2) {
+                    sum2 += song.getModifiedDate().getTime();
+                }
+                if (sum1 < sum2) {
+                    ++size1;
+                } else {
+                    ++size2;
+                }
+            }
+            if (size1 < size2) {
                 for (Song song : allByVersionGroup1) {
                     song.setVersionGroup(song2VersionGroup);
                     song.setModifiedDate(date);

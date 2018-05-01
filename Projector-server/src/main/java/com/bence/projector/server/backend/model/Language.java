@@ -10,6 +10,7 @@ public class Language extends BaseEntity {
     private String nativeName;
     @DBRef(lazy = true)
     private List<Song> songs;
+    private long songsCount;
 
     public Language() {
     }
@@ -72,5 +73,13 @@ public class Language extends BaseEntity {
         } else {
             return this.getId().equals(other.getId());
         }
+    }
+
+    public long getSongsCount() {
+        return songsCount;
+    }
+
+    public void setSongsCount(long songsCount) {
+        this.songsCount = songsCount;
     }
 }
