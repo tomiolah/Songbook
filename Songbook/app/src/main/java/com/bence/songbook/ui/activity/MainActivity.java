@@ -60,6 +60,7 @@ import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.ui.utils.SyncInBackground;
+import com.bence.songbook.utils.Utility;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -70,7 +71,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({"ConstantConditions", "deprecation"})
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -95,7 +96,6 @@ public class MainActivity extends AppCompatActivity
     private int sortMethod;
     private PopupWindow collectionPopupWindow;
     private List<SongCollection> songCollections;
-    private SongCollectionAdapter songCollectionAdapter;
     private ListView collectionListView;
     private LanguageRepositoryImpl languageRepository;
     private SongCollectionRepositoryImpl songCollectionRepository;
@@ -269,6 +269,7 @@ public class MainActivity extends AppCompatActivity
         Uri appLinkData = appLinkIntent.getData();
         if (appLinkData != null) {
             try {
+                final Toast this_song_is_not_saved = Toast.makeText(this, R.string.this_song_is_not_saved, Toast.LENGTH_LONG);
                 String text = appLinkData.toString();
                 String[] str = {"/#/song/", "/song/"};
                 if (text != null) {
@@ -289,9 +290,10 @@ public class MainActivity extends AppCompatActivity
                                     @Override
                                     public void run() {
                                         SongApiBean songApiBean = new SongApiBean();
-                                        Song song1 = songApiBean.getSong(songUuid);
-                                        if (song1 != null) {
-                                            showSongFullscreen(song1);
+                                        Song newSong = songApiBean.getSong(songUuid);
+                                        if (newSong != null) {
+                                            this_song_is_not_saved.show();
+                                            showSongFullscreen(newSong);
                                         }
                                     }
                                 });
@@ -392,9 +394,12 @@ public class MainActivity extends AppCompatActivity
         Collections.sort(collectionList, new Comparator<SongCollection>() {
             @Override
             public int compare(SongCollection lhs, SongCollection rhs) {
-                return rhs.getSongCollectionElements().size() > lhs.getSongCollectionElements().size() ? 1 : -1;
+                return Utility.compare(rhs.getSongCollectionElements().size(), lhs.getSongCollectionElements().size());
             }
         });
+        SongCollection model = collectionList.get(19);
+        model.setModifiedDate(new Date(0));
+        songCollectionRepository.save(model);
         for (SongCollection songCollection : collectionList) {
             String shortName = songCollection.getShortName();
             if (hashMap.containsKey(shortName)) {
@@ -776,18 +781,6 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
@@ -985,7 +978,7 @@ public class MainActivity extends AppCompatActivity
                 filteredSongCollections.add(songCollection);
             }
         }
-        songCollectionAdapter = new SongCollectionAdapter(mainActivity,
+        SongCollectionAdapter songCollectionAdapter = new SongCollectionAdapter(mainActivity,
                 R.layout.activity_language_checkbox_row, filteredSongCollections);
         collectionListView.setAdapter(songCollectionAdapter);
     }
@@ -1011,10 +1004,13 @@ public class MainActivity extends AppCompatActivity
                 filterPopupWindow.dismiss();
             }
         });
-        songCollectionAdapter = new SongCollectionAdapter(mainActivity,
-                R.layout.activity_language_checkbox_row, songCollections);
+        Collections.sort(songCollections, new Comparator<SongCollection>() {
+            @Override
+            public int compare(SongCollection o1, SongCollection o2) {
+                return Utility.compare(o2.getSongCollectionElements().size(), o1.getSongCollectionElements().size());
+            }
+        });
         collectionListView = customView.findViewById(R.id.listView);
-        collectionListView.setAdapter(songCollectionAdapter);
         collectionPopupWindow.setBackgroundDrawable(new BitmapDrawable());
         collectionPopupWindow.setOutsideTouchable(true);
     }
@@ -1121,19 +1117,6 @@ public class MainActivity extends AppCompatActivity
             }
         }
         return false;
-    }
-
-    private String getShortName(String name) {
-        StringBuilder shortName = new StringBuilder();
-        String[] split = name.trim().split(" ");
-        if (split.length > 1) {
-            for (String s : split) {
-                shortName.append((s.charAt(0) + "").toUpperCase());
-            }
-        } else {
-            return (name.trim().charAt(0) + "").toUpperCase();
-        }
-        return shortName.toString();
     }
 
     public void setShortCollectionName(boolean shortCollectionName) {

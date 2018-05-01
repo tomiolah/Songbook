@@ -5,6 +5,7 @@ import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.ui.activity.MainActivity;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Memory {
@@ -18,6 +19,8 @@ public class Memory {
     private MainActivity mainActivity;
     private Song song;
     private Song songForLinking;
+    private Song passingSong;
+    private List<String> sharedTexts;
 
     private Memory() {
 
@@ -92,5 +95,24 @@ public class Memory {
 
     public void setSongForLinking(Song songForLinking) {
         this.songForLinking = songForLinking;
+    }
+
+    public Song getPassingSong() {
+        return passingSong;
+    }
+
+    public void setPassingSong(Song passingSong) {
+        this.passingSong = passingSong;
+    }
+
+    public List<String> getSharedTexts() {
+        if (sharedTexts == null) {
+            sharedTexts = new ArrayList<>();
+        }
+        return sharedTexts;
+    }
+
+    public void setSharedTexts(List<String> sharedTexts) {
+        this.sharedTexts = sharedTexts;
     }
 }

@@ -60,6 +60,7 @@
         </activity>
         <activity
             android:name=".ui.activity.ConnectToSharedActivity"
+            android:screenOrientation="locked"
             android:label="Connect to shared"
             android:theme="@style/SongBookTheme">
         </activity>

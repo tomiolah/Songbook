@@ -16,6 +16,7 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.ui.utils.Preferences;
 
@@ -82,7 +83,15 @@ public class ConnectToSharedActivity extends AppCompatActivity {
     private void connect(String ip) {
         final Intent fullScreenIntent = new Intent(this, ConnectToSharedFullscreenActivity.class);
         fullScreenIntent.putExtra("connectToShared", ip);
-        startActivity(fullScreenIntent);
+        startActivityForResult(fullScreenIntent, 0);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Memory memory = Memory.getInstance();
+        memory.setSharedTexts(null);
+        finish();
     }
 
     private void findShared(final List<String> openIps) {

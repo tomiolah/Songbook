@@ -7,11 +7,11 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 
+import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.network.TCPClient;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -39,7 +39,13 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        texts = new ArrayList<>();
+        texts = Memory.getInstance().getSharedTexts();
+        textIndex = texts.size() - 1;
+        if (textIndex >= 0) {
+            setText(texts.get(textIndex));
+        } else {
+            setText(getString(R.string.connection_successfully_wait_));
+        }
         final View mContentView = findViewById(R.id.fullscreen_content);
         mContentView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -79,13 +85,14 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
                     }
                 });
             }
-            setText(getString(R.string.connection_successfully_wait_));
         } catch (Exception e) {
             e.printStackTrace();
             String message = e.getMessage();
             if (message != null) {
                 Log.e(ConnectToSharedFullscreenActivity.class.getSimpleName(), message);
             }
+            setResult(-1);
+            finish();
         }
     }
 
@@ -102,5 +109,12 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
                 return super.onKeyDown(keyCode, event);
         }
         return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        setResult(0);
+        finish();
     }
 }

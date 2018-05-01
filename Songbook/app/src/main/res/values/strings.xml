@@ -77,4 +77,5 @@
     <string name="link_with_this_song">Link with this song</string>
     <string name="sync_automatically">Sync automatically</string>
     <string name="too_short_text">Too short text!</string>
+    <string name="this_song_is_not_saved">This song is not saved</string>
 </resources>

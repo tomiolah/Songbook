@@ -2,7 +2,9 @@ package com.bence.songbook.ui.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.preference.PreferenceManager;
 
 import com.bence.songbook.api.SongApiBean;
 import com.bence.songbook.api.SongCollectionApiBean;
@@ -26,6 +28,7 @@ import java.util.List;
 public class SyncInBackground {
 
     private static SyncInBackground instance;
+    private static boolean incorrectSyncSave;
     private Long syncFrom;
 
     private SyncInBackground() {
@@ -39,11 +42,14 @@ public class SyncInBackground {
     }
 
     public void sync(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        incorrectSyncSave = sharedPreferences.getBoolean("incorrectSyncSave", true);
         LanguageRepository languageRepository = new LanguageRepositoryImpl(context);
         List<Language> languages = languageRepository.findAll();
         for (Language language : languages) {
             new Downloader(language, context).execute();
         }
+        sharedPreferences.edit().putBoolean("incorrectSyncSave", false).apply();
     }
 
     private void sortSongs(List<Song> all) {
@@ -100,6 +106,10 @@ public class SyncInBackground {
                 if (songCollectionModifiedDate.compareTo(lastModifiedDate) > 0) {
                     lastModifiedDate = songCollectionModifiedDate;
                 }
+            }
+            long incorrectSyncSave = 1524465966476L;
+            if (SyncInBackground.incorrectSyncSave && lastModifiedDate.getTime() > incorrectSyncSave) {
+                lastModifiedDate = new Date(incorrectSyncSave);
             }
             onlineModifiedSongCollections = songCollectionApiBean.getSongCollections(language, lastModifiedDate);
             if (onlineModifiedSongCollections != null) {
