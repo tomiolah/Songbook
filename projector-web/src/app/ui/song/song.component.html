@@ -17,6 +17,14 @@
     </mat-card-content>
   </mat-card>
 
+  <br>
+  <div>
+    <button mat-button (click)="openShareDialog()">
+      <mat-icon>share</mat-icon>
+      SHARE
+    </button>
+  </div>
+
   <div *ngIf="auth.isLoggedIn && auth.user.role === 'ROLE_ADMIN'">
     <br>
     <div *ngIf="song.originalId!==undefined">
@@ -87,10 +95,11 @@
     </div>
   </div>
   <div *ngIf="songsByVersionGroup.length>0">
+    <br>
+    <h4>Versions:</h4>
     <mat-nav-list>
-      <mat-list-item *ngFor="let song of songsByVersionGroup" (click)="selectSecondSong(song)">
-        <a>{{ song.title + " "}}</a>
-        <a href="/#/song/{{song.uuid}}" target="_blank">{{'. Open'}}</a>
+      <mat-list-item *ngFor="let song of songsByVersionGroup" (click)="openInNewTab(song)">
+        <a href="/#/song/{{song.uuid}}" target="_blank">{{song.title}}</a>
       </mat-list-item>
     </mat-nav-list>
   </div>

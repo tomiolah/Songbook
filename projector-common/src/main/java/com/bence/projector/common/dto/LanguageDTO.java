@@ -3,6 +3,7 @@ package com.bence.projector.common.dto;
 public class LanguageDTO extends BaseDTO {
     private String englishName;
     private String nativeName;
+    private Long size;
 
     public String getEnglishName() {
         return englishName;
@@ -18,5 +19,13 @@ public class LanguageDTO extends BaseDTO {
 
     public void setNativeName(String nativeName) {
         this.nativeName = nativeName;
+    }
+
+    public Long getSize() {
+        return size;
+    }
+
+    public void setSize(Long size) {
+        this.size = size;
     }
 }

@@ -4,8 +4,9 @@ import {Song, SongService, SongVerseDTO} from '../../services/song-service.servi
 import {Router} from '@angular/router';
 import {Language} from "../../models/language";
 import {LanguageDataService} from "../../services/language-data.service";
-import {MatDialog} from "@angular/material";
+import {MatDialog, MatIconRegistry} from "@angular/material";
 import {NewLanguageComponent} from "../new-language/new-language.component";
+import {DomSanitizer} from "@angular/platform-browser";
 
 @Component({
   selector: 'app-new-song',
@@ -35,9 +36,20 @@ export class NewSongComponent implements OnInit {
               private songService: SongService,
               private router: Router,
               private languageDataService: LanguageDataService,
-              private dialog: MatDialog) {
+              private dialog: MatDialog,
+              iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
+    iconRegistry.addSvgIcon(
+      'magic_tool',
+      sanitizer.bypassSecurityTrustResourceUrl('assets/icons/magic_tool-icon.svg'));
     this.verses = [];
     this.languages = [];
+  }
+
+  private static replace(newValue: string, matcher, replaceValue) {
+    while (newValue.match(matcher)) {
+      newValue = newValue.replace(matcher, replaceValue);
+    }
+    return newValue;
   }
 
   ngOnInit() {
@@ -211,5 +223,30 @@ export class NewSongComponent implements OnInit {
 
   needToDisable() {
     return !this.form.valid || this.editorType === 'raw';
+  }
+
+  refactor() {
+    if (this.editorType !== 'raw') {
+      const formValue = this.form.value;
+      let i = 0;
+      for (const key in formValue) {
+        if (formValue.hasOwnProperty(key) && key.startsWith('verse')) {
+          const value = formValue[key];
+          let newValue: string = value.trim();
+          newValue = NewSongComponent.replace(newValue, /([.?!,])([^ ])/g, '$1 $2');
+          newValue = NewSongComponent.replace(newValue, /. . . /g, '…');
+          newValue = NewSongComponent.replace(newValue, /\.([^ ])/g, '. $1');
+          newValue = NewSongComponent.replace(newValue, /\n\n/g, '\n');
+          newValue = NewSongComponent.replace(newValue, / {2}/g, ' ');
+          newValue = NewSongComponent.replace(newValue, / \t/g, ' ');
+          newValue = NewSongComponent.replace(newValue, /\t /g, ' ');
+          newValue = NewSongComponent.replace(newValue, / \n/g, '\n');
+          newValue = NewSongComponent.replace(newValue, /\t\n/g, '\n');
+          this.form.controls['verse' + i].setValue(newValue);
+          this.form.controls['verse' + i].updateValueAndValidity();
+          i = i + 1;
+        }
+      }
+    }
   }
 }

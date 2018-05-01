@@ -62,6 +62,7 @@ import {SuggestionComponent} from './ui/suggestion/suggestion.component';
 import {SuggestionDataService} from "./services/suggestion-data.service";
 import {SuggestionListComponent} from "./ui/suggestion-list/suggestion-list.component";
 import {DownloadAppComponent} from './ui/download-app/download-app.component';
+import {ShareComponent} from './ui/share/share.component';
 
 @NgModule({
   exports: [
@@ -118,6 +119,7 @@ export class PlunkerMaterialModule {
     SuggestionComponent,
     SuggestionListComponent,
     DownloadAppComponent,
+    ShareComponent,
   ],
   imports: [
     BrowserModule,
@@ -132,6 +134,7 @@ export class PlunkerMaterialModule {
   ],
   entryComponents: [
     NewLanguageComponent,
+    ShareComponent,
   ],
   providers: [
     ApiService,

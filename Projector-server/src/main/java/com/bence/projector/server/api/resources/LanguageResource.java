@@ -21,17 +21,22 @@ import static com.bence.projector.server.api.resources.StatisticsResource.saveSt
 @RestController
 public class LanguageResource {
 
+    private final LanguageService languageService;
+    private final LanguageAssembler languageAssembler;
+    private final StatisticsService statisticsService;
+
     @Autowired
-    private LanguageService languageService;
-    @Autowired
-    private LanguageAssembler languageAssembler;
-    @Autowired
-    private StatisticsService statisticsService;
+    public LanguageResource(LanguageService languageService, LanguageAssembler languageAssembler, StatisticsService statisticsService) {
+        this.languageService = languageService;
+        this.languageAssembler = languageAssembler;
+        this.statisticsService = statisticsService;
+    }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/languages")
     public List<LanguageDTO> findAll(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         final List<Language> all = languageService.findAll();
+        languageService.sortBySize(all);
         return languageAssembler.createDtoList(all);
     }
 
