@@ -64,6 +64,12 @@ public class SongCollectionRepositoryImpl extends AbstractRepository<SongCollect
     }
 
     @Override
+    public void save(SongCollection songCollection) {
+        super.save(songCollection);
+        songCollectionElementRepository.save(songCollection.getSongCollectionElements());
+    }
+
+    @Override
     public void save(List<SongCollection> songCollections) {
         for (SongCollection songCollection : songCollections) {
             save(songCollection);

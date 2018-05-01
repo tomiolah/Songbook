@@ -74,4 +74,5 @@
     <string name="link_with_this_song">Connectare</string>
     <string name="sync_automatically">Sincronizare automată</string>
     <string name="too_short_text">Textul e prea scurt!</string>
+    <string name="this_song_is_not_saved">Cântarea nu este salvată</string>
 </resources>

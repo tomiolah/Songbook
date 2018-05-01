@@ -126,7 +126,7 @@ public class SongActivity extends AppCompatActivity {
             startActivityForResult(intent, 2);
         } else if (itemId == R.id.action_versions) {
             Intent intent = new Intent(this, VersionsActivity.class);
-            intent.putExtra("uuid", song.getUuid());
+            memory.setPassingSong(song);
             startActivityForResult(intent, 1);
         }
         return super.onOptionsItemSelected(item);

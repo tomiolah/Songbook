@@ -2,7 +2,6 @@ package com.bence.songbook.ui.activity;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
@@ -44,12 +43,11 @@ public class VersionsActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        Intent intent = getIntent();
-        String uuid = intent.getStringExtra("uuid");
         SongRepository songRepository = new SongRepositoryImpl(this);
-        Song byUUID = songRepository.findByUUID(uuid);
-        if (byUUID != null) {
-            String versionGroup = byUUID.getVersionGroup();
+        Song passingSong = Memory.getInstance().getPassingSong();
+        if (passingSong != null) {
+            String versionGroup = passingSong.getVersionGroup();
+            String uuid = passingSong.getUuid();
             if (versionGroup == null) {
                 versionGroup = uuid;
             }
