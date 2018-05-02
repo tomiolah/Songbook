@@ -397,9 +397,6 @@ public class MainActivity extends AppCompatActivity
                 return Utility.compare(rhs.getSongCollectionElements().size(), lhs.getSongCollectionElements().size());
             }
         });
-        SongCollection model = collectionList.get(19);
-        model.setModifiedDate(new Date(0));
-        songCollectionRepository.save(model);
         for (SongCollection songCollection : collectionList) {
             String shortName = songCollection.getShortName();
             if (hashMap.containsKey(shortName)) {
