@@ -81,8 +81,14 @@ export class SongListComponent implements OnInit {
       }
     });
     this.filteredSongs.subscribe(filteredSongsList => {
-        const start = this.pageE.pageIndex * this.pageE.pageSize;
-        const end = (this.pageE.pageIndex + 1) * this.pageE.pageSize;
+      let pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
+      let start = pageIndex * this.pageE.pageSize;
+      while (start > filteredSongsList.length) {
+        pageIndex -= 1;
+        start = pageIndex * this.pageE.pageSize;
+      }
+      this.pageE.pageIndex = pageIndex;
+      const end = (pageIndex + 1) * this.pageE.pageSize;
         this.paginatedSongs = filteredSongsList.slice(start, end);
         this.filteredSongsList = filteredSongsList;
       }

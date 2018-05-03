@@ -29,7 +29,11 @@ export class NewSongComponent implements OnInit {
   languages: Language[];
   selectedLanguage;
   editorType = 'verse';
-  private song: Song;
+  song: Song;
+  showSimilarities = false;
+  similar: Song[];
+  secondSong: Song;
+  receivedSimilar = false;
   private songTextFormControl: FormControl;
 
   constructor(private fb: FormBuilder,
@@ -130,6 +134,20 @@ export class NewSongComponent implements OnInit {
         i = i + 1;
       }
     }
+    this.similar = [];
+    this.songService.getSimilarByPost(this.song).subscribe((songs) => {
+      this.similar = songs;
+      if (songs.length > 0) {
+        this.secondSong = this.similar[0];
+      } else {
+        this.insertNewSong();
+      }
+      this.receivedSimilar = true;
+    });
+    this.showSimilarities = true;
+  }
+
+  insertNewSong() {
     this.songService.createSong(this.song).subscribe(
       () => {
         // noinspection JSIgnoredPromiseFromCall
@@ -234,7 +252,7 @@ export class NewSongComponent implements OnInit {
           const value = formValue[key];
           let newValue: string = value.trim();
           newValue = NewSongComponent.replace(newValue, /([.?!,])([^ ])/g, '$1 $2');
-          newValue = NewSongComponent.replace(newValue, /. . . /g, '…');
+          newValue = NewSongComponent.replace(newValue, /\. \. \./g, '…');
           newValue = NewSongComponent.replace(newValue, /\.([^ ])/g, '. $1');
           newValue = NewSongComponent.replace(newValue, /\n\n/g, '\n');
           newValue = NewSongComponent.replace(newValue, / {2}/g, ' ');
@@ -248,5 +266,9 @@ export class NewSongComponent implements OnInit {
         }
       }
     }
+  }
+
+  selectSecondSong(song: Song) {
+    this.secondSong = song;
   }
 }

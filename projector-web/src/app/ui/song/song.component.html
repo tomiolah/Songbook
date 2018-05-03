@@ -99,7 +99,7 @@
     <h4>Versions:</h4>
     <mat-nav-list>
       <mat-list-item *ngFor="let song of songsByVersionGroup" (click)="openInNewTab(song)">
-        <a href="/#/song/{{song.uuid}}" target="_blank">{{song.title}}</a>
+        {{song.title}}
       </mat-list-item>
     </mat-nav-list>
   </div>

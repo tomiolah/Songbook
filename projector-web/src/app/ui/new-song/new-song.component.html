@@ -61,11 +61,34 @@
           </div>
           <br>
           <br>
-          <button type="submit" class="btn btn-success" [disabled]="needToDisable()">Submit</button>
+          <button *ngIf="!showSimilarities" type="submit" class="btn btn-success" [disabled]="needToDisable()">Submit
+          </button>
+          <button *ngIf="showSimilarities&&similar.length>0" type="submit" class="btn btn-success" [disabled]="needToDisable()">
+            Check
+            similarities
+          </button>
         </div>
         <br>
       </form>
-
+      <div *ngIf="showSimilarities">
+        <div *ngIf="similar.length>0">
+          <mat-nav-list>
+            <mat-list-item *ngFor="let song of similar" (click)="selectSecondSong(song)">
+              {{ song.title + " "}}
+              <a href="/#/song/{{song.uuid}}" target="_blank">{{'. Open'}}</a>
+            </mat-list-item>
+          </mat-nav-list>
+          <div *ngIf="secondSong!==null">
+            <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
+          </div>
+          <button type="submit" class="btn btn-success" (click)="insertNewSong()">
+            Submit anyway
+          </button>
+        </div>
+        <div *ngIf="similar.length==0">
+          <h3>Checking for similar</h3>
+        </div>
+      </div>
     </mat-card-content>
   </mat-card>
   <br>

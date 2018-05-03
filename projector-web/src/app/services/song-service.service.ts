@@ -99,6 +99,10 @@ export class SongService {
     return this.api.getAll(Song, 'api/songs/similar/song/' + song.uuid);
   }
 
+  getSimilarByPost(song: Song) {
+    return this.api.getAllByPost(Song, 'api/songs/similar/song', song);
+  }
+
   getAllUploadedSongTitles() {
     return this.api.getAll(Song, 'api/songs/upload');
   }
