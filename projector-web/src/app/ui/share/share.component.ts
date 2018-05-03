@@ -1,6 +1,5 @@
 import {Component, Inject, OnInit} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material";
-import {SongComponent} from "../song/song.component";
+import {MAT_DIALOG_DATA} from "@angular/material";
 
 @Component({
   selector: 'app-share',
@@ -11,28 +10,28 @@ export class ShareComponent implements OnInit {
 
   copied = '';
 
-  constructor(private dialogRef: MatDialogRef<SongComponent>,
-              @Inject(MAT_DIALOG_DATA) private data: any,) {
+  constructor(@Inject(MAT_DIALOG_DATA) public data: any,) {
+  }
+
+  private static select(copyText) {
+    copyText.select();
   }
 
   ngOnInit() {
     let copyText = document.getElementById("link");
-    // noinspection TypeScriptUnresolvedFunction
-    copyText.select();
+    ShareComponent.select(copyText);
   }
 
   copyLink() {
     let copyText = document.getElementById("link");
-    // noinspection TypeScriptUnresolvedFunction
-    copyText.select();
+    ShareComponent.select(copyText);
     document.execCommand("Copy");
     this.copied = 'Content copied to clipboard!';
   }
 
   copyEmbedded() {
     let copyText = document.getElementById("embedded");
-    // noinspection TypeScriptUnresolvedFunction
-    copyText.select();
+    ShareComponent.select(copyText);
     document.execCommand("Copy");
     this.copied = 'Content copied to clipboard!';
   }

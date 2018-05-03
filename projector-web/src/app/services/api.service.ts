@@ -27,6 +27,16 @@ export class ApiService {
       .catch(ApiService.handleError);
   }
 
+  public getAllByPost<T>(c: new (data) => T, api_url: string, t: T): Observable<T[]> {
+    return this.http
+      .post(api_url, t)
+      .map(response => {
+        const models = response.json();
+        return models.map((model) => new c(model));
+      })
+      .catch(ApiService.handleError);
+  }
+
   public create<T>(c: new (data) => T, api_url: string, t: T): Observable<T> {
     return this.http
       .post(api_url, t)

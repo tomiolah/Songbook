@@ -242,7 +242,7 @@ export class EditSongComponent implements OnInit {
           const value = formValue[key];
           let newValue: string = value.trim();
           newValue = EditSongComponent.replace(newValue, /([.?!,])([^ ])/g, '$1 $2');
-          newValue = EditSongComponent.replace(newValue, /. . . /g, '…');
+          newValue = EditSongComponent.replace(newValue, /\. \. \./g, '…');
           newValue = EditSongComponent.replace(newValue, /\.([^ ])/g, '. $1');
           newValue = EditSongComponent.replace(newValue, /\n\n/g, '\n');
           newValue = EditSongComponent.replace(newValue, / {2}/g, ' ');
