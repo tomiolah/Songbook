@@ -38,7 +38,7 @@ public class SuggestEditsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_suggest_edits);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle(R.string.new_song);
+        toolbar.setTitle(R.string.suggest_edits);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);

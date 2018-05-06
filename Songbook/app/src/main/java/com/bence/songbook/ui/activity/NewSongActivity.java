@@ -9,6 +9,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
@@ -33,7 +34,7 @@ import java.util.Date;
 import java.util.List;
 
 public class NewSongActivity extends AppCompatActivity {
-
+    public static final String TAG = NewSongActivity.class.getSimpleName();
     private Spinner languageSpinner;
     private SharedPreferences sharedPreferences;
 
@@ -58,7 +59,7 @@ public class NewSongActivity extends AppCompatActivity {
                 switch (event.getAction() & MotionEvent.ACTION_MASK) {
                     case MotionEvent.ACTION_UP:
                         v.getParent().requestDisallowInterceptTouchEvent(false);
-                        return true;
+                        return false;
                 }
                 v.performClick();
                 editTextView.requestFocus();
@@ -103,33 +104,37 @@ public class NewSongActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (count > 2) {
-                    CharSequence previousSequence = s.subSequence(0, start);
-                    CharSequence charSequence = s.subSequence(start, start + count);
-                    String newString = charSequence.toString();
-                    System.out.println("s = " + newString);
-                    String parse = newString.replaceAll("\\h", " ").replaceAll(" {2}", " ");
-                    while (parse.contains("  ")) {
-                        parse = parse.replaceAll(" {2}", " ");
-                    }
-                    int countEmptyLine = 0;
-                    for (int i = 1; i < charSequence.length(); ++i) {
-                        if (charSequence.charAt(i - 1) == '\n' && charSequence.charAt(i) == '\n') {
-                            ++countEmptyLine;
+                    try {
+                        CharSequence previousSequence = s.subSequence(0, start);
+                        CharSequence charSequence = s.subSequence(start, start + count);
+                        String newString = charSequence.toString();
+                        System.out.println("s = " + newString);
+                        String parse = newString.replaceAll("\\h", " ").replaceAll(" {2}", " ");
+                        while (parse.contains("  ")) {
+                            parse = parse.replaceAll(" {2}", " ");
                         }
-                    }
-                    double x = countEmptyLine;
-                    x /= count;
-                    if (x > 0.07214) {
-                        while (parse.contains("\n\n")) {
-                            parse = parse.replaceAll("\n{2}", "\n");
+                        int countEmptyLine = 0;
+                        for (int i = 1; i < charSequence.length(); ++i) {
+                            if (charSequence.charAt(i - 1) == '\n' && charSequence.charAt(i) == '\n') {
+                                ++countEmptyLine;
+                            }
                         }
-                        String text = previousSequence.toString() + parse;
-                        editText.setText(text);
-                        return;
-                    }
-                    if (parse.length() != count) {
-                        String text = previousSequence.toString() + parse;
-                        editText.setText(text);
+                        double x = countEmptyLine;
+                        x /= count;
+                        if (x > 0.07214) {
+                            while (parse.contains("\n\n")) {
+                                parse = parse.replaceAll("\n{2}", "\n");
+                            }
+                            String text = previousSequence.toString() + parse;
+                            editText.setText(text);
+                            return;
+                        }
+                        if (parse.length() != count) {
+                            String text = previousSequence.toString() + parse;
+                            editText.setText(text);
+                        }
+                    } catch (Exception e) {
+                        Log.e(TAG, e.getMessage(), e);
                     }
                 }
             }
