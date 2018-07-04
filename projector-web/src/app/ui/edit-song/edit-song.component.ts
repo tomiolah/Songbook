@@ -7,6 +7,7 @@ import {LanguageDataService} from "../../services/language-data.service";
 import {NewLanguageComponent} from "../new-language/new-language.component";
 import {MatDialog, MatIconRegistry} from "@angular/material";
 import {DomSanitizer} from "@angular/platform-browser";
+import {replace} from "../new-song/new-song.component";
 
 @Component({
   selector: 'app-edit-song',
@@ -44,13 +45,6 @@ export class EditSongComponent implements OnInit {
       sanitizer.bypassSecurityTrustResourceUrl('assets/icons/magic_tool-icon.svg'));
     this.verses = [];
     this.languages = [];
-  }
-
-  private static replace(newValue: string, matcher, replaceValue) {
-    while (newValue.match(matcher)) {
-      newValue = newValue.replace(matcher, replaceValue);
-    }
-    return newValue;
   }
 
   ngOnInit() {
@@ -239,17 +233,7 @@ export class EditSongComponent implements OnInit {
       let i = 0;
       for (const key in formValue) {
         if (formValue.hasOwnProperty(key) && key.startsWith('verse')) {
-          const value = formValue[key];
-          let newValue: string = value.trim();
-          newValue = EditSongComponent.replace(newValue, /([.?!,])([^ ])/g, '$1 $2');
-          newValue = EditSongComponent.replace(newValue, /\. \. \./g, '…');
-          newValue = EditSongComponent.replace(newValue, /\.([^ ])/g, '. $1');
-          newValue = EditSongComponent.replace(newValue, /\n\n/g, '\n');
-          newValue = EditSongComponent.replace(newValue, / {2}/g, ' ');
-          newValue = EditSongComponent.replace(newValue, / \t/g, ' ');
-          newValue = EditSongComponent.replace(newValue, /\t /g, ' ');
-          newValue = EditSongComponent.replace(newValue, / \n/g, '\n');
-          newValue = EditSongComponent.replace(newValue, /\t\n/g, '\n');
+          let newValue = replace(formValue, key);
           this.form.controls['verse' + i].setValue(newValue);
           this.form.controls['verse' + i].updateValueAndValidity();
           i = i + 1;

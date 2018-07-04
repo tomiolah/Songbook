@@ -7,6 +7,8 @@ import 'rxjs/add/operator/map';
 import {PageEvent} from '@angular/material/paginator';
 import {Router} from '@angular/router';
 import {AuthService} from "../../services/auth.service";
+import {Language} from "../../models/language";
+import {LanguageDataService} from "../../services/language-data.service";
 
 @Component({
   selector: 'app-song-list',
@@ -25,11 +27,14 @@ export class SongListComponent implements OnInit {
   sortType = "MODIFIED_DATE";
   songTitlesLocalStorage: Song[];
   songsType = Song.PUBLIC;
+  languages: Language[];
+  selectedLanguage: Language;
   private songListComponent_sortByModifiedDate = 'songListComponent_sortByModifiedDate';
   private songListComponent_songsType = 'songListComponent_songsType';
 
   constructor(private songServiceService: SongService,
               private router: Router,
+              private languageDataService: LanguageDataService,
               public auth: AuthService) {
     this.songControl = new FormControl();
     this.songTitles = [];
@@ -59,6 +64,7 @@ export class SongListComponent implements OnInit {
       pageEvent.pageIndex = 0;
     }
     this.pageE = pageEvent;
+    this.languages = [];
   }
 
   ngOnInit() {
@@ -91,6 +97,18 @@ export class SongListComponent implements OnInit {
       const end = (pageIndex + 1) * this.pageE.pageSize;
         this.paginatedSongs = filteredSongsList.slice(start, end);
         this.filteredSongsList = filteredSongsList;
+      }
+    );
+    this.loadLanguage(false);
+  }
+
+  loadLanguage(selectLast: boolean) {
+    this.languageDataService.getAll().subscribe(
+      (languages) => {
+        this.languages = languages;
+        if (selectLast) {
+          this.selectedLanguage = this.languages[this.languages.length - 1];
+        }
       }
     );
   }
@@ -132,10 +150,26 @@ export class SongListComponent implements OnInit {
     this.loadSongs();
   }
 
+  // noinspection JSMethodCanBeStatic
+  printLanguage(language: Language) {
+    if (language.englishName === language.nativeName) {
+      return language.englishName;
+    }
+    return language.englishName + " | " + language.nativeName;
+  }
+
+  selectLanguage(language: Language) {
+    this.loadSongs();
+  }
+
   private loadSongs() {
     switch (this.songsType) {
       case Song.PUBLIC:
-        this.songServiceService.getAllSongTitlesAfterModifiedDate(this.songTitles[0].modifiedDate).subscribe(
+        if (this.selectedLanguage === undefined) {
+          this.selectedLanguage = new Language();
+          this.selectedLanguage.uuid = 'undefined';
+        }
+        this.songServiceService.getAllSongTitlesAfterModifiedDate(this.songTitles[0].modifiedDate, this.selectedLanguage.uuid).subscribe(
           (songTitles) => {
             for (const song of songTitles) {
               if (song.deleted) {
