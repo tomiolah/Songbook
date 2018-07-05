@@ -40,7 +40,9 @@
                   Chorus
                 </button>
                 <mat-form-field class="example-full-width">
-                  <textarea matInput placeholder="Verse {{i+1}}." rows="5" formControlName="verse{{i}}"
+                  <textarea matInput matTextareaAutosize placeholder="Verse {{i+1}}." [matAutosizeMinRows]="2"
+                            [matAutosizeMaxRows]="15"
+                            formControlName="verse{{i}}"
                             maxlength="1000"></textarea>
                 </mat-form-field>
               </div>
@@ -54,7 +56,8 @@
             </div>
             <div *ngIf="editorType==='raw'">
               <mat-form-field class="example-full-width">
-                <textarea matInput placeholder="Text" rows="20" formControlName="songText"></textarea>
+                <textarea matInput matTextareaAutosize [matAutosizeMinRows]="7" placeholder="Text"
+                          formControlName="songText"></textarea>
               </mat-form-field>
               <h5>You need to switch back to verse editor in order to submit</h5>
             </div>

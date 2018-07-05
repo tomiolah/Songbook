@@ -34,7 +34,7 @@ function replaceMatch(newValue: string, matcher, replaceValue) {
 @Component({
   selector: 'app-new-song',
   templateUrl: './new-song.component.html',
-  styleUrls: ['./new-song.component.css']
+  styleUrls: ['../edit-song/edit-song.component.css']
 })
 export class NewSongComponent implements OnInit {
   form: FormGroup;
