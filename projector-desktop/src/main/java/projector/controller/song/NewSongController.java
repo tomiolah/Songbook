@@ -8,6 +8,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.IndexRange;
@@ -51,6 +52,8 @@ import java.util.ResourceBundle;
 public class NewSongController {
 
     private static final Logger LOG = LoggerFactory.getLogger(NewSongController.class);
+    @FXML
+    private CheckBox uploadCheckBox;
     @FXML
     private ComboBox<Language> languageComboBox;
     @FXML
@@ -270,6 +273,7 @@ public class NewSongController {
         newSong.setTitle(titleTextField.getText().trim());
         newSong.setModifiedDate(createdDate);
         newSong.setPublished(false);
+        newSong.setPublish(uploadCheckBox.isSelected());
         if (verseEditorRadioButton.isSelected()) {
             newSong.setVerses(getVerses());
         } else {
