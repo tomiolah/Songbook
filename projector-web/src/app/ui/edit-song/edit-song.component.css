@@ -29,3 +29,13 @@
 .example-selected-value {
   margin: 15px 0;
 }
+
+textarea, input {
+  font-family: 'Calibri', sans-serif;
+  font-size: 15pt;
+}
+
+textarea.mat-autosize {
+  resize: none !important;
+  overflow: hidden !important;
+}

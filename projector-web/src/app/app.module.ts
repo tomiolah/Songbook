@@ -63,6 +63,7 @@ import {SuggestionDataService} from "./services/suggestion-data.service";
 import {SuggestionListComponent} from "./ui/suggestion-list/suggestion-list.component";
 import {DownloadAppComponent} from './ui/download-app/download-app.component';
 import {ShareComponent} from './ui/share/share.component';
+import {HttpClientModule} from "@angular/common/http";
 
 @NgModule({
   exports: [
@@ -126,6 +127,7 @@ export class PlunkerMaterialModule {
     BrowserAnimationsModule,
     MatCardModule,
     HttpModule,
+    HttpClientModule,
     MatAutocompleteModule,
     PlunkerMaterialModule,
     FormsModule,
