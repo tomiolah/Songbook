@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.bence.projector.server.api.resources.StatisticsResource.saveStatistics;
@@ -44,6 +45,7 @@ public class LanguageResource {
     public ResponseEntity<Object> create(@RequestBody LanguageDTO languageDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         Language language = languageAssembler.createModel(languageDTO);
+        language.setSongs(new ArrayList<>());
         final Language savedLanguage = languageService.save(language);
         if (savedLanguage != null) {
             return new ResponseEntity<>(savedLanguage, HttpStatus.ACCEPTED);
