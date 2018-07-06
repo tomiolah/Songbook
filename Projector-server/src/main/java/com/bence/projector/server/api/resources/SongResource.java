@@ -115,12 +115,7 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/songTitlesAfterModifiedDate/{lastModifiedDate}/language/{languageId}")
     public List<SongTitleDTO> getAllSongTitlesAfterModifiedDate(@PathVariable Long lastModifiedDate, HttpServletRequest httpServletRequest, @PathVariable("languageId") String languageId) {
         saveStatistics(httpServletRequest, statisticsService);
-        List<Song> songs;
-        if (languageId.equals("undefined")) {
-            songs = songService.findAllAfterModifiedDate(new Date(lastModifiedDate));
-        } else {
-            songs = songService.findAllByLanguageAndModifiedDate(languageId, new Date(lastModifiedDate));
-        }
+        List<Song> songs = songService.findAllByLanguageAndModifiedDate(languageId, new Date(lastModifiedDate));
         return songTitleAssembler.createDtoList(songs);
     }
 
