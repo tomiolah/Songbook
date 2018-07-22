@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '1.5.4.RELEASE'
+        springBootVersion = '1.5.14.RELEASE'
     }
     repositories {
         mavenCentral()
@@ -27,7 +27,7 @@ dependencies {
     compile project(":projector-common")
 
     compile("org.springframework.boot:spring-boot-starter-data-mongodb")
-    compile 'org.mongodb:mongodb-driver:3.5.0'
+    compile 'org.springframework.data:spring-data-mongodb:1.10.13.RELEASE'
 
     // tag::jetty[]
     compile("org.springframework.boot:spring-boot-starter-web") {
