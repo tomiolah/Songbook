@@ -4,8 +4,9 @@ import {Song, SongService} from '../../services/song-service.service';
 import {Subscription} from 'rxjs/Subscription';
 import {AuthService} from '../../services/auth.service';
 import {Title} from "@angular/platform-browser";
-import {MatDialog} from "@angular/material";
+import {MatDialog, MatSnackBar} from "@angular/material";
 import {ShareComponent} from "../share/share.component";
+import {AuthenticateComponent} from "../authenticate/authenticate.component";
 
 @Component({
   selector: 'app-song',
@@ -30,7 +31,8 @@ export class SongComponent implements OnInit, OnDestroy {
               private songService: SongService,
               private dialog: MatDialog,
               public auth: AuthService,
-              private titleService: Title) {
+              private titleService: Title,
+              private snackBar: MatSnackBar) {
     auth.getUserFromLocalStorage();
     this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
     if (this.markedVersionGroup == 'null') {
@@ -194,11 +196,23 @@ export class SongComponent implements OnInit, OnDestroy {
       return;
     }
     this.songService.mergeVersionGroup(this.song.uuid, this.markedVersionGroup).subscribe(
-      () => {
-        this.markedVersionGroup = null;
+      (res) => {
+        if (res.status === 202) {
+          this.markedVersionGroup = null;
+        } else {
+          console.log(res);
+          this.openAuthenticateDialog();
+        }
       },
       (err) => {
-        console.log(err);
+        if (err.message === 'Unexpected token < in JSON at position 0') {
+          this.openAuthenticateDialog();
+        } else {
+          console.log(err);
+          this.snackBar.open(err._body, 'Close', {
+            duration: 5000
+          })
+        }
       }
     );
   }
@@ -213,6 +227,21 @@ export class SongComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(ShareComponent, config);
 
     dialogRef.afterClosed().subscribe(() => {
+    });
+  }
+
+  private openAuthenticateDialog() {
+    let user = JSON.parse(localStorage.getItem('currentUser'));
+    const dialogRef = this.dialog.open(AuthenticateComponent, {
+      data: {
+        email: user.email
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'ok') {
+        this.mergeVersionGroup();
+      }
     });
   }
 }
