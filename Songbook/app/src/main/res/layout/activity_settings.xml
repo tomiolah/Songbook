@@ -16,7 +16,7 @@
         <Switch
             android:id="@+id/lightThemeSwitch"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginTop="16dp"
@@ -31,6 +31,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
+            android:labelFor="@id/seekBar"
             android:text="@string/maximum_size_of_text"
             android:textSize="18sp"/>
 
@@ -45,7 +46,7 @@
         <Switch
             android:id="@+id/showTitleSwitch"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginTop="16dp"
@@ -59,7 +60,7 @@
         <Switch
             android:id="@+id/blankSwitch"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginTop="16dp"
@@ -73,7 +74,7 @@
         <Switch
             android:id="@+id/shortCollectionSwitch"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginTop="16dp"
@@ -97,7 +98,7 @@
         <Switch
             android:id="@+id/shareOnNetworkSwitch"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="48dp"
             android:layout_marginEnd="16dp"
             android:layout_marginRight="16dp"
             android:layout_marginTop="16dp"
