@@ -8,6 +8,7 @@ import {NewLanguageComponent} from "../new-language/new-language.component";
 import {MatDialog, MatIconRegistry} from "@angular/material";
 import {DomSanitizer} from "@angular/platform-browser";
 import {replace} from "../new-song/new-song.component";
+import {AuthenticateComponent} from "../authenticate/authenticate.component";
 
 @Component({
   selector: 'app-edit-song',
@@ -132,15 +133,7 @@ export class EditSongComponent implements OnInit {
       }
     }
     this.song.deleted = false;
-    this.songService.updateSong(this.song).subscribe(
-      () => {
-        // noinspection JSIgnoredPromiseFromCall
-        this.router.navigate(['/songs']);
-      },
-      (err) => {
-        console.log(err);
-      }
-    );
+    this.updateSong();
   }
 
   openNewLanguageDialog(): void {
@@ -240,6 +233,37 @@ export class EditSongComponent implements OnInit {
         }
       }
     }
+  }
+
+  private updateSong() {
+    this.songService.updateSong(this.song).subscribe(
+      () => {
+        // noinspection JSIgnoredPromiseFromCall
+        this.router.navigate(['/songs']);
+      },
+      (err) => {
+        if (err.status === 405) {
+          this.openAuthenticateDialog();
+        } else {
+          console.log(err);
+        }
+      }
+    );
+  }
+
+  private openAuthenticateDialog() {
+    let user = JSON.parse(localStorage.getItem('currentUser'));
+    const dialogRef = this.dialog.open(AuthenticateComponent, {
+      data: {
+        email: user.email
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'ok') {
+        this.updateSong();
+      }
+    });
   }
 
   private addVerses() {

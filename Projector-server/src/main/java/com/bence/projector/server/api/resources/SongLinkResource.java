@@ -2,7 +2,9 @@ package com.bence.projector.server.api.resources;
 
 import com.bence.projector.common.dto.SongLinkDTO;
 import com.bence.projector.server.api.assembler.SongLinkAssembler;
+import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongLink;
+import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.SongLinkService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
@@ -33,17 +35,22 @@ import static com.bence.projector.server.api.resources.StatisticsResource.saveSt
 
 @RestController
 public class SongLinkResource {
+    private final StatisticsService statisticsService;
+    private final SongLinkService songLinkService;
+    private final SongLinkAssembler songLinkAssembler;
+    private final FreemarkerConfiguration freemarkerConfiguration;
+    private final JavaMailSender sender;
+    private final SongRepository songRepository;
+
     @Autowired
-    private StatisticsService statisticsService;
-    @Autowired
-    private SongLinkService songLinkService;
-    @Autowired
-    private SongLinkAssembler songLinkAssembler;
-    @Autowired
-    private FreemarkerConfiguration freemarkerConfiguration;
-    @Qualifier("javaMailSender")
-    @Autowired
-    private JavaMailSender sender;
+    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, FreemarkerConfiguration freemarkerConfiguration, @Qualifier("javaMailSender") JavaMailSender sender, SongRepository songRepository) {
+        this.statisticsService = statisticsService;
+        this.songLinkService = songLinkService;
+        this.songLinkAssembler = songLinkAssembler;
+        this.freemarkerConfiguration = freemarkerConfiguration;
+        this.sender = sender;
+        this.songRepository = songRepository;
+    }
 
     @RequestMapping(value = "admin/api/songLinks", method = RequestMethod.GET)
     public List<SongLinkDTO> getSongLinks() {
@@ -125,8 +132,10 @@ public class SongLinkResource {
         }
         data.put("id", songLink.getId());
         data.put("email", createdByEmail);
-        data.put("song1", songLink.getSongId1());
-        data.put("song2", songLink.getSongId2());
+        Song song1 = songRepository.findOne(songLink.getSongId1());
+        Song song2 = songRepository.findOne(songLink.getSongId2());
+        data.put("song1", song1.getTitle());
+        data.put("song2", song2.getTitle());
         return data;
     }
 }

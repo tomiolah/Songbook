@@ -258,8 +258,12 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     private void addSongs(List<Song> songs, Date lastModifiedDate, List<Song> returningSongs) {
         for (Song song : songs) {
-            if ((!song.isDeleted() || song.getCreatedDate().compareTo(lastModifiedDate) < 0) && song.getModifiedDate().getTime() > lastModifiedDate.getTime()) {
-                returningSongs.add(song);
+            try {
+                if ((!song.isDeleted() || song.getCreatedDate().compareTo(lastModifiedDate) < 0) && song.getModifiedDate().getTime() > lastModifiedDate.getTime()) {
+                    returningSongs.add(song);
+                }
+            } catch (NullPointerException e) {
+                e.printStackTrace();
             }
         }
     }

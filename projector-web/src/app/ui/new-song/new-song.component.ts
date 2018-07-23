@@ -20,7 +20,10 @@ export function replace(formValue: any, key) {
   newValue = replaceMatch(newValue, / \t/g, ' ');
   newValue = replaceMatch(newValue, /\t /g, ' ');
   newValue = replaceMatch(newValue, / \n/g, '\n');
+  newValue = replaceMatch(newValue, /\n /g, '\n');
   newValue = replaceMatch(newValue, /\t\n/g, '\n');
+  newValue = replaceMatch(newValue, /Ş/g, 'Ș');
+  newValue = replaceMatch(newValue, /ţ/g, 'ț');
   return newValue;
 }
 

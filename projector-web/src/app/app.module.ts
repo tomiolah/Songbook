@@ -64,6 +64,7 @@ import {SuggestionListComponent} from "./ui/suggestion-list/suggestion-list.comp
 import {DownloadAppComponent} from './ui/download-app/download-app.component';
 import {ShareComponent} from './ui/share/share.component';
 import {HttpClientModule} from "@angular/common/http";
+import {AuthenticateComponent} from "./ui/authenticate/authenticate.component";
 
 @NgModule({
   exports: [
@@ -121,6 +122,7 @@ export class PlunkerMaterialModule {
     SuggestionListComponent,
     DownloadAppComponent,
     ShareComponent,
+    AuthenticateComponent,
   ],
   imports: [
     BrowserModule,
@@ -137,6 +139,7 @@ export class PlunkerMaterialModule {
   entryComponents: [
     NewLanguageComponent,
     ShareComponent,
+    AuthenticateComponent,
   ],
   providers: [
     ApiService,
