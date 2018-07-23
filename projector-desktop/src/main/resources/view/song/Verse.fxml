@@ -17,7 +17,7 @@
                 </TextArea>
             </center>
             <right>
-                <ToggleButton fx:id="chorusToggleButton" text="%Chorus" BorderPane.alignment="CENTER">
+                <ToggleButton fx:id="chorusToggleButton" text="%Refrain" BorderPane.alignment="CENTER">
                     <BorderPane.margin>
                         <Insets left="4.0"/>
                     </BorderPane.margin>

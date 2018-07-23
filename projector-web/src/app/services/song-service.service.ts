@@ -74,8 +74,8 @@ export class SongService {
     return this.api.create(Song, 'api/song', song);
   }
 
-  getAllSongTitlesAfterModifiedDate(modifiedDate: number) {
-    return this.api.getAll(Song, 'api/songTitlesAfterModifiedDate/' + modifiedDate);
+  getAllSongTitlesAfterModifiedDate(modifiedDate: number, selectedLanguage: any) {
+    return this.api.getAll(Song, 'api/songTitlesAfterModifiedDate/' + modifiedDate + '/language/' + selectedLanguage);
   }
 
   deleteById(songId) {
