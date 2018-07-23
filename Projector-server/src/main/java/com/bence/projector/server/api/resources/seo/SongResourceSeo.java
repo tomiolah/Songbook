@@ -2,6 +2,7 @@ package com.bence.projector.server.api.resources.seo;
 
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
+import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -22,7 +23,7 @@ public class SongResourceSeo {
     private final SongService songService;
 
     @Autowired
-    public SongResourceSeo(SongService songService) {
+    public SongResourceSeo(SongService songService, LanguageService languageService) {
         this.songService = songService;
     }
 
@@ -37,8 +38,9 @@ public class SongResourceSeo {
         Song randomSong = songService.getRandomSong();
         model.addAttribute("randomSongUrl", "/song/" + randomSong.getId());
         HashMap<String, Integer> hashMap = new HashMap<>();
+        String regex = "[.!?,;'\\\\:\"|<>{}\\[\\]_\\-=+0-9@#$%^&*()`~\\n]+";
         for (SongVerse songVerse : song.getVerses()) {
-            for (String s : songVerse.getText().replaceAll("[.!?,;'\\\\:\"|<>{}\\[\\]_\\-=+0-9@#$%^&*()`~\\n]+", " ").split(" ")) {
+            for (String s : songVerse.getText().replaceAll(regex, " ").split(" ")) {
                 String lowerCase = s.trim().toLowerCase();
                 if (lowerCase.length() > 2) {
                     Integer integer = hashMap.get(lowerCase);
@@ -61,11 +63,27 @@ public class SongResourceSeo {
             sortedMap.put(entry.getKey(), entry.getValue());
         }
         Set<String> strings = sortedMap.keySet();
-        StringBuilder keywords = new StringBuilder("songbook, song");
+        StringBuilder keywords = new StringBuilder("lyrics");
+        String englishName = song.getLanguage().getEnglishName();
+        switch (englishName) {
+            case "Hungarian":
+                keywords.append(", dalszöveg, szöveg, ének");
+                break;
+            case "Romanian":
+                keywords.append(", versuri, text, cântec, imn");
+                break;
+            case "German":
+                keywords.append(", text, lied, hymne");
+                break;
+            default: //if (englishName.equals("English"))
+                keywords.append(", text, hymn, song");
+                break;
+        }
         Iterator<String> iterator = strings.iterator();
-        for (int i = 0; iterator.hasNext() && i < 10; ++i) {
+        for (int i = 0; iterator.hasNext() && i < 4; ++i) {
             keywords.append(", ").append(iterator.next());
         }
+        keywords.append(", ").append(song.getTitle().replaceAll(regex, ""));
 
         model.addAttribute("keywords", keywords.toString());
         return "song";

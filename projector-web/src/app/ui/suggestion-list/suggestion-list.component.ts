@@ -6,6 +6,9 @@ import {DataSource} from '@angular/cdk/table';
 import {Router} from '@angular/router';
 import {SuggestionDataService} from '../../services/suggestion-data.service';
 import {Suggestion} from '../../models/suggestion';
+import {AuthenticateComponent} from "../authenticate/authenticate.component";
+import {MatDialog} from "@angular/material";
+import {AuthService} from "../../services/auth.service";
 
 export class SuggestionDatabase {
   dataChange: BehaviorSubject<Suggestion[]> = new BehaviorSubject<Suggestion[]>([]);
@@ -55,7 +58,9 @@ export class SuggestionListComponent implements OnInit {
   dataSource: SuggestionDataSource | null;
 
   constructor(public router: Router,
-              private suggestionDataService: SuggestionDataService) {
+              private suggestionDataService: SuggestionDataService,
+              private auth: AuthService,
+              private dialog: MatDialog) {
   }
 
   ngOnInit() {
@@ -64,6 +69,11 @@ export class SuggestionListComponent implements OnInit {
         this.suggestionList = suggestionList.reverse();
         this.suggestionDatabase = new SuggestionDatabase(this.suggestionList);
         this.dataSource = new SuggestionDataSource(this.suggestionDatabase);
+      },
+      (err) => {
+        if (err.message === 'Unexpected token < in JSON at position 0') {
+          this.openAuthenticateDialog();
+        }
       }
     );
   }
@@ -74,4 +84,18 @@ export class SuggestionListComponent implements OnInit {
     this.router.navigate(['/admin/suggestion/', suggestion.uuid]);
   }
 
+  private openAuthenticateDialog() {
+    let user = JSON.parse(localStorage.getItem('currentUser'));
+    const dialogRef = this.dialog.open(AuthenticateComponent, {
+      data: {
+        email: user.email
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'ok') {
+        this.ngOnInit();
+      }
+    });
+  }
 }
