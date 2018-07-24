@@ -450,6 +450,7 @@ public class SongController {
                         previousSelectedVersIndex = selectedIndex;
                         if (selectedIndex + 1 == songListViewItems.size()) {
                             projectionScreenController.progressLineSetVisible(false);
+                            projectionScreenController.setLineSize(0);
                         } else {
                             projectionScreenController.setLineSize((double) selectedIndex / (songListViewItems.size() - 2));
                         }
@@ -667,19 +668,23 @@ public class SongController {
             try {
                 int x = Integer.parseInt(newValue.trim());
                 int size = songListView.getItems().size();
-                if (x >= 0 && x < size && (x + 1) * 10 > size) {
+                if (x >= 0 && x < size && x * 10 > size - 1 || x == 0) {
                     songListView.getSelectionModel().clearAndSelect(x);
                     songListView.scrollTo(x);
                     verseTextField.setText("");
-                } else if ((x + 1) > size * 10) {
+                } else if (x >= size) {
                     verseTextField.setText("");
                 }
             } catch (NumberFormatException ignored) {
             }
         });
         verseTextField.setOnKeyPressed(event -> {
-            if (event.getCode().equals(KeyCode.ENTER)) {
+            KeyCode keyCode = event.getCode();
+            if (keyCode.equals(KeyCode.ENTER)) {
                 selectByVerseTextFieldNumber();
+            } else if (keyCode.isArrowKey()) {
+                songListView.requestFocus();
+                songListView.fireEvent(event);
             }
         });
     }
@@ -1341,22 +1346,30 @@ public class SongController {
         });
     }
 
-    public void addSongCollections() {
+    void addSongCollections() {
         try {
             songCollectionListView.getItems().clear();
-            SongCollection allSongs = new SongCollection(Settings.getInstance().getResourceBundle().getString("All"));
-            allSongs.setSongs(songs);
-            selectedSongCollection = allSongs;
-            songCollectionListView.getItems().add(allSongs);
+            SongCollection allSongCollections = new SongCollection(Settings.getInstance().getResourceBundle().getString("All"));
+            allSongCollections.setSongs(songs);
+            selectedSongCollection = allSongCollections;
+            songCollectionListView.getItems().add(allSongCollections);
             songCollectionListView.getSelectionModel().selectFirst();
             SongCollectionService SongCollectionService = ServiceManager.getSongCollectionService();
             try {
                 Date date = new Date();
-                List<SongCollection> SongCollections = SongCollectionService.findAll();
+                List<SongCollection> songCollections = SongCollectionService.findAll();
                 Date date2 = new Date();
                 System.out.println(date2.getTime() - date.getTime());
-                for (SongCollection SongCollection : SongCollections) {
-                    songCollectionListView.getItems().add(SongCollection);
+                songCollections.sort((l, r) -> {
+                    if (l.getSongs().size() < r.getSongs().size()) {
+                        return 1;
+                    } else if (l.getSongs().size() > r.getSongs().size()) {
+                        return -1;
+                    }
+                    return 0;
+                });
+                for (SongCollection songCollection : songCollections) {
+                    songCollectionListView.getItems().add(songCollection);
                 }
             } catch (ServiceException e) {
                 LOG.error(e.getMessage(), e);
@@ -1741,7 +1754,7 @@ public class SongController {
         }
     }
 
-    public void selectSong(Song song) {
+    void selectSong(Song song) {
         ObservableList<SearchedSong> listViewItems = listView.getItems();
         listViewItems.clear();
         listViewItems.add(new SearchedSong(song));

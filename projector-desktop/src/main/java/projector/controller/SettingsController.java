@@ -11,6 +11,8 @@ import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
@@ -93,6 +95,8 @@ public class SettingsController {
     private ListView<Text> listView;
     @FXML
     private CheckBox referenceItalicCheckBox;
+    @FXML
+    private Spinner<Integer> progressLineThicknessSpinner;
 
     private Settings settings;
     private ProjectionScreenController projectionScreenController;
@@ -169,6 +173,7 @@ public class SettingsController {
         referenceVerseSorting.setSelected(settings.isReferenceVerseSorting());
         initializeProgressLine();
         initializeNetworkButtons();
+        progressLineThicknessSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, settings.getProgressLineThickness()));
     }
 
     private void initializeNetworkButtons() {
@@ -287,6 +292,11 @@ public class SettingsController {
         settings.setReferenceVerseSorting(referenceVerseSorting.isSelected());
         settings.setPreferredLanguage(languageComboBox.getValue());
         settings.setProgressLinePositionIsTop(progressLinePositionTopRadioButton.isSelected());
+        Integer value = progressLineThicknessSpinner.getValue();
+        if (value > 10) {
+            value = 10;
+        }
+        settings.setProgressLineThickness(value);
         settings.save();
         projectionScreenController.setBackGroundColor(backgroundColorPicker.getValue());
         projectionScreenController.setColor(colorPicker.getValue());
