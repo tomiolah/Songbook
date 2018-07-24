@@ -103,7 +103,7 @@ public class MyController {
         previewButton.setFocusTraversable(false);
         // accentsButton.setFocusTraversable(false);
         // accentsButton.setSelected(settings.isWithAccents());
-        blankButton.setSelected(true);
+        blankButton.setSelected(false);
         // recentController.setBlank(blankButton.isSelected());
 //        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
 //            System.out.println(newValue.getText());

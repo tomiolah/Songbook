@@ -19,6 +19,7 @@ import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.StrokeLineCap;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import projector.Main;
@@ -117,7 +118,7 @@ public class ProjectionScreenController {
         this.songController = songController;
     }
 
-    public void setBackGroundColor(Color backgroundColor) {
+    void setBackGroundColor(Color backgroundColor) {
         if (previewProjectionScreenController != null) {
             previewProjectionScreenController.setBackGroundColor(backgroundColor);
         }
@@ -153,7 +154,7 @@ public class ProjectionScreenController {
         }
     }
 
-    void setBlank(boolean isBlank) {
+    public void setBlank(boolean isBlank) {
         this.isBlank = isBlank;
         mainPane.setVisible(!isBlank);
         if (doubleProjectionScreenController != null) {
@@ -441,7 +442,9 @@ public class ProjectionScreenController {
                 }
                 settings.save();
             }
-            previewProjectionScreenController.getStage().close();
+            if (previewProjectionScreenController.getStage() != null) {
+                previewProjectionScreenController.getStage().close();
+            }
             previewProjectionScreenController.onClose();
         }
     }
@@ -542,6 +545,21 @@ public class ProjectionScreenController {
             previewProjectionScreenController.setLineSize(size);
         }
         if (!isLock) {
+            Integer progressLineThickness = settings.getProgressLineThickness();
+            progressLine.setStrokeLineCap(StrokeLineCap.BUTT);
+            if (!settings.isProgressLinePositionIsTop()) {
+                double endY = scene.getHeight() - 1;
+                progressLine.setStartY(endY - progressLineThickness / 2);
+                progressLine.setEndY(endY - progressLineThickness / 2);
+            } else {
+                progressLine.setStartY(1 + progressLineThickness / 2);
+                progressLine.setEndY(1 + progressLineThickness / 2);
+            }
+            if (size == 0) {
+                progressLine.setStrokeWidth(0);
+            } else {
+                progressLine.setStrokeWidth(progressLineThickness);
+            }
             final double width = scene.getWidth();
             progressLine.setEndX(width * size);
             if (doubleProjectionScreenController != null) {

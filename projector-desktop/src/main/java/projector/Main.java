@@ -14,6 +14,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.application.Updater;
 import projector.controller.MyController;
@@ -119,14 +120,14 @@ public class Main extends Application {
                 nextScreen = it.next();
                 Rectangle2D bounds = nextScreen.getVisualBounds();
                 positionX = bounds.getMinX() + 0;
-                positionY = bounds.getMinY() + 0;
+                positionY = 0;
                 canvasWidth = bounds.getWidth();
                 canvasHeight = bounds.getHeight();
                 projectionScreenController.setWidth(canvasWidth);
                 projectionScreenController.setHeight(canvasHeight);
                 popup = new Popup();
                 popup.getContent().add(root);
-                popup.show(primaryStage, 80, 60);
+                popup.show(primaryStage, positionX, 0);
                 popup.widthProperty().addListener((observable, oldValue, newValue) -> {
                     if (newValue.intValue() != canvasWidth) {
                         popup.setWidth(canvasWidth);
@@ -143,7 +144,7 @@ public class Main extends Application {
                 popup.setHeight(canvasHeight);
                 popup.setX(positionX);
                 popup.setY(positionY);
-                popup.setHideOnEscape(false);
+                popup.setHideOnEscape(true);
                 scene = popup.getScene();
                 scene.setCursor(Cursor.NONE);
                 projectionScreenController.setScene(scene);
@@ -229,6 +230,8 @@ public class Main extends Application {
         primaryStage.requestFocus();
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
         myController.setProjectionScreenController(projectionScreenController);
+        projectionScreenController.setText("<color=\"0xffffff0c\">.</color>", ProjectionType.REFERENCE);
+        projectionScreenController.setBlank(false);
         Updater.getInstance().checkForUpdate();
     }
 

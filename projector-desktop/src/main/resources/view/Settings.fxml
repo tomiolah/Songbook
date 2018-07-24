@@ -10,6 +10,7 @@
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
@@ -64,6 +65,8 @@
                                             vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
                                             vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
+                                            vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="677.0" minHeight="100.0" prefHeight="677.0" vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="50.0" minHeight="50.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                         </rowConstraints>
@@ -74,8 +77,8 @@
                         <ComboBox fx:id="languageComboBox" prefWidth="150.0" GridPane.columnIndex="1"
                                   GridPane.rowIndex="1"/>
                         <Label text="%Projection max font size" GridPane.rowIndex="2"/>
-                        <Slider fx:id="maxFontSlider" max="140" min="10" prefHeight="31.0" GridPane.columnIndex="1"
-                                GridPane.rowIndex="2"/>
+                        <Slider fx:id="maxFontSlider" max="140" min="10" prefHeight="31.0" showTickLabels="true"
+                                showTickMarks="true" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
                         <CheckBox fx:id="breakLinesCheckbox" mnemonicParsing="false" prefHeight="23.0"
                                   text="%Break lines" GridPane.rowIndex="3"/>
                         <Slider fx:id="breakAfterSlider" max="98" min="1" prefHeight="31.0" GridPane.columnIndex="1"
@@ -91,14 +94,14 @@
                             </GridPane.margin>
                         </Button>
                         <CheckBox fx:id="referenceItalicCheckBox" mnemonicParsing="false" text="%Reference Italic"
-                                  GridPane.rowIndex="15"/>
+                                  GridPane.rowIndex="16"/>
                         <CheckBox fx:id="fastModeCheckBox" mnemonicParsing="false" prefHeight="21.0" prefWidth="137.0"
-                                  text="%Fast mode" GridPane.rowIndex="14"/>
+                                  text="%Fast mode" GridPane.rowIndex="15"/>
                         <CheckBox fx:id="showReferenceOnlyCheckBox" mnemonicParsing="false" text="%Show reference only"
-                                  GridPane.columnIndex="1" GridPane.rowIndex="14"/>
+                                  GridPane.columnIndex="1" GridPane.rowIndex="15"/>
                         <ListView fx:id="listView" prefHeight="163.0" prefWidth="438.0" GridPane.columnIndex="1"
-                                  GridPane.rowIndex="18"/>
-                        <Label text="%Font" GridPane.rowIndex="18"/>
+                                  GridPane.rowIndex="19"/>
+                        <Label text="%Font" GridPane.rowIndex="19"/>
                         <Label text="%Color" GridPane.rowIndex="8"/>
                         <ColorPicker fx:id="colorPicker" prefHeight="31.0" prefWidth="134.0" GridPane.columnIndex="1"
                                      GridPane.rowIndex="8"/>
@@ -123,8 +126,12 @@
                         <Label text="%Progress line color" GridPane.rowIndex="11"/>
                         <ColorPicker fx:id="progressLineColorPicker" prefHeight="31.0" prefWidth="136.0"
                                      GridPane.columnIndex="1" GridPane.rowIndex="11"/>
-                        <Label text="%Progress line position" GridPane.rowIndex="12"/>
-                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="12">
+                        <Label text="%Progress line thickness" GridPane.rowIndex="12"/>
+                        <Spinner fx:id="progressLineThicknessSpinner" editable="true" prefHeight="31.0" prefWidth="75.0"
+                                 GridPane.columnIndex="1"
+                                 GridPane.rowIndex="12"/>
+                        <Label text="%Progress line position" GridPane.rowIndex="13"/>
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="13">
                             <RadioButton fx:id="progressLinePositionTopRadioButton" text="%Top"/>
                             <RadioButton fx:id="progressLinePositionBottomRadioButton" text="%Bottom"/>
                         </HBox>
@@ -142,25 +149,25 @@
                         <Label text="%Parallel" GridPane.rowIndex="6"/>
                         <ColorPicker fx:id="parallelBibleColorPicker" prefHeight="31.0" prefWidth="136.0"
                                      GridPane.columnIndex="1" GridPane.rowIndex="6"/>
-                        <Label text="%Font weight" GridPane.rowIndex="13"/>
+                        <Label text="%Font weight" GridPane.rowIndex="14"/>
                         <ComboBox fx:id="fontWeightComboBox" prefWidth="150.0" GridPane.columnIndex="1"
-                                  GridPane.rowIndex="13"/>
+                                  GridPane.rowIndex="14"/>
                         <Button fx:id="updateButton" mnemonicParsing="false" onAction="#onUpdateButtonAction"
                                 text="%Update" GridPane.columnIndex="1"/>
                         <CheckBox fx:id="previewLoadOnStartCheckbox" mnemonicParsing="false"
-                                  text="%Preview load on start" GridPane.columnIndex="1" GridPane.rowIndex="15"/>
+                                  text="%Preview load on start" GridPane.columnIndex="1" GridPane.rowIndex="16"/>
                         <CheckBox fx:id="referenceChapterSorting" mnemonicParsing="false"
-                                  text="%Reference chapter sorting" GridPane.columnIndex="1" GridPane.rowIndex="16"/>
+                                  text="%Reference chapter sorting" GridPane.columnIndex="1" GridPane.rowIndex="17"/>
                         <CheckBox fx:id="referenceVerseSorting" mnemonicParsing="false" text="%Reference verse sorting"
-                                  GridPane.columnIndex="1" GridPane.rowIndex="17"/>
-                        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="19">
+                                  GridPane.columnIndex="1" GridPane.rowIndex="18"/>
+                        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="20">
                             <center>
                                 <Button fx:id="shareOnLocalNetworkButton" text="%Share on local network"
                                         BorderPane.alignment="CENTER"/>
                             </center>
                         </BorderPane>
                         <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1"
-                                    GridPane.rowIndex="19">
+                                    GridPane.rowIndex="20">
                             <center>
                                 <Button fx:id="connectToSharedButton" text="%Connect to shared"
                                         BorderPane.alignment="CENTER"/>

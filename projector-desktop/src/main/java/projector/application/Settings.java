@@ -76,6 +76,7 @@ public class Settings {
     private OrderMethod songOrderMethod = OrderMethod.BY_COLLECTION;
     private boolean breakLines = true;
     private int breakAfter = 77;
+    private Integer progressLineThickness = 1;
 
     protected Settings() {
         load();
@@ -354,6 +355,8 @@ public class Settings {
             bw.write(parallelBibleColor.toString() + System.lineSeparator());
             bw.write("songOrderMethod" + System.lineSeparator());
             bw.write(songOrderMethod.name() + System.lineSeparator());
+            bw.write("progressLineThickness" + System.lineSeparator());
+            bw.write(progressLineThickness + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -477,6 +480,8 @@ public class Settings {
             parallelBibleColor = Color.web(br.readLine());
             br.readLine();
             songOrderMethod = OrderMethod.valueOf(br.readLine());
+            br.readLine();
+            progressLineThickness = Integer.parseInt(br.readLine());
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -732,5 +737,13 @@ public class Settings {
 
     public synchronized void setBreakAfter(int breakAfter) {
         this.breakAfter = breakAfter;
+    }
+
+    public Integer getProgressLineThickness() {
+        return progressLineThickness;
+    }
+
+    public void setProgressLineThickness(Integer progressLineThickness) {
+        this.progressLineThickness = progressLineThickness;
     }
 }
