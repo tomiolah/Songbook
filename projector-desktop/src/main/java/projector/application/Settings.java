@@ -357,6 +357,10 @@ public class Settings {
             bw.write(songOrderMethod.name() + System.lineSeparator());
             bw.write("progressLineThickness" + System.lineSeparator());
             bw.write(progressLineThickness + System.lineSeparator());
+            bw.write("breakAfter" + System.lineSeparator());
+            bw.write(breakAfter + System.lineSeparator());
+            bw.write("breakLines" + System.lineSeparator());
+            bw.write(breakLines + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -482,6 +486,10 @@ public class Settings {
             songOrderMethod = OrderMethod.valueOf(br.readLine());
             br.readLine();
             progressLineThickness = Integer.parseInt(br.readLine());
+            br.readLine();
+            breakAfter = Integer.parseInt(br.readLine());
+            br.readLine();
+            breakLines = Boolean.parseBoolean(br.readLine());
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
