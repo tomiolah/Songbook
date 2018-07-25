@@ -66,6 +66,9 @@ public class Language extends BaseEntity {
 
     @Override
     public String toString() {
+        if (nativeName.equals(englishName)) {
+            return nativeName;
+        }
         return nativeName + " - " + englishName;
     }
 }

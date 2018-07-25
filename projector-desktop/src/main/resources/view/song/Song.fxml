@@ -16,6 +16,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="560" prefWidth="800"
             xmlns="http://javafx.com/javafx/8.0.121" fx:controller="projector.controller.song.SongController">
     <center>
@@ -116,14 +117,13 @@
                             </BorderPane>
                         </top>
                         <center>
-                            <BorderPane BorderPane.alignment="CENTER">
-                                <center>
-                                    <ComboBox fx:id="sortComboBox" prefWidth="250" BorderPane.alignment="CENTER"/>
-                                </center>
+                            <VBox alignment="CENTER" spacing="3.0" BorderPane.alignment="CENTER">
                                 <padding>
-                                    <Insets top="4.0"/>
+                                    <Insets left="2.0" right="2.0" top="4.0"/>
                                 </padding>
-                            </BorderPane>
+                                <ComboBox fx:id="sortComboBox" prefWidth="250"/>
+                                <ComboBox fx:id="languageComboBox" prefWidth="250"/>
+                            </VBox>
                         </center>
                         <bottom>
                             <BorderPane prefWidth="300.0" BorderPane.alignment="CENTER">
