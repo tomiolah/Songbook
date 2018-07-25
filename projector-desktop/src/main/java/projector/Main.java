@@ -144,7 +144,7 @@ public class Main extends Application {
                 popup.setHeight(canvasHeight);
                 popup.setX(positionX);
                 popup.setY(positionY);
-                popup.setHideOnEscape(true);
+                popup.setHideOnEscape(false);
                 scene = popup.getScene();
                 scene.setCursor(Cursor.NONE);
                 projectionScreenController.setScene(scene);

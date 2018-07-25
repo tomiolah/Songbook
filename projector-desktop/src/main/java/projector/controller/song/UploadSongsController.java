@@ -62,9 +62,9 @@ public class UploadSongsController {
                             String uuid = song.getUuid();
                             if (uuid == null || uuid.trim().isEmpty()) {
                                 song.setUuid(uploadedSong.getUuid());
-                                song.setPublished(true);
-                                songService.update(song);
                             }
+                            song.setPublished(true);
+                            songService.update(song);
                             publishedSongs.add(song);
                         } else {
                             allPublished = false;

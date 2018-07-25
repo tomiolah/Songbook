@@ -50,6 +50,10 @@ public class Song extends BaseEntity {
     private transient SongCollection songCollection;
     private transient SongCollectionElement songCollectionElement;
 
+    @Expose
+    @DatabaseField
+    private String versionGroup;
+
     public Song() {
     }
 
@@ -220,5 +224,13 @@ public class Song extends BaseEntity {
 
     public void stripTitle() {
         strippedTitle = stripAccents(title.toLowerCase());
+    }
+
+    public String getVersionGroup() {
+        return versionGroup;
+    }
+
+    public void setVersionGroup(String versionGroup) {
+        this.versionGroup = versionGroup;
     }
 }

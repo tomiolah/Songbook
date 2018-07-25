@@ -128,12 +128,31 @@
                         <bottom>
                             <BorderPane prefWidth="300.0" BorderPane.alignment="CENTER">
                                 <top>
-                                    <CheckBox fx:id="searchInTextCheckBox" mnemonicParsing="false"
-                                              text="%Search in text" BorderPane.alignment="CENTER">
-                                        <padding>
-                                            <Insets bottom="4.0"/>
-                                        </padding>
-                                    </CheckBox>
+                                    <HBox alignment="CENTER" spacing="7.0">
+                                        <CheckBox fx:id="searchInTextCheckBox" mnemonicParsing="false"
+                                                  text="%Search in text" BorderPane.alignment="CENTER">
+                                            <padding>
+                                                <Insets bottom="4.0"/>
+                                            </padding>
+                                        </CheckBox>
+                                        <Button fx:id="showVersionsButton" contentDisplay="CENTER"
+                                                graphicTextGap="0.0" layoutX="815.0" layoutY="163.0"
+                                                maxHeight="-Infinity" maxWidth="-Infinity" mnemonicParsing="false"
+                                                prefHeight="32.0" prefWidth="32.0" textAlignment="CENTER">
+                                            <graphic>
+                                                <ImageView fitHeight="40.0" fitWidth="27.0" pickOnBounds="true"
+                                                           preserveRatio="true">
+                                                    <Image url="@../../icons/versions.png"/>
+                                                </ImageView>
+                                            </graphic>
+                                            <tooltip>
+                                                <Tooltip text="%Show versions"/>
+                                            </tooltip>
+                                            <padding>
+                                                <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                            </padding>
+                                        </Button>
+                                    </HBox>
                                 </top>
                                 <left>
                                     <Label text="%Search" BorderPane.alignment="CENTER"/>
