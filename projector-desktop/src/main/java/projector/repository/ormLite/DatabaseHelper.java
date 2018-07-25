@@ -31,7 +31,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 1;
+    public final int DATABASE_VERSION = 2;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
     private ConnectionSource connectionSource;
@@ -48,7 +48,10 @@ public class DatabaseHelper {
             connectionSource = new JdbcConnectionSource(DATABASE_URL);
             int oldVersion = getOldVersion();
             if (oldVersion < DATABASE_VERSION) {
-                onUpgrade(connectionSource);
+                //noinspection ConstantConditions
+                if (oldVersion < 1) {
+                    onUpgrade(connectionSource);
+                }
                 saveNewVersion();
             }
             onCreate(connectionSource);
@@ -99,6 +102,10 @@ public class DatabaseHelper {
             TableUtils.createTableIfNotExists(connectionSource, SongCollectionElement.class);
             try {
                 getSongVerseDao().executeRaw("ALTER TABLE `SONGVERSE` ADD COLUMN secondText VARCHAR(1000);");
+            } catch (Exception ignored) {
+            }
+            try {
+                getSongVerseDao().executeRaw("ALTER TABLE `SONG` ADD COLUMN versionGroup VARCHAR(25);");
             } catch (Exception ignored) {
             }
         } catch (final SQLException e) {
@@ -161,21 +168,21 @@ public class DatabaseHelper {
         return informationDao;
     }
 
-    public Dao<SongCollection, Long> getSongCollectionDao() throws SQLException {
+    Dao<SongCollection, Long> getSongCollectionDao() throws SQLException {
         if (songCollectionDao == null) {
             songCollectionDao = DaoManager.createDao(connectionSource, SongCollection.class);
         }
         return songCollectionDao;
     }
 
-    public Dao<SongCollectionElement, Long> getSongCollectionElementDao() throws SQLException {
+    Dao<SongCollectionElement, Long> getSongCollectionElementDao() throws SQLException {
         if (songCollectionElementDao == null) {
             songCollectionElementDao = DaoManager.createDao(connectionSource, SongCollectionElement.class);
         }
         return songCollectionElementDao;
     }
 
-    public Dao<Language, Long> getLanguageDao() throws SQLException {
+    Dao<Language, Long> getLanguageDao() throws SQLException {
         if (languageDao == null) {
             languageDao = DaoManager.createDao(connectionSource, Language.class);
         }

@@ -43,6 +43,7 @@ import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.Main;
+import projector.api.SongApiBean;
 import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.application.SongVersTime;
@@ -58,10 +59,12 @@ import projector.controller.song.util.OrderMethod;
 import projector.controller.song.util.ScheduleSong;
 import projector.controller.song.util.SearchedSong;
 import projector.controller.song.util.SongTextFlow;
+import projector.model.Language;
 import projector.model.Song;
 import projector.model.SongCollection;
 import projector.model.SongCollectionElement;
 import projector.model.SongVerse;
+import projector.repository.ormLite.DatabaseHelper;
 import projector.service.ServiceException;
 import projector.service.ServiceManager;
 import projector.service.SongCollectionService;
@@ -72,6 +75,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -92,6 +96,10 @@ public class SongController {
     private static final double minOpacity = 0.4;
     private final SongService songService;
     private final Settings settings = Settings.getInstance();
+    @FXML
+    private Button showVersionsButton;
+    @FXML
+    private ComboBox<Language> languageComboBox;
     @FXML
     private Button importButton;
     @FXML
@@ -137,7 +145,7 @@ public class SongController {
     private ProjectionScreenController previewProjectionScreenController;
     private RecentController recentController;
     private ScheduleController scheduleController;
-    private List<Song> songs;
+    private List<Song> songs = new ArrayList<>();
     private String lastSearchText = "";
     private SongController songController = this;
     private SongVersTime activeSongVersTime;
@@ -304,6 +312,19 @@ public class SongController {
                         }
                         songListViewItems.clear();
                         selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
+
+                        showVersionsButton.setVisible(false);
+                        String versionGroup = selectedSong.getVersionGroup();
+                        if (versionGroup == null) {
+                            versionGroup = selectedSong.getUuid();
+                        }
+                        if (versionGroup != null) {
+                            List<Song> allByVersionGroup = songService.findAllByVersionGroup(versionGroup);
+                            if (allByVersionGroup.size() > 1) {
+                                showVersionsButton.setVisible(true);
+                            }
+                        }
+
                         final int width = (int) projectionScreenController.getScene().getWidth();
                         int height = (int) projectionScreenController.getScene().getHeight();
                         final int size = (int) songHeightSlider.getValue();
@@ -590,11 +611,51 @@ public class SongController {
             initializeUploadButton();
             initializeVerseTextField();
             initializeSortComboBox();
+            initializeLanguageComboBox();
             exportButton.setOnAction(event -> exportButtonOnAction());
             importButton.setOnAction(event -> importButtonOnAction());
+            initializeShowVersionsButton();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void initializeShowVersionsButton() {
+        showVersionsButton.setVisible(false);
+        showVersionsButton.setOnAction(event -> {
+            String versionGroup = selectedSong.getVersionGroup();
+            String uuid = selectedSong.getUuid();
+            if (versionGroup == null) {
+                versionGroup = uuid;
+            }
+            List<Song> allByVersionGroup = songService.findAllByVersionGroup(versionGroup);
+            final List<Song> songs = new ArrayList<>(allByVersionGroup.size());
+            HashMap<String, Song> hashMap = new HashMap<>(songs.size());
+            for (Song song : allByVersionGroup) {
+                if (!song.getUuid().equals(uuid)) {
+                    hashMap.put(song.getUuid(), song);
+                }
+            }
+            List<SongCollection> songCollections = ServiceManager.getSongCollectionService().findAll();
+            for (SongCollection songCollection : songCollections) {
+                for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
+                    String songUuid = songCollectionElement.getSongUuid();
+                    if (hashMap.containsKey(songUuid)) {
+                        Song song = hashMap.get(songUuid);
+                        song.setSongCollection(songCollection);
+                        song.setSongCollectionElement(songCollectionElement);
+                        songs.add(song);
+                        hashMap.remove(songUuid);
+                    }
+                }
+            }
+            songs.addAll(hashMap.values());
+            listView.getItems().clear();
+            for (Song song : songs) {
+                SearchedSong searchedSong = new SearchedSong(song);
+                listView.getItems().add(searchedSong);
+            }
+        });
     }
 
     public void selectNextSongFromScheduleIfLastIndex() {
@@ -642,7 +703,6 @@ public class SongController {
     private void initializeSortComboBox() {
         try {
             OrderMethod ascendingByTitle = OrderMethod.ASCENDING_BY_TITLE;
-
             sortComboBox.getItems().addAll(ascendingByTitle,
                     OrderMethod.DESCENDING_BY_TITLE,
                     OrderMethod.BY_MODIFIED_DATE,
@@ -660,6 +720,55 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    public void initializeLanguageComboBox() {
+        try {
+            List<Language> languages = ServiceManager.getLanguageService().findAll();
+            if (countSelectedLanguages(languages) < 2) {
+                languageComboBox.setVisible(false);
+                languageComboBox.setManaged(false);
+            } else {
+                languageComboBox.setVisible(true);
+                languageComboBox.setManaged(true);
+            }
+            languages.sort((o1, o2) -> Integer.compare(o2.getSongs().size(), o1.getSongs().size()));
+            languageComboBox.getItems().clear();
+            for (Language language : languages) {
+                if (!language.getSongs().isEmpty()) {
+                    languageComboBox.getItems().add(language);
+                } else {
+                    break;
+                }
+            }
+            SingleSelectionModel<Language> selectionModel = languageComboBox.getSelectionModel();
+            Language songSelectedLanguage = settings.getSongSelectedLanguage();
+            for (Language language : languages) {
+                if (songSelectedLanguage.getUuid().equals(language.getUuid())) {
+                    selectionModel.select(language);
+                    settings.setSongSelectedLanguage(language);
+                    break;
+                }
+            }
+            selectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                settings.setSongSelectedLanguage(newValue);
+                readSongs();
+                addAllSongs();
+                addSongCollections();
+            });
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private int countSelectedLanguages(List<Language> languages) {
+        int count = 0;
+        for (Language language : languages) {
+            if (!language.getSongs().isEmpty()) {
+                ++count;
+            }
+        }
+        return count;
     }
 
     private void initializeVerseTextField() {
@@ -691,7 +800,7 @@ public class SongController {
 
     private void selectByVerseTextFieldNumber() {
         try {
-            int x = Integer.parseInt(verseTextField.getText().trim()) - 1;
+            int x = Integer.parseInt(verseTextField.getText().trim());
             int size = songListView.getItems().size();
             if (x >= 0 && x < size) {
                 songListView.getSelectionModel().clearAndSelect(x);
@@ -746,6 +855,7 @@ public class SongController {
                     stage.show();
                     downloadLanguagesController.setSongController(this);
                     downloadLanguagesController.setStage(stage);
+                    downloadOldVersionGroups();
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
                 }
@@ -753,6 +863,52 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void downloadOldVersionGroups() {
+        // This will be deleted
+        if (getOldVersion() == 0) {
+            Thread thread = new Thread(() -> {
+                SongApiBean songApi = new SongApiBean();
+                List<Language> languages = ServiceManager.getLanguageService().findAll();
+                for (Language language : languages) {
+                    if (!language.getSongs().isEmpty()) {
+                        final List<Song> songApiSongs = songApi.getSongsByLanguageAndAfterModifiedDate(language, 1524234911591L);
+                        for (Song song : songApiSongs) {
+                            if (song.getVersionGroup() != null) {
+                                Song byUuid = songService.findByUuid(song.getUuid());
+                                if (byUuid != null) {
+                                    byUuid.setVersionGroup(song.getVersionGroup());
+                                    byUuid.setVerses(byUuid.getVerses());
+                                    songService.update(byUuid);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            thread.start();
+            try (FileOutputStream stream = new FileOutputStream("data/database.version");
+                 BufferedWriter br = new BufferedWriter(new OutputStreamWriter(stream, "UTF-8"))) {
+                br.write(DatabaseHelper.getInstance().DATABASE_VERSION + "\n");
+                br.write("1\n");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private int getOldVersion() {
+        try (FileInputStream stream = new FileInputStream("data/database.version");
+             BufferedReader br = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
+            br.readLine();
+            return Integer.parseInt(br.readLine());
+        } catch (FileNotFoundException | NumberFormatException ignored) {
+            return 0;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     private void initializeUploadButton() {
@@ -1090,8 +1246,11 @@ public class SongController {
 
     private void readSongs() {
         try {
-            songs = songService.findAll();
-            setSongCollections(songs);
+            Language songSelectedLanguage = settings.getSongSelectedLanguage();
+            if (songSelectedLanguage != null) {
+                songs = songSelectedLanguage.getSongs();
+                setSongCollections(songs);
+            }
         } catch (ServiceException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -1348,16 +1507,17 @@ public class SongController {
 
     void addSongCollections() {
         try {
-            songCollectionListView.getItems().clear();
+            ObservableList<SongCollection> items = songCollectionListView.getItems();
+            items.clear();
             SongCollection allSongCollections = new SongCollection(Settings.getInstance().getResourceBundle().getString("All"));
             allSongCollections.setSongs(songs);
             selectedSongCollection = allSongCollections;
-            songCollectionListView.getItems().add(allSongCollections);
+            items.add(allSongCollections);
             songCollectionListView.getSelectionModel().selectFirst();
-            SongCollectionService SongCollectionService = ServiceManager.getSongCollectionService();
+            SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
             try {
                 Date date = new Date();
-                List<SongCollection> songCollections = SongCollectionService.findAll();
+                List<SongCollection> songCollections = songCollectionService.findAll();
                 Date date2 = new Date();
                 System.out.println(date2.getTime() - date.getTime());
                 songCollections.sort((l, r) -> {
@@ -1368,9 +1528,18 @@ public class SongController {
                     }
                     return 0;
                 });
-                for (SongCollection songCollection : songCollections) {
-                    songCollectionListView.getItems().add(songCollection);
+                Language songSelectedLanguage = settings.getSongSelectedLanguage();
+                if (songSelectedLanguage != null) {
+                    Long id = songSelectedLanguage.getId();
+                    for (SongCollection songCollection : songCollections) {
+                        if (songCollection.getLanguage().getId().equals(id)) {
+                            items.add(songCollection);
+                        }
+                    }
                 }
+                boolean value = items.size() != 1;
+                songCollectionListView.setVisible(value);
+                songCollectionListView.setManaged(value);
             } catch (ServiceException e) {
                 LOG.error(e.getMessage(), e);
             }

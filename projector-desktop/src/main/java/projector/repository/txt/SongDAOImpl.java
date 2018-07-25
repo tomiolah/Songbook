@@ -162,4 +162,9 @@ public class SongDAOImpl implements SongDAO {
     public Song findByTitle(String title) {
         return null;
     }
+
+    @Override
+    public List<Song> findAllByVersionGroup(String versionGroup) {
+        return null;
+    }
 }

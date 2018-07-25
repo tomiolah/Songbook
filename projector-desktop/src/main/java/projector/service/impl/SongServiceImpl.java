@@ -79,4 +79,14 @@ public class SongServiceImpl extends AbstractService<Song> implements SongServic
             throw new ServiceException(e.getMessage(), e);
         }
     }
+
+    @Override
+    public List<Song> findAllByVersionGroup(String versionGroup) {
+        try {
+            return songDAO.findAllByVersionGroup(versionGroup);
+        } catch (RepositoryException e) {
+            LOG.error(e.getMessage(), e);
+            throw new ServiceException(e.getMessage(), e);
+        }
+    }
 }

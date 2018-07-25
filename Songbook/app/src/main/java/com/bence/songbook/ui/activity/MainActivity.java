@@ -316,7 +316,7 @@ public class MainActivity extends AppCompatActivity
             String syncDateTime = "lastSyncDateTime";
             long lastSyncDateTime = sharedPreferences.getLong(syncDateTime, 0);
             Date date = new Date();
-            if (date.getTime() - 1000 * 60 * 60 * 24 > lastSyncDateTime) {
+            if (date.getTime() - 1000 * 60 * 60 * 12 > lastSyncDateTime) {
                 SyncInBackground syncInBackground = SyncInBackground.getInstance();
                 if (lastSyncDateTime == 0) {
                     syncInBackground.setSyncFrom();

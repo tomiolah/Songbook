@@ -11,6 +11,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.FontWeight;
 import projector.controller.song.util.OrderMethod;
 import projector.model.Bible;
+import projector.model.Language;
+import projector.service.ServiceManager;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -77,6 +79,7 @@ public class Settings {
     private boolean breakLines = true;
     private int breakAfter = 77;
     private Integer progressLineThickness = 1;
+    private Language songSelectedLanguage;
 
     protected Settings() {
         load();
@@ -357,6 +360,12 @@ public class Settings {
             bw.write(songOrderMethod.name() + System.lineSeparator());
             bw.write("progressLineThickness" + System.lineSeparator());
             bw.write(progressLineThickness + System.lineSeparator());
+            bw.write("breakAfter" + System.lineSeparator());
+            bw.write(breakAfter + System.lineSeparator());
+            bw.write("breakLines" + System.lineSeparator());
+            bw.write(breakLines + System.lineSeparator());
+            bw.write("songSelectedLanguage" + System.lineSeparator());
+            bw.write(songSelectedLanguage.getUuid() + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -482,6 +491,17 @@ public class Settings {
             songOrderMethod = OrderMethod.valueOf(br.readLine());
             br.readLine();
             progressLineThickness = Integer.parseInt(br.readLine());
+            br.readLine();
+            breakAfter = Integer.parseInt(br.readLine());
+            br.readLine();
+            breakLines = Boolean.parseBoolean(br.readLine());
+            br.readLine();
+            String uuid = br.readLine();
+            if (uuid == null || uuid.isEmpty()) {
+                songSelectedLanguage = null;
+            } else {
+                songSelectedLanguage = ServiceManager.getLanguageService().findByUuid(uuid);
+            }
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -745,5 +765,20 @@ public class Settings {
 
     public void setProgressLineThickness(Integer progressLineThickness) {
         this.progressLineThickness = progressLineThickness;
+    }
+
+    public Language getSongSelectedLanguage() {
+        if (songSelectedLanguage == null) {
+            List<Language> languages = ServiceManager.getLanguageService().findAll();
+            languages.sort((o1, o2) -> Integer.compare(o2.getSongs().size(), o1.getSongs().size()));
+            if (languages.size() > 0) {
+                songSelectedLanguage = languages.get(0);
+            }
+        }
+        return songSelectedLanguage;
+    }
+
+    public void setSongSelectedLanguage(Language songSelectedLanguage) {
+        this.songSelectedLanguage = songSelectedLanguage;
     }
 }

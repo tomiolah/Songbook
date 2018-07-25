@@ -294,15 +294,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             Song oneWithLanguage = findOne(song.getId());
             Language oldLanguage = oneWithLanguage.getLanguage();
             if (oldLanguage != null && !oldLanguage.equals(language)) {
-                Song songToRemove = null;
-                for (Song song1 : oldLanguage.getSongs()) {
-                    if (song1.getId().equals(song.getId())) {
-                        songToRemove = song1;
-                        break;
-                    }
-                }
-                oldLanguage.getSongs().remove(songToRemove);
-                languageRepository.save(oldLanguage);
+                removeSongFromLanguage(song, oldLanguage);
             }
         }
         songRepository.save(song);
@@ -319,6 +311,19 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             }
         }
         return song;
+    }
+
+    @Override
+    public void removeSongFromLanguage(Song song, Language oldLanguage) {
+        Song songToRemove = null;
+        for (Song song1 : oldLanguage.getSongs()) {
+            if (song1.getId().equals(song.getId())) {
+                songToRemove = song1;
+                break;
+            }
+        }
+        oldLanguage.getSongs().remove(songToRemove);
+        languageRepository.save(oldLanguage);
     }
 
     @Override

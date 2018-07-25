@@ -81,7 +81,10 @@ public class DownloadLanguagesController {
                 stage.setScene(scene);
                 stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download songs"));
                 stage.show();
-                stage.setOnCloseRequest(event1 -> songController.initializeSongs());
+                stage.setOnCloseRequest(event1 -> {
+                    songController.initializeSongs();
+                    songController.initializeLanguageComboBox();
+                });
                 this.stage.close();
             } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
@@ -92,9 +95,7 @@ public class DownloadLanguagesController {
     private void addLanguageToVBox(Language language) {
         CheckBox checkBox = new CheckBox(language.getEnglishName() + " - " + language.getNativeName());
         checkBox.setSelected(language.isSelected());
-        Platform.runLater(() -> {
-            listView.getChildren().add(checkBox);
-        });
+        Platform.runLater(() -> listView.getChildren().add(checkBox));
         checkBoxes.add(checkBox);
     }
 
