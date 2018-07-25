@@ -5,6 +5,7 @@ import com.bence.projector.common.dto.SongDTO;
 import com.bence.projector.common.dto.SongTitleDTO;
 import com.bence.projector.server.api.assembler.SongAssembler;
 import com.bence.projector.server.api.assembler.SongTitleAssembler;
+import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
@@ -153,6 +154,10 @@ public class SongResource {
         saveStatistics(httpServletRequest, statisticsService);
         final Song song = songService.findOne(songId);
         if (song.isDeleted()) {
+            Language language = song.getLanguage();
+            if (language != null) {
+                songService.removeSongFromLanguage(song, language);
+            }
             songService.delete(songId);
         }
         return songAssembler.createDto(song);

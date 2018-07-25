@@ -1,5 +1,6 @@
 package com.bence.projector.server.backend.service;
 
+import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 
 import java.util.Date;
@@ -21,4 +22,6 @@ public interface SongService extends BaseService<Song> {
     List<Song> findAllByVersionGroup(String versionGroup);
 
     Song getRandomSong();
+
+    void removeSongFromLanguage(Song song, Language oldLanguage);
 }

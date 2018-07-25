@@ -146,12 +146,17 @@ public class DownloadSongsController {
                                         songService.delete(localSong);
                                     } else {
                                         // Means modified song
-                                        if (localSong.isPublished() || equals(song, localSong)) {
+                                        if (localSong.isPublished() && localSong.getModifiedDate().equals(localSong.getServerModifiedDate())) {
+                                            localSong.setServerModifiedDate(song.getServerModifiedDate());
                                             localSong.setCreatedDate(song.getCreatedDate());
                                             localSong.setModifiedDate(song.getModifiedDate());
+                                            localSong.setLanguage(language);
                                             songVerseService.delete(localSong.getVerses());
+                                            localSong.setTitle(song.getTitle());
                                             localSong.setVerses(song.getVerses());
                                             songService.create(localSong);
+                                        } else if (equals(song, localSong)) {
+                                            saveLocalSongAndUpdateDates(song, localSong);
                                         } else {
                                             conflictSongList.add(song);
                                             conflictLocalSongList.add(localSong);
@@ -160,11 +165,7 @@ public class DownloadSongsController {
                                 } else {
                                     final Song localSong = stringSongHashMap.get(song.getTitle());
                                     if (equals(song, localSong)) {
-                                        localSong.setCreatedDate(song.getCreatedDate());
-                                        localSong.setModifiedDate(song.getModifiedDate());
-                                        localSong.setPublished(true);
-                                        localSong.setUuid(song.getUuid());
-                                        songService.create(localSong);
+                                        saveLocalSongAndUpdateDates(song, localSong);
                                     } else if (!song.isDeleted()) {
                                         conflictSongList.add(song);
                                         conflictLocalSongList.add(localSong);
@@ -204,6 +205,15 @@ public class DownloadSongsController {
         });
         thread.start();
         initializeButtons();
+    }
+
+    private void saveLocalSongAndUpdateDates(Song song, Song localSong) {
+        localSong.setServerModifiedDate(song.getServerModifiedDate());
+        localSong.setCreatedDate(song.getCreatedDate());
+        localSong.setModifiedDate(song.getModifiedDate());
+        localSong.setPublished(true);
+        localSong.setUuid(song.getUuid());
+        songService.create(localSong);
     }
 
     private int getSelectedLanguageSize() {

@@ -351,6 +351,7 @@ public class NewSongController {
                 }
             }
         }
+        uploadCheckBox.setSelected(selectedSong.getSong().isPublish());
     }
 
     public void uploadButtonOnAction() {

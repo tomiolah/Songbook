@@ -668,10 +668,9 @@ public class SongController {
     public void initializeLanguageComboBox() {
         try {
             List<Language> languages = ServiceManager.getLanguageService().findAll();
-            if (languages.size() < 2) {
+            if (countSelectedLanguages(languages) < 2) {
                 languageComboBox.setVisible(false);
                 languageComboBox.setManaged(false);
-                return;
             } else {
                 languageComboBox.setVisible(true);
                 languageComboBox.setManaged(true);
@@ -687,7 +686,13 @@ public class SongController {
             }
             SingleSelectionModel<Language> selectionModel = languageComboBox.getSelectionModel();
             Language songSelectedLanguage = settings.getSongSelectedLanguage();
-            selectionModel.select(songSelectedLanguage);
+            for (Language language : languages) {
+                if (songSelectedLanguage.getUuid().equals(language.getUuid())) {
+                    selectionModel.select(language);
+                    settings.setSongSelectedLanguage(language);
+                    break;
+                }
+            }
             selectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 settings.setSongSelectedLanguage(newValue);
                 readSongs();
@@ -697,6 +702,16 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private int countSelectedLanguages(List<Language> languages) {
+        int count = 0;
+        for (Language language : languages) {
+            if (!language.getSongs().isEmpty()) {
+                ++count;
+            }
+        }
+        return count;
     }
 
     private void initializeVerseTextField() {
