@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="600.0" prefWidth="400.0"
+            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="projector.controller.ParallelBiblesController">
+    <center>
+        <BorderPane>
+            <center>
+                <ScrollPane>
+                    <VBox fx:id="listView" spacing="10.0"
+                          BorderPane.alignment="CENTER">
+                        <padding>
+                            <Insets left="4.0" top="4.0"/>
+                        </padding>
+                    </VBox>
+                </ScrollPane>
+            </center>
+        </BorderPane>
+    </center>
+</BorderPane>

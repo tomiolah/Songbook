@@ -10,7 +10,6 @@ import javafx.scene.layout.BackgroundSize;
 import javafx.scene.paint.Color;
 import javafx.scene.text.FontWeight;
 import projector.controller.song.util.OrderMethod;
-import projector.model.Bible;
 import projector.model.Language;
 import projector.service.ServiceManager;
 
@@ -21,7 +20,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
 import java.util.ResourceBundle;
@@ -32,26 +31,21 @@ import static java.lang.Double.parseDouble;
 public class Settings {
 
     private static Settings instance = null;
-    private List<Bible> bibles;
     private int maxFont = 80;
     private boolean withAccents = false;
-    private int currentBible = 0;
-    private Color backgroundColor = Color.WHITE;
-    private Color color = Color.BLACK;
-    private Color parallelBibleColor = Color.BLUE;
+    private Color backgroundColor = Color.BLACK;
+    private Color color = Color.WHITE;
     private BackgroundImage backgroundImage;
     private String backgroundImagePath;
     private boolean isBackgroundImage = false;
-    private boolean isFastMode = false;
+    private boolean isFastMode = true;
     private boolean isParallel = false;
-    private String parallelBiblePath = " ";
     private String font = "system";
-    private double lineSpace = 10;
+    private double lineSpace = 3.131991051454138;
     private String fontWeight = "NORMAL";
     private boolean showReferenceOnly = false;
     private boolean referenceItalic = true;
     private boolean logging = false;
-    private int parallelBibleIndex = 0;
     private double previewX;
     private double previewY;
     private double previewWidth;
@@ -59,16 +53,16 @@ public class Settings {
     private boolean previewLoadOnStart;
     private double songTabHorizontalSplitPaneDividerPosition = 0.3753943217665615;
     private double songTabVerticalSplitPaneDividerPosition = 0.7344632768361582;
-    private double bibleTabHorizontalSplitPaneDividerPosition = 0.2572314049586777;
-    private double bibleTabVerticalSplitPaneDividerPosition = 0.6777546777546778;
-    private double mainHeight;
-    private double mainWidth;
-    private boolean referenceChapterSorting;
-    private boolean referenceVerseSorting;
-    private Locale preferredLanguage = new Locale("hu", "HU");
+    private double bibleTabHorizontalSplitPaneDividerPosition = 0.7370304114490162;
+    private double bibleTabVerticalSplitPaneDividerPosition = 0.2656641604010025;
+    private double mainHeight = 600;
+    private double mainWidth = 800;
+    private boolean referenceChapterSorting = true;
+    private boolean referenceVerseSorting = true;
+    private Locale preferredLanguage = new Locale("en", "EN");
     private ResourceBundle resourceBundle;
     private double songHeightSliderValue = 250;
-    private double verseListViewFontSize = 24;
+    private double verseListViewFontSize = 21;
     private boolean shareOnNetwork = false;
     private BooleanProperty connectedToShared = new SimpleBooleanProperty(false);
 
@@ -76,10 +70,11 @@ public class Settings {
     private Color progressLineColor = new Color(1.0, 1.0, 1.0, 0.7);
     private SimpleBooleanProperty progressLinePositionIsTop = new SimpleBooleanProperty(true);
     private OrderMethod songOrderMethod = OrderMethod.BY_COLLECTION;
-    private boolean breakLines = true;
+    private boolean breakLines = false;
     private int breakAfter = 77;
-    private Integer progressLineThickness = 1;
+    private Integer progressLineThickness = 5;
     private Language songSelectedLanguage;
+    private boolean bibleShortName = false;
 
     protected Settings() {
         load();
@@ -90,22 +85,6 @@ public class Settings {
             instance = new Settings();
         }
         return instance;
-    }
-
-    public synchronized List<String> getBibleTitles() {
-        List<String> bibleTitles = new ArrayList<>(bibles.size());
-        for (Bible bible : bibles) {
-            bibleTitles.add(bible.getName());
-        }
-        return bibleTitles;
-    }
-
-    public synchronized List<String> getBiblePaths() {
-        List<String> biblePaths = new ArrayList<>(bibles.size());
-        for (Bible bible : bibles) {
-            biblePaths.add(bible.getPath());
-        }
-        return biblePaths;
     }
 
     public synchronized int getMaxFont() {
@@ -122,14 +101,6 @@ public class Settings {
 
     public synchronized void setWithAccents(boolean withAccents) {
         this.withAccents = withAccents;
-    }
-
-    public synchronized int getCurrentBible() {
-        return currentBible;
-    }
-
-    public synchronized void setCurrentBible(int currentBible) {
-        this.currentBible = currentBible;
     }
 
     public synchronized Color getBackgroundColor() {
@@ -186,14 +157,6 @@ public class Settings {
 
     public synchronized void setParallel(boolean isParallel) {
         this.isParallel = isParallel;
-    }
-
-    public synchronized String getParallelBiblePath() {
-        return parallelBiblePath;
-    }
-
-    public synchronized void setParallelBiblePath(String parallelBiblePath) {
-        this.parallelBiblePath = parallelBiblePath;
     }
 
     public synchronized String getFont() {
@@ -269,12 +232,8 @@ public class Settings {
     public synchronized void save() {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream("settings.ini");
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, "UTF-8"));
-            bw.write(bibles.size() + System.lineSeparator());
-            for (Bible bible : bibles) {
-                bw.write(bible.getName() + System.lineSeparator());
-                bw.write(bible.getPath() + " " + bible.getUsage() + System.lineSeparator());
-            }
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
+            bw.write(0 + System.lineSeparator());
             bw.write("maxFont" + System.lineSeparator());
             bw.write(maxFont + System.lineSeparator());
             bw.write("withAccents" + System.lineSeparator());
@@ -297,8 +256,8 @@ public class Settings {
             bw.write(isFastMode + System.lineSeparator());
             bw.write("isParallel" + System.lineSeparator());
             bw.write(isParallel + System.lineSeparator());
-            bw.write("parallelBiblePath" + System.lineSeparator());
-            bw.write(parallelBiblePath + System.lineSeparator());
+            bw.write(System.lineSeparator());
+            bw.write(System.lineSeparator());
             bw.write("font" + System.lineSeparator());
             bw.write(font + System.lineSeparator());
             bw.write("lineSpace" + System.lineSeparator());
@@ -311,8 +270,8 @@ public class Settings {
             bw.write(referenceItalic + System.lineSeparator());
             bw.write("logging" + System.lineSeparator());
             bw.write(logging + System.lineSeparator());
-            bw.write("parallelBibleIndex" + System.lineSeparator());
-            bw.write(parallelBibleIndex + System.lineSeparator());
+            bw.write(System.lineSeparator());
+            bw.write(System.lineSeparator());
             bw.write("previewX" + System.lineSeparator());
             bw.write(previewX + System.lineSeparator());
             bw.write("previewY" + System.lineSeparator());
@@ -354,8 +313,8 @@ public class Settings {
             bw.write(showProgressLine.get() + System.lineSeparator());
             bw.write("progressLinePositionIsTop" + System.lineSeparator());
             bw.write(progressLinePositionIsTop.get() + System.lineSeparator());
-            bw.write("parallelBibleColor" + System.lineSeparator());
-            bw.write(parallelBibleColor.toString() + System.lineSeparator());
+            bw.write(System.lineSeparator());
+            bw.write(System.lineSeparator());
             bw.write("songOrderMethod" + System.lineSeparator());
             bw.write(songOrderMethod.name() + System.lineSeparator());
             bw.write("progressLineThickness" + System.lineSeparator());
@@ -364,36 +323,30 @@ public class Settings {
             bw.write(breakAfter + System.lineSeparator());
             bw.write("breakLines" + System.lineSeparator());
             bw.write(breakLines + System.lineSeparator());
-            bw.write("songSelectedLanguage" + System.lineSeparator());
-            bw.write(songSelectedLanguage.getUuid() + System.lineSeparator());
+            if (songSelectedLanguage != null) {
+                bw.write("songSelectedLanguage" + System.lineSeparator());
+                bw.write(songSelectedLanguage.getUuid() + System.lineSeparator());
+            } else {
+                bw.write(System.lineSeparator());
+                bw.write(System.lineSeparator());
+            }
+            bw.write("bibleShortName" + System.lineSeparator());
+            bw.write(bibleShortName + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    public synchronized void increaseCurrentBibleUsage() {
-        Bible currentBible = bibles.get(this.currentBible);
-        currentBible.setUsage(currentBible.getUsage() + 1);
-    }
-
     private synchronized void load() {
         BufferedReader br = null;
         try {
             FileInputStream fileInputStream = new FileInputStream("settings.ini");
-            br = new BufferedReader(new InputStreamReader(fileInputStream, "UTF-8"));
-            Integer bibleNumber = Integer.parseInt(br.readLine());
-            bibles = new ArrayList<>(bibleNumber);
+            br = new BufferedReader(new InputStreamReader(fileInputStream, StandardCharsets.UTF_8));
+            int bibleNumber = Integer.parseInt(br.readLine());
             for (int i = 0; i < bibleNumber; ++i) {
-                Bible bible = new Bible();
-                bible.setName(br.readLine());
-                String[] line = br.readLine().split(" ");
-                bible.setPath(line[0]);
-                try {
-                    bible.setUsage(Integer.parseInt(line[1]));
-                } catch (Exception ignored) {
-                }
-                bibles.add(bible);
+                br.readLine();
+                br.readLine();
             }
             br.readLine();
             maxFont = Integer.parseInt(br.readLine());
@@ -422,7 +375,7 @@ public class Settings {
             br.readLine();
             isParallel = parseBoolean(br.readLine());
             br.readLine();
-            parallelBiblePath = br.readLine();
+            br.readLine();
             br.readLine();
             font = br.readLine();
             br.readLine();
@@ -439,13 +392,6 @@ public class Settings {
             }
             br.readLine();
             br.readLine();
-            bibles.sort((l, r) -> Integer.compare(r.getUsage(), l.getUsage()));
-            for (int i = 0; i < bibleNumber; ++i) {
-                if (bibles.get(i).getPath().equals(parallelBiblePath)) {
-                    parallelBibleIndex = i;
-                    break;
-                }
-            }
             br.readLine();
             previewX = parseDouble(br.readLine());
             br.readLine();
@@ -486,7 +432,7 @@ public class Settings {
             br.readLine();
             progressLinePositionIsTop.set(parseBoolean(br.readLine()));
             br.readLine();
-            parallelBibleColor = Color.web(br.readLine());
+            br.readLine();
             br.readLine();
             songOrderMethod = OrderMethod.valueOf(br.readLine());
             br.readLine();
@@ -502,6 +448,8 @@ public class Settings {
             } else {
                 songSelectedLanguage = ServiceManager.getLanguageService().findByUuid(uuid);
             }
+            br.readLine();
+            bibleShortName = Boolean.parseBoolean(br.readLine());
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -520,15 +468,6 @@ public class Settings {
 
     public synchronized void setLogging(boolean logging) {
         this.logging = logging;
-    }
-
-    public synchronized int getParallelBibleIndex() {
-        return parallelBibleIndex;
-    }
-
-    public synchronized void setParallelBibleIndex(int parallelBibleIndex) {
-        this.parallelBibleIndex = parallelBibleIndex;
-        parallelBiblePath = bibles.get(parallelBibleIndex).getPath();
     }
 
     public synchronized double getPreviewX() {
@@ -727,14 +666,6 @@ public class Settings {
         return connectedToShared;
     }
 
-    public synchronized Color getParallelBibleColor() {
-        return parallelBibleColor;
-    }
-
-    public synchronized void setParallelBibleColor(Color parallelBibleColor) {
-        this.parallelBibleColor = parallelBibleColor;
-    }
-
     public synchronized OrderMethod getSongOrderMethod() {
         return songOrderMethod;
     }
@@ -780,5 +711,13 @@ public class Settings {
 
     public void setSongSelectedLanguage(Language songSelectedLanguage) {
         this.songSelectedLanguage = songSelectedLanguage;
+    }
+
+    public boolean getBibleShortName() {
+        return bibleShortName;
+    }
+
+    public void setBibleShortName(boolean bibleShortName) {
+        this.bibleShortName = bibleShortName;
     }
 }

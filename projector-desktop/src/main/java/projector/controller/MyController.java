@@ -29,6 +29,7 @@ public class MyController {
     private RecentController recentController;
     @FXML
     private HistoryController historyController;
+    @SuppressWarnings("FieldCanBeLocal")
     @FXML
     private ScheduleController scheduleController;
     @FXML
@@ -96,7 +97,6 @@ public class MyController {
         recentController.setBibleController(bibleController);
         scheduleController.setSongController(songController);
         settingsController.setSettings(settings);
-        settingsController.setBibleController(bibleController);
         historyController.setBibleController(bibleController);
         blankButton.setFocusTraversable(false);
         lockButton.setFocusTraversable(false);
@@ -109,9 +109,7 @@ public class MyController {
 //            System.out.println(newValue.getText());
 //        });
         tabPane.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.equals(5)) {
-                settingsController.setOldParallelBibleIndex();
-            } else if (newValue.equals(4)) {
+            if (newValue.equals(4)) {
                 historyController.loadRecents();
             }
         });
@@ -120,7 +118,7 @@ public class MyController {
             if (newValue.equals(songsTab)) {
                 songController.initializeSongs();
             } else if (newValue.equals(bibleSearchTab)) {
-                bibleSearchController.stripBooks();
+                bibleSearchController.initializeBibles();
             } else if (newValue.equals(bibleTab)) {
                 bibleController.initializeBibles();
             }

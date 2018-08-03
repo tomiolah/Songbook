@@ -29,7 +29,7 @@ public class Updater {
     private static final Logger LOG = LoggerFactory.getLogger(Updater.class);
     private static Updater instance;
     @SuppressWarnings("FieldCanBeLocal")
-    private final int projectorVersionNumber = 0;
+    private final int projectorVersionNumber = 1;
 
     private Updater() {
     }
@@ -48,7 +48,7 @@ public class Updater {
                 try {
                     ProjectorVersionApiBean projectorVersionApiBean = new ProjectorVersionApiBean();
                     List<ProjectorVersionDTO> projectorVersionsAfterNr = projectorVersionApiBean.getProjectorVersionsAfterNr(projectorVersionNumber);
-                    if (projectorVersionsAfterNr.size() > 0) {
+                    if (projectorVersionsAfterNr != null && projectorVersionsAfterNr.size() > 0) {
                         FXMLLoader loader = new FXMLLoader();
                         loader.setLocation(Main.class.getResource("/view/UpdateAvailable.fxml"));
                         loader.setResources(Settings.getInstance().getResourceBundle());

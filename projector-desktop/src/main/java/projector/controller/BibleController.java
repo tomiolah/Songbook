@@ -7,6 +7,7 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -23,6 +24,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -34,25 +36,28 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.Main;
+import projector.api.BibleApiBean;
 import projector.application.ProjectionType;
 import projector.application.Reader;
 import projector.application.Settings;
 import projector.controller.eventHandler.NextButtonEventHandler;
 import projector.model.Bible;
+import projector.model.BibleVerse;
 import projector.model.Book;
 import projector.model.Chapter;
+import projector.model.Language;
 import projector.model.Reference;
 import projector.model.ReferenceBook;
 import projector.model.ReferenceChapter;
+import projector.model.VerseIndex;
+import projector.service.BibleService;
+import projector.service.ServiceManager;
+import projector.service.VerseIndexService;
 import projector.utils.MarkTextFlow;
 import projector.utils.StringUtils;
 import projector.utils.Triplet;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -88,7 +93,7 @@ public class BibleController {
     @FXML
     private TextField verseTextField;
     @FXML
-    private ListView<String> bibleListView;
+    private ListView<Bible> bibleListView;
     @FXML
     private TextArea referenceTextArea;
     @FXML
@@ -115,7 +120,7 @@ public class BibleController {
     private Button nextButton;
 
     private Bible bible;
-    private Bible parallelBible;
+    private List<Bible> parallelBibles = new ArrayList<>();
     private List<Integer> searchIBook;
     private Integer searchSelected = 0;
     private boolean isAllBooks;
@@ -126,9 +131,6 @@ public class BibleController {
     private int selectedPart = -1;
     private int selectedVerse = -1;
     private boolean isLastVerse = false;
-    private List<String> shiftParallel;
-    private List<String> multipleShiftParallel;
-    private List<Integer> shiftParallelI;
 
     private Reference ref;
     private List<Reference> references;
@@ -194,36 +196,32 @@ public class BibleController {
             // System.out.println("Ido4: " + (System.currentTimeMillis() - x));
             // double x = System.currentTimeMillis();
             bibleListView.orientationProperty().set(Orientation.HORIZONTAL);
-            for (String bibleTitle : settings.getBibleTitles()) {
-                bibleListView.getItems().add(bibleTitle);
-            }
-            bibleListView.getSelectionModel().select(0);
-            bibleListView.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            bibleListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 try {
-                    if (settings.isParallel()) {
-                        readShiftsParallel();
+                    if (oldValue != null) {
+                        parallelBibles.add(oldValue);
                     }
-                    settings.setCurrentBible(newValue.intValue());
-
+                    parallelBibles.remove(newValue);
+                    sortParallelBibles();
                     int bookI = selectedBook;// bookListView.getSelectionModel().getSelectedIndex();
                     int partI = selectedPart;// partListView.getSelectionModel().getSelectedIndex();
                     ObservableList<Integer> obVerseI = verseListView.getSelectionModel().getSelectedIndices();
                     Vector<Integer> verseI = new Vector<>(obVerseI.size());
                     verseI.addAll(obVerseI);
                     Reader.setBooksRead(false);
-                    bible.setBooks(Reader.getBooks(settings.getBiblePaths().get(newValue.intValue())));
+                    bible = newValue;
                     addAllBooks();
                     bibleSearchController.setBooks(bible.getBooks());
                     historyController.setBible(bible);
 
-                    if (bookI > bible.getBooks().length - 1) {
-                        bookI = bible.getBooks().length - 1;
+                    if (bookI > bible.getBooks().size() - 1) {
+                        bookI = bible.getBooks().size() - 1;
                     }
                     if (bookI >= 0) {
                         bookListView.getSelectionModel().select(bookI);
                         bookListView.scrollTo(bookI);
-                        if (partI > bible.getBooks()[bookI].getChapters().length - 1) {
-                            partI = bible.getBooks()[bookI].getChapters().length - 1;
+                        if (partI > bible.getBooks().get(bookI).getChapters().size() - 1) {
+                            partI = bible.getBooks().get(bookI).getChapters().size() - 1;
                         }
                         if (partI >= 0) {
                             partListView.getSelectionModel().select(partI);
@@ -231,10 +229,10 @@ public class BibleController {
                             if (verseI.size() > 0) {
                                 setSelecting(true);
                                 for (Integer aVerseI : verseI) {
-                                    if (aVerseI > bible.getBooks()[bookI].getChapters()[partI].getVerses().length
+                                    if (aVerseI > bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size()
                                             - 1) {
                                         verseListView.getSelectionModel().select(
-                                                bible.getBooks()[bookI].getChapters()[partI].getVerses().length - 1);
+                                                bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size() - 1);
                                         break;
                                     } else {
                                         verseListView.getSelectionModel().select(aVerseI);
@@ -398,7 +396,7 @@ public class BibleController {
                 try {
                     if (event.getCode() == KeyCode.ENTER) {
                         try {
-                            Integer tmp = Integer.parseInt(verseTextField.getText());
+                            int tmp = Integer.parseInt(verseTextField.getText());
                             verseListView.scrollTo(tmp - 2);
                             if (settings.isFastMode()) {
                                 verseListView.getSelectionModel().clearAndSelect(tmp - 1);
@@ -430,7 +428,7 @@ public class BibleController {
                         if (!bookListView.getSelectionModel().isEmpty()) {
                             partListBookI = searchIBook.get(bookListView.getSelectionModel().getSelectedIndex());
                             partListView.getItems().clear();
-                            for (int i = 0; i < bible.getBooks()[partListBookI].getChapters().length; ++i) {
+                            for (int i = 0; i < bible.getBooks().get(partListBookI).getChapters().size(); ++i) {
                                 partListView.getItems().add(i + 1);
                             }
                             searchSelected = 2;
@@ -465,7 +463,7 @@ public class BibleController {
                     try {
                         final int selectedPartIndex = partListView.getSelectionModel().getSelectedIndex();
                         if (selectedPartIndex >= 0) {
-                            partLabel.setText(bible.getBooks()[partListBookI].getTitle().trim() + " " + (selectedPartIndex + 1));
+                            partLabel.setText(bible.getBooks().get(partListBookI).getTitle().trim() + " " + (selectedPartIndex + 1));
                             selectedBook = partListBookI;
                             selectedPart = selectedPartIndex;
                             addAllVerse();
@@ -613,7 +611,7 @@ public class BibleController {
                     for (ReferenceBook rb : ref.getBookList()) {
                         for (ReferenceChapter ch : rb.getChapters()) {
                             for (int i : ch.getVerses()) {
-                                CheckBox tmp = new CheckBox(bible.getBooks()[rb.getBookNumber()].getTitle() + " "
+                                CheckBox tmp = new CheckBox(bible.getBooks().get(rb.getBookNumber()).getTitle() + " "
                                         + ch.getChapterNumber() + ":" + i);
                                 tmp.selectedProperty().set(true);
                                 list.add(tmp);
@@ -649,7 +647,7 @@ public class BibleController {
                     scrollPane.setFitToWidth(true);
                     scrollPane.setContent(vb);
                     root.getChildren().add(scrollPane);
-                    Double first = 0.9999789;
+                    double first = 0.9999789;
                     scrollPane.vvalueProperty().addListener((observable, oldValue, newValue) -> {
                         try {
                             if (oldValue.equals(first) && newValue.equals(0.0)) {
@@ -675,7 +673,7 @@ public class BibleController {
                         }
                     }
                     for (Triplet<Integer, Integer, Integer> i : waitToRemove) {
-                        ref.removeVers(i.getFirst(), i.getSecond(), i.getThird());
+                        ref.removeVerse(i.getFirst(), i.getSecond(), i.getThird());
                     }
                     referenceTextArea.setText(ref.getReference());
                 } catch (Exception e) {
@@ -689,7 +687,7 @@ public class BibleController {
                     int startIndex = referenceTextArea.getSelection().getStart();
                     int endIndex = referenceTextArea.getSelection().getEnd();
                     String textAreaText = referenceTextArea.getText();
-                    // if (endIndex - startIndex < textAreaText.length() &&
+                    // if (endIndex - startIndex < textAreaText.size()() &&
                     if (startIndex != endIndex) {
                         // System.out.println(startIndex + " " + endIndex);
                         // System.out.println(referenceTextArea.getSelectedText());
@@ -702,7 +700,7 @@ public class BibleController {
                             int lastSpace = bookName.lastIndexOf(" ");
                             if (lastSpace > 0) {
                                 try {
-                                    part = Integer.parseInt(bookName.substring(lastSpace + 1, bookName.length()).trim());
+                                    part = Integer.parseInt(bookName.substring(lastSpace + 1).trim());
                                 } catch (NumberFormatException ignored) {
                                 }
                                 bookName = bookName.substring(0, lastSpace);
@@ -881,8 +879,8 @@ public class BibleController {
         try {
             verseListView.getItems().clear();
             if (selectedPart >= 0 && selectedBook >= 0) {
-                for (int i = 0; i < bible.getBooks()[selectedBook].getChapters()[selectedPart].getLength(); ++i) {
-                    final String text = (i + 1) + ".	" + bible.getBooks()[selectedBook].getChapters()[selectedPart].getVerses()[i];
+                for (int i = 0; i < bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().size(); ++i) {
+                    final String text = (i + 1) + ".	" + bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().get(i);
                     TextFlow textFlow = new TextFlow();
                     final Text e = new Text(text);
                     e.setFont(verseFont);
@@ -920,11 +918,11 @@ public class BibleController {
                         }
                         text3 = text3.replace("]", "").replace("[", "");
                         List<TextFlow> tmpSearchListView = new ArrayList<>();
-                        final Chapter chapter = bible.getBooks()[selectedBook].getChapters()[selectedPart];
+                        final Chapter chapter = bible.getBooks().get(selectedBook).getChapters().get(selectedPart);
                         int found = 0;
-                        for (int i = 0; i < chapter.getLength(); ++i) {
+                        for (int i = 0; i < chapter.getVerses().size(); ++i) {
 //							String text2;
-                            String verse = chapter.getVerses()[i];
+                            String verse = chapter.getVerses().get(i).getText();
 //							if (Settings.getInstance().isWithAccents()) {
 //								text2 = chapter.getVerses()[i];
 //							} else {
@@ -1010,402 +1008,100 @@ public class BibleController {
     void initializeBibles() {
         try {
             if (bible == null) {
-                bible = new Bible();
-                Reader.setBooksRead(false);
-                bible.setBooks(Reader.getBooks(settings.getBiblePaths().get(0)));
+//                BibleApiBean bibleApiBean = new BibleApiBean();
+//                List<Bible> bibles = bibleApiBean.getBibles();
+                BibleService bibleService = ServiceManager.getBibleService();
+//                List<Bible> bibleList = bibleService.create(bibles);
+                List<Bible> bibles = bibleService.findAll();
+                bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
+                if (bibles.size() == 0) {
+                    downloadBibles();
+                    return;
+                }
+                ObservableList<Bible> items = bibleListView.getItems();
+                items.clear();
+                items.addAll(bibles);
+                parallelBibles.addAll(bibles);
+                bibleListView.getSelectionModel().selectFirst();
+//                bible = bibles.get(1);
+
+//                bible = new Bible();
+//                Reader.setBooksRead(false);
+//                bible.setBooks(Reader.getBooks(settings.getBiblePaths().get(3)));
                 // countWords();
-                // System.out.println("Ido1: " + (System.currentTimeMillis() - x));
-                parallelBible = new Bible();
-                Reader.setBooksRead(false);
-                parallelBible.setBooks(Reader.getBooks(settings.getParallelBiblePath()));
-                // System.out.println("Ido2: " + (System.currentTimeMillis() - x));
-                // System.out.println(settings.getParallelBiblePath());
                 addAllBooks();
                 // System.out.println("Ido3: " + (System.currentTimeMillis() - x));
-                shiftParallel = new LinkedList<>();
-                if (settings.isParallel()) {
-                    readShiftsParallel();
-                }
                 bibleSearchController.setBooks(bible.getBooks());
                 historyController.setBible(bible);
+
+//                uploadBible(parallelBible);
+//                uploadBible(bible);
+
+//                Bible otherBible = new Bible();
+//                Reader.setBooksRead(false);
+//                otherBible.setBooks(Reader.getBooks("ElberfelderBibel.txt"));
+//                createIndices(otherBible);
+//                setIndicesForBible(otherBible);
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private void setIndicesForBible(Bible otherBible) {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(Main.class.getResource("/view/IndicesForBibleView.fxml"));
+            loader.setResources(Settings.getInstance().getResourceBundle());
+            Pane root = loader.load();
+            IndicesForBibleController controller = loader.getController();
+            controller.setLeftBible(bible);
+            controller.setOtherBible(otherBible);
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Indices");
+            stage.show();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    @SuppressWarnings("unused")
+    private void uploadBible(Bible bible) {
+        BibleApiBean bibleApiBean = new BibleApiBean();
+        Bible uploadedBible = bibleApiBean.uploadBible(bible);
+        System.out.println("accomplished");
+    }
+
+    @SuppressWarnings("unused")
+    private void createIndices(Bible bible) {
+        bible.setName("Elberfelder 1905");
+        bible.setShortName("ELB");
+        List<Language> all = ServiceManager.getLanguageService().findAll();
+        bible.setLanguage(all.get(0));
+        int k = 1;
+        for (Book book : bible.getBooks()) {
+            short chapterNr = 1;
+            for (Chapter chapter : book.getChapters()) {
+                chapter.setNumber(chapterNr++);
+                short verseNr = 1;
+                for (BibleVerse bibleVerse : chapter.getVerses()) {
+                    bibleVerse.setNumber(verseNr++);
+                    ArrayList<VerseIndex> verseIndices = new ArrayList<>();
+                    VerseIndex verseIndex = new VerseIndex();
+                    verseIndex.setIndexNumber((long) (k++ * 1000));
+                    verseIndices.add(verseIndex);
+                    bibleVerse.setVerseIndices(verseIndices);
+                }
+            }
         }
     }
 
     boolean isNotAllBooks() {
         return !isAllBooks;
-    }
-
-    void readParallelBible() {
-        try {
-            Reader.setBooksRead(false);
-            parallelBible.setBooks(Reader.getBooks(settings.getParallelBiblePath()));
-            if (settings.isParallel()) {
-                readShiftsParallel();
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
-
-    private String getPrevVerse(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift >= 0) {
-                if (verse - shift >= 0) {
-                    return bible.getBooks()[book].getChapters()[chapter].getVerses()[verse - shift];
-                }
-                if (chapter > 0) {
-                    if (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift >= 0) {
-                        return bible.getBooks()[book].getChapters()[chapter - 1]
-                                .getVerses()[bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse
-                                - shift];
-                    } else {
-                        // return "";
-                        shift -= bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length;
-                        chapter--;
-                        if (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift >= 0) {
-                            return bible.getBooks()[book].getChapters()[chapter - 1]
-                                    .getVerses()[bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse
-                                    - shift];
-                        } else {
-                            return "";
-                        }
-                    }
-                }
-                if (book > 0) {
-                    Book tmpBook = bible.getBooks()[book - 1];
-                    if (tmpBook.getChapters()[tmpBook.getChapters().length - 1].getVerses().length - shift >= 0) {
-                        return tmpBook.getChapters()[tmpBook.getChapters().length - 1]
-                                .getVerses()[tmpBook.getChapters()[tmpBook.getChapters().length - 1].getVerses().length
-                                - shift];
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return "";
-    }
-
-    private int getPrevVerseNumber(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift >= 0) {
-                if (verse - shift >= 0) {
-                    return verse - shift;
-                }
-                if (chapter > 0) {
-                    if (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift >= 0) {
-                        return bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift;
-                    } else {
-                        // return "";
-                        shift -= bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length;
-                        chapter--;
-                        if (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift >= 0) {
-                            return bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift;
-                        } else {
-                            return -1;
-                        }
-                    }
-                }
-                if (book > 0) {
-                    Book tmpBook = bible.getBooks()[book - 1];
-                    if (tmpBook.getChapters()[tmpBook.getChapters().length - 1].getVerses().length - shift >= 0) {
-                        return tmpBook.getChapters()[tmpBook.getChapters().length - 1].getVerses().length - shift;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return -1;
-    }
-
-    private String getNextVerse(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift >= 0) {
-                if (verse + shift < bible.getBooks()[book].getChapters()[chapter].getVerses().length) {
-                    return bible.getBooks()[book].getChapters()[chapter].getVerses()[verse + shift];
-                }
-                if (verse >= bible.getBooks()[book].getChapters()[chapter].getVerses().length) {
-                    shift -= 1;
-                } else {
-                    shift -= bible.getBooks()[book].getChapters()[chapter].getVerses().length - verse + 1;
-                }
-                if (chapter + 1 < bible.getBooks()[book].getChapters().length) {
-                    if (bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length > shift) {
-                        return bible.getBooks()[book].getChapters()[chapter + 1].getVerses()[shift];
-                    } else {
-                        // return "";
-                        shift -= bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length;
-                        chapter++;
-                        if (chapter + 1 < bible.getBooks()[book].getChapters().length) {
-                            if (bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length > shift) {
-                                return bible.getBooks()[book].getChapters()[chapter + 1].getVerses()[shift];
-                            } else {
-                                return "";
-                            }
-                        }
-                    }
-                }
-                if (book < bible.getBooks().length - 1) {
-                    Book tmpBook = bible.getBooks()[book + 1];
-                    if (tmpBook.getChapters()[0].getVerses().length > shift) {
-                        return tmpBook.getChapters()[0].getVerses()[shift];
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return "";
-    }
-
-    private int getNextVerseNumber(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift >= 0) {
-                if (verse + shift < bible.getBooks()[book].getChapters()[chapter].getVerses().length) {
-                    return verse + shift;
-                }
-                if (verse >= bible.getBooks()[book].getChapters()[chapter].getVerses().length) {
-                    shift -= 1;
-                } else {
-                    shift -= bible.getBooks()[book].getChapters()[chapter].getVerses().length - verse + 1;
-                }
-                if (chapter + 1 < bible.getBooks()[book].getChapters().length) {
-                    if (bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length > shift) {
-                        return shift;
-                    } else {
-                        // return "";
-                        shift -= bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length;
-                        chapter++;
-                        if (chapter + 1 < bible.getBooks()[book].getChapters().length) {
-                            if (bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length > shift) {
-                                return shift;
-                            } else {
-                                return -1;
-                            }
-                        }
-                    }
-                }
-                if (book < bible.getBooks().length - 1) {
-                    Book tmpBook = bible.getBooks()[book + 1];
-                    if (tmpBook.getChapters()[0].getVerses().length > shift) {
-                        return shift;
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return -1;
-    }
-
-    private String getPrevVerseReference(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift >= 0) {
-                if (verse - shift >= 0) {
-                    return bible.getBooks()[book].getTitle().trim() + " " + (chapter + 1) + ":" + (verse - shift + 1);
-                }
-                if (chapter > 0) {
-                    if (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift >= 0) {
-                        return bible.getBooks()[book].getTitle().trim() + " " + (chapter) + ":"
-                                + (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift + 1);
-                    } else {
-                        // return "";
-                        shift -= bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length;
-                        chapter--;
-                        if (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift >= 0) {
-                            return bible.getBooks()[book].getTitle().trim() + " " + (chapter) + ":"
-                                    + (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift
-                                    + 1);
-                        } else {
-                            return "";
-                        }
-                    }
-                }
-                if (book > 0) {
-                    Book tmpBook = bible.getBooks()[book - 1];
-                    if (tmpBook.getChapters()[tmpBook.getChapters().length - 1].getVerses().length - shift >= 0) {
-                        return tmpBook.getTitle().trim() + " " + (tmpBook.getChapters().length) + ":"
-                                + (tmpBook.getChapters()[tmpBook.getChapters().length - 1].getVerses().length - shift + 1);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return "";
-    }
-
-    private String getPrevVerseReferenceNumbers(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift >= 0) {
-                if (verse - shift >= 0) {
-                    return book + " " + (chapter + 1) + " " + (verse - shift + 1);
-                }
-                if (chapter > 0) {
-                    if (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift >= 0) {
-                        return book + " " + (chapter) + " "
-                                + (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift + 1);
-                    } else {
-                        shift -= bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length;
-                        chapter--;
-                        if (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift >= 0) {
-                            return book + " " + (chapter) + " "
-                                    + (bible.getBooks()[book].getChapters()[chapter - 1].getVerses().length + verse - shift
-                                    + 1);
-                        } else {
-                            return "";
-                        }
-                    }
-                }
-                if (book > 0) {
-                    Book tmpBook = bible.getBooks()[book - 1];
-                    if (tmpBook.getChapters()[tmpBook.getChapters().length - 1].getVerses().length - shift >= 0) {
-                        return (book - 1) + " " + (tmpBook.getChapters().length) + " "
-                                + (tmpBook.getChapters()[tmpBook.getChapters().length - 1].getVerses().length - shift + 1);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return "";
-    }
-
-    private String getNextVerseReference(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift >= 0) {
-                if (verse + shift < bible.getBooks()[book].getChapters()[chapter].getVerses().length) {
-                    return bible.getBooks()[book].getTitle().trim() + " " + (chapter + 1) + ":" + (verse + shift + 1);
-                }
-                if (verse >= bible.getBooks()[book].getChapters()[chapter].getVerses().length) {
-                    shift -= 1;
-                } else {
-                    shift -= bible.getBooks()[book].getChapters()[chapter].getVerses().length - verse + 1;
-                }
-                if (chapter + 1 < bible.getBooks()[book].getChapters().length) {
-                    if (bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length > shift) {
-                        return bible.getBooks()[book].getTitle().trim() + " " + (chapter + 2) + ":" + (shift + 1);
-                    } else {
-                        // return "";
-                        shift -= bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length;
-                        chapter++;
-                        if (chapter + 1 < bible.getBooks()[book].getChapters().length) {
-                            if (bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length > shift) {
-                                return bible.getBooks()[book].getTitle().trim() + " " + (chapter + 2) + ":" + (shift + 1);
-                            } else {
-                                return "";
-                            }
-                        }
-                    }
-                }
-                if (book < bible.getBooks().length - 1) {
-                    Book tmpBook = bible.getBooks()[book + 1];
-                    if (tmpBook.getChapters()[0].getVerses().length > shift) {
-                        return tmpBook.getTitle().trim() + " 1:" + (shift + 1);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return "";
-    }
-
-    private String getNextVerseReferenceNumbers(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift >= 0) {
-                if (verse + shift < bible.getBooks()[book].getChapters()[chapter].getVerses().length) {
-                    return book + " " + (chapter + 1) + " " + (verse + shift + 1);
-                }
-                if (verse >= bible.getBooks()[book].getChapters()[chapter].getVerses().length) {
-                    shift -= 1;
-                } else {
-                    shift -= bible.getBooks()[book].getChapters()[chapter].getVerses().length - verse + 1;
-                }
-                if (chapter + 1 < bible.getBooks()[book].getChapters().length) {
-                    if (bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length > shift) {
-                        return book + " " + (chapter + 2) + " " + (shift + 1);
-                    } else {
-                        shift -= bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length;
-                        chapter++;
-                        if (chapter + 1 < bible.getBooks()[book].getChapters().length) {
-                            if (bible.getBooks()[book].getChapters()[chapter + 1].getVerses().length > shift) {
-                                return book + " " + (chapter + 2) + " " + (shift + 1);
-                            } else {
-                                return "";
-                            }
-                        }
-                    }
-                }
-                if (book < bible.getBooks().length - 1) {
-                    Book tmpBook = bible.getBooks()[book + 1];
-                    if (tmpBook.getChapters()[0].getVerses().length > shift) {
-                        return (book + 1) + " 1 " + (shift + 1);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return "";
-    }
-
-    private void readShiftsParallel() {
-        try {
-            Settings settings = this.settings;
-            int index = 0;
-            if (bibleListView != null) {
-                index = bibleListView.getSelectionModel().getSelectedIndex();
-                if (index < 0) {
-                    index = 0;
-                }
-            }
-            String fileName = settings.getBiblePaths().get(index) + "-" + settings.getParallelBiblePath();
-            // System.out.println(fileName);
-            shiftParallel = new LinkedList<>();
-            shiftParallelI = new LinkedList<>();
-            multipleShiftParallel = new LinkedList<>();
-            try {
-                FileInputStream f = new FileInputStream(fileName);
-                BufferedReader br = new BufferedReader(new InputStreamReader(f, "UTF-8"));
-                while (br.ready()) {
-                    String tmp = br.readLine();
-                    if (tmp == null) {
-                        break;
-                    }
-                    String[] split = tmp.split(" ");
-                    shiftParallel.add(split[0] + " " + split[1] + " " + split[2]);
-                    if (split[3].equals("x")) {
-                        shiftParallelI.add(null);
-                        multipleShiftParallel.add("");
-                        continue;
-                    }
-                    if (!tmp.contains(":")) {
-                        // shiftParallel.add(split[0] + " " + split[1] + " " +
-                        // split[2]);
-                        shiftParallelI.add(Integer.parseInt(split[3]));
-                        multipleShiftParallel.add("");
-                    } else {
-                        // 18 13 6 : 18 13 5 18 13 6
-                        // shiftParallel.add(split[0] + " " + split[1] + " " +
-                        // split[2]);
-                        multipleShiftParallel.add(split[4] + " " + split[5] + " " + split[6] + " " + split[7] + " "
-                                + split[8] + " " + split[9]);
-                        shiftParallelI.add(0);
-                    }
-                }
-                br.close();
-            } catch (FileNotFoundException ignored) {
-            } catch (IOException e) {
-                LOG.error(e.getMessage(), e);
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
     }
 
     void setMainController(MyController mainController) {
@@ -1457,8 +1153,8 @@ public class BibleController {
                 searchIBook.clear();
             }
             bookListView.getItems().clear();
-            for (int iBook = 0; iBook < bible.getBooks().length; ++iBook) {
-                bookListView.getItems().add(bible.getBooks()[iBook].getTitle());
+            for (int iBook = 0; iBook < bible.getBooks().size(); ++iBook) {
+                bookListView.getItems().add(bible.getBooks().get(iBook).getTitle());
                 searchIBook.add(iBook);
             }
             isAllBooks = true;
@@ -1476,9 +1172,9 @@ public class BibleController {
                     searchIBook.clear();
                 }
                 bookListView.getItems().clear();
-                for (int iBook = 0; iBook < bible.getBooks().length; ++iBook) {
-                    if (contains(bible.getBooks()[iBook].getTitle(), text)) {
-                        bookListView.getItems().add(bible.getBooks()[iBook].getTitle());
+                for (int iBook = 0; iBook < bible.getBooks().size(); ++iBook) {
+                    if (contains(bible.getBooks().get(iBook).getTitle(), text)) {
+                        bookListView.getItems().add(bible.getBooks().get(iBook).getTitle());
                         searchIBook.add(iBook);
                     }
                 }
@@ -1599,264 +1295,67 @@ public class BibleController {
         }
     }
 
-    private String getVerse(int shift, Bible bible, int book, int chapter, int verse) {
+    private String getParallelVerseAndReference(Bible parallelBible, List<BibleVerse> verses) {
         try {
-            if (shift < 0) {
-                return getPrevVerse(-shift, bible, book, chapter, verse);
-            } else {
-                return getNextVerse(shift, bible, book, chapter, verse);
+            List<BibleVerse> bibleVerses = new ArrayList<>();
+            for (BibleVerse bibleVerse : verses) {
+                if (bibleVerse.getChapter().getBook().getBible().getId().equals(parallelBible.getId())) {
+                    bibleVerses.add(bibleVerse);
+                }
             }
+            return getVersesAndReference(parallelBible, bibleVerses);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
         return "";
     }
 
-    private int getVerseNumber(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift < 0) {
-                return getPrevVerseNumber(-shift, bible, book, chapter, verse);
-            } else {
-                return getNextVerseNumber(shift, bible, book, chapter, verse);
+    private List<BibleVerse> getVersesByIndices(List<VerseIndex> verseIndices) {
+        VerseIndexService verseIndexService = ServiceManager.getVerseIndexService();
+        List<BibleVerse> verses = new ArrayList<>();
+        List<Long> uniqueIndices = new ArrayList<>(verseIndices.size());
+        for (VerseIndex verseIndex : verseIndices) {
+            Long indexNumber = verseIndex.getIndexNumber();
+            if (!uniqueIndices.contains(indexNumber)) {
+                uniqueIndices.add(indexNumber);
             }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
         }
-        return 0;
+        for (Long index : uniqueIndices) {
+            List<VerseIndex> indices = verseIndexService.findByIndex(index);
+            for (VerseIndex verseIndex : indices) {
+                BibleVerse bibleVerse = verseIndex.getBibleVerse();
+                if (!verses.contains(bibleVerse)) {
+                    verses.add(bibleVerse);
+                }
+            }
+        }
+        return verses;
     }
 
-    private String getVerseReference(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift < 0) {
-                return getPrevVerseReference(-shift, bible, book, chapter, verse);
-            } else {
-                return getNextVerseReference(shift, bible, book, chapter, verse);
+    private String getVersesAndReference(Bible bible, List<BibleVerse> bibleVerses) {
+        Reference reference = new Reference();
+        reference.setBible(bible);
+        StringBuilder result = new StringBuilder();
+        for (BibleVerse bibleVerse : bibleVerses) {
+            result.append("\n");
+            if (bibleVerses.size() > 1) {
+                result.append(bibleVerse.getNumber()).append(". ");
             }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            result.append(bibleVerse.getText());
+            reference.addVerse(bibleVerse.getChapter().getBook(), bibleVerse.getChapter().getNumber(), bibleVerse.getNumber());
         }
-        return "";
-    }
-
-    private String getVerseReferenceNumbers(int shift, Bible bible, int book, int chapter, int verse) {
-        try {
-            if (shift < 0) {
-                return getPrevVerseReferenceNumbers(-shift, bible, book, chapter, verse);
-            } else {
-                return getNextVerseReferenceNumbers(shift, bible, book, chapter, verse);
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+        result.append("\n");
+        if (settings.isReferenceItalic()) {
+            result.append("[");
         }
-        return "";
-    }
-
-    private String getParallelVerse(int book, int part, int verse) {
-        try {
-            String result = "";
-            if (shiftParallel.contains(book + " " + (part + 1) + " " + (verse + 1))) {
-                int index = shiftParallel.indexOf(book + " " + (part + 1) + " " + (verse + 1));
-                if (shiftParallelI.get(index) != null) {
-                    int shift = shiftParallelI.get(index);
-                    if (shift != 0) {
-                        int x = getVerseNumber(shift, parallelBible, book, part, verse);
-                        if (x != -1) {
-                            result += (x + 1) + ". ";
-                        }
-                        result += getVerse(shift, parallelBible, book, part, verse);
-                    } else {
-                        String[] split = multipleShiftParallel.get(index).split(" ");
-                        int book1 = Integer.parseInt(split[0]);
-                        int part1 = Integer.parseInt(split[1]) - 1;
-                        int verse1 = Integer.parseInt(split[2]) - 1;
-                        int book2 = Integer.parseInt(split[3]);
-                        int part2 = Integer.parseInt(split[4]) - 1;
-                        int verse2 = Integer.parseInt(split[5]) - 1;
-                        if (verse1 < verse2) {
-                            result += (verse1 + 1) + ". "
-                                    + parallelBible.getBooks()[book1].getChapters()[part1].getVerses()[verse1] + "\n"
-                                    + (verse2 + 1) + ". "
-                                    + parallelBible.getBooks()[book2].getChapters()[part2].getVerses()[verse2];
-                        }
-                    }
-                }
-            } else {
-                if (parallelBible.getBooks()[book].getChapters().length > part) {
-                    if (parallelBible.getBooks()[book].getChapters()[part].getVerses().length > verse) {
-                        result += (verse + 1) + ". ";
-                        result += parallelBible.getBooks()[book].getChapters()[part].getVerses()[verse];
-                    } else {
-                        result += (parallelBible.getBooks()[book].getChapters()[part].getVerses().length) + ". ";
-                        result += parallelBible.getBooks()[book].getChapters()[part]
-                                .getVerses()[parallelBible.getBooks()[book].getChapters()[part].getVerses().length - 1];
-                    }
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+        result.append(reference.getReference());
+        if (settings.getBibleShortName()) {
+            result.append(" (").append(bible.getShortName()).append(")");
         }
-        return "";
-    }
-
-    private String getParallelReference(int book, int part, int verse) {
-        try {
-            String result = "";
-            if (shiftParallel.contains(book + " " + (part + 1) + " " + (verse + 1))) {
-                int index = shiftParallel.indexOf(book + " " + (part + 1) + " " + (verse + 1));
-                if (shiftParallelI.get(index) != null) {
-                    int shift = shiftParallelI.get(index);
-                    if (shift != 0) {
-                        result += getVerseReferenceNumbers(shift, parallelBible, book, part, verse);
-                    } else {
-                        return multipleShiftParallel.get(index);
-                    }
-                }
-            } else {
-                if (parallelBible.getBooks()[book].getChapters().length > part) {
-                    if (parallelBible.getBooks()[book].getChapters()[part].getVerses().length > verse) {
-                        result = book + " " + (part + 1) + " " + (verse + 1);
-                    } else {
-                        result = book + " " + (part + 1) + " "
-                                + (parallelBible.getBooks()[book].getChapters()[part].getVerses().length);
-                    }
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+        if (settings.isReferenceItalic()) {
+            result.append("]");
         }
-        return "";
-    }
-
-    private String getParallelVerseAndReference(int book, int part, int verse) {
-        try {
-            String result = "";
-            if (shiftParallel.contains(book + " " + (part + 1) + " " + (verse + 1))) {
-                int index = shiftParallel.indexOf(book + " " + (part + 1) + " " + (verse + 1));
-                if (shiftParallelI.get(index) != null) {
-                    int shift = shiftParallelI.get(index);
-                    if (shift != 0) {
-                        result += "\n" + getVerse(shift, parallelBible, book, part, verse);
-                        if (settings.isReferenceItalic()) {
-                            result += "[";
-                        }
-                        result += "\n" + getVerseReference(shift, parallelBible, book, part, verse);
-                        if (settings.isReferenceItalic()) {
-                            result += "]";
-                        }
-                    } else {
-                        String[] split = multipleShiftParallel.get(index).split(" ");
-                        int book1 = Integer.parseInt(split[0]);
-                        int part1 = Integer.parseInt(split[1]) - 1;
-                        int verse1 = Integer.parseInt(split[2]) - 1;
-                        int book2 = Integer.parseInt(split[3]);
-                        int part2 = Integer.parseInt(split[4]) - 1;
-                        int verse2 = Integer.parseInt(split[5]) - 1;
-                        result += "\n" + (verse1 + 1) + ". "
-                                + parallelBible.getBooks()[book1].getChapters()[part1].getVerses()[verse1] + "\n"
-                                + (verse2 + 1) + ". "
-                                + parallelBible.getBooks()[book2].getChapters()[part2].getVerses()[verse2];
-                        result += "\n";
-                        if (settings.isReferenceItalic()) {
-                            result += "[";
-                        }
-                        result += parallelBible.getBooks()[book1].getTitle().trim() + " ";
-                        result += (part1 + 1) + ":" + (verse1 + 1);
-                        if (book1 == book2) {
-                            if (part1 == part2) {
-                                result += "," + (verse2 + 1);
-                            } else {
-                                result += "; " + (part2 + 1) + ":" + (verse2 + 1);
-                            }
-                        } else {
-                            result += "; " + parallelBible.getBooks()[book2].getTitle().trim() + " " + (part2 + 1) + ":"
-                                    + (verse2 + 1);
-                        }
-                        if (settings.isReferenceItalic()) {
-                            result += "]";
-                        }
-                    }
-                }
-            } else {
-                if (parallelBible.getBooks()[book].getChapters().length > part) {
-                    if (parallelBible.getBooks()[book].getChapters()[part].getVerses().length > verse) {
-                        // ITT VANN TODO
-                        // int p =
-                        // StringUtils.highestCommonSubStringInt(
-                        // bible.getBooks()[selectedBook].getChapters()[selectedPart].getVerses()[iVers],
-                        // parallelBible.getBooks()[selectedBook].getChapters()[selectedPart]
-                        // .getVerses()[iVers]);
-                        // double x = p;
-                        // if
-                        // (bible.getBooks()[selectedBook].getChapters()[selectedPart].getVerses()[iVers]
-                        // .length() >
-                        // parallelBible.getBooks()[selectedBook].getChapters()[selectedPart]
-                        // .getVerses()[iVers].length()) {
-                        //// x /=
-                        // bible.getBooks()[selectedBook].getChapters()[selectedPart].getVerses()[iVers]
-                        //// .length();
-                        // } else {
-                        //// x /=
-                        // parallelBible.getBooks()[selectedBook].getChapters()[selectedPart]
-                        //// .getVerses()[iVers].length();
-                        // }
-                        // System.out.println(p + " " + x);
-                        //
-                        // System.out.println(getPrevVerse(1, bible,
-                        // selectedBook, selectedPart, iVers));
-                        // System.out.println(getPrevVerse(2, bible,
-                        // selectedBook, selectedPart, iVers));
-                        // System.out.println(getPrevVerse(3, bible,
-                        // selectedBook, selectedPart, iVers));
-                        // System.out.println(getNextVerse(1, bible,
-                        // selectedBook, selectedPart, iVers));
-                        // System.out.println(getNextVerse(2, bible,
-                        // selectedBook, selectedPart, iVers));
-                        // System.out.println(getNextVerse(3, bible,
-                        // selectedBook, selectedPart, iVers));
-                        // TODO END
-                        if (shiftParallel.contains(book + " " + (part + 1) + " " + (verse + 1))) {
-                            int shift = shiftParallelI
-                                    .get(shiftParallel.indexOf(book + " " + (part + 1) + " " + (verse + 1)));
-                            result += "\n" + getVerse(shift, parallelBible, book, part, verse);
-                            if (settings.isReferenceItalic()) {
-                                result += "[";
-                            }
-                            result += "\n" + getVerseReference(shift, parallelBible, book, part, verse);
-                            if (settings.isReferenceItalic()) {
-                                result += "]";
-                            }
-                        } else {
-                            result += "\n" + parallelBible.getBooks()[book].getChapters()[part].getVerses()[verse];
-                            if (settings.isReferenceItalic()) {
-                                result += "[";
-                            }
-                            result += "\n" + parallelBible.getBooks()[book].getTitle().trim() + " " + (part + 1) + ":"
-                                    + (verse + 1);
-                            if (settings.isReferenceItalic()) {
-                                result += "]";
-                            }
-                        }
-                    } else {
-                        result += "\n" + parallelBible.getBooks()[book].getChapters()[part]
-                                .getVerses()[parallelBible.getBooks()[book].getChapters()[part].getVerses().length - 1];
-                        if (settings.isReferenceItalic()) {
-                            result += "[";
-                        }
-                        result += "\n" + parallelBible.getBooks()[book].getTitle().trim() + " " + (part + 1) + ":"
-                                + (parallelBible.getBooks()[book].getChapters()[part].getVerses().length);
-                        if (settings.isReferenceItalic()) {
-                            result += "]";
-                        }
-                    }
-                }
-            }
-            return result;
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return "";
+        return result.toString();
     }
 
     private void verseSelected() {
@@ -1865,145 +1364,45 @@ public class BibleController {
             ObservableList<Integer> ob = verseListView.getSelectionModel().getSelectedIndices();
             StringBuilder string = new StringBuilder();
             int iVerse;
-            String reference;
-            if (ob.size() == 1) {
-                iVerse = verseListView.getSelectionModel().getSelectedIndex();
-                if (selectedBook >= 0 && selectedPart >= 0 && iVerse >= 0) {
-                    // List<Text> tmpTextList = new LinkedList<>();
-                    string = new StringBuilder(bible.getBooks()[selectedBook].getChapters()[selectedPart].getVerses()[iVerse]);
-                    // Text tmp = new Text(string);
-                    // tmpTextList.add(tmp);
-                    reference = getVerseReference(0, bible, selectedBook, selectedPart, iVerse);
-                    // tmp = new Text("\n" + reference);
-                    // tmp.setTextAlignment(TextAlignment.RIGHT);
-                    // tmp.setFill(Color.GREEN);
-                    // tmpTextList.add(tmp);
-                    // projectionScreenController.setTextsList(tmpTextList);
-                    if (settings.isReferenceItalic()) {
-                        reference = "[" + reference + "]";
-                    }
-                    string.append("\n").append(reference);
-                    if (settings.isParallel()) {
-                        string.append("<color=\"").append(settings.getParallelBibleColor().toString()).append("\">");
-                        string.append(getParallelVerseAndReference(selectedBook, selectedPart, iVerse));
-                        string.append("</color>");
-                    }
+            iVerse = verseListView.getSelectionModel().getSelectedIndex();
+            if (selectedBook >= 0 && selectedPart >= 0 && iVerse >= 0) {
+                // List<Text> tmpTextList = new LinkedList<>();
+                List<VerseIndex> verseIndices = new ArrayList<>();
+                List<BibleVerse> bibleVerses = new ArrayList<>(ob.size());
+                for (int i : ob) {
+                    BibleVerse bibleVerse = bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().get(i);
+                    bibleVerses.add(bibleVerse);
+                    verseIndices.addAll(bibleVerse.getVerseIndices());
                 }
-                recentController.addRecentBibleVers(string.toString(), selectedBook, selectedPart, iVerse);
-            } else if (ob.size() > 1) {
-                iVerse = ob.get(0);
-                StringBuilder verseNumbers = new StringBuilder();
-                StringBuilder tmpParallelVerses = new StringBuilder();
-                Reference parallelRef = new Reference();
-                parallelRef.setBible(parallelBible);
-                if (selectedBook >= 0 && selectedPart >= 0 && iVerse >= 0) {
-                    System.out.println(ob.get(0) + " " + iVerse);
-                    string = new StringBuilder((ob.get(0) + 1) + ". "
-                            + bible.getBooks()[selectedBook].getChapters()[selectedPart].getVerses()[iVerse]);
-                    verseNumbers.append(ob.get(0) + 1);
-                    if (settings.isParallel()) {
-                        String tmp = getParallelVerse(selectedBook, selectedPart, iVerse);
-                        if (!tmp.equals("")) {
-                            tmpParallelVerses.append("\n").append(tmp);
-                            String[] split = getParallelReference(selectedBook, selectedPart, iVerse).split(" ");
-                            getReferenceFromSplit(parallelRef, split);
-                        }
-                    }
-                }
-                if (selectedBook >= 0 && selectedPart >= 0 && iVerse >= 0) {
-                    for (int i = 1; i < ob.size(); ++i) {
-                        string.append("\n").append(ob.get(i) + 1).append(". ").append(bible.getBooks()[selectedBook].getChapters()[selectedPart].getVerses()[ob.get(i)]);
-
-                        if (settings.isParallel()) {
-                            String tmp = getParallelVerse(selectedBook, selectedPart, ob.get(i));
-                            if (!tmp.equals("")) {
-                                tmpParallelVerses.append("\n").append(tmp);
-                                String[] split = getParallelReference(selectedBook, selectedPart, ob.get(i)).split(" ");
-                                getReferenceFromSplit(parallelRef, split);
-                            }
-                        }
-                        if (i == ob.size() - 1) {
-                            if (ob.get(i - 1) + 1 == ob.get(i)) {
-                                verseNumbers.append("-").append(ob.get(i) + 1);
-                            } else {
-                                verseNumbers.append(",").append(ob.get(i) + 1);
-                            }
-                        } else {
-                            if (ob.get(i - 1) + 1 == ob.get(i)) {
-                                if (ob.get(i) + 1 != ob.get(i + 1)) {
-                                    verseNumbers.append("-").append(ob.get(i) + 1);
-                                }
-                            } else {
-                                verseNumbers.append(",").append(ob.get(i) + 1);
-                            }
-                        }
-                    }
-                }
-                // string = string + "\n" +
-                // bookListView.getSelectionModel().getSelectedItem().trim()
-                // + " "
-                // + (iPart + 1) + ":" + ob.get(0) + "-" +
-                // ob.get(ob.size() - 1);
-                reference = bible.getBooks()[selectedBook].getTitle().trim() + " " + (selectedPart + 1) + ":" + verseNumbers;
-                if (settings.isReferenceItalic()) {
-                    reference = "[" + reference + "]";
-                }
-                string.append("\n").append(reference);
+                string = new StringBuilder(getVersesAndReference(bible, bibleVerses).replaceFirst("\n", ""));
                 if (settings.isParallel()) {
-                    if (!tmpParallelVerses.toString().equals("")) {
-                        if (!tmpParallelVerses.toString().trim().isEmpty()) {
-                            string.append("<color=\"").append(settings.getParallelBibleColor().toString()).append("\">");
-                            string.append(tmpParallelVerses).append("\n");
-                            if (settings.isReferenceItalic()) {
-                                string.append("[");
+                    List<BibleVerse> verses = getVersesByIndices(verseIndices);
+                    for (Bible parallelBible : parallelBibles) {
+                        if (parallelBible.getParallelNumber() > 0) {
+                            String s = getParallelVerseAndReference(parallelBible, verses);
+                            if (!s.trim().equals("[]") && !s.trim().isEmpty()) {
+                                string.append("<color=\"").append(parallelBible.getColor().toString()).append("\">");
+                                string.append(s);
+                                string.append("</color>");
                             }
-                            string.append(parallelRef.getReference());
-                            if (settings.isReferenceItalic()) {
-                                string.append("]");
-                            }
-                            string.append("</color>");
                         }
                     }
                 }
-                ArrayList<Integer> tmp = new ArrayList<>(ob);
-                recentController.addRecentBibleVers(string.toString(), selectedBook, selectedPart, iVerse, verseNumbers.toString(), tmp);
             }
+            recentController.addRecentBibleVers(string.toString(), selectedBook, selectedPart, iVerse);
             if (string.length() > 0) {
                 if (!settings.isShowReferenceOnly()) {
                     projectionScreenController.setText(string.toString(), ProjectionType.BIBLE);
                 }
-                // if (!referenceTextArea.getText().trim().isEmpty()) {
-                // reference = "\n" + reference;
-                // }
-                // ref.setReference(referenceTextArea.getText() + reference);
                 for (int i : ob) {
                     if (i == -1) {
                         i = verseListView.getSelectionModel().getSelectedIndex();
                     }
-                    ref.addVers(selectedBook, selectedPart + 1, i + 1);
+                    ref.addVerse(selectedBook, selectedPart + 1, i + 1);
                 }
                 refreshReferenceTextArea();
                 if (settings.isShowReferenceOnly()) {
                     projectionScreenController.setText(referenceTextArea.getText(), ProjectionType.REFERENCE);
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
-
-    private void getReferenceFromSplit(Reference reference, String[] split) {
-        try {
-            if (split.length > 2) {
-                int book1 = Integer.parseInt(split[0]);
-                int part1 = Integer.parseInt(split[1]);
-                int verse1 = Integer.parseInt(split[2]);
-                reference.addVers(book1, part1, verse1);
-                if (split.length > 5) {
-                    book1 = Integer.parseInt(split[3]);
-                    part1 = Integer.parseInt(split[4]);
-                    verse1 = Integer.parseInt(split[5]);
-                    reference.addVers(book1, part1, verse1);
                 }
             }
         } catch (Exception e) {
@@ -2077,8 +1476,57 @@ public class BibleController {
             settings.setBibleTabHorizontalSplitPaneDividerPosition(horizontalSplitPane.getDividerPositions()[0]);
             settings.setBibleTabVerticalSplitPaneDividerPosition(verticalSplitPane.getDividerPositions()[0]);
             settings.save();
+            if (bible != null) {
+                bible.setUsage(bible.getUsage() + 1);
+                ServiceManager.getBibleService().update(bible);
+            }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    public void downloadBibles() {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(Main.class.getResource("/view/DownloadBibles.fxml"));
+            loader.setResources(Settings.getInstance().getResourceBundle());
+            Pane root = loader.load();
+            DownloadBiblesController controller = loader.getController();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download bibles"));
+            controller.setBibleController(this);
+            controller.setStage(stage);
+            stage.show();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    public void parallelBibles() {
+        try {
+            FXMLLoader loader = new FXMLLoader();
+            loader.setLocation(Main.class.getResource("/view/ParallelBibles.fxml"));
+            loader.setResources(Settings.getInstance().getResourceBundle());
+            Pane root = loader.load();
+            ParallelBiblesController controller = loader.getController();
+            Scene scene = new Scene(root);
+            scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle(Settings.getInstance().getResourceBundle().getString("Parallel"));
+            controller.initialize(bibleListView.getItems());
+            controller.setBibleController(this);
+            controller.setStage(stage);
+            stage.show();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    void sortParallelBibles() {
+        ParallelBiblesController.sortParallelBibles(parallelBibles);
     }
 }

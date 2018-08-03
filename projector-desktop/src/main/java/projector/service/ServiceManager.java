@@ -1,11 +1,13 @@
 package projector.service;
 
+import projector.service.impl.BibleServiceImpl;
 import projector.service.impl.InformationServiceImpl;
 import projector.service.impl.LanguageServiceImpl;
 import projector.service.impl.SongBookServiceImpl;
 import projector.service.impl.SongCollectionServiceImpl;
 import projector.service.impl.SongServiceImpl;
 import projector.service.impl.SongVerseServiceImpl;
+import projector.service.impl.VerseIndexServiceImpl;
 
 public class ServiceManager {
 
@@ -31,5 +33,13 @@ public class ServiceManager {
 
     public static SongCollectionService getSongCollectionService() {
         return new SongCollectionServiceImpl();
+    }
+
+    public static BibleService getBibleService() {
+        return new BibleServiceImpl();
+    }
+
+    public static VerseIndexService getVerseIndexService() {
+        return new VerseIndexServiceImpl();
     }
 }

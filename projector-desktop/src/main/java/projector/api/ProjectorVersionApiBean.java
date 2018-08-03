@@ -7,6 +7,7 @@ import projector.api.retrofit.ApiManager;
 import projector.api.retrofit.ProjectorVersionApi;
 import retrofit2.Call;
 
+import java.net.ConnectException;
 import java.util.List;
 
 public class ProjectorVersionApiBean {
@@ -21,6 +22,7 @@ public class ProjectorVersionApiBean {
         Call<List<ProjectorVersionDTO>> call = projectorVersionApi.getProjectorVersionsAfterNr(projectorVersionsAfterNr);
         try {
             return call.execute().body();
+        } catch (ConnectException ignored) {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

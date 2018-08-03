@@ -198,7 +198,7 @@
                     <Insets bottom="2.0" left="2.0" right="2.0"/>
                 </padding>
             </BorderPane>
-            <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
+            <BorderPane fx:id="rightBorderPane" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
                 <top>
                     <BorderPane BorderPane.alignment="CENTER">
                         <center>

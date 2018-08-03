@@ -1,29 +1,37 @@
 package projector.model;
 
-public class Book {
+import com.j256.ormlite.dao.ForeignCollection;
+import com.j256.ormlite.field.DatabaseField;
+import com.j256.ormlite.field.ForeignCollectionField;
 
-    private Chapter[] chapters;
+import java.util.ArrayList;
+import java.util.List;
+
+public class Book extends BaseEntity {
+
+    @ForeignCollectionField
+    private ForeignCollection<Chapter> chapterForeignCollection;
+    private List<Chapter> chapters;
+    @DatabaseField
     private String title;
+    @DatabaseField
+    private String shortName;
+    @DatabaseField(foreign = true, foreignAutoRefresh = true, index = true)
+    private Bible bible;
 
-    public Book(Chapter[] chapters) {
-        this.chapters = chapters.clone();
+    public List<Chapter> getChapters() {
+        if (chapters == null && chapterForeignCollection != null) {
+            chapters = new ArrayList<>(chapterForeignCollection.size());
+            chapters.addAll(chapterForeignCollection);
+        }
+        return chapters;
     }
 
-    public Book(String title) {
-        this.title = title;
-    }
-
-    public Book(Chapter[] chapters, String title) {
-        this.chapters = chapters.clone();
-        this.title = title;
-    }
-
-    public Chapter[] getChapters() {
-        return chapters == null ? null : chapters.clone();
-    }
-
-    public void setChapters(Chapter[] chapters) {
-        this.chapters = chapters.clone();
+    public void setChapters(List<Chapter> chapters) {
+        for (Chapter chapter : chapters) {
+            chapter.setBook(this);
+        }
+        this.chapters = chapters;
     }
 
     public String getTitle() {
@@ -34,18 +42,27 @@ public class Book {
         this.title = title;
     }
 
-    public Book copy() {
-        Book newBook = new Book(getTitle());
-        Chapter[] tmpChapters = new Chapter[getChapters().length];
-        for (int iPart = 0; iPart < getChapters().length; ++iPart) {
-            tmpChapters[iPart] = new Chapter();
-            String[] tmpVerses = new String[getChapters()[iPart].getLength()];
-            for (int iVers = 0; iVers < getChapters()[iPart].getLength(); ++iVers) {
-                tmpVerses[iVers] = getChapters()[iPart].getVerses()[iVers];
-            }
-            tmpChapters[iPart].setVerses(tmpVerses);
+    public String getShortName() {
+        return shortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+    }
+
+    public Bible getBible() {
+        return bible;
+    }
+
+    public void setBible(Bible bible) {
+        this.bible = bible;
+    }
+
+    @Override
+    public String toString() {
+        if (shortName == null) {
+            return title;
         }
-        newBook.setChapters(tmpChapters);
-        return newBook;
+        return shortName;
     }
 }

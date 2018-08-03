@@ -1,5 +1,6 @@
 package projector.repository.txt;
 
+import projector.repository.BibleRepository;
 import projector.repository.DAOFactory;
 import projector.repository.InformationDAO;
 import projector.repository.LanguageRepository;
@@ -8,6 +9,7 @@ import projector.repository.SongCollectionElementRepository;
 import projector.repository.SongCollectionRepository;
 import projector.repository.SongDAO;
 import projector.repository.SongVerseDAO;
+import projector.repository.VerseIndexRepository;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class TxtDAOFactory extends DAOFactory {
@@ -43,6 +45,16 @@ public class TxtDAOFactory extends DAOFactory {
 
     @Override
     public SongCollectionElementRepository getSongCollectionElementDAO() {
+        return null;
+    }
+
+    @Override
+    public BibleRepository getBibleDAO() {
+        return null;
+    }
+
+    @Override
+    public VerseIndexRepository getVerseIndexDAO() {
         return null;
     }
 }
