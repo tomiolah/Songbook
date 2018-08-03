@@ -8,11 +8,17 @@ import java.util.List;
 
 public class ReferenceBook {
 
+    private Book book;
     private List<ReferenceChapter> chapters;
     private int bookNumber;
 
     ReferenceBook(int bookNumber) {
         this.bookNumber = bookNumber;
+        chapters = new LinkedList<>();
+    }
+
+    ReferenceBook(Book book) {
+        this.book = book;
         chapters = new LinkedList<>();
     }
 
@@ -32,25 +38,25 @@ public class ReferenceBook {
         return chapters;
     }
 
-    void addVers(int chapter, int vers) {
+    void addVerse(int chapter, int verse) {
         for (ReferenceChapter chapter1 : chapters) {
             if (chapter1.getChapterNumber() == chapter) {
-                chapter1.addVers(vers);
+                chapter1.addVers(verse);
                 return;
             }
         }
         addChapter(chapter);
-        addVers(chapter, vers);
+        addVerse(chapter, verse);
     }
 
     public int getBookNumber() {
         return bookNumber;
     }
 
-    void removeVers(int chapter, int vers) {
+    void removeVerse(int chapter, int verse) {
         for (int i = 0; i < chapters.size(); ++i) {
             if (chapters.get(i).getChapterNumber() == chapter) {
-                chapters.get(i).removeVers(vers);
+                chapters.get(i).removeVers(verse);
                 if (chapters.get(i).isEmpty()) {
                     chapters.remove(i);
                 }
@@ -68,5 +74,13 @@ public class ReferenceBook {
             referenceChapter.clear();
         }
         chapters.clear();
+    }
+
+    public Book getBook() {
+        return book;
+    }
+
+    public void setBook(Book book) {
+        this.book = book;
     }
 }

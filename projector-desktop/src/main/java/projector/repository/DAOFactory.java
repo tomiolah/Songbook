@@ -21,4 +21,8 @@ public abstract class DAOFactory {
     public abstract SongCollectionRepository getSongCollectionDAO();
 
     public abstract SongCollectionElementRepository getSongCollectionElementDAO();
+
+    public abstract BibleRepository getBibleDAO();
+
+    public abstract VerseIndexRepository getVerseIndexDAO();
 }

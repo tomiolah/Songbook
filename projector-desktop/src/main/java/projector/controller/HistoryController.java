@@ -12,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -37,7 +38,7 @@ public class HistoryController {
             return;
         }
         try (FileInputStream inputStream = new FileInputStream("recent.txt");
-             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"))) {
+             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             br.mark(4);
             if ('\ufeff' != br.read()) {
                 br.reset(); // not the BOM marker
@@ -81,7 +82,7 @@ public class HistoryController {
                 Reference reference = new Reference();
                 while ((strLine = br.readLine()) != null && !strLine.isEmpty()) {
                     try {
-                        reference.addVers(strLine);
+                        reference.addVerse(strLine);
                     } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
                         System.out.println(strLine);
                     }
@@ -117,8 +118,6 @@ public class HistoryController {
             for (int i = historyList.size() - 1; i >= 0; --i) {
                 listView.getItems().add(historyList.get(i));
             }
-        } catch (IOException e) {
-            e.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }

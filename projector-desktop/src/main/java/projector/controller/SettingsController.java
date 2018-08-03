@@ -2,7 +2,6 @@ package projector.controller;
 
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
-import javafx.geometry.Orientation;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
@@ -38,11 +37,11 @@ import java.util.Objects;
 
 public class SettingsController {
     @FXML
+    private CheckBox bibleShortNameCheckBox;
+    @FXML
     private CheckBox breakLinesCheckbox;
     @FXML
     private Slider breakAfterSlider;
-    @FXML
-    private ColorPicker parallelBibleColorPicker;
     @FXML
     private Button connectToSharedButton;
     @FXML
@@ -61,8 +60,6 @@ public class SettingsController {
     private Slider maxFontSlider;
     @FXML
     private CheckBox accentsCheckBox;
-    @FXML
-    private Button saveButton;
     @FXML
     private ColorPicker backgroundColorPicker;
     @FXML
@@ -84,8 +81,6 @@ public class SettingsController {
     @FXML
     private CheckBox fastModeCheckBox;
     @FXML
-    private CheckBox parallelCheckBox;
-    @FXML
     private Slider slider;
     @FXML
     private CheckBox showReferenceOnlyCheckBox;
@@ -100,13 +95,7 @@ public class SettingsController {
 
     private Settings settings;
     private ProjectionScreenController projectionScreenController;
-    private int oldParallelBibleIndex;
-    private BibleController bibleController;
 
-    @FXML
-    private Button updateButton;
-    @FXML
-    private ListView<String> bibleListView;
     @FXML
     private CheckBox previewLoadOnStartCheckbox;
     private SongController songController;
@@ -120,7 +109,6 @@ public class SettingsController {
         languageComboBox.setValue(settings.getPreferredLanguage().getLanguage());
         backgroundColorPicker.setValue(Settings.getInstance().getBackgroundColor());
         colorPicker.setValue(Settings.getInstance().getColor());
-        parallelBibleColorPicker.setValue(Settings.getInstance().getParallelBibleColor());
         progressLineColorPicker.setValue(settings.getProgressLineColor());
         if (Settings.getInstance().isBackgroundImage()) {
             imageRadioButton.setSelected(true);
@@ -128,10 +116,7 @@ public class SettingsController {
             colorRadioButton.setSelected(true);
         }
         imagePathTextField.setText(Settings.getInstance().getBackgroundImagePath());
-        oldParallelBibleIndex = Settings.getInstance().getParallelBibleIndex();
-//		parallelPathTextField.setText(Settings.getInstance().getParallelBiblePath());
         fastModeCheckBox.setSelected(Settings.getInstance().isFastMode());
-        parallelCheckBox.setSelected(Settings.getInstance().isParallel());
         slider.setValue(Settings.getInstance().getLineSpace());
         maxFontSlider.setValue(settings.getMaxFont());
         boolean breakLines = settings.isBreakLines();
@@ -162,18 +147,13 @@ public class SettingsController {
         slider.valueChangingProperty().addListener(this::changed);
         showReferenceOnlyCheckBox.setSelected(Settings.getInstance().isShowReferenceOnly());
         referenceItalicCheckBox.setSelected(Settings.getInstance().isReferenceItalic());
-
-        bibleListView.orientationProperty().set(Orientation.HORIZONTAL);
-        for (int i = 0; i < Settings.getInstance().getBibleTitles().size(); ++i) {
-            bibleListView.getItems().add(Settings.getInstance().getBibleTitles().get(i));
-        }
-        bibleListView.getSelectionModel().select(settings.getParallelBibleIndex());
         previewLoadOnStartCheckbox.setSelected(settings.isPreviewLoadOnStart());
         referenceChapterSorting.setSelected(settings.isReferenceChapterSorting());
         referenceVerseSorting.setSelected(settings.isReferenceVerseSorting());
         initializeProgressLine();
         initializeNetworkButtons();
         progressLineThicknessSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, settings.getProgressLineThickness()));
+        bibleShortNameCheckBox.setSelected(settings.getBibleShortName());
     }
 
     private void initializeNetworkButtons() {
@@ -195,10 +175,6 @@ public class SettingsController {
         } else {
             progressLinePositionBottomRadioButton.setSelected(true);
         }
-    }
-
-    synchronized void setBibleController(BibleController bibleController) {
-        this.bibleController = bibleController;
     }
 
     private synchronized void fontWeightValueChange(String newValue) {
@@ -261,7 +237,6 @@ public class SettingsController {
         settings.setWithAccents(accentsCheckBox.isSelected());
         settings.setBackgroundColor(backgroundColorPicker.getValue());
         settings.setColor(colorPicker.getValue());
-        settings.setParallelBibleColor(parallelBibleColorPicker.getValue());
         settings.setProgressLineColor(progressLineColorPicker.getValue());
         if (imageRadioButton.isSelected()) {
             settings.setBackgroundImage(true);
@@ -274,14 +249,6 @@ public class SettingsController {
             settings.setBackgroundImage(false);
         }
         settings.setFastMode(fastModeCheckBox.isSelected());
-        settings.setParallel(parallelCheckBox.isSelected());
-        if (parallelCheckBox.isSelected()) {
-            int selectedIndex = bibleListView.getSelectionModel().getSelectedIndex();
-            if (oldParallelBibleIndex != selectedIndex) {
-                settings.setParallelBibleIndex(selectedIndex);
-                bibleController.readParallelBible();
-            }
-        }
         settings.setFont(listView.getSelectionModel().getSelectedItem().getText());
         settings.setLineSpace(slider.getValue());
         settings.setFontWeight(fontWeightComboBox.getSelectionModel().getSelectedItem());
@@ -297,9 +264,9 @@ public class SettingsController {
             value = 10;
         }
         settings.setProgressLineThickness(value);
+        settings.setBibleShortName(bibleShortNameCheckBox.isSelected());
         settings.save();
         projectionScreenController.setBackGroundColor(backgroundColorPicker.getValue());
-        projectionScreenController.setColor(colorPicker.getValue());
     }
 
     public synchronized void setSettings(Settings settings) {
@@ -347,10 +314,6 @@ public class SettingsController {
     public void setPrefWidth(double d) {
         mainBorderPain.setPrefWidth(d);
         scrollPane.setPrefWidth(d);
-    }
-
-    synchronized void setOldParallelBibleIndex() {
-        oldParallelBibleIndex = settings.getParallelBibleIndex();
     }
 
     private synchronized void changed(ObservableValue<? extends Text> observable, Text oldValue, Text newValue) {

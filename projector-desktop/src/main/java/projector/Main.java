@@ -19,9 +19,7 @@ import projector.application.Settings;
 import projector.application.Updater;
 import projector.controller.MyController;
 import projector.controller.ProjectionScreenController;
-import projector.repository.ormLite.ConvertSongs;
 
-import java.io.File;
 import java.util.ListIterator;
 
 public class Main extends Application {
@@ -34,10 +32,6 @@ public class Main extends Application {
     private Popup popup;
 
     public static void main(String[] args) {
-        File file = new File("data/projector.mv.db");
-        if (!file.exists()) {
-            ConvertSongs.convertToDatabase();
-        }
         launch(args);
     }
 
@@ -197,7 +191,6 @@ public class Main extends Application {
                 Settings settings = Settings.getInstance();
                 settings.setMainHeight(primaryStage.getScene().getHeight());
                 settings.setMainWidth(primaryStage.getScene().getWidth());
-                settings.increaseCurrentBibleUsage();
                 settings.save();
                 if (tmpStage != null) {
                     tmpStage.close();

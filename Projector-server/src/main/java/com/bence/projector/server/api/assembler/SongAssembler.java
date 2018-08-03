@@ -12,12 +12,16 @@ import java.util.List;
 
 @Component
 public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
+    private final SongVerseAssembler songVerseAssembler;
+    private final LanguageAssembler languageAssembler;
+    private final LanguageRepository languageRepository;
+
     @Autowired
-    private SongVerseAssembler songVerseAssembler;
-    @Autowired
-    private LanguageAssembler languageAssembler;
-    @Autowired
-    private LanguageRepository languageRepository;
+    public SongAssembler(SongVerseAssembler songVerseAssembler, LanguageAssembler languageAssembler, LanguageRepository languageRepository) {
+        this.songVerseAssembler = songVerseAssembler;
+        this.languageAssembler = languageAssembler;
+        this.languageRepository = languageRepository;
+    }
 
     @Override
     public SongDTO createDto(Song song) {

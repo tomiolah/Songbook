@@ -28,10 +28,15 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.effect.BlendMode;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -64,7 +69,6 @@ import projector.model.Song;
 import projector.model.SongCollection;
 import projector.model.SongCollectionElement;
 import projector.model.SongVerse;
-import projector.repository.ormLite.DatabaseHelper;
 import projector.service.ServiceException;
 import projector.service.ServiceManager;
 import projector.service.SongCollectionService;
@@ -81,6 +85,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -96,6 +101,10 @@ public class SongController {
     private static final double minOpacity = 0.4;
     private final SongService songService;
     private final Settings settings = Settings.getInstance();
+    private final String link = "https://projector-songbook.herokuapp.com/song/";
+    private final String prefix = "id:";
+    @FXML
+    private BorderPane rightBorderPane;
     @FXML
     private Button showVersionsButton;
     @FXML
@@ -140,7 +149,6 @@ public class SongController {
     private ToggleButton progressLineToggleButton;
     @FXML
     private CheckBox aspectRatioCheckBox;
-
     private ProjectionScreenController projectionScreenController;
     private ProjectionScreenController previewProjectionScreenController;
     private RecentController recentController;
@@ -158,7 +166,6 @@ public class SongController {
     private double[] times;
     private MyController mainController;
     private boolean isBlank = true;
-
     private LastSearching lastSearching = LastSearching.IN_TITLE;
     private SongCollection selectedSongCollection;
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
@@ -477,12 +484,18 @@ public class SongController {
                         }
                     } else if (ob.size() > 1) {
                         StringBuilder tmpTextBuffer = new StringBuilder();
-                        tmpTextBuffer.append(songListViewItems.get(ob.get(0)).getRawText().replaceAll("\\n", " "));
+                        tmpTextBuffer.append(songListViewItems.get(ob.get(0)).getRawText());
+                        int lastIndex = 0;
                         for (int i = 1; i < ob.size(); ++i) {
-                            if (ob.get(i) != songListViewItems.size() - 1) {
-                                tmpTextBuffer.append("\n").append(songListViewItems.get(ob.get(i)).getRawText().replaceAll("\\n", " "));
+                            Integer index = ob.get(i);
+                            if (index != songListViewItems.size() - 1) {
+                                tmpTextBuffer.append("\n").append(songListViewItems.get(index).getRawText());
+                                if (lastIndex < index) {
+                                    lastIndex = index;
+                                }
                             }
                         }
+                        projectionScreenController.setLineSize((double) lastIndex / (songListViewItems.size() - 2));
                         projectionScreenController.setText(tmpTextBuffer.toString(), ProjectionType.SONG);
                     }
                     if (recentController != null && !recentController.getLastItemText().equals(activeSongVersTime.getSongTitle()) &&
@@ -615,9 +628,68 @@ public class SongController {
             exportButton.setOnAction(event -> exportButtonOnAction());
             importButton.setOnAction(event -> importButtonOnAction());
             initializeShowVersionsButton();
+            initializeDragListeners();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void initializeDragListeners() {
+        listView.setOnDragDetected(event -> {
+            Dragboard dragboard = listView.startDragAndDrop(TransferMode.LINK, TransferMode.COPY);
+            ClipboardContent content = new ClipboardContent();
+            Song song = listView.getSelectionModel().getSelectedItem().getSong();
+            String uuid = song.getUuid();
+            String s;
+            if (uuid == null) {
+                s = prefix + song.getId();
+                content.putString(s);
+            } else {
+                s = link + uuid;
+                content.putUrl(s);
+            }
+            dragboard.setContent(content);
+            rightBorderPane.setOpacity(0.8);
+        });
+        listView.setOnDragDone(event -> rightBorderPane.setOpacity(1.0));
+        scheduleListView.setOnDragEntered(dragEvent -> {
+            if (getSongFromDragBoard(dragEvent) != null) {
+                scheduleListView.setBlendMode(BlendMode.DARKEN);
+            }
+        });
+
+        scheduleListView.setOnDragExited(dragEvent -> {
+            if (getSongFromDragBoard(dragEvent) != null) {
+                scheduleListView.setBlendMode(null);
+            }
+        });
+
+        scheduleListView.setOnDragOver(dragEvent -> {
+            if (getSongFromDragBoard(dragEvent) != null) {
+                dragEvent.acceptTransferModes(TransferMode.COPY, TransferMode.LINK);
+            }
+        });
+
+        scheduleListView.setOnDragDropped(dragEvent -> {
+            Song songFromDragBoard = getSongFromDragBoard(dragEvent);
+            if (songFromDragBoard != null) {
+                scheduleController.addSong(songFromDragBoard);
+                dragEvent.setDropCompleted(true);
+            }
+        });
+    }
+
+    private Song getSongFromDragBoard(DragEvent dragEvent) {
+        Dragboard dragboard = dragEvent.getDragboard();
+        String url = dragboard.getUrl();
+        if (url != null) {
+            return songService.findByUuid(url.replace(link, ""));
+        }
+        String string = dragboard.getString();
+        if (string != null && string.startsWith(prefix)) {
+            return songService.findById(Long.parseLong(string.replace(prefix, "")));
+        }
+        return null;
     }
 
     private void initializeShowVersionsButton() {
@@ -632,9 +704,7 @@ public class SongController {
             final List<Song> songs = new ArrayList<>(allByVersionGroup.size());
             HashMap<String, Song> hashMap = new HashMap<>(songs.size());
             for (Song song : allByVersionGroup) {
-                if (!song.getUuid().equals(uuid)) {
-                    hashMap.put(song.getUuid(), song);
-                }
+                hashMap.put(song.getUuid(), song);
             }
             List<SongCollection> songCollections = ServiceManager.getSongCollectionService().findAll();
             for (SongCollection songCollection : songCollections) {
@@ -888,9 +958,8 @@ public class SongController {
                 }
             });
             thread.start();
-            try (FileOutputStream stream = new FileOutputStream("data/database.version");
-                 BufferedWriter br = new BufferedWriter(new OutputStreamWriter(stream, "UTF-8"))) {
-                br.write(DatabaseHelper.getInstance().DATABASE_VERSION + "\n");
+            try (FileOutputStream stream = new FileOutputStream("data/songs.version");
+                 BufferedWriter br = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
                 br.write("1\n");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -899,11 +968,19 @@ public class SongController {
     }
 
     private int getOldVersion() {
-        try (FileInputStream stream = new FileInputStream("data/database.version");
-             BufferedReader br = new BufferedReader(new InputStreamReader(stream, "UTF-8"))) {
-            br.readLine();
+        try (FileInputStream stream = new FileInputStream("data/songs.version");
+             BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             return Integer.parseInt(br.readLine());
         } catch (FileNotFoundException | NumberFormatException ignored) {
+            List<Song> all = songService.findAll();
+            if (all.size() == 0) {
+                return 1;
+            }
+            for (Song song : all) {
+                if (song.getVersionGroup() != null) {
+                    return 1;
+                }
+            }
             return 0;
         } catch (IOException e) {
             e.printStackTrace();
@@ -1078,7 +1155,7 @@ public class SongController {
                         String firstWord = split[0];
                         String remainingText = "";
                         try {
-                            remainingText = searchText.substring(firstWord.length() + 1, searchText.length());
+                            remainingText = searchText.substring(firstWord.length() + 1);
                         } catch (Exception ignored) {
                         }
                         remainingText = stripAccents(remainingText);
@@ -1168,11 +1245,11 @@ public class SongController {
                     }
                 }
                 collectionName = stripAccents(firstWord.substring(0, i).toLowerCase());
-                ordinalNumber = firstWord.substring(i, firstWord.length());
+                ordinalNumber = firstWord.substring(i);
             }
             String remainingText = "";
             try {
-                remainingText = text.substring(firstWord.length() + 1, text.length());
+                remainingText = text.substring(firstWord.length() + 1);
             } catch (Exception ignored) {
             }
             remainingText = stripAccents(remainingText);
@@ -1670,7 +1747,7 @@ public class SongController {
             }
             try {
                 FileOutputStream fileOutputStream = new FileOutputStream("songVersTimes", true);
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, "UTF-8"));
+                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
                 Date date = new Date();
                 boolean wasSong = false;
                 if (activeSongVersTime != null) {
@@ -1826,7 +1903,7 @@ public class SongController {
                 FileOutputStream ofStream;
                 try {
                     ofStream = new FileOutputStream(selectedFile);
-                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(ofStream, "UTF-8"));
+                    BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(ofStream, StandardCharsets.UTF_8));
 
                     Gson gson = new GsonBuilder().serializeNulls()
                             .excludeFieldsWithoutExposeAnnotation().create();
@@ -1861,7 +1938,7 @@ public class SongController {
                 FileInputStream inputStream;
                 try {
                     inputStream = new FileInputStream(selectedFile);
-                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+                    BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
                     StringBuilder s = new StringBuilder();
                     String readLine = br.readLine();
                     while (readLine != null) {

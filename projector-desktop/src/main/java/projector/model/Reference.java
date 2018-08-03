@@ -20,82 +20,91 @@ public class Reference {
 
     public String getReference() {
         reference = "";
-        for (ReferenceBook i : bookList) {
+        for (ReferenceBook book : bookList) {
             if (!reference.equals("")) {
                 reference += "\n";
             }
-            reference += bible.getBooks()[i.getBookNumber()].getTitle().trim();
-            ReferenceChapter c = i.getChapters().get(0);
+            reference += getBookTitle(book);
+            ReferenceChapter c = book.getChapters().get(0);
             reference += " " + c.getChapterNumber() + ":";
             reference += c.getVerses().get(0);
             int k;
-            for (k = 1; k < c.getVerses().size() - 1; ++k) {
-                if (c.getVerses().get(k + 1) - 1 != c.getVerses().get(k)) {
-                    if (c.getVerses().get(k - 1) + 1 == c.getVerses().get(k)) {
-                        reference += "-";
-                    } else {
-                        reference += ", ";
-                    }
-                    reference += c.getVerses().get(k);
-                } else if (c.getVerses().get(k - 1) + 1 != c.getVerses().get(k)) {
-                    reference += ", ";
-                    reference += c.getVerses().get(k);
-                }
+            k = getK(c);
+            someFunction(c, k);
+            for (int j = 1; j < book.getChapters().size(); ++j) {
+                ReferenceChapter c1 = book.getChapters().get(j);
+                reference += "\n" + c1.getChapterNumber() + ":";
+                reference += c1.getVerses().get(0);
+                k = getK(c1);
+                someFunction(c1, k);
             }
-            if (k < c.getVerses().size()) {
+        }
+        return reference;
+    }
+
+    private void someFunction(ReferenceChapter c, int k) {
+        if (k < c.getVerses().size()) {
+            if (c.getVerses().get(k - 1) + 1 == c.getVerses().get(k)) {
+                reference += "-";
+            } else {
+                reference += ", ";
+            }
+            reference += c.getVerses().get(k);
+        }
+    }
+
+    private String getBookTitle(ReferenceBook referenceBook) {
+        if (referenceBook.getBook() != null) {
+            return referenceBook.getBook().getTitle().trim();
+        }
+        return bible.getBooks().get(referenceBook.getBookNumber()).getTitle().trim();
+    }
+
+    private int getK(ReferenceChapter c) {
+        int k;
+        for (k = 1; k < c.getVerses().size() - 1; ++k) {
+            if (c.getVerses().get(k + 1) - 1 != c.getVerses().get(k)) {
                 if (c.getVerses().get(k - 1) + 1 == c.getVerses().get(k)) {
                     reference += "-";
                 } else {
                     reference += ", ";
                 }
                 reference += c.getVerses().get(k);
-            }
-            for (int j = 1; j < i.getChapters().size(); ++j) {
-                ReferenceChapter c1 = i.getChapters().get(j);
-                reference += "\n" + c1.getChapterNumber() + ":";
-                reference += c1.getVerses().get(0);
-                for (k = 1; k < c1.getVerses().size() - 1; ++k) {
-                    if (c1.getVerses().get(k + 1) - 1 != c1.getVerses().get(k)) {
-                        if (c1.getVerses().get(k - 1) + 1 == c1.getVerses().get(k)) {
-                            reference += "-";
-                        } else {
-                            reference += ", ";
-                        }
-                        reference += c1.getVerses().get(k);
-                    } else if (c1.getVerses().get(k - 1) + 1 != c1.getVerses().get(k)) {
-                        reference += ", ";
-                        reference += c1.getVerses().get(k);
-                    }
-                }
-                if (k < c1.getVerses().size()) {
-                    if (c1.getVerses().get(k - 1) + 1 == c1.getVerses().get(k)) {
-                        reference += "-";
-                    } else {
-                        reference += ", ";
-                    }
-                    reference += c1.getVerses().get(k);
-                }
+            } else if (c.getVerses().get(k - 1) + 1 != c.getVerses().get(k)) {
+                reference += ", ";
+                reference += c.getVerses().get(k);
             }
         }
-        return reference;
+        return k;
     }
 
     public void setBible(Bible bible) {
         this.bible = bible;
     }
 
-    public void addVers(int book, int chapter, int vers) {
+    public void addVerse(int book, int chapter, int vers) {
         for (ReferenceBook i : bookList) {
             if (i.getBookNumber() == book) {
-                i.addVers(chapter, vers);
+                i.addVerse(chapter, vers);
                 return;
             }
         }
         bookList.add(new ReferenceBook(book));
-        addVers(book, chapter, vers);
+        addVerse(book, chapter, vers);
     }
 
-    public void addVers(String reference) {
+    public void addVerse(Book book, int chapter, int vers) {
+        for (ReferenceBook bookI : bookList) {
+            if (bookI.getBook().getId().equals(book.getId())) {
+                bookI.addVerse(chapter, vers);
+                return;
+            }
+        }
+        bookList.add(new ReferenceBook(book));
+        addVerse(book, chapter, vers);
+    }
+
+    public void addVerse(String reference) {
         String[] split = reference.split(" ");
         int bookIndex = Integer.parseInt(split[0]) - 1;
         int partIndex = Integer.parseInt(split[1]);
@@ -116,13 +125,13 @@ public class Reference {
     private void addingVersesWithoutComma(String withoutComma, int bookIndex, int partIndex) {
         if (!withoutComma.contains("-")) {
             int verseIndex = Integer.parseInt(withoutComma);
-            addVers(bookIndex, partIndex, verseIndex);
+            addVerse(bookIndex, partIndex, verseIndex);
         } else {
             String[] split2 = withoutComma.split("-");
             int fromVerse = Integer.parseInt(split2[0]);
             int toVerse = Integer.parseInt(split2[1]);
             for (int i = fromVerse; i <= toVerse; ++i) {
-                addVers(bookIndex, partIndex, i);
+                addVerse(bookIndex, partIndex, i);
             }
         }
     }
@@ -131,10 +140,10 @@ public class Reference {
         return bookList;
     }
 
-    public void removeVers(int book, int chapter, int vers) {
+    public void removeVerse(int book, int chapter, int verse) {
         for (ReferenceBook i : bookList) {
             if (i.getBookNumber() == book) {
-                i.removeVers(chapter, vers);
+                i.removeVerse(chapter, verse);
                 if (i.isEmpty()) {
                     bookList.remove(i);
                 }

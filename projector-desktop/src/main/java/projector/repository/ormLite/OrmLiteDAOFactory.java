@@ -1,5 +1,6 @@
 package projector.repository.ormLite;
 
+import projector.repository.BibleRepository;
 import projector.repository.DAOFactory;
 import projector.repository.InformationDAO;
 import projector.repository.LanguageRepository;
@@ -8,6 +9,7 @@ import projector.repository.SongCollectionElementRepository;
 import projector.repository.SongCollectionRepository;
 import projector.repository.SongDAO;
 import projector.repository.SongVerseDAO;
+import projector.repository.VerseIndexRepository;
 
 import java.sql.SQLException;
 
@@ -77,6 +79,26 @@ public class OrmLiteDAOFactory extends DAOFactory {
     public SongCollectionElementRepository getSongCollectionElementDAO() {
         try {
             return new SongCollectionElementRepositoryImpl();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public BibleRepository getBibleDAO() {
+        try {
+            return new BibleRepositoryImpl();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public VerseIndexRepository getVerseIndexDAO() {
+        try {
+            return new VerseIndexRepositoryImpl();
         } catch (SQLException e) {
             e.printStackTrace();
         }

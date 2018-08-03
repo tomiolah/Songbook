@@ -12,11 +12,9 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import projector.application.Settings;
 import projector.model.Book;
-import projector.model.Chapter;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
@@ -29,8 +27,7 @@ public class BibleSearchController {
     private ListView<TextFlow> searchListView;
     private BibleController bibleController;
 
-    private Book[] books;
-    private Book[] booksWithOutAccents;
+    private List<Book> books;
     private List<Integer> searchIBook;
     private List<Integer> searchIPart;
     private List<Integer> searchIVerse;
@@ -103,28 +100,6 @@ public class BibleSearchController {
         return a.contains(b);
     }
 
-    private void strippingBooks() {
-        Date dateBefore = new Date();
-        booksWithOutAccents = new Book[books.length];
-        for (int iBook = 0; iBook < books.length; ++iBook) {
-            booksWithOutAccents[iBook] = books[iBook].copy();
-        }
-        for (Book book : booksWithOutAccents) {
-            Chapter[] chapters = book.getChapters();
-            for (int iPart = 0; iPart < book.getChapters().length; ++iPart) {
-                String[] verses = chapters[iPart].getVerses();
-                for (int iVerse = 0; iVerse < book.getChapters()[iPart].getLength(); ++iVerse) {
-                    verses[iVerse] = strip(book.getChapters()[iPart].getVerses()[iVerse]);
-                    verses[iVerse] = verses[iVerse].replace("]", "").replace("[", "");
-                }
-                chapters[iPart].setVerses(verses);
-            }
-            book.setChapters(chapters);
-        }
-        Date dateAfter = new Date();
-        System.out.println("Stripping time: " + (dateAfter.getTime() - dateBefore.getTime()));
-    }
-
     private synchronized String getNewSearchText() {
         return newSearchText;
     }
@@ -166,19 +141,19 @@ public class BibleSearchController {
             List<Integer> tmpSearchIPart = new ArrayList<>();
             List<Integer> tmpSearchIVerse = new ArrayList<>();
             int results = 0;
-            for (int iBook = 0; iBook < books.length && results < maxResults; ++iBook) {
-                for (int iPart = 0; iPart < books[iBook].getChapters().length && results < maxResults; ++iPart) {
-                    for (int iVerse = 0; iVerse < books[iBook].getChapters()[iPart].getLength(); ++iVerse) {
+            for (int iBook = 0; iBook < books.size() && results < maxResults; ++iBook) {
+                for (int iPart = 0; iPart < books.get(iBook).getChapters().size() && results < maxResults; ++iPart) {
+                    for (int iVerse = 0; iVerse < books.get(iBook).getChapters().get(iPart).getVerses().size(); ++iVerse) {
                         String text2;
-                        String verse = books[iBook].getChapters()[iPart].getVerses()[iVerse];
+                        String verse = books.get(iBook).getChapters().get(iPart).getVerses().get(iVerse).getText();
                         if (Settings.getInstance().isWithAccents()) {
-                            text2 = books[iBook].getChapters()[iPart].getVerses()[iVerse];
+                            text2 = books.get(iBook).getChapters().get(iPart).getVerses().get(iVerse).getText();
                         } else {
-                            text2 = booksWithOutAccents[iBook].getChapters()[iPart].getVerses()[iVerse];
+                            text2 = books.get(iBook).getChapters().get(iPart).getVerses().get(iVerse).getStrippedText();
                         }
                         if (contains(text2, text3)) {
                             TextFlow textFlow = new TextFlow();
-                            Text reference = new Text(books[iBook].getTitle() + " " + (iPart + 1) + ":" + (iVerse + 1) + " ");
+                            Text reference = new Text(books.get(iBook).getTitle() + " " + (iPart + 1) + ":" + (iVerse + 1) + " ");
                             reference.setFill(Color.rgb(5, 30, 70));
                             textFlow.getChildren().add(reference);
                             char[] chars = stripAccents(verse).toLowerCase().toCharArray();
@@ -259,16 +234,13 @@ public class BibleSearchController {
         this.searchSelected = searchSelected;
     }
 
-    void setBooks(Book[] books) {
-        this.books = books.clone();
+    void setBooks(List<Book> books) {
+        this.books = books;
     }
 
-    void stripBooks() {
-        if (booksWithOutAccents == null) {
-            if (books == null) {
-                bibleController.initializeBibles();
-            }
-            strippingBooks();
+    void initializeBibles() {
+        if (books == null) {
+            bibleController.initializeBibles();
         }
     }
 }
