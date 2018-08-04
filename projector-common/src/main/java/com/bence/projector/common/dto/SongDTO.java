@@ -16,16 +16,9 @@ public class SongDTO extends BaseDTO {
     private String createdByEmail;
     private String originalId;
     private String versionGroup;
+    private String youtubeUrl;
 
     public SongDTO() {
-    }
-
-    public SongDTO(SongDTO songDTO) {
-        setTitle(songDTO.getTitle());
-        setCreatedDate(songDTO.getCreatedDate());
-        setDeleted(songDTO.isDeleted());
-        setModifiedDate(songDTO.getModifiedDate());
-        setSongVerseDTOS(songDTO.getSongVerseDTOS());
     }
 
     public String getTitle() {
@@ -114,5 +107,13 @@ public class SongDTO extends BaseDTO {
 
     public void setVersionGroup(String versionGroup) {
         this.versionGroup = versionGroup;
+    }
+
+    public String getYoutubeUrl() {
+        return youtubeUrl;
+    }
+
+    public void setYoutubeUrl(String youtubeUrl) {
+        this.youtubeUrl = youtubeUrl;
     }
 }

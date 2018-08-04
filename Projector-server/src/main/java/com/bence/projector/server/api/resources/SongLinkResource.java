@@ -134,8 +134,10 @@ public class SongLinkResource {
         data.put("email", createdByEmail);
         Song song1 = songRepository.findOne(songLink.getSongId1());
         Song song2 = songRepository.findOne(songLink.getSongId2());
-        data.put("song1", song1.getTitle());
-        data.put("song2", song2.getTitle());
+        data.put("song1Title", song1.getTitle());
+        data.put("song2Title", song1.getTitle());
+        data.put("song1", song1.getId());
+        data.put("song2", song2.getId());
         return data;
     }
 }

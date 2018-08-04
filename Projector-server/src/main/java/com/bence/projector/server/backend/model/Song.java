@@ -22,6 +22,7 @@ public class Song extends BaseEntity {
     @Transient
     transient private double percentage;
     private String versionGroup;
+    private String youtubeUrl;
 
     public Song() {
     }
@@ -141,5 +142,13 @@ public class Song extends BaseEntity {
 
     public void setUploaded(boolean uploaded) {
         this.uploaded = uploaded;
+    }
+
+    public String getYoutubeUrl() {
+        return youtubeUrl;
+    }
+
+    public void setYoutubeUrl(String youtubeUrl) {
+        this.youtubeUrl = youtubeUrl;
     }
 }

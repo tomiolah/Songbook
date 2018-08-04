@@ -38,6 +38,7 @@ export class Song extends BaseModel {
   uploaded: Boolean;
   versionGroup: '';
   views = 0;
+  youtubeUrl;
 
   constructor(values: Object = {}) {
     super(values);
