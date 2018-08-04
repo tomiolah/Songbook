@@ -72,11 +72,15 @@ export class EditSongComponent implements OnInit {
   }
 
   createForm() {
+    let url = "https://www.youtube.com/watch?v=" + this.song.youtubeUrl;
+    if (url.endsWith("undefined")) {
+      url = '';
+    }
     this.form = this.fb.group({
       'title': [this.song.title, [
         Validators.required,
       ]],
-      'youtubeUrl': ["https://www.youtube.com/watch?v=" + this.song.youtubeUrl, [
+      'youtubeUrl': [url, [
         Validators.maxLength(52),
       ]],
     });
@@ -137,6 +141,7 @@ export class EditSongComponent implements OnInit {
     }
     this.song.deleted = false;
     let url = formValue.youtubeUrl;
+    this.song.youtubeUrl = null;
     if (url) {
       let youtubeUrl = url.replace("https://www.youtube.com/watch?v=", "");
       youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
