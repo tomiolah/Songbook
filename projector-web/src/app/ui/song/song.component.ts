@@ -3,7 +3,7 @@ import {ActivatedRoute} from '@angular/router';
 import {Song, SongService} from '../../services/song-service.service';
 import {Subscription} from 'rxjs/Subscription';
 import {AuthService} from '../../services/auth.service';
-import {Title} from "@angular/platform-browser";
+import {DomSanitizer, Title} from "@angular/platform-browser";
 import {MatDialog, MatSnackBar} from "@angular/material";
 import {ShareComponent} from "../share/share.component";
 import {AuthenticateComponent} from "../authenticate/authenticate.component";
@@ -32,7 +32,8 @@ export class SongComponent implements OnInit, OnDestroy {
               private dialog: MatDialog,
               public auth: AuthService,
               private titleService: Title,
-              private snackBar: MatSnackBar) {
+              private snackBar: MatSnackBar,
+              public sanitizer: DomSanitizer) {
     auth.getUserFromLocalStorage();
     this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
     if (this.markedVersionGroup == 'null') {

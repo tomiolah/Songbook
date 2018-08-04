@@ -76,6 +76,9 @@ export class EditSongComponent implements OnInit {
       'title': [this.song.title, [
         Validators.required,
       ]],
+      'youtubeUrl': ["https://www.youtube.com/watch?v=" + this.song.youtubeUrl, [
+        Validators.maxLength(52),
+      ]],
     });
     this.verseControls = [];
     this.addVerses();
@@ -133,6 +136,14 @@ export class EditSongComponent implements OnInit {
       }
     }
     this.song.deleted = false;
+    let url = formValue.youtubeUrl;
+    if (url) {
+      let youtubeUrl = url.replace("https://www.youtube.com/watch?v=", "");
+      youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
+      if (youtubeUrl.length < 21 && youtubeUrl.length > 9) {
+        this.song.youtubeUrl = youtubeUrl;
+      }
+    }
     this.updateSong();
   }
 
