@@ -77,6 +77,8 @@ export class SongComponent implements OnInit, OnDestroy {
     this.sub = this.activatedRoute.params.subscribe(params => {
       if (params['id']) {
         const songId = params['id'];
+        (<any>window).ga('set', 'page', "/song/" + songId);
+        (<any>window).ga('send', 'pageview');
         this.songService.getSong(songId).subscribe((song) => {
           for (const songVerse of song.songVerseDTOS) {
             songVerse.lines = [];

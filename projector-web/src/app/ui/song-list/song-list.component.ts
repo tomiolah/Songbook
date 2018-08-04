@@ -5,7 +5,7 @@ import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/map';
 import {PageEvent} from '@angular/material/paginator';
-import {NavigationEnd, Router} from '@angular/router';
+import {Router} from '@angular/router';
 import {AuthService} from "../../services/auth.service";
 import {Language} from "../../models/language";
 import {LanguageDataService} from "../../services/language-data.service";
@@ -38,12 +38,6 @@ export class SongListComponent implements OnInit {
               private router: Router,
               private languageDataService: LanguageDataService,
               public auth: AuthService) {
-    this.router.events.subscribe(event => {
-      if (event instanceof NavigationEnd) {
-        (<any>window).ga('set', 'page', event.urlAfterRedirects);
-        (<any>window).ga('send', 'pageview');
-      }
-    });
     this.songControl = new FormControl();
     this.songTitles = [];
     this.paginatedSongs = [];
