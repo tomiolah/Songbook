@@ -11,7 +11,7 @@ import {DomSanitizer} from "@angular/platform-browser";
 export function replace(formValue: any, key) {
   const value = formValue[key];
   let newValue: string = value.trim();
-  newValue = replaceMatch(newValue, /([ \t])([.?!,"'])/g, '$2');
+  newValue = replaceMatch(newValue, /([ \t])([.?!,"':])/g, '$2');
   newValue = replaceMatch(newValue, /([.?!,])([^ "])/g, '$1 $2');
   newValue = replaceMatch(newValue, /\. \. \./g, '…');
   newValue = replaceMatch(newValue, /\.([^ ])/g, '. $1');
@@ -23,6 +23,8 @@ export function replace(formValue: any, key) {
   newValue = replaceMatch(newValue, /\n /g, '\n');
   newValue = replaceMatch(newValue, /\t\n/g, '\n');
   newValue = replaceMatch(newValue, /Ş/g, 'Ș');
+  newValue = replaceMatch(newValue, /ş/g, 'ș');
+  newValue = replaceMatch(newValue, /Ţ/g, 'Ț');
   newValue = replaceMatch(newValue, /ţ/g, 'ț');
   return newValue;
 }
