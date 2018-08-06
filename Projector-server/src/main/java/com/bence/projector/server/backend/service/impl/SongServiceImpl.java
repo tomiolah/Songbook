@@ -105,6 +105,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         int size = wordHashMap.keySet().size();
         HashMap<String, Boolean> hashMap = new HashMap<>(size);
         for (Song databaseSong : all) {
+            //noinspection PointlessNullCheck
             if ((songId != null && databaseSong.getId().equals(songId)) || databaseSong.isDeleted()) {
                 continue;
             }
@@ -199,14 +200,20 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     @Override
     public List<Song> findAllByVersionGroup(String versionGroup) {
         List<Song> allByVersionGroup = songRepository.findAllByVersionGroup(versionGroup);
-        Song one = songRepository.findOne(versionGroup);
-        if (one != null) {
-            String group = one.getVersionGroup();
-            if (group == null || !group.equals(versionGroup)) {
-                allByVersionGroup.add(one);
+        ArrayList<Song> songs = new ArrayList<>();
+        for (Song song : allByVersionGroup) {
+            if (!song.isDeleted()) {
+                songs.add(song);
             }
         }
-        return allByVersionGroup;
+        Song one = songRepository.findOne(versionGroup);
+        if (one != null && !one.isDeleted()) {
+            String group = one.getVersionGroup();
+            if (group == null || !group.equals(versionGroup)) {
+                songs.add(one);
+            }
+        }
+        return songs;
     }
 
     @Override
