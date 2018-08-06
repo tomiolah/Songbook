@@ -15,7 +15,7 @@ import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 
-public class BibleRepositoryImpl extends AbstractRepository<Bible> implements BibleRepository {
+public class BibleRepositoryImpl extends AbstractBaseRepository<Bible> implements BibleRepository {
     private static final Logger LOG = LoggerFactory.getLogger(BibleRepositoryImpl.class);
     private final VerseIndexRepositoryImpl verseIndexRepository;
     private BibleVerseRepositoryImpl bibleVerseRepository;

@@ -9,7 +9,7 @@ import projector.repository.RepositoryException;
 import java.sql.SQLException;
 import java.util.List;
 
-public class ChapterRepositoryImpl extends AbstractRepository<Chapter> implements ChapterRepository {
+public class ChapterRepositoryImpl extends AbstractBaseRepository<Chapter> implements ChapterRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(BookRepositoryImpl.class);
     private BibleVerseRepositoryImpl bibleVerseRepository;

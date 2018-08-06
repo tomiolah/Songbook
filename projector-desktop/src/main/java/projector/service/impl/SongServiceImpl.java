@@ -11,7 +11,7 @@ import projector.service.SongService;
 
 import java.util.List;
 
-public class SongServiceImpl extends AbstractService<Song> implements SongService {
+public class SongServiceImpl extends AbstractBaseService<Song> implements SongService {
 
     private final static Logger LOG = LoggerFactory.getLogger(SongServiceImpl.class);
     private SongDAO songDAO = DAOFactory.getInstance().getSongDAO();

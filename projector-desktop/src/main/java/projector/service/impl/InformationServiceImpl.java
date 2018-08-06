@@ -9,7 +9,7 @@ import projector.service.ServiceException;
 
 import java.util.List;
 
-public class InformationServiceImpl extends AbstractService<Information> implements InformationService {
+public class InformationServiceImpl extends AbstractBaseService<Information> implements InformationService {
 
     private InformationDAO informationDAO = DAOFactory.getInstance().getInformationDAO();
 

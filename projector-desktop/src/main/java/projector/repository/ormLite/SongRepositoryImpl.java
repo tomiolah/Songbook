@@ -9,7 +9,7 @@ import projector.repository.SongDAO;
 import java.sql.SQLException;
 import java.util.List;
 
-public class SongRepositoryImpl extends AbstractRepository<Song> implements SongDAO {
+public class SongRepositoryImpl extends AbstractBaseRepository<Song> implements SongDAO {
     private static final Logger LOG = LoggerFactory.getLogger(SongRepositoryImpl.class);
 
     private SongVerseRepositoryImpl songVerseRepository;

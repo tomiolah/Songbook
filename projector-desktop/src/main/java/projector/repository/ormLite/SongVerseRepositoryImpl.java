@@ -5,7 +5,7 @@ import projector.repository.SongVerseDAO;
 
 import java.sql.SQLException;
 
-public class SongVerseRepositoryImpl extends AbstractRepository<SongVerse> implements SongVerseDAO {
+public class SongVerseRepositoryImpl extends AbstractBaseRepository<SongVerse> implements SongVerseDAO {
 
     public SongVerseRepositoryImpl() throws SQLException {
         super(SongVerse.class, DatabaseHelper.getInstance().getSongVerseDao());

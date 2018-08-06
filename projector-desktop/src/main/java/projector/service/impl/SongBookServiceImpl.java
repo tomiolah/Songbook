@@ -11,7 +11,7 @@ import projector.service.SongBookService;
 
 import java.util.List;
 
-public class SongBookServiceImpl extends AbstractService<SongBook> implements SongBookService {
+public class SongBookServiceImpl extends AbstractBaseService<SongBook> implements SongBookService {
 
     private final static Logger LOG = LoggerFactory.getLogger(SongBookServiceImpl.class);
     private SongBookDAO songBookDAO = DAOFactory.getInstance().getSongBookDAO();

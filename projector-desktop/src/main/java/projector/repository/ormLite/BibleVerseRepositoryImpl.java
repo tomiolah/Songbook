@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class BibleVerseRepositoryImpl extends AbstractRepository<BibleVerse> implements BibleVerseRepository {
+public class BibleVerseRepositoryImpl extends AbstractBaseRepository<BibleVerse> implements BibleVerseRepository {
     private static final Logger LOG = LoggerFactory.getLogger(BibleVerseRepositoryImpl.class);
     private VerseIndexRepositoryImpl verseIndexRepository;
 

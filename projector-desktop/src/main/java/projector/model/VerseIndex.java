@@ -2,11 +2,13 @@ package projector.model;
 
 import com.j256.ormlite.field.DatabaseField;
 
-public class VerseIndex extends BaseEntity {
-    @DatabaseField
+public class VerseIndex {
+    @DatabaseField(uniqueCombo = true, uniqueIndexName = "indexNrBibleVerse")
     private Long indexNumber;
-    @DatabaseField(foreign = true, foreignAutoRefresh = true, index = true)
+    @DatabaseField(foreign = true, index = true, uniqueCombo = true, uniqueIndexName = "indexNrBibleVerse")
     private BibleVerse bibleVerse;
+    @DatabaseField
+    private Long bibleId;
 
     public BibleVerse getBibleVerse() {
         return bibleVerse;
@@ -22,5 +24,13 @@ public class VerseIndex extends BaseEntity {
 
     public void setIndexNumber(Long indexNumber) {
         this.indexNumber = indexNumber;
+    }
+
+    public Long getBibleId() {
+        return bibleId;
+    }
+
+    public void setBibleId(Long bibleId) {
+        this.bibleId = bibleId;
     }
 }

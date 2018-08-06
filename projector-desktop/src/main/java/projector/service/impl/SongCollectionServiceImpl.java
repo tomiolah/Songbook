@@ -8,7 +8,7 @@ import projector.service.SongCollectionService;
 
 import java.util.List;
 
-public class SongCollectionServiceImpl extends AbstractService<SongCollection> implements SongCollectionService {
+public class SongCollectionServiceImpl extends AbstractBaseService<SongCollection> implements SongCollectionService {
 
     private SongCollectionRepository songCollectionDAO;
 

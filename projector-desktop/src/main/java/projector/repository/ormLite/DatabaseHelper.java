@@ -37,7 +37,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    public final int DATABASE_VERSION = 3;
+    private final int DATABASE_VERSION = 4;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
     private ConnectionSource connectionSource;
@@ -62,6 +62,15 @@ public class DatabaseHelper {
                 //noinspection ConstantConditions
                 if (oldVersion < 1) {
                     onUpgrade(connectionSource);
+                } else if (oldVersion == 3) {
+                    try {
+                        TableUtils.dropTable(connectionSource, Bible.class, true);
+                        TableUtils.dropTable(connectionSource, Book.class, true);
+                        TableUtils.dropTable(connectionSource, Chapter.class, true);
+                        TableUtils.dropTable(connectionSource, BibleVerse.class, true);
+                        TableUtils.dropTable(connectionSource, VerseIndex.class, true);
+                    } catch (Exception ignored) {
+                    }
                 }
                 saveNewVersion();
             }
