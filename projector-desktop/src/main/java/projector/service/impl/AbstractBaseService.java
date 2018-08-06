@@ -1,16 +1,17 @@
 package projector.service.impl;
 
+import projector.model.BaseEntity;
 import projector.repository.CrudDAO;
 import projector.service.CrudService;
 import projector.service.ServiceException;
 
 import java.util.List;
 
-public class AbstractService<T> implements CrudService<T> {
+public class AbstractBaseService<T extends BaseEntity> implements CrudService<T> {
 
     private CrudDAO<T> crudDAO;
 
-    AbstractService(CrudDAO<T> crudDAO) {
+    AbstractBaseService(CrudDAO<T> crudDAO) {
         this.crudDAO = crudDAO;
     }
 

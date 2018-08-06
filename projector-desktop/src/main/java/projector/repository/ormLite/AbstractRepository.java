@@ -3,14 +3,13 @@ package projector.repository.ormLite;
 import com.j256.ormlite.dao.Dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import projector.model.BaseEntity;
 import projector.repository.CrudDAO;
 import projector.repository.RepositoryException;
 
 import java.sql.SQLException;
 import java.util.List;
 
-public class AbstractRepository<T extends BaseEntity> implements CrudDAO<T> {
+public abstract class AbstractRepository<T> implements CrudDAO<T> {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractRepository.class);
 
     Dao<T, Long> dao;
@@ -79,32 +78,6 @@ public class AbstractRepository<T extends BaseEntity> implements CrudDAO<T> {
     @Override
     public T update(T model) throws RepositoryException {
         return create(model);
-    }
-
-    @Override
-    public boolean delete(T model) throws RepositoryException {
-        try {
-            dao.deleteById(model.getId());
-            return true;
-        } catch (SQLException e) {
-            String msg = "Could not delete " + simpleName;
-            LOG.error(msg);
-            throw new RepositoryException(msg, e);
-        }
-    }
-
-    @Override
-    public boolean deleteAll(List<T> models) throws RepositoryException {
-        try {
-            for (T model : models) {
-                delete(model);
-            }
-            return true;
-        } catch (RepositoryException e) {
-            final String msg = "Could not delete all " + simpleNames;
-            LOG.error(msg);
-            throw new RepositoryException(msg, e);
-        }
     }
 
     @Override

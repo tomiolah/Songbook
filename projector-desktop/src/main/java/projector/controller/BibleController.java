@@ -198,6 +198,9 @@ public class BibleController {
             bibleListView.orientationProperty().set(Orientation.HORIZONTAL);
             bibleListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 try {
+                    if (newValue == null) {
+                        return;
+                    }
                     if (oldValue != null) {
                         parallelBibles.add(oldValue);
                     }
@@ -1007,32 +1010,28 @@ public class BibleController {
 
     void initializeBibles() {
         try {
-            if (bible == null) {
-//                BibleApiBean bibleApiBean = new BibleApiBean();
-//                List<Bible> bibles = bibleApiBean.getBibles();
-                BibleService bibleService = ServiceManager.getBibleService();
-//                List<Bible> bibleList = bibleService.create(bibles);
-                List<Bible> bibles = bibleService.findAll();
-                bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
-                if (bibles.size() == 0) {
-                    downloadBibles();
-                    return;
-                }
-                ObservableList<Bible> items = bibleListView.getItems();
-                items.clear();
-                items.addAll(bibles);
-                parallelBibles.addAll(bibles);
-                bibleListView.getSelectionModel().selectFirst();
+            BibleService bibleService = ServiceManager.getBibleService();
+            List<Bible> bibles = bibleService.findAll();
+            bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
+            if (bibles.size() == 0) {
+                downloadBibles();
+                return;
+            }
+            ObservableList<Bible> items = bibleListView.getItems();
+            items.clear();
+            items.addAll(bibles);
+            parallelBibles.clear();
+            parallelBibles.addAll(bibles);
+            bibleListView.getSelectionModel().selectFirst();
 //                bible = bibles.get(1);
 
 //                bible = new Bible();
 //                Reader.setBooksRead(false);
 //                bible.setBooks(Reader.getBooks(settings.getBiblePaths().get(3)));
-                // countWords();
-                addAllBooks();
-                // System.out.println("Ido3: " + (System.currentTimeMillis() - x));
-                bibleSearchController.setBooks(bible.getBooks());
-                historyController.setBible(bible);
+            // countWords();
+            addAllBooks();
+            // System.out.println("Ido3: " + (System.currentTimeMillis() - x));
+            historyController.setBible(bible);
 
 //                uploadBible(parallelBible);
 //                uploadBible(bible);
@@ -1042,7 +1041,6 @@ public class BibleController {
 //                otherBible.setBooks(Reader.getBooks("ElberfelderBibel.txt"));
 //                createIndices(otherBible);
 //                setIndicesForBible(otherBible);
-            }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -1295,22 +1293,7 @@ public class BibleController {
         }
     }
 
-    private String getParallelVerseAndReference(Bible parallelBible, List<BibleVerse> verses) {
-        try {
-            List<BibleVerse> bibleVerses = new ArrayList<>();
-            for (BibleVerse bibleVerse : verses) {
-                if (bibleVerse.getChapter().getBook().getBible().getId().equals(parallelBible.getId())) {
-                    bibleVerses.add(bibleVerse);
-                }
-            }
-            return getVersesAndReference(parallelBible, bibleVerses);
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-        return "";
-    }
-
-    private List<BibleVerse> getVersesByIndices(List<VerseIndex> verseIndices) {
+    private List<BibleVerse> getVersesByIndices(List<VerseIndex> verseIndices, Bible bible) {
         VerseIndexService verseIndexService = ServiceManager.getVerseIndexService();
         List<BibleVerse> verses = new ArrayList<>();
         List<Long> uniqueIndices = new ArrayList<>(verseIndices.size());
@@ -1321,9 +1304,8 @@ public class BibleController {
             }
         }
         for (Long index : uniqueIndices) {
-            List<VerseIndex> indices = verseIndexService.findByIndex(index);
-            for (VerseIndex verseIndex : indices) {
-                BibleVerse bibleVerse = verseIndex.getBibleVerse();
+            List<BibleVerse> indices = verseIndexService.findByIndexAndBibleId(index, bible.getId());
+            for (BibleVerse bibleVerse : indices) {
                 if (!verses.contains(bibleVerse)) {
                     verses.add(bibleVerse);
                 }
@@ -1376,10 +1358,10 @@ public class BibleController {
                 }
                 string = new StringBuilder(getVersesAndReference(bible, bibleVerses).replaceFirst("\n", ""));
                 if (settings.isParallel()) {
-                    List<BibleVerse> verses = getVersesByIndices(verseIndices);
                     for (Bible parallelBible : parallelBibles) {
                         if (parallelBible.getParallelNumber() > 0) {
-                            String s = getParallelVerseAndReference(parallelBible, verses);
+                            List<BibleVerse> verses = getVersesByIndices(verseIndices, parallelBible);
+                            String s = getVersesAndReference(parallelBible, verses);
                             if (!s.trim().equals("[]") && !s.trim().isEmpty()) {
                                 string.append("<color=\"").append(parallelBible.getColor().toString()).append("\">");
                                 string.append(s);

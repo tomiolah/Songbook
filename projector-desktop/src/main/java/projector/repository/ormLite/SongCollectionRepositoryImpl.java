@@ -12,7 +12,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SongCollectionRepositoryImpl extends AbstractRepository<SongCollection> implements SongCollectionRepository {
+public class SongCollectionRepositoryImpl extends AbstractBaseRepository<SongCollection> implements SongCollectionRepository {
     private static final Logger LOG = LoggerFactory.getLogger(SongCollectionRepositoryImpl.class);
     private SongCollectionElementRepository songCollectionElementRepository;
 

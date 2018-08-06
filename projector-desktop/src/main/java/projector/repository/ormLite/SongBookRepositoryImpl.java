@@ -15,7 +15,7 @@ import projector.repository.SongBookDAO;
 import java.sql.SQLException;
 import java.util.List;
 
-public class SongBookRepositoryImpl extends AbstractRepository<SongBook> implements SongBookDAO {
+public class SongBookRepositoryImpl extends AbstractBaseRepository<SongBook> implements SongBookDAO {
 
     private static final Logger LOG = LoggerFactory.getLogger(SongBookRepositoryImpl.class);
     private Dao<SongBookSong, Long> songBookSongDao;
