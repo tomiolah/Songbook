@@ -3,7 +3,7 @@ import {ActivatedRoute} from '@angular/router';
 import {Song, SongService} from '../../services/song-service.service';
 import {Subscription} from 'rxjs/Subscription';
 import {AuthService} from '../../services/auth.service';
-import {DomSanitizer, Title} from "@angular/platform-browser";
+import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
 import {MatDialog, MatSnackBar} from "@angular/material";
 import {ShareComponent} from "../share/share.component";
 import {AuthenticateComponent} from "../authenticate/authenticate.component";
@@ -25,6 +25,7 @@ export class SongComponent implements OnInit, OnDestroy {
   marked = false;
   markedVersionGroup: string;
   songsByVersionGroup: Song[] = [];
+  public safeUrl: SafeResourceUrl = null;
   private sub: Subscription;
 
   constructor(private activatedRoute: ActivatedRoute,
@@ -87,6 +88,7 @@ export class SongComponent implements OnInit, OnDestroy {
             }
           }
           this.song = song;
+          this.calculateUrlId(song.youtubeUrl);
           this.titleService.setTitle(this.song.title);
           history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
           this.originalSong = new Song(song);
@@ -231,6 +233,25 @@ export class SongComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe(() => {
     });
+  }
+
+  calculateUrlId(url: string) {
+    if (url == undefined) {
+      this.safeUrl = null;
+      return;
+    }
+    let youtubeUrl = url.replace("https://www.youtube.com/watch?v=", "");
+    youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
+    youtubeUrl = youtubeUrl.replace("https://youtu.be/", "");
+    let indexOf = youtubeUrl.indexOf('?');
+    if (indexOf >= 0) {
+      youtubeUrl = youtubeUrl.substring(0, indexOf);
+    }
+    if (youtubeUrl.length < 21 && youtubeUrl.length > 9) {
+      this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl("https://www.youtube.com/embed/" + youtubeUrl);
+    } else {
+      this.safeUrl = null;
+    }
   }
 
   private openAuthenticateDialog() {

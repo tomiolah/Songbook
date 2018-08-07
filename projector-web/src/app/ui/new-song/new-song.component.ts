@@ -1,4 +1,4 @@
-import {Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
 import {Song, SongService, SongVerseDTO} from '../../services/song-service.service';
 import {Router} from '@angular/router';
@@ -6,7 +6,7 @@ import {Language} from "../../models/language";
 import {LanguageDataService} from "../../services/language-data.service";
 import {MatDialog, MatIconRegistry} from "@angular/material";
 import {NewLanguageComponent} from "../new-language/new-language.component";
-import {DomSanitizer} from "@angular/platform-browser";
+import {DomSanitizer, SafeResourceUrl} from "@angular/platform-browser";
 
 export function replace(formValue: any, key) {
   const value = formValue[key];
@@ -39,7 +39,8 @@ function replaceMatch(newValue: string, matcher, replaceValue) {
 @Component({
   selector: 'app-new-song',
   templateUrl: './new-song.component.html',
-  styleUrls: ['../edit-song/edit-song.component.css']
+  styleUrls: ['../edit-song/edit-song.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NewSongComponent implements OnInit {
   form: FormGroup;
@@ -62,6 +63,8 @@ export class NewSongComponent implements OnInit {
   similar: Song[];
   secondSong: Song;
   receivedSimilar = false;
+  public youtubeUrl = '';
+  public safeUrl: SafeResourceUrl = null;
   private songTextFormControl: FormControl;
 
   constructor(private fb: FormBuilder,
@@ -69,7 +72,8 @@ export class NewSongComponent implements OnInit {
               private router: Router,
               private languageDataService: LanguageDataService,
               private dialog: MatDialog,
-              iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
+              iconRegistry: MatIconRegistry,
+              public sanitizer: DomSanitizer) {
     iconRegistry.addSvgIcon(
       'magic_tool',
       sanitizer.bypassSecurityTrustResourceUrl('assets/icons/magic_tool-icon.svg'));
@@ -98,6 +102,9 @@ export class NewSongComponent implements OnInit {
     this.form = this.fb.group({
       'title': [this.song.title, [
         Validators.required,
+      ]],
+      'youtubeUrl': [this.youtubeUrl, [
+        Validators.maxLength(52),
       ]],
     });
     this.verseControls = [];
@@ -161,6 +168,16 @@ export class NewSongComponent implements OnInit {
       if (songs.length > 0) {
         this.secondSong = this.similar[0];
       } else {
+        let url = formValue.youtubeUrl;
+        this.song.youtubeUrl = null;
+        if (url) {
+          let youtubeUrl = url.replace("https://www.youtube.com/watch?v=", "");
+          youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
+          youtubeUrl = youtubeUrl.replace("https://youtu.be/", "");
+          if (youtubeUrl.length < 21 && youtubeUrl.length > 9) {
+            this.song.youtubeUrl = youtubeUrl;
+          }
+        }
         this.insertNewSong();
       }
       this.receivedSimilar = true;
@@ -281,5 +298,20 @@ export class NewSongComponent implements OnInit {
 
   selectSecondSong(song: Song) {
     this.secondSong = song;
+  }
+
+  calculateUrlId() {
+    let youtubeUrl = this.form.value.youtubeUrl.replace("https://www.youtube.com/watch?v=", "");
+    youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
+    youtubeUrl = youtubeUrl.replace("https://youtu.be/", "");
+    let indexOf = youtubeUrl.indexOf('?');
+    if (indexOf >= 0) {
+      youtubeUrl = youtubeUrl.substring(0, indexOf);
+    }
+    if (youtubeUrl.length < 21 && youtubeUrl.length > 9) {
+      this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl("https://www.youtube.com/embed/" + youtubeUrl);
+    } else {
+      this.safeUrl = null;
+    }
   }
 }

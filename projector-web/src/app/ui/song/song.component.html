@@ -12,14 +12,15 @@
           </div>
         </mat-card-content>
       </mat-card>
-      <div *ngIf="song.youtubeUrl">
+      <div *ngIf="safeUrl!=null">
         <br>
         <mat-card>
-          <!--suppress HtmlUnknownAttribute -->
-          <iframe class="embeddedVideo"
-                  [src]='sanitizer.bypassSecurityTrustResourceUrl("https://www.youtube.com/embed/"+song.youtubeUrl)'
-                  frameborder="0"
-                  allow="autoplay; encrypted-media" allowfullscreen></iframe>
+          <iframe
+              [class]="safeUrl!=null?'embeddedVideo':'hideEmbeddedVideo'"
+              scrolling="no"
+              [src]='safeUrl'
+              frameborder="0"
+              allowfullscreen></iframe>
         </mat-card>
       </div>
     </mat-card-content>
