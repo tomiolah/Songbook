@@ -6,7 +6,7 @@ import {Language} from "../../models/language";
 import {LanguageDataService} from "../../services/language-data.service";
 import {NewLanguageComponent} from "../new-language/new-language.component";
 import {MatDialog, MatIconRegistry} from "@angular/material";
-import {DomSanitizer} from "@angular/platform-browser";
+import {DomSanitizer, SafeResourceUrl} from "@angular/platform-browser";
 import {replace} from "../new-song/new-song.component";
 import {AuthenticateComponent} from "../authenticate/authenticate.component";
 
@@ -33,6 +33,8 @@ export class EditSongComponent implements OnInit {
   @Input()
   song: Song;
   editorType = 'verse';
+  public youtubeUrl;
+  public safeUrl: SafeResourceUrl = null;
   private songTextFormControl: FormControl;
 
   constructor(private fb: FormBuilder,
@@ -40,7 +42,8 @@ export class EditSongComponent implements OnInit {
               private router: Router,
               private languageDataService: LanguageDataService,
               private dialog: MatDialog,
-              iconRegistry: MatIconRegistry, sanitizer: DomSanitizer) {
+              iconRegistry: MatIconRegistry,
+              public sanitizer: DomSanitizer) {
     iconRegistry.addSvgIcon(
       'magic_tool',
       sanitizer.bypassSecurityTrustResourceUrl('assets/icons/magic_tool-icon.svg'));
@@ -72,15 +75,15 @@ export class EditSongComponent implements OnInit {
   }
 
   createForm() {
-    let url = "https://www.youtube.com/watch?v=" + this.song.youtubeUrl;
-    if (url.endsWith("undefined")) {
-      url = '';
+    this.youtubeUrl = "https://www.youtube.com/watch?v=" + this.song.youtubeUrl;
+    if (this.youtubeUrl.endsWith("undefined")) {
+      this.youtubeUrl = '';
     }
     this.form = this.fb.group({
       'title': [this.song.title, [
         Validators.required,
       ]],
-      'youtubeUrl': [url, [
+      'youtubeUrl': [this.youtubeUrl, [
         Validators.maxLength(52),
       ]],
     });
@@ -145,6 +148,7 @@ export class EditSongComponent implements OnInit {
     if (url) {
       let youtubeUrl = url.replace("https://www.youtube.com/watch?v=", "");
       youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
+      youtubeUrl = youtubeUrl.replace("https://youtu.be/", "");
       if (youtubeUrl.length < 21 && youtubeUrl.length > 9) {
         this.song.youtubeUrl = youtubeUrl;
       }
@@ -248,6 +252,21 @@ export class EditSongComponent implements OnInit {
           i = i + 1;
         }
       }
+    }
+  }
+
+  calculateUrlId() {
+    let youtubeUrl = this.form.value.youtubeUrl.replace("https://www.youtube.com/watch?v=", "");
+    youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
+    youtubeUrl = youtubeUrl.replace("https://youtu.be/", "");
+    let indexOf = youtubeUrl.indexOf('?');
+    if (indexOf >= 0) {
+      youtubeUrl = youtubeUrl.substring(0, indexOf);
+    }
+    if (youtubeUrl.length < 21 && youtubeUrl.length > 9) {
+      this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl("https://www.youtube.com/embed/" + youtubeUrl);
+    } else {
+      this.safeUrl = null;
     }
   }
 

@@ -14,6 +14,7 @@
 
           <div class="example-container">
             <mat-form-field class="example-full-width">
+              <!--suppress HtmlUnknownAttribute -->
               <mat-select placeholder="Language" required [(value)]="selectedLanguage">
                 <mat-option *ngFor="let language of languages" [value]="language">
                   {{ printLanguage(language) }}
@@ -23,6 +24,17 @@
                 </mat-option>
               </mat-select>
             </mat-form-field>
+            <mat-form-field class="example-full-width">
+              <input type="text" id="youtubeUrl" formControlName="youtubeUrl" [value]="youtubeUrl" matInput
+                     (change)="calculateUrlId()"
+                     placeholder="Youtube url">
+            </mat-form-field>
+            <iframe
+                [class]="safeUrl!=null?'embeddedVideo':'hideEmbeddedVideo'"
+                scrolling="no"
+                [src]='safeUrl'
+                frameborder="0"
+                allowfullscreen></iframe>
             <mat-form-field class="example-full-width">
               <input type="text" id="title" formControlName="title" required matInput placeholder="Title">
             </mat-form-field>
