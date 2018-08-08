@@ -38,6 +38,8 @@ public class Song extends BaseEntity {
     private String createdByEmail;
     @DatabaseField
     private String versionGroup;
+    @DatabaseField
+    private String youtubeUrl;
 
     public Song() {
     }
@@ -187,5 +189,13 @@ public class Song extends BaseEntity {
 
     public void setVersionGroup(String versionGroup) {
         this.versionGroup = versionGroup;
+    }
+
+    public String getYoutubeUrl() {
+        return youtubeUrl;
+    }
+
+    public void setYoutubeUrl(String youtubeUrl) {
+        this.youtubeUrl = youtubeUrl;
     }
 }

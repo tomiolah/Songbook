@@ -143,6 +143,7 @@ public class MainActivity extends AppCompatActivity
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
+        //noinspection NullableProblems
         drawer.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
             public void onDrawerSlide(View drawerView, float slideOffset) {
@@ -324,6 +325,11 @@ public class MainActivity extends AppCompatActivity
                 syncInBackground.sync(getApplicationContext());
                 sharedPreferences.edit().putLong(syncDateTime, date.getTime()).apply();
             }
+        }
+        if (!sharedPreferences.getBoolean("YoutubeUrl", false)) {
+            SyncInBackground syncInBackground = SyncInBackground.getInstance();
+            syncInBackground.syncYoutubeUrl(getApplicationContext());
+            sharedPreferences.edit().putBoolean("YoutubeUrl", true).apply();
         }
     }
 
@@ -670,6 +676,7 @@ public class MainActivity extends AppCompatActivity
         copiedSong.setSongCollection(song.getSongCollection());
         copiedSong.setSongCollectionElement(song.getSongCollectionElement());
         copiedSong.setVersionGroup(song.getVersionGroup());
+        copiedSong.setYoutubeUrl(song.getYoutubeUrl());
         intent.putExtra("Song", copiedSong);
         intent.putExtra("verseIndex", 0);
         startActivityForResult(intent, 3);

@@ -12,4 +12,6 @@ public interface SongRepository extends MongoRepository<Song, String> {
     List<Song> findAllByUploadedTrueAndDeletedTrue();
 
     List<Song> findAllByVersionGroup(String versionGroup);
+
+    List<Song> findAllByYoutubeUrlNotNull();
 }

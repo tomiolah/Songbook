@@ -55,6 +55,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             final List<SongVerse> verses = song.getVerses();
             SongVerse chorus = null;
             int size = verses.size();
+            verseIndex = intent.getIntExtra("verseIndex", 0);
             for (int i = 0; i < size; ++i) {
                 SongVerse songVerse = verses.get(i);
                 verseList.add(songVerse);
@@ -63,14 +64,19 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                 } else if (chorus != null) {
                     if (i + 1 < size) {
                         if (!verses.get(i + 1).isChorus()) {
+                            if (verseList.size() <= verseIndex) {
+                                ++verseIndex;
+                            }
                             verseList.add(chorus);
                         }
                     } else {
+                        if (verseList.size() <= verseIndex) {
+                            ++verseIndex;
+                        }
                         verseList.add(chorus);
                     }
                 }
             }
-            verseIndex = intent.getIntExtra("verseIndex", 0);
 
             final View mContentView = findViewById(R.id.fullscreen_content);
             mContentView.setOnTouchListener(new View.OnTouchListener() {
@@ -108,6 +114,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                 title += song.getTitle();
                 songVerse.setText(title);
                 verseList.add(0, songVerse);
+                ++verseIndex;
             }
             boolean blank_switch = sharedPreferences.getBoolean("blank_switch", false);
             if (blank_switch) {

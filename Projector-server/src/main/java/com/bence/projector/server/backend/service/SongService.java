@@ -24,4 +24,6 @@ public interface SongService extends BaseService<Song> {
     Song getRandomSong();
 
     void removeSongFromLanguage(Song song, Language oldLanguage);
+
+    List<Song> findAllContainingYoutubeUrl();
 }

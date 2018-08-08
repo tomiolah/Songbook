@@ -1,6 +1,7 @@
 package com.bence.songbook.api.retrofit;
 
 import com.bence.projector.common.dto.SongDTO;
+import com.bence.projector.common.dto.SongTitleDTO;
 
 import java.util.List;
 
@@ -32,4 +33,7 @@ public interface SongApi {
 
     @GET("/api/song/{uuid}")
     Call<SongDTO> getSong(@Path("uuid") String uuid);
+
+    @GET("/api/songsYoutube")
+    Call<List<SongTitleDTO>> getSongsContainingYoutubeUrl();
 }
