@@ -113,6 +113,9 @@ public class NewSongActivity extends AppCompatActivity {
                         while (parse.contains("  ")) {
                             parse = parse.replaceAll(" {2}", " ");
                         }
+                        while (parse.contains("\r\n")) {
+                            parse = parse.replaceAll("\r\n", "\n");
+                        }
                         int countEmptyLine = 0;
                         for (int i = 1; i < charSequence.length(); ++i) {
                             if (charSequence.charAt(i - 1) == '\n' && charSequence.charAt(i) == '\n') {
@@ -123,6 +126,9 @@ public class NewSongActivity extends AppCompatActivity {
                         x /= count;
                         if (x > 0.07214) {
                             while (parse.contains("\n\n")) {
+                                parse = parse.replaceAll("\n{2}", "\n");
+                            }
+                            while (parse.contains("\n\r\n")) {
                                 parse = parse.replaceAll("\n{2}", "\n");
                             }
                             String text = previousSequence.toString() + parse;
@@ -158,6 +164,9 @@ public class NewSongActivity extends AppCompatActivity {
         EditText editText = findViewById(R.id.text);
         String text = editText.getText().toString();
         String replaceAll = text.replaceAll("\n\n\n", "\n\n");
+        while (replaceAll.contains("\r\n")) {
+            replaceAll = replaceAll.replaceAll("\r\n", "\n");
+        }
         while (replaceAll.contains("\n\n\n")) {
             replaceAll = replaceAll.replaceAll("\n\n\n", "\n\n");
         }

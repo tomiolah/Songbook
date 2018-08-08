@@ -1,5 +1,6 @@
 package com.bence.songbook.repository;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
@@ -22,8 +23,9 @@ import java.sql.SQLException;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final String TAG = DatabaseHelper.class.getSimpleName();
     private static final String DATABASE_NAME = "songbook.db";
-    private static final int DATABASE_VERSION = 8;
+    private static final int DATABASE_VERSION = 9;
 
+    @SuppressLint("StaticFieldLeak")
     private static DatabaseHelper instance;
     private Context context;
 
@@ -51,7 +53,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                          final ConnectionSource connectionSource) {
         try {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-            sharedPreferences.edit().putInt("songDataBaseVersion", 5).apply();
+            sharedPreferences.edit().putInt("songDataBaseVersion", 6).apply();
             TableUtils.createTableIfNotExists(connectionSource, Song.class);
             sharedPreferences.edit().putInt("songVerseDataBaseVersion", 4).apply();
             TableUtils.createTableIfNotExists(connectionSource, SongVerse.class);
@@ -75,8 +77,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                 int songDataBaseVersion = sharedPreferences.getInt("songDataBaseVersion", 0);
                 if (songDataBaseVersion < 4) {
                     TableUtils.dropTable(connectionSource, Song.class, true);
-                } else if (songDataBaseVersion == 4) {
-                    getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN versionGroup VARCHAR(30);");
+                } else {
+                    if (songDataBaseVersion == 4) {
+                        getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN versionGroup VARCHAR(30);");
+                    }
+                    getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN youtubeUrl VARCHAR(20);");
                 }
                 int songVerseDataBaseVersion = sharedPreferences.getInt("songVerseDataBaseVersion", 0);
                 if (songVerseDataBaseVersion < 4) {

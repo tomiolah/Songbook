@@ -1,0 +1,28 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true"
+    android:orientation="vertical"
+    android:screenOrientation="portrait"
+    tools:context=".ui.activity.YoutubeActivity">
+
+    <com.google.android.youtube.player.YouTubePlayerView
+        android:id="@+id/youtube_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <com.bence.songbook.AutoResizeTextView
+        android:id="@+id/fullscreen_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:ellipsize="none"
+        android:gravity="center"
+        android:singleLine="false"
+        android:text="Auto Resized Text, max 2 lines"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textSize="50sp"
+        tools:ignore="HardcodedText" />
+</LinearLayout>

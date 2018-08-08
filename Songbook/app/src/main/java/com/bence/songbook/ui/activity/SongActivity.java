@@ -89,9 +89,7 @@ public class SongActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View view,
                                     int position, long id) {
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                boolean show_title_switch = sharedPreferences.getBoolean("show_title_switch", false);
-                fullScreenIntent.putExtra("verseIndex", position + (show_title_switch ? 1 : 0));
+                fullScreenIntent.putExtra("verseIndex", position);
                 startActivity(fullScreenIntent);
             }
 
@@ -128,6 +126,18 @@ public class SongActivity extends AppCompatActivity {
             Intent intent = new Intent(this, VersionsActivity.class);
             memory.setPassingSong(song);
             startActivityForResult(intent, 1);
+        } else if (itemId == R.id.action_youtube) {
+            Intent intent = new Intent(this, YoutubeActivity.class);
+            Song copiedSong = new Song();
+            copiedSong.setUuid(song.getUuid());
+            copiedSong.setId(song.getId());
+            copiedSong.setTitle(song.getTitle());
+            copiedSong.setVerses(song.getVerses());
+            copiedSong.setSongCollection(song.getSongCollection());
+            copiedSong.setSongCollectionElement(song.getSongCollectionElement());
+            copiedSong.setYoutubeUrl(song.getYoutubeUrl());
+            intent.putExtra("song", copiedSong);
+            startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -165,11 +175,16 @@ public class SongActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.content_song_menu, menu);
         MenuItem showSimilarMenuItem = menu.findItem(R.id.action_similar);
+        MenuItem youtubeMenuItem = menu.findItem(R.id.action_youtube);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean show_similar = sharedPreferences.getBoolean("show_similar", false);
         if (!show_similar) {
             showSimilarMenuItem.setVisible(false);
             menu.removeItem(showSimilarMenuItem.getItemId());
+        }
+        if (song.getYoutubeUrl() == null) {
+            youtubeMenuItem.setVisible(false);
+            menu.removeItem(youtubeMenuItem.getItemId());
         }
         final MenuItem versionsMenuItem = menu.findItem(R.id.action_versions);
         versionsMenuItem.setVisible(false);

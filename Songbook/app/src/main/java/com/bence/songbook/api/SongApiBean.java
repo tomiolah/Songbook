@@ -3,6 +3,7 @@ package com.bence.songbook.api;
 import android.util.Log;
 
 import com.bence.projector.common.dto.SongDTO;
+import com.bence.projector.common.dto.SongTitleDTO;
 import com.bence.songbook.ProgressMessage;
 import com.bence.songbook.api.assembler.SongAssembler;
 import com.bence.songbook.api.retrofit.ApiManager;
@@ -32,6 +33,18 @@ public class SongApiBean {
         try {
             List<SongDTO> songDTOs = call.execute().body();
             return songAssembler.createModelList(songDTOs, progressMessage);
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage(), e);
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public List<SongTitleDTO> getSongsContainingYoutubeUrl() {
+        Call<List<SongTitleDTO>> call = songApi.getSongsContainingYoutubeUrl();
+        try {
+            return call.execute().body();
         } catch (IOException e) {
             Log.e(TAG, e.getMessage(), e);
         } catch (Exception e) {

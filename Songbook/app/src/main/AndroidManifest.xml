@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
-          package="com.bence.songbook">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.bence.songbook">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
@@ -15,77 +15,72 @@
             android:name=".ui.activity.MainActivity"
             android:label="@string/app_name"
             android:theme="@style/SongBookTheme">
-            <tools:validation testUrl="https://projector-songbook.herokuapp.com/#/song/5abf7bcde66f410004c91084"/>
+            <tools:validation testUrl="https://projector-songbook.herokuapp.com/#/song/5abf7bcde66f410004c91084" />
 
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
+                <action android:name="android.intent.action.VIEW" />
 
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
 
                 <data
                     android:host="projector-songbook.herokuapp.com"
-                    android:scheme="https"/>
+                    android:scheme="https" />
             </intent-filter>
         </activity>
         <activity
             android:name=".ui.activity.FullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
-            android:theme="@style/FullscreenTheme"/>
-        <activity android:name=".ui.activity.ExplanationActivity">
-        </activity>
+            android:theme="@style/FullscreenTheme" />
+        <activity android:name=".ui.activity.ExplanationActivity" />
         <activity
             android:name=".ui.activity.LoadActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="portrait">
-        </activity>
-        <activity android:name=".ui.activity.LanguagesActivity">
-        </activity>
+            android:screenOrientation="portrait" />
+        <activity android:name=".ui.activity.LanguagesActivity" />
         <activity
             android:name=".ui.activity.SettingsActivity"
             android:label="@string/settings"
             android:parentActivityName=".ui.activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.bence.songbook.ui.activity.MainActivity"/>
+                android:value="com.bence.songbook.ui.activity.MainActivity" />
         </activity>
         <activity
             android:name=".ui.activity.SongActivity"
-            android:theme="@style/SongBookTheme">
-        </activity>
+            android:theme="@style/SongBookTheme" />
         <activity
             android:name=".ui.activity.ConnectToSharedActivity"
-            android:screenOrientation="locked"
             android:label="Connect to shared"
-            android:theme="@style/SongBookTheme">
-        </activity>
+            android:screenOrientation="locked"
+            android:theme="@style/SongBookTheme" />
         <activity
             android:name=".ui.activity.ConnectToSharedFullscreenActivity"
             android:label="Connect to shared"
-            android:theme="@style/SongBookTheme">
-        </activity>
+            android:theme="@style/SongBookTheme" />
         <activity
             android:name=".ui.activity.NewSongActivity"
-            android:theme="@style/SongBookTheme"/>
+            android:theme="@style/SongBookTheme" />
         <activity
             android:name=".ui.activity.SuggestEditsActivity"
             android:label="@string/suggest_edits"
-            android:theme="@style/SongBookTheme">
-        </activity>
+            android:theme="@style/SongBookTheme" />
         <activity
             android:name=".ui.activity.SuggestEditsChooseActivity"
             android:label="@string/suggest_edits"
-            android:theme="@style/SongBookTheme">
-        </activity>
+            android:theme="@style/SongBookTheme" />
         <activity
             android:name=".ui.activity.VersionsActivity"
-            android:label="@string/versions">
-        </activity>
+            android:label="@string/versions" />
+        <activity
+            android:name=".ui.activity.YoutubeActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

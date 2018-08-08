@@ -79,4 +79,5 @@
     <string name="too_short_text">Too short text!</string>
     <string name="this_song_is_not_saved">This song is not saved</string>
     <string name="description">Description</string>
+    <string name="youtube_video">Youtube video</string>
 </resources>

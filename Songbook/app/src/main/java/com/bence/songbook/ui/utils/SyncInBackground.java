@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
+import com.bence.projector.common.dto.SongTitleDTO;
 import com.bence.songbook.api.SongApiBean;
 import com.bence.songbook.api.SongCollectionApiBean;
 import com.bence.songbook.models.Language;
@@ -30,6 +31,7 @@ public class SyncInBackground {
     private static SyncInBackground instance;
     private static boolean incorrectSyncSave;
     private Long syncFrom;
+    private int finished = 0;
 
     private SyncInBackground() {
     }
@@ -65,6 +67,24 @@ public class SyncInBackground {
         this.syncFrom = 1524234911591L;
     }
 
+    public void syncYoutubeUrl(final Context context) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (finished != 0) {
+                        Thread.sleep(100);
+                    }
+                    new YoutubeUrlDownloader(context).execute();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+        thread.start();
+    }
+
     @SuppressLint("StaticFieldLeak")
     class Downloader extends AsyncTask<Void, Integer, Void> {
         private final Context context;
@@ -74,6 +94,7 @@ public class SyncInBackground {
         Downloader(Language language, Context context) {
             this.language = language;
             this.context = context;
+            ++finished;
         }
 
         @Override
@@ -154,6 +175,39 @@ public class SyncInBackground {
             songCollectionRepository.deleteAll(needToDelete);
             songCollectionRepository.save(onlineModifiedSongCollections);
             languageRepository.save(language);
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            ++finished;
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    class YoutubeUrlDownloader extends AsyncTask<Void, Integer, Void> {
+        private final Context context;
+
+        YoutubeUrlDownloader(Context context) {
+            this.context = context;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            SongRepository songRepository = new SongRepositoryImpl(context);
+            final SongApiBean songApiBean = new SongApiBean();
+            List<SongTitleDTO> songTitleDTOS = songApiBean.getSongsContainingYoutubeUrl();
+            for (SongTitleDTO dto : songTitleDTOS) {
+                Song byUUID = songRepository.findByUUID(dto.getId());
+                byUUID.setYoutubeUrl(dto.getYoutubeUrl());
+                songRepository.save(byUUID);
+            }
+            return null;
         }
 
         @Override
