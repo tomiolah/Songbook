@@ -8,6 +8,7 @@ public class SongTitleDTO extends BaseDTO {
     private Date modifiedDate;
     private boolean deleted;
     private long views;
+    private String youtubeUrl;
 
     public String getTitle() {
         return title;
@@ -39,5 +40,13 @@ public class SongTitleDTO extends BaseDTO {
 
     public void setViews(long views) {
         this.views = views;
+    }
+
+    public String getYoutubeUrl() {
+        return youtubeUrl;
+    }
+
+    public void setYoutubeUrl(String youtubeUrl) {
+        this.youtubeUrl = youtubeUrl;
     }
 }

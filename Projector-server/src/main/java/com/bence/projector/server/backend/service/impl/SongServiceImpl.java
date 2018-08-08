@@ -334,6 +334,11 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
+    public List<Song> findAllContainingYoutubeUrl() {
+        return songRepository.findAllByYoutubeUrlNotNull();
+    }
+
+    @Override
     public Iterable save(List<Song> songs) {
         for (Song song : songs) {
             save(song);

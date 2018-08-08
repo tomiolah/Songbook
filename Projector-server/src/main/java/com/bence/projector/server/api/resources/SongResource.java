@@ -432,4 +432,10 @@ public class SongResource {
         List<Song> allByVersionGroup = songService.findAllByVersionGroup(id);
         return songAssembler.createDtoList(allByVersionGroup);
     }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/api/songsYoutube")
+    public List<SongTitleDTO> getSongsContainingYoutubeUrl() {
+        List<Song> allContainingYoutubeUrl = songService.findAllContainingYoutubeUrl();
+        return songTitleAssembler.createDtoList(allContainingYoutubeUrl);
+    }
 }
