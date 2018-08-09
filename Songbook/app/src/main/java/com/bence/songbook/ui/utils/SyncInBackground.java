@@ -204,8 +204,10 @@ public class SyncInBackground {
             List<SongTitleDTO> songTitleDTOS = songApiBean.getSongsContainingYoutubeUrl();
             for (SongTitleDTO dto : songTitleDTOS) {
                 Song byUUID = songRepository.findByUUID(dto.getId());
-                byUUID.setYoutubeUrl(dto.getYoutubeUrl());
-                songRepository.save(byUUID);
+                if (byUUID != null && byUUID.getYoutubeUrl() == null) {
+                    byUUID.setYoutubeUrl(dto.getYoutubeUrl());
+                    songRepository.save(byUUID);
+                }
             }
             return null;
         }

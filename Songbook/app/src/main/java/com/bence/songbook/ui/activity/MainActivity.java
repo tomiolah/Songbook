@@ -326,10 +326,10 @@ public class MainActivity extends AppCompatActivity
                 sharedPreferences.edit().putLong(syncDateTime, date.getTime()).apply();
             }
         }
-        if (!sharedPreferences.getBoolean("YoutubeUrl", false)) {
+        if (sharedPreferences.getBoolean("YoutubeUrl", true)) {
             SyncInBackground syncInBackground = SyncInBackground.getInstance();
             syncInBackground.syncYoutubeUrl(getApplicationContext());
-            sharedPreferences.edit().putBoolean("YoutubeUrl", true).apply();
+            sharedPreferences.edit().putBoolean("YoutubeUrl", false).apply();
         }
     }
 

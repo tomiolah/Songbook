@@ -3,6 +3,7 @@ package com.bence.songbook.ui.activity;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -111,7 +112,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
                 textView.setTextColor(getResources().getColor(R.color.white));
             }
         } catch (Exception e) {
-            Log.e(AbstractFullscreenActivity.class.getSimpleName(), e.getMessage());
+            Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
         }
         try {
             verseList = new ArrayList<>(song.getVerses().size());
@@ -187,7 +188,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
             });
             thread.start();
         } catch (Exception e) {
-            Log.e(FullscreenActivity.class.getSimpleName(), e.getMessage());
+            Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
         }
     }
 
@@ -236,6 +237,8 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
         } else {
             String error = String.format("Error initializing YouTube player: %s", errorReason.toString());
             Toast.makeText(this, error, Toast.LENGTH_LONG).show();
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + song.getYoutubeUrl())));
+            finish();
         }
     }
 
