@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
     defaultConfig {
-        applicationId "com.bence.songbook"
+        applicationId "com.bence.songbook.dev"
         minSdkVersion 16
         //noinspection OldTargetApi
         targetSdkVersion 27
@@ -35,8 +35,8 @@ dependencies {
     implementation 'com.j256.ormlite:ormlite-core:4.48'
     implementation 'com.j256.ormlite:ormlite-android:4.48'
     implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
-    implementation 'com.google.firebase:firebase-core:16.0.1'
+//    implementation 'com.google.firebase:firebase-core:16.0.1'
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
 }
 
-apply plugin: 'com.google.gms.google-services'
+//apply plugin: 'com.google.gms.google-services'
