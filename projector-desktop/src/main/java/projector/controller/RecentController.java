@@ -12,6 +12,7 @@ import java.io.BufferedWriter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedList;
@@ -30,8 +31,8 @@ public class RecentController {
     private List<Integer> partI;
     private List<Integer> versI;
     private List<String> songTitles;
-    private List<String> versNumbersListText;
-    private List<List<Integer>> versNumbersList;
+    private List<String> verseNumbersListText;
+    private List<List<Integer>> verseNumbersList;
     private int searchSelected;
     private boolean isBlank;
 
@@ -41,8 +42,8 @@ public class RecentController {
         partI = new LinkedList<>();
         versI = new LinkedList<>();
         songTitles = new LinkedList<>();
-        versNumbersListText = new LinkedList<>();
-        versNumbersList = new ArrayList<>();
+        verseNumbersListText = new LinkedList<>();
+        verseNumbersList = new ArrayList<>();
         listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (!newValue.isEmpty()) {
                 if (typeList.get(listView.getSelectionModel().getSelectedIndex()) == ProjectionType.SONG) {
@@ -92,7 +93,7 @@ public class RecentController {
                         bibleController.getVerseListView().getSelectionModel().clearSelection();
                         // bibleController.getFullVersListView().getSelectionModel().clearSelection();
                         bibleController.setSelecting(true);
-                        for (Integer i : versNumbersList.get(index)) {
+                        for (Integer i : verseNumbersList.get(index)) {
                             bibleController.getVerseListView().getSelectionModel().select(i);
                         }
                         bibleController.setSelecting(false);
@@ -130,15 +131,15 @@ public class RecentController {
                 bookI.add(-1);
                 partI.add(0);
                 versI.add(0);
-                versNumbersListText.add("");
+                verseNumbersListText.add("");
                 ArrayList<Integer> tmp = new ArrayList<>();
                 tmp.add(-1);
-                versNumbersList.add(tmp);
+                verseNumbersList.add(tmp);
             }
         }
     }
 
-    public void addRecentBibleVers(String text, int book, int part, int vers) {
+    public void addRecentBibleVerse(String text, int book, int part, int vers) {
         if (!isBlank) {
             if (!text.trim().isEmpty()) {
                 typeList.add(ProjectionType.BIBLE);
@@ -146,10 +147,10 @@ public class RecentController {
                 bookI.add(book);
                 partI.add(part);
                 versI.add(vers);
-                versNumbersListText.add((vers + 1) + "");
+                verseNumbersListText.add((vers + 1) + "");
                 ArrayList<Integer> tmp = new ArrayList<>();
                 tmp.add(vers);
-                versNumbersList.add(tmp);
+                verseNumbersList.add(tmp);
             }
         }
     }
@@ -174,11 +175,11 @@ public class RecentController {
         this.songController = songController;
     }
 
-    public void setBibleController(BibleController bibleController) {
+    void setBibleController(BibleController bibleController) {
         this.bibleController = bibleController;
     }
 
-    public void setSearchSelected(int searchSelected) {
+    void setSearchSelected(int searchSelected) {
         this.searchSelected = searchSelected;
     }
 
@@ -189,13 +190,13 @@ public class RecentController {
     public void close() {
         try {
             FileOutputStream fileOutputStream = new FileOutputStream("recent.txt", true);
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, "UTF-8"));
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
             Date date = new Date();
             if (bookI.size() > 0 || songTitles.size() > 0) {
                 bw.write(date + System.lineSeparator());
                 for (int i = 0; i < bookI.size(); ++i) {
                     if (bookI.get(i) != -1) {
-                        bw.write((bookI.get(i) + 1) + " " + (partI.get(i) + 1) + " " + versNumbersListText.get(i)
+                        bw.write((bookI.get(i) + 1) + " " + (partI.get(i) + 1) + " " + verseNumbersListText.get(i)
                                 + System.lineSeparator());
                     }
                 }
@@ -211,17 +212,17 @@ public class RecentController {
         }
     }
 
-    public void addRecentBibleVers(String text, int iBook, int iPart, int iVers, String versNumbers,
-                                   ArrayList<Integer> tmpVersNumberList) {
+    void addRecentBibleVerse(String text, int iBook, int iPart, int iVerse, String verseNumbers,
+                             ArrayList<Integer> tmpVerseNumberList) {
         if (!isBlank) {
             if (!text.trim().isEmpty()) {
                 typeList.add(ProjectionType.BIBLE);
                 listView.getItems().add(text);
                 bookI.add(iBook);
                 partI.add(iPart);
-                versI.add(iVers);
-                versNumbersListText.add(versNumbers);
-                versNumbersList.add(tmpVersNumberList);
+                versI.add(iVerse);
+                verseNumbersListText.add(verseNumbers);
+                verseNumbersList.add(tmpVerseNumberList);
             }
         }
     }

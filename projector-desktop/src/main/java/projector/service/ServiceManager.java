@@ -4,6 +4,7 @@ import projector.service.impl.BibleServiceImpl;
 import projector.service.impl.InformationServiceImpl;
 import projector.service.impl.LanguageServiceImpl;
 import projector.service.impl.SongBookServiceImpl;
+import projector.service.impl.SongCollectionElementServiceImpl;
 import projector.service.impl.SongCollectionServiceImpl;
 import projector.service.impl.SongServiceImpl;
 import projector.service.impl.SongVerseServiceImpl;
@@ -41,5 +42,9 @@ public class ServiceManager {
 
     public static VerseIndexService getVerseIndexService() {
         return new VerseIndexServiceImpl();
+    }
+
+    public static SongCollectionElementService getSongCollectionElementService() {
+        return new SongCollectionElementServiceImpl();
     }
 }

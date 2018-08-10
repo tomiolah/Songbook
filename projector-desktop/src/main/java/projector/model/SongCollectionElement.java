@@ -11,7 +11,7 @@ public class SongCollectionElement extends BaseEntity {
     @Expose
     @DatabaseField
     private String songUuid;
-    @DatabaseField(foreign = true, index = true)
+    @DatabaseField(foreign = true, index = true, foreignAutoRefresh = true, maxForeignAutoRefreshLevel = 1)
     private SongCollection songCollection;
 
     public String getOrdinalNumber() {

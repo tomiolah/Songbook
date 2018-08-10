@@ -673,10 +673,20 @@ public class SongController {
         scheduleListView.setOnDragDropped(dragEvent -> {
             Song songFromDragBoard = getSongFromDragBoard(dragEvent);
             if (songFromDragBoard != null) {
+                setSongCollection(songFromDragBoard);
                 scheduleController.addSong(songFromDragBoard);
                 dragEvent.setDropCompleted(true);
             }
         });
+    }
+
+    private void setSongCollection(Song song) {
+        List<SongCollectionElement> bySong = ServiceManager.getSongCollectionElementService().findBySong(song);
+        if (bySong != null && bySong.size() > 0) {
+            SongCollectionElement songCollectionElement = bySong.get(0);
+            song.setSongCollection(songCollectionElement.getSongCollection());
+            song.setSongCollectionElement(songCollectionElement);
+        }
     }
 
     private Song getSongFromDragBoard(DragEvent dragEvent) {
@@ -1275,7 +1285,7 @@ public class SongController {
         }
     }
 
-    public boolean titleSearchStartWith(String text) {
+    public void titleSearchStartWith(String text) {
         try {
             lastSearching = LastSearching.IN_TITLE_START_WITH;
             lastSearchText = text;
@@ -1286,13 +1296,12 @@ public class SongController {
                     SearchedSong searchedSong = new SearchedSong(song);
                     listView.getItems().add(searchedSong);
                     listView.getSelectionModel().select(0);
-                    return true;
+                    return;
                 }
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
-        return false;
     }
 
     private void selectIfJustOne() {
