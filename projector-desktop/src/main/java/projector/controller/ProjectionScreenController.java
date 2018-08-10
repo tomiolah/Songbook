@@ -68,11 +68,11 @@ public class ProjectionScreenController {
 
     public void initialize() {
         settings = Settings.getInstance();
-        textFlow.setOnMousePressed(e -> {
+        mainPane.setOnMousePressed(e -> {
             if (isLock) {// ) || !stage.isMaximized()) {
                 return;
             }
-            int width = (int) scene.getWidth();
+            int width = (int) mainPane.getWidth();
             if (projectionType == ProjectionType.BIBLE) {
                 if (bibleController != null) {
                     if ((double) width / 2 < e.getX()) {
