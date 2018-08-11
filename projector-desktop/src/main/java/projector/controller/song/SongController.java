@@ -673,10 +673,20 @@ public class SongController {
         scheduleListView.setOnDragDropped(dragEvent -> {
             Song songFromDragBoard = getSongFromDragBoard(dragEvent);
             if (songFromDragBoard != null) {
+                setSongCollection(songFromDragBoard);
                 scheduleController.addSong(songFromDragBoard);
                 dragEvent.setDropCompleted(true);
             }
         });
+    }
+
+    private void setSongCollection(Song song) {
+        List<SongCollectionElement> bySong = ServiceManager.getSongCollectionElementService().findBySong(song);
+        if (bySong != null && bySong.size() > 0) {
+            SongCollectionElement songCollectionElement = bySong.get(0);
+            song.setSongCollection(songCollectionElement.getSongCollection());
+            song.setSongCollectionElement(songCollectionElement);
+        }
     }
 
     private Song getSongFromDragBoard(DragEvent dragEvent) {
@@ -1247,6 +1257,11 @@ public class SongController {
                 collectionName = stripAccents(firstWord.substring(0, i).toLowerCase());
                 ordinalNumber = firstWord.substring(i);
             }
+            int ordinalNumberInt = Integer.MIN_VALUE;
+            try {
+                ordinalNumberInt = Integer.parseInt(ordinalNumber);
+            } catch (Exception ignored) {
+            }
             String remainingText = "";
             try {
                 remainingText = text.substring(firstWord.length() + 1);
@@ -1255,13 +1270,23 @@ public class SongController {
             remainingText = stripAccents(remainingText);
             text = stripAccents(text);
             List<Song> songs = selectedSongCollection.getSongs();
+            boolean wasOrdinalNumber = false;
             for (Song song : songs) {
                 SongCollectionElement songCollectionElement = song.getSongCollectionElement();
                 boolean contains = false;
                 if (songCollectionElement != null) {
-                    String name = song.getSongCollection().getStrippedName();
-                    if ((name.contains(collectionName)) && songCollectionElement.getOrdinalNumber().contains(ordinalNumber) && (remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
+                    SongCollection songCollection = song.getSongCollection();
+                    String name = songCollection.getStrippedName();
+                    boolean contains1 = name.contains(collectionName) || songCollection.getStrippedShortName().contains(collectionName);
+                    String number = songCollectionElement.getOrdinalNumber();
+                    boolean equals = number.equals(ordinalNumber);
+                    boolean contains2 = number.contains(ordinalNumber) || equals || ordinalNumberInt == songCollectionElement.getOrdinalNumberInt();
+                    boolean b = remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText);
+                    if (contains1 && contains2 && b) {
                         contains = true;
+                        if (equals) {
+                            wasOrdinalNumber = true;
+                        }
                     }
                 }
                 if (contains || contains(song.getStrippedTitle(), text)) {
@@ -1269,13 +1294,24 @@ public class SongController {
                     listView.getItems().add(searchedSong);
                 }
             }
+            if (wasOrdinalNumber) {
+                listView.getItems().sort((l, r) -> {
+                    SongCollectionElement lSongCollectionElement = l.getSong().getSongCollectionElement();
+                    SongCollectionElement rSongCollectionElement = r.getSong().getSongCollectionElement();
+                    if (lSongCollectionElement != null && rSongCollectionElement != null) {
+                        return Integer.compare(lSongCollectionElement.getOrdinalNumberInt(), rSongCollectionElement.getOrdinalNumberInt());
+                    } else {
+                        return 1;
+                    }
+                });
+            }
             selectIfJustOne();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
     }
 
-    public boolean titleSearchStartWith(String text) {
+    public void titleSearchStartWith(String text) {
         try {
             lastSearching = LastSearching.IN_TITLE_START_WITH;
             lastSearchText = text;
@@ -1286,13 +1322,12 @@ public class SongController {
                     SearchedSong searchedSong = new SearchedSong(song);
                     listView.getItems().add(searchedSong);
                     listView.getSelectionModel().select(0);
-                    return true;
+                    return;
                 }
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
-        return false;
     }
 
     private void selectIfJustOne() {
@@ -1349,9 +1384,9 @@ public class SongController {
         try {
             OrderMethod selectedItem = sortComboBox.getSelectionModel().getSelectedItem();
             if (selectedItem.equals(OrderMethod.ASCENDING_BY_TITLE)) {
-                songs.sort(Comparator.comparing(l -> l.getTitle().toLowerCase()));
+                songs.sort(Comparator.comparing(l -> l.getStrippedTitle().toLowerCase()));
             } else if (selectedItem.equals(OrderMethod.DESCENDING_BY_TITLE)) {
-                songs.sort((l, r) -> r.getTitle().toLowerCase().compareTo(l.getTitle().toLowerCase()));
+                songs.sort((l, r) -> r.getStrippedTitle().toLowerCase().compareTo(l.getStrippedTitle().toLowerCase()));
             } else if (selectedItem.equals(OrderMethod.BY_MODIFIED_DATE)) {
                 songs.sort((l, r) -> r.getModifiedDate().compareTo(l.getModifiedDate()));
             } else if (selectedItem.equals(OrderMethod.BY_PUBLISHED)) {
@@ -1368,7 +1403,14 @@ public class SongController {
                     SongCollection rSongCollection = r.getSongCollection();
                     SongCollection lSongCollection = l.getSongCollection();
                     if (lSongCollection != null && rSongCollection != null) {
-                        return lSongCollection.getName().compareTo(rSongCollection.getName());
+                        if (lSongCollection.getName().equals(rSongCollection.getName())) {
+                            SongCollectionElement lSongCollectionElement = l.getSongCollectionElement();
+                            SongCollectionElement rSongCollectionElement = r.getSongCollectionElement();
+                            if (lSongCollectionElement != null && rSongCollectionElement != null) {
+                                return Integer.compare(lSongCollectionElement.getOrdinalNumberInt(), rSongCollectionElement.getOrdinalNumberInt());
+                            }
+                        }
+                        return lSongCollection.getStrippedName().compareTo(rSongCollection.getStrippedName());
                     } else if (lSongCollection != null) {
                         return -1;
                     } else if (rSongCollection != null) {

@@ -7,6 +7,7 @@ import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+import projector.Main;
 import projector.application.Settings;
 import projector.controller.song.ScheduleController;
 import projector.controller.song.SongController;
@@ -17,6 +18,8 @@ import java.util.ResourceBundle;
 
 public class MyController {
 
+    @FXML
+    private ToggleButton showProjectionScreenToggleButton;
     @FXML
     private ProjectionScreenController projectionScreenController;
     @FXML
@@ -57,6 +60,7 @@ public class MyController {
     private Tab bibleTab;
     @FXML
     private Tab recentTab;
+    private Main main;
 
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -243,5 +247,17 @@ public class MyController {
 
     public void onKeyPressed(KeyEvent event) {
         songController.onKeyPressed(event);
+    }
+
+    public void showHideProjectionScreen() {
+        if (showProjectionScreenToggleButton.isSelected()) {
+            main.setProjectionScreenStage();
+        } else {
+            main.hideProjectionScreen();
+        }
+    }
+
+    public void setMain(Main main) {
+        this.main = main;
     }
 }

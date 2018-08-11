@@ -11,15 +11,27 @@ public class SongCollectionElement extends BaseEntity {
     @Expose
     @DatabaseField
     private String songUuid;
-    @DatabaseField(foreign = true, index = true)
+    @DatabaseField(foreign = true, index = true, foreignAutoRefresh = true, maxForeignAutoRefreshLevel = 1)
     private SongCollection songCollection;
 
+    public int getOrdinalNumberInt() {
+        try {
+            return Integer.parseInt(ordinalNumber.replaceAll("[^0-9]*", ""));
+        } catch (NumberFormatException e) {
+            return Integer.MAX_VALUE;
+        }
+    }
+
     public String getOrdinalNumber() {
-        return ordinalNumber;
+        return ordinalNumber.replaceAll("^0+", "");
     }
 
     public void setOrdinalNumber(String ordinalNumber) {
-        this.ordinalNumber = ordinalNumber;
+        if (ordinalNumber == null) {
+            this.ordinalNumber = null;
+        } else {
+            this.ordinalNumber = ordinalNumber.replaceAll("^0+", "");
+        }
     }
 
     @Override

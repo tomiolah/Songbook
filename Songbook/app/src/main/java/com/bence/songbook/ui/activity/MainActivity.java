@@ -104,6 +104,7 @@ public class MainActivity extends AppCompatActivity
     private boolean reverseSortMethod;
     private boolean shortCollectionName;
     private boolean light_theme_switch;
+    private boolean wasOrdinalNumber;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -598,15 +599,36 @@ public class MainActivity extends AppCompatActivity
             collectionName = stripAccents(firstWord.substring(0, i).toLowerCase());
             ordinalNumber = firstWord.substring(i, firstWord.length());
         }
+        int ordinalNumberInt = Integer.MIN_VALUE;
+        try {
+            ordinalNumberInt = Integer.parseInt(ordinalNumber);
+        } catch (Exception ignored) {
+        }
+        wasOrdinalNumber = false;
         for (int i = 0; i < songs.size(); ++i) {
             Song song = songs.get(i);
-            if (containsInTitle(stripped, song, other, collectionName, ordinalNumber)) {
+            if (containsInTitle(stripped, song, other, collectionName, ordinalNumber, ordinalNumberInt)) {
                 values.add(song);
             }
         }
+        if (wasOrdinalNumber) {
+            Collections.sort(values, new Comparator<Song>() {
+                @Override
+                public int compare(Song l, Song r) {
+                    SongCollectionElement lSongCollectionElement = l.getSongCollectionElement();
+                    SongCollectionElement rSongCollectionElement = r.getSongCollectionElement();
+                    if (lSongCollectionElement != null && rSongCollectionElement != null) {
+                        Integer ordinalNumberInt = lSongCollectionElement.getOrdinalNumberInt();
+                        return ordinalNumberInt.compareTo(rSongCollectionElement.getOrdinalNumberInt());
+                    } else {
+                        return 1;
+                    }
+                }
+            });
+        }
     }
 
-    private boolean containsInTitle(String stripped, Song song, String other, String collectionName, String ordinalNumber) {
+    private boolean containsInTitle(String stripped, Song song, String other, String collectionName, String ordinalNumber, int ordinalNumberInt) {
         String strippedTitle = song.getStrippedTitle();
         if (strippedTitle.contains(stripped)) {
             return true;
@@ -616,27 +638,51 @@ public class MainActivity extends AppCompatActivity
         if (songCollection == null) {
             return false;
         }
+        String songOrdinalNumber = songCollectionElement.getOrdinalNumber().toLowerCase();
+        boolean equals = songOrdinalNumber.equals(ordinalNumber);
+        boolean contains = songOrdinalNumber.contains(ordinalNumber) || ordinalNumberInt == songCollectionElement.getOrdinalNumberInt();
         if (collectionName.isEmpty()) {
-            String songOrdinalNumber = songCollectionElement.getOrdinalNumber().toLowerCase();
+            boolean b = (!ordinalNumber.isEmpty() && contains) || equals;
             if (other.isEmpty()) {
-                return !ordinalNumber.isEmpty() && songOrdinalNumber.contains(ordinalNumber);
+                if (b && equals) {
+                    wasOrdinalNumber = true;
+                }
+                return b;
             }
-            return !ordinalNumber.isEmpty() && songOrdinalNumber.contains(ordinalNumber) && strippedTitle.contains(other);
+            boolean b1 = b && strippedTitle.contains(other);
+            if (b1 && equals) {
+                wasOrdinalNumber = true;
+            }
+            return b1;
         }
         String name = songCollection.getStripedName();
         String shortName = songCollection.getStrippedShortName();
         boolean b = name.contains(collectionName) || shortName.contains(collectionName);
         if (ordinalNumber.isEmpty()) {
             if (other.isEmpty()) {
+                if (b && equals) {
+                    wasOrdinalNumber = true;
+                }
                 return b;
             }
-            return b && strippedTitle.contains(other);
+            boolean b1 = b && strippedTitle.contains(other);
+            if (b1 && equals) {
+                wasOrdinalNumber = true;
+            }
+            return b1;
         }
-        boolean b1 = songCollectionElement.getOrdinalNumber().contains(ordinalNumber);
         if (other.isEmpty()) {
-            return b && b1;
+            boolean b2 = b && contains;
+            if (b2 && equals) {
+                wasOrdinalNumber = true;
+            }
+            return b2;
         }
-        return b && b1 && strippedTitle.contains(other);
+        boolean b2 = b && contains && strippedTitle.contains(other);
+        if (b2 && equals) {
+            wasOrdinalNumber = true;
+        }
+        return b2;
     }
 
     public void inSongSearch(String title) {
@@ -730,8 +776,8 @@ public class MainActivity extends AppCompatActivity
                             } else {
                                 int compareTo = lhsSongCollection.getName().compareTo(rhsSongCollection.getName());
                                 if (compareTo == 0) {
-                                    String lhsOrdinalNumber = lhs.getSongCollectionElement().getOrdinalNumber();
-                                    String rhsOrdinalNumber = rhs.getSongCollectionElement().getOrdinalNumber();
+                                    Integer lhsOrdinalNumber = lhs.getSongCollectionElement().getOrdinalNumberInt();
+                                    int rhsOrdinalNumber = rhs.getSongCollectionElement().getOrdinalNumberInt();
                                     return lhsOrdinalNumber.compareTo(rhsOrdinalNumber);
                                 }
                                 return compareTo;

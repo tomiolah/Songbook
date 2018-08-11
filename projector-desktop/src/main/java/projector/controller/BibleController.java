@@ -1342,13 +1342,12 @@ public class BibleController {
 
     private void verseSelected() {
         try {
-            // System.out.println(selectedBook + " " + selectedPart);
             ObservableList<Integer> ob = verseListView.getSelectionModel().getSelectedIndices();
             StringBuilder string = new StringBuilder();
             int iVerse;
             iVerse = verseListView.getSelectionModel().getSelectedIndex();
+            String text = null;
             if (selectedBook >= 0 && selectedPart >= 0 && iVerse >= 0) {
-                // List<Text> tmpTextList = new LinkedList<>();
                 List<VerseIndex> verseIndices = new ArrayList<>();
                 List<BibleVerse> bibleVerses = new ArrayList<>(ob.size());
                 for (int i : ob) {
@@ -1370,11 +1369,14 @@ public class BibleController {
                         }
                     }
                 }
+                ArrayList<Integer> tmp = new ArrayList<>(ob);
+                text = string.toString();
+                String verseNumbers = text.substring(string.lastIndexOf(":") + 1, string.length()).replace("]", "");
+                recentController.addRecentBibleVerse(text, selectedBook, selectedPart, iVerse, verseNumbers, tmp);
             }
-            recentController.addRecentBibleVers(string.toString(), selectedBook, selectedPart, iVerse);
             if (string.length() > 0) {
                 if (!settings.isShowReferenceOnly()) {
-                    projectionScreenController.setText(string.toString(), ProjectionType.BIBLE);
+                    projectionScreenController.setText(text, ProjectionType.BIBLE);
                 }
                 for (int i : ob) {
                     if (i == -1) {
