@@ -33,6 +33,8 @@ public class SongCollection extends BaseEntity {
     private boolean selected;
     private List<Song> songs;
     private String strippedName;
+    private String strippedShortName;
+    private String shortName;
 
     public SongCollection() {
     }
@@ -129,5 +131,46 @@ public class SongCollection extends BaseEntity {
 
     public void setSongs(List<Song> songs) {
         this.songs = songs;
+    }
+
+    private String getShortName() {
+        if (shortName == null) {
+            return parseToShortName();
+        }
+        return shortName;
+    }
+
+    private String parseToShortName() {
+        StringBuilder shortName = new StringBuilder();
+        String[] split = name.trim().split(" ");
+        if (split.length > 1) {
+            for (String s : split) {
+                try {
+                    shortName.append((s.charAt(0) + "").toUpperCase());
+                    int i = 1;
+                    while (i < s.length() && Character.isUpperCase(s.charAt(i))) {
+                        shortName.append(s.charAt(i));
+                        ++i;
+                    }
+                } catch (Exception e) {
+                    shortName.append(s);
+                }
+            }
+        } else {
+            return (name.trim().charAt(0) + "").toUpperCase();
+        }
+        return shortName.toString();
+    }
+
+    public String getStrippedShortName() {
+        if (strippedShortName == null) {
+            String shortName = getShortName();
+            strippedShortName = stripAccents(shortName.toLowerCase());
+        }
+        return strippedShortName;
+    }
+
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
     }
 }
