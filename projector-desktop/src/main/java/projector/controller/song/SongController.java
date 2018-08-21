@@ -165,7 +165,7 @@ public class SongController {
     private SongVersTimes songVersTimes;
     private double[] times;
     private MyController mainController;
-    private boolean isBlank = true;
+    private boolean isBlank = false;
     private LastSearching lastSearching = LastSearching.IN_TITLE;
     private SongCollection selectedSongCollection;
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
@@ -404,6 +404,17 @@ public class SongController {
                                 String i = songListViewItems.get(j).getRawText();
                                 i = i.replaceAll("[^aeiouAEIOUéáőúöüóűíÉÁŰŐÚÜÓÖÍâÂăĂîÎ]", "");
                                 times[j] = i.length() * 0.72782;
+                            }
+                        } else {
+                            for (int j = 0; j < times.length; ++j) {
+                                String i = songListViewItems.get(j).getRawText();
+                                i = i.replaceAll("[^aeiouAEIOUéáőúöüóűíÉÁŰŐÚÜÓÖÍâÂăĂîÎ]", "");
+                                double v = i.length() * 0.72782;
+                                if (2 * v < times[j]) {
+                                    times[j] = 2 * v;
+                                } else if (times[j] < v / 2) {
+                                    times[j] = v / 2;
+                                }
                             }
                         }
                     }

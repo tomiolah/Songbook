@@ -78,8 +78,6 @@ export class SongComponent implements OnInit, OnDestroy {
     this.sub = this.activatedRoute.params.subscribe(params => {
       if (params['id']) {
         const songId = params['id'];
-        (<any>window).ga('set', 'page', "/song/" + songId);
-        (<any>window).ga('send', 'pageview');
         this.songService.getSong(songId).subscribe((song) => {
           for (const songVerse of song.songVerseDTOS) {
             songVerse.lines = [];
@@ -90,6 +88,8 @@ export class SongComponent implements OnInit, OnDestroy {
           this.song = song;
           this.calculateUrlId(song.youtubeUrl);
           this.titleService.setTitle(this.song.title);
+          (<any>window).ga('set', 'page', "/song/" + songId);
+          (<any>window).ga('send', 'pageview');
           history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
           this.originalSong = new Song(song);
           if (song.originalId !== undefined) {
@@ -104,6 +104,7 @@ export class SongComponent implements OnInit, OnDestroy {
   }
 
   loadVersionGroup() {
+    this.songsByVersionGroup = [];
     let id = this.song.versionGroup;
     if (id == null && this.song.uuid != undefined) {
       id = this.song.uuid;

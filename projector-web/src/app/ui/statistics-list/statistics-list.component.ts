@@ -5,6 +5,7 @@ import {DataSource} from '@angular/cdk/table';
 import {Router} from '@angular/router';
 import {StatisticsDataService} from '../../services/statistics-data.service';
 import {Statistics} from '../../models/statistics';
+import {Title} from "@angular/platform-browser";
 
 export class StatisticsDatabase {
   dataChange: BehaviorSubject<Statistics[]> = new BehaviorSubject<Statistics[]>([]);
@@ -54,10 +55,12 @@ export class StatisticsListComponent implements OnInit {
   dataSource: StatisticsDataSource | null;
 
   constructor(public router: Router,
+              private titleService: Title,
               private statisticsDataService: StatisticsDataService) {
   }
 
   ngOnInit() {
+    this.titleService.setTitle('Statistics');
     this.statisticsDataService.getAll().subscribe(
       (statisticsList) => {
         this.statisticsList = statisticsList.reverse();

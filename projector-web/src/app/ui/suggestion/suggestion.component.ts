@@ -5,6 +5,7 @@ import {AuthService} from "../../services/auth.service";
 import {ActivatedRoute} from "@angular/router";
 import {Suggestion} from "../../models/suggestion";
 import {SuggestionDataService} from "../../services/suggestion-data.service";
+import {Title} from "@angular/platform-browser";
 
 @Component({
   selector: 'app-suggestion',
@@ -20,12 +21,14 @@ export class SuggestionComponent implements OnInit, OnDestroy {
 
   constructor(private activatedRoute: ActivatedRoute,
               private suggestionService: SuggestionDataService,
+              private titleService: Title,
               private songService: SongService,
               public auth: AuthService) {
     auth.getUserFromLocalStorage();
   }
 
   ngOnInit() {
+    this.titleService.setTitle('Suggestion');
     this.song = new Song();
     this.song.title = 'Loading';
     this.song.songVerseDTOS = [];

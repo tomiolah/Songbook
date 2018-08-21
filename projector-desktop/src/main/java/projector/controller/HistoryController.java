@@ -10,7 +10,6 @@ import projector.model.Reference;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
@@ -82,6 +81,7 @@ public class HistoryController {
                 Reference reference = new Reference();
                 while ((strLine = br.readLine()) != null && !strLine.isEmpty()) {
                     try {
+                        strLine = strLine.replace("</color>", "");
                         reference.addVerse(strLine);
                     } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
                         System.out.println(strLine);
