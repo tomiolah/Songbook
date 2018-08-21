@@ -151,6 +151,7 @@ public class DownloadSongsController {
                                             localSong.setCreatedDate(song.getCreatedDate());
                                             localSong.setModifiedDate(song.getModifiedDate());
                                             localSong.setLanguage(language);
+                                            localSong.setVersionGroup(song.getVersionGroup());
                                             songVerseService.delete(localSong.getVerses());
                                             localSong.setTitle(song.getTitle());
                                             localSong.setVerses(song.getVerses());
@@ -211,6 +212,8 @@ public class DownloadSongsController {
         localSong.setServerModifiedDate(song.getServerModifiedDate());
         localSong.setCreatedDate(song.getCreatedDate());
         localSong.setModifiedDate(song.getModifiedDate());
+        localSong.setVersionGroup(song.getVersionGroup());
+        localSong.setLanguage(song.getLanguage());
         localSong.setPublished(true);
         localSong.setUuid(song.getUuid());
         songService.create(localSong);
@@ -302,8 +305,6 @@ public class DownloadSongsController {
         acceptBothButton.setOnAction(event -> {
             Song song = conflictSongList.get(conflictIndex - 1);
             song.setServerModifiedDate(song.getModifiedDate());
-//            TODO
-//            localSong.setLanguage(song.getLanguage());
             song.setPublished(true);
             song.setPublish(true);
             song.setUuid(song.getUuid());
@@ -317,8 +318,8 @@ public class DownloadSongsController {
             localSong.setCreatedDate(song.getCreatedDate());
             localSong.setModifiedDate(song.getModifiedDate());
             localSong.setServerModifiedDate(song.getModifiedDate());
-//            TODO
-//            localSong.setLanguage(song.getLanguage());
+            localSong.setVersionGroup(song.getVersionGroup());
+            localSong.setLanguage(song.getLanguage());
             localSong.setPublished(true);
             localSong.setPublish(true);
             localSong.setUuid(song.getUuid());

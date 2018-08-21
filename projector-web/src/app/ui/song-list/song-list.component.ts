@@ -10,6 +10,7 @@ import {AuthService} from "../../services/auth.service";
 import {Language} from "../../models/language";
 import {LanguageDataService} from "../../services/language-data.service";
 import {Subscription} from "rxjs/Subscription";
+import {Title} from "@angular/platform-browser";
 
 @Component({
   selector: 'app-song-list',
@@ -37,6 +38,7 @@ export class SongListComponent implements OnInit {
   constructor(private songService: SongService,
               private router: Router,
               private languageDataService: LanguageDataService,
+              private titleService: Title,
               public auth: AuthService) {
     this.songControl = new FormControl();
     this.songTitles = [];
@@ -70,6 +72,7 @@ export class SongListComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.titleService.setTitle('Songs');
     this.sortType = JSON.parse(localStorage.getItem("sortType"));
     if (this.sortType === null) {
       this.sortType = "MODIFIED_DATE";

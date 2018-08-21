@@ -9,6 +9,7 @@ import {Suggestion} from '../../models/suggestion';
 import {AuthenticateComponent} from "../authenticate/authenticate.component";
 import {MatDialog} from "@angular/material";
 import {AuthService} from "../../services/auth.service";
+import {Title} from "@angular/platform-browser";
 
 export class SuggestionDatabase {
   dataChange: BehaviorSubject<Suggestion[]> = new BehaviorSubject<Suggestion[]>([]);
@@ -59,11 +60,13 @@ export class SuggestionListComponent implements OnInit {
 
   constructor(public router: Router,
               private suggestionDataService: SuggestionDataService,
+              private titleService: Title,
               private auth: AuthService,
               private dialog: MatDialog) {
   }
 
   ngOnInit() {
+    this.titleService.setTitle('Suggestions');
     this.suggestionDataService.getAll().subscribe(
       (suggestionList) => {
         this.suggestionList = suggestionList.reverse();

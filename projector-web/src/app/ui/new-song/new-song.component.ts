@@ -6,17 +6,20 @@ import {Language} from "../../models/language";
 import {LanguageDataService} from "../../services/language-data.service";
 import {MatDialog, MatIconRegistry} from "@angular/material";
 import {NewLanguageComponent} from "../new-language/new-language.component";
-import {DomSanitizer, SafeResourceUrl} from "@angular/platform-browser";
+import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
 
 export function replace(formValue: any, key) {
   const value = formValue[key];
   let newValue: string = value.trim();
   newValue = replaceMatch(newValue, /([ \t])([.?!,"':])/g, '$2');
-  newValue = replaceMatch(newValue, /([.?!,])([^ "])/g, '$1 $2');
+  newValue = replaceMatch(newValue, /([.?!,:])([^ ".?!,:])/g, '$1 $2');
+  newValue = replaceMatch(newValue, /: \//g, ' :/');
+  newValue = replaceMatch(newValue, /\/ :/g, '/: ');
+  newValue = replaceMatch(newValue, / /g, ' ');
+  newValue = replaceMatch(newValue, / {2}/g, ' ');
   newValue = replaceMatch(newValue, /\. \. \./g, '…');
   newValue = replaceMatch(newValue, /\.([^ ])/g, '. $1');
   newValue = replaceMatch(newValue, /\n\n/g, '\n');
-  newValue = replaceMatch(newValue, / {2}/g, ' ');
   newValue = replaceMatch(newValue, / \t/g, ' ');
   newValue = replaceMatch(newValue, /\t /g, ' ');
   newValue = replaceMatch(newValue, / \n/g, '\n');
@@ -71,6 +74,7 @@ export class NewSongComponent implements OnInit {
               private songService: SongService,
               private router: Router,
               private languageDataService: LanguageDataService,
+              private titleService: Title,
               private dialog: MatDialog,
               iconRegistry: MatIconRegistry,
               public sanitizer: DomSanitizer) {
@@ -82,6 +86,7 @@ export class NewSongComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.titleService.setTitle('New song');
     this.createForm();
     this.loadLanguage(false);
   }

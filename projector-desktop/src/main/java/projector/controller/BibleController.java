@@ -1371,7 +1371,9 @@ public class BibleController {
                 }
                 ArrayList<Integer> tmp = new ArrayList<>(ob);
                 text = string.toString();
-                String verseNumbers = text.substring(string.lastIndexOf(":") + 1, string.length()).replace("]", "");
+                String verseNumbers = text.substring(string.lastIndexOf(":") + 1, string.length())
+                        .replace("]", "")
+                        .replace("</color>", "");
                 recentController.addRecentBibleVerse(text, selectedBook, selectedPart, iVerse, verseNumbers, tmp);
             }
             if (string.length() > 0) {
