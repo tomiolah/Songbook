@@ -81,4 +81,5 @@
     <string name="attach_youtube_video">Csatoljon YouTube-videót</string>
     <string name="insert_the_youtube_url_here">Másolja be ide a YouTube URL-t</string>
     <string name="select_youtube_video">Válasszon ki egy videót: MEGOSZTÁS -> LINK MÁSOLÁSA</string>
+    <string name="containing_videos">Videokat tartalmazó</string>
 </resources>

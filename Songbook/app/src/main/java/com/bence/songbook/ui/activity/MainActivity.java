@@ -984,6 +984,8 @@ public class MainActivity extends AppCompatActivity
             collectionPosition = ++k;
             values.add(getString(R.string.collection));
         }
+        final int youtubePosition = ++k;
+        values.add(getString(R.string.containing_videos));
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, values);
         listView.setAdapter(adapter);
@@ -1009,6 +1011,18 @@ public class MainActivity extends AppCompatActivity
                     hideKeyboard();
                     sortCollectionBySelectedLanguages();
                     collectionPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
+                } else if (position == youtubePosition) {
+                    hideKeyboard();
+                    filter();
+                    ArrayList<Song> tmpSongs = new ArrayList<>(songs);
+                    songs.clear();
+                    for (Song song : tmpSongs) {
+                        if (song.getYoutubeUrl() != null) {
+                            songs.add(song);
+                        }
+                    }
+                    loadAll();
+                    filterPopupWindow.dismiss();
                 }
             }
         });
@@ -1061,7 +1075,6 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 filter();
                 loadAll();
-                collectionPopupWindow.dismiss();
                 filterPopupWindow.dismiss();
             }
         });
