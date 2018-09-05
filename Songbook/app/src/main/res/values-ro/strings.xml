@@ -77,4 +77,8 @@
     <string name="this_song_is_not_saved">Cântarea nu este salvată</string>
     <string name="description">Descriere</string>
     <string name="youtube_video">Youtube video</string>
+    <string name="Cannot_parse_YouTube_Url">Incorrect url</string>
+    <string name="attach_youtube_video">Atașați videoclip YouTube</string>
+    <string name="insert_the_youtube_url_here">Introduceți URL-ul YouTube aici</string>
+    <string name="select_youtube_video">Selectați un videoclip: TRIMITE -> COPIAZĂ LINKUL</string>
 </resources>

@@ -11,8 +11,16 @@ public class SongCollectionElement extends BaseEntity {
     @DatabaseField(foreign = true, index = true)
     private SongCollection songCollection;
 
+    public int getOrdinalNumberInt() {
+        try {
+            return Integer.parseInt(ordinalNumber.replaceAll("[^0-9]*", ""));
+        } catch (NumberFormatException e) {
+            return Integer.MAX_VALUE;
+        }
+    }
+
     public String getOrdinalNumber() {
-        return ordinalNumber;
+        return ordinalNumber.replaceAll("^0+", "");
     }
 
     public void setOrdinalNumber(String ordinalNumber) {

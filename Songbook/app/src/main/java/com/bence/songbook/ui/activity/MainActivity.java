@@ -27,6 +27,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -499,6 +500,7 @@ public class MainActivity extends AppCompatActivity
         dismissPopups();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     public void loadAll() {
         if (songs != null) {
             sortSongs(songs);
@@ -507,6 +509,15 @@ public class MainActivity extends AppCompatActivity
             adapter = new SongAdapter(this, R.layout.content_song_list_row, values);
             songListView.setAdapter(adapter);
             titleSearch("");
+            songListView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (values.size() > 0) {
+                        hideKeyboard();
+                    }
+                    return false;
+                }
+            });
             songListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
                 @Override
