@@ -77,4 +77,9 @@
     <string name="this_song_is_not_saved">Ez az ének nincs elmentve</string>
     <string name="description">Leírás</string>
     <string name="youtube_video">Youtube video</string>
+    <string name="Cannot_parse_YouTube_Url">Helytelen YouTube Url</string>
+    <string name="attach_youtube_video">Csatoljon YouTube-videót</string>
+    <string name="insert_the_youtube_url_here">Másolja be ide a YouTube URL-t</string>
+    <string name="select_youtube_video">Válasszon ki egy videót: MEGOSZTÁS -> LINK MÁSOLÁSA</string>
+    <string name="containing_videos">Videokat tartalmazó</string>
 </resources>

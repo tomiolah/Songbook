@@ -75,6 +75,10 @@
             android:label="@string/suggest_edits"
             android:theme="@style/SongBookTheme" />
         <activity
+            android:name=".ui.activity.SuggestYouTubeActivity"
+            android:label="@string/youtube_video"
+            android:theme="@style/SongBookTheme" />
+        <activity
             android:name=".ui.activity.VersionsActivity"
             android:label="@string/versions" />
         <activity

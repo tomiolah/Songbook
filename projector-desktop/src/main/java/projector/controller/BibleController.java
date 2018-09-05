@@ -1018,6 +1018,9 @@ public class BibleController {
                 return;
             }
             ObservableList<Bible> items = bibleListView.getItems();
+            if (items.size() > 0) {
+                return;
+            }
             items.clear();
             items.addAll(bibles);
             parallelBibles.clear();

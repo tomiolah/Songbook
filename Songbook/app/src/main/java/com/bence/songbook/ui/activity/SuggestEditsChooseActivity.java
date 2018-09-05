@@ -67,6 +67,12 @@ public class SuggestEditsChooseActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void onYoutubeButtonClick(View view) {
+        Intent intent = getIntent();
+        intent.setClass(this, SuggestYouTubeActivity.class);
+        startActivity(intent);
+    }
+
     public void onLinkButtonClick(View view) {
         Song songForLinking = memory.getSongForLinking();
         if (songForLinking == null) {

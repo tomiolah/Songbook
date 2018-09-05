@@ -11,14 +11,17 @@ import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
 export function replace(formValue: any, key) {
   const value = formValue[key];
   let newValue: string = value.trim();
-  newValue = replaceMatch(newValue, /([ \t])([.?!,"':])/g, '$2');
-  newValue = replaceMatch(newValue, /([.?!,:])([^ ".?!,:])/g, '$1 $2');
+  newValue = replaceMatch(newValue, /([ \t])([.?!,':])/g, '$2');
+  newValue = replaceMatch(newValue, /([.?!,:])([^ ".?!,:)])/g, '$1 $2');
   newValue = replaceMatch(newValue, /: \//g, ' :/');
   newValue = replaceMatch(newValue, /\/ :/g, '/: ');
   newValue = replaceMatch(newValue, / /g, ' ');
   newValue = replaceMatch(newValue, / {2}/g, ' ');
   newValue = replaceMatch(newValue, /\. \. \./g, '…');
+  newValue = replaceMatch(newValue, /\.\.\./g, '…');
   newValue = replaceMatch(newValue, /\.([^ ])/g, '. $1');
+  newValue = replaceMatch(newValue, / \)/g, ')');
+  newValue = replaceMatch(newValue, /\( /g, '(');
   newValue = replaceMatch(newValue, /\n\n/g, '\n');
   newValue = replaceMatch(newValue, / \t/g, ' ');
   newValue = replaceMatch(newValue, /\t /g, ' ');
@@ -29,6 +32,7 @@ export function replace(formValue: any, key) {
   newValue = replaceMatch(newValue, /ş/g, 'ș');
   newValue = replaceMatch(newValue, /Ţ/g, 'Ț');
   newValue = replaceMatch(newValue, /ţ/g, 'ț');
+  newValue = replaceMatch(newValue, /ã/g, 'ă');
   return newValue;
 }
 

@@ -35,7 +35,7 @@ import java.util.List;
 
 public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener {
 
-    private static final int RECOVERY_REQUEST = 1;
+    protected static final int RECOVERY_REQUEST = 1;
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
     private final Runnable mShowPart2Runnable = new Runnable() {

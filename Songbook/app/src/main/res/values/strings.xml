@@ -80,4 +80,10 @@
     <string name="this_song_is_not_saved">This song is not saved</string>
     <string name="description">Description</string>
     <string name="youtube_video">Youtube video</string>
+    <string name="Cannot_parse_YouTube_Url">Cannot parse YouTube Url</string>
+    <string name="youtube_url" translatable="false">YouTube url</string>
+    <string name="insert_the_youtube_url_here">Insert the YouTube URL here</string>
+    <string name="select_youtube_video">Select a video, than: SHARE -> COPY LINK</string>
+    <string name="attach_youtube_video">Attach YouTube video</string>
+    <string name="containing_videos">Containing videos</string>
 </resources>

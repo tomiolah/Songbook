@@ -5,7 +5,7 @@ import {AuthService} from "../../services/auth.service";
 import {ActivatedRoute} from "@angular/router";
 import {Suggestion} from "../../models/suggestion";
 import {SuggestionDataService} from "../../services/suggestion-data.service";
-import {Title} from "@angular/platform-browser";
+import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
 
 @Component({
   selector: 'app-suggestion',
@@ -17,13 +17,15 @@ export class SuggestionComponent implements OnInit, OnDestroy {
   song: Song;
   suggestionSong: Song;
   suggestion: Suggestion;
+  public safeUrl: SafeResourceUrl = null;
   private sub: Subscription;
 
   constructor(private activatedRoute: ActivatedRoute,
               private suggestionService: SuggestionDataService,
               private titleService: Title,
               private songService: SongService,
-              public auth: AuthService) {
+              public auth: AuthService,
+              public sanitizer: DomSanitizer) {
     auth.getUserFromLocalStorage();
   }
 
@@ -48,6 +50,9 @@ export class SuggestionComponent implements OnInit, OnDestroy {
           } else {
             this.suggestionSong = undefined;
           }
+          if (this.suggestion.youtubeUrl != undefined) {
+            this.calculateUrlId(this.suggestion.youtubeUrl);
+          }
           this.songService.getSong(suggestion.songId).subscribe((song) => {
             this.song = song;
           });
@@ -60,5 +65,23 @@ export class SuggestionComponent implements OnInit, OnDestroy {
     this.sub.unsubscribe();
   }
 
+  calculateUrlId(url: string) {
+    if (url == undefined) {
+      this.safeUrl = null;
+      return;
+    }
+    let youtubeUrl = url.replace("https://www.youtube.com/watch?v=", "");
+    youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
+    youtubeUrl = youtubeUrl.replace("https://youtu.be/", "");
+    let indexOf = youtubeUrl.indexOf('?');
+    if (indexOf >= 0) {
+      youtubeUrl = youtubeUrl.substring(0, indexOf);
+    }
+    if (youtubeUrl.length < 21 && youtubeUrl.length > 9) {
+      this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl("https://www.youtube.com/embed/" + youtubeUrl);
+    } else {
+      this.safeUrl = null;
+    }
+  }
 
 }

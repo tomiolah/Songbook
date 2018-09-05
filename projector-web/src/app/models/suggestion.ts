@@ -10,6 +10,7 @@ export class Suggestion extends BaseModel {
   createdByEmail: string;
   description: string;
   nr: number;
+  youtubeUrl: string;
 
   constructor(values: Object = {}) {
     super(values);

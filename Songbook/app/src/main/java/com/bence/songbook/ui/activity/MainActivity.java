@@ -27,6 +27,7 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
@@ -499,6 +500,7 @@ public class MainActivity extends AppCompatActivity
         dismissPopups();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     public void loadAll() {
         if (songs != null) {
             sortSongs(songs);
@@ -507,6 +509,15 @@ public class MainActivity extends AppCompatActivity
             adapter = new SongAdapter(this, R.layout.content_song_list_row, values);
             songListView.setAdapter(adapter);
             titleSearch("");
+            songListView.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    if (values.size() > 0) {
+                        hideKeyboard();
+                    }
+                    return false;
+                }
+            });
             songListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
                 @Override
@@ -973,6 +984,8 @@ public class MainActivity extends AppCompatActivity
             collectionPosition = ++k;
             values.add(getString(R.string.collection));
         }
+        final int youtubePosition = ++k;
+        values.add(getString(R.string.containing_videos));
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
                 android.R.layout.simple_list_item_1, android.R.id.text1, values);
         listView.setAdapter(adapter);
@@ -998,6 +1011,18 @@ public class MainActivity extends AppCompatActivity
                     hideKeyboard();
                     sortCollectionBySelectedLanguages();
                     collectionPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
+                } else if (position == youtubePosition) {
+                    hideKeyboard();
+                    filter();
+                    ArrayList<Song> tmpSongs = new ArrayList<>(songs);
+                    songs.clear();
+                    for (Song song : tmpSongs) {
+                        if (song.getYoutubeUrl() != null) {
+                            songs.add(song);
+                        }
+                    }
+                    loadAll();
+                    filterPopupWindow.dismiss();
                 }
             }
         });
@@ -1050,7 +1075,6 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 filter();
                 loadAll();
-                collectionPopupWindow.dismiss();
                 filterPopupWindow.dismiss();
             }
         });
