@@ -12,6 +12,7 @@ public class Suggestion extends BaseEntity {
     private Boolean applied;
     private String createdByEmail;
     private String description;
+    private String youtubeUrl;
 
     public Suggestion() {
     }
@@ -70,5 +71,13 @@ public class Suggestion extends BaseEntity {
 
     public void setSongId(String songId) {
         this.songId = songId;
+    }
+
+    public String getYoutubeUrl() {
+        return youtubeUrl;
+    }
+
+    public void setYoutubeUrl(String youtubeUrl) {
+        this.youtubeUrl = youtubeUrl;
     }
 }

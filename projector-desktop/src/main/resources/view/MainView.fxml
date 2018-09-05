@@ -46,7 +46,7 @@
             <HBox AnchorPane.rightAnchor="2.0" AnchorPane.topAnchor="1.0" alignment="CENTER">
                 <ToggleButton fx:id="showProjectionScreenToggleButton" contentDisplay="CENTER" graphicTextGap="0.0"
                               maxHeight="-Infinity" maxWidth="-Infinity" mnemonicParsing="false"
-                              selected="true"
+                              selected="true" focusTraversable="false"
                               onAction="#showHideProjectionScreen" prefHeight="19.0" prefWidth="19.0"
                               textAlignment="CENTER">
                     <graphic>

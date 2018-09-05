@@ -1,14 +1,35 @@
 <div class="container">
+  <div *ngIf="safeUrl!=null">
+    <br>
+    <mat-card>
+      <iframe
+          [class]="safeUrl!=null?'embeddedVideo':'hideEmbeddedVideo'"
+          scrolling="no"
+          [src]='safeUrl'
+          frameborder="0"
+          allowfullscreen></iframe>
+    </mat-card>
+  </div>
   <br>
   <app-song [i_song]="song"></app-song>
-  <h4>Applied: {{suggestion.applied}}</h4>
-  {{suggestion.createdByEmail}}
-  <label>
-    {{suggestion.title}}
-    <textarea>
-    {{suggestion.description}}
-  </textarea>
-  </label>
+  <table>
+    <tr>
+      <td>Email</td>
+      <td>{{suggestion.createdByEmail}}</td>
+    </tr>
+    <tr>
+      <td>Title</td>
+      <td>{{suggestion.title}}</td>
+    </tr>
+    <tr>
+      <td>Description</td>
+      <td>{{suggestion.description}}</td>
+    </tr>
+    <tr>
+      <td>Applied</td>
+      <td>{{suggestion.applied}}</td>
+    </tr>
+  </table>
 
   <div *ngIf="suggestionSong!==undefined&&song!==undefined">
     <a href="/#/song/{{song.uuid}}" target="_blank">{{'Open original song'}}</a>

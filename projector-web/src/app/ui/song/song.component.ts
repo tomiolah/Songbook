@@ -57,10 +57,13 @@ export class SongComponent implements OnInit, OnDestroy {
     }
     this.originalSong = new Song(song);
     this.song = song;
+    this.calculateUrlId(song.youtubeUrl);
     this.titleService.setTitle(this.song.title);
     this.songsByVersionGroup = [];
     this.loadVersionGroup();
-    history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
+    if (!song.deleted) {
+      history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
+    }
   }
 
   // noinspection JSMethodCanBeStatic
@@ -88,9 +91,11 @@ export class SongComponent implements OnInit, OnDestroy {
           this.song = song;
           this.calculateUrlId(song.youtubeUrl);
           this.titleService.setTitle(this.song.title);
-          (<any>window).ga('set', 'page', "/song/" + songId);
-          (<any>window).ga('send', 'pageview');
-          history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
+          if (!song.deleted) {
+            (<any>window).ga('set', 'page', "/song/" + songId);
+            (<any>window).ga('send', 'pageview');
+            history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
+          }
           this.originalSong = new Song(song);
           if (song.originalId !== undefined) {
             this.songService.getSong(song.originalId).subscribe((song) => {

@@ -11,8 +11,12 @@ import java.util.List;
 
 @Component
 public class SuggestionAssembler implements GeneralAssembler<Suggestion, SuggestionDTO> {
+    private final SongVerseAssembler songVerseAssembler;
+
     @Autowired
-    private SongVerseAssembler songVerseAssembler;
+    public SuggestionAssembler(SongVerseAssembler songVerseAssembler) {
+        this.songVerseAssembler = songVerseAssembler;
+    }
 
     @Override
     public SuggestionDTO createDto(Suggestion suggestion) {
@@ -28,6 +32,7 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
         suggestionDTO.setApplied(suggestion.getApplied());
         suggestionDTO.setDescription(suggestion.getDescription());
         suggestionDTO.setSongId(suggestion.getSongId());
+        suggestionDTO.setYoutubeUrl(suggestion.getYoutubeUrl());
         return suggestionDTO;
     }
 
@@ -47,6 +52,7 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
         suggestion.setApplied(suggestionDTO.getApplied());
         suggestion.setDescription(suggestionDTO.getDescription());
         suggestion.setSongId(suggestionDTO.getSongId());
+        suggestion.setYoutubeUrl(suggestionDTO.getYoutubeUrl());
         return suggestion;
     }
 }
