@@ -1,15 +1,11 @@
 <!DOCTYPE html>
+<!--suppress ALL -->
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-
-  </meta>
-  <meta name="description" th:attr="content=${song.verses.get(0).text}">
-
-  </meta>
-  <meta name="keywords" th:attr="content=${keywords}">
-
-  </meta>
+  <meta charset="UTF-8"></meta>
+  <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
+  <meta name="description" th:attr="content=${song.verses.get(0).text}"></meta>
+  <meta name="keywords" th:attr="content=${keywords}"></meta>
   <title th:text="${title}">Song</title>
 </head>
 <body>
@@ -23,12 +19,20 @@
 
     /*]]>*/
 </script>
+<style>
+  span, a {
+    font-size: large;
+  }
+</style>
 <div>
   <h1 th:text="${title}">title</h1>
   <p th:each="verse : ${song.verses}">
-    <span th:text="${verse.text}">Text</span>
+  <div th:each='line : ${verse.text.split("\n")}'><span th:text="${line}"></span></div>
   </p>
   <a href="../">Home</a>
+  <br></br>
+  <br></br>
+  <br></br>
   <a th:href="${randomSongUrl}">Next song</a>
 </div>
 </body>
