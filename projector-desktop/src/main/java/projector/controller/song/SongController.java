@@ -59,6 +59,7 @@ import projector.controller.ProjectionTextChangeListener;
 import projector.controller.RecentController;
 import projector.controller.eventHandler.NextButtonEventHandler;
 import projector.controller.language.DownloadLanguagesController;
+import projector.controller.song.util.ContainsResult;
 import projector.controller.song.util.LastSearching;
 import projector.controller.song.util.OrderMethod;
 import projector.controller.song.util.ScheduleSong;
@@ -86,12 +87,17 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
+import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import static projector.utils.StringUtils.stripAccents;
 
@@ -222,6 +228,16 @@ public class SongController {
             hashMap.put(song.getUuid(), song);
         }
         setSongCollectionForSongsInHashMap(songCollections, hashMap);
+    }
+
+    private static void addWordsInCollection(Song song, Collection<String> words) {
+        for (SongVerse songVerse : song.getVerses()) {
+            String[] split = songVerse.getText().split("[\\s\\t\\n\\r]");
+            for (String word : split) {
+                word = stripAccents(word.toLowerCase());
+                words.add(word);
+            }
+        }
     }
 
     public synchronized void initialize() {
@@ -832,6 +848,23 @@ public class SongController {
                     break;
                 }
             }
+            if (settings.isCheckLanguages() && languageComboBox.getItems().size() > 1) {
+                Language all = new Language();
+                all.setEnglishName("All");
+                all.setNativeName("All");
+                all.setSongs(ServiceManager.getSongService().findAll());
+                List<Song> noLanguageSongs = new ArrayList<>();
+                for (Song song : all.getSongs()) {
+                    if (song.getLanguage() == null) {
+                        System.out.println("song = " + song.getTitle());
+                        noLanguageSongs.add(song);
+                    }
+                }
+                if (noLanguageSongs.size() > 0) {
+                    setLanguagesForSongs(noLanguageSongs);
+                }
+                languageComboBox.getItems().add(0, all);
+            }
             SingleSelectionModel<Language> selectionModel = languageComboBox.getSelectionModel();
             Language songSelectedLanguage = settings.getSongSelectedLanguage();
             for (Language language : languages) {
@@ -849,6 +882,69 @@ public class SongController {
             });
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void setLanguagesForSongs(List<Song> songs) {
+        List<Language> languages = ServiceManager.getLanguageService().findAll();
+        List<Song> allWithLanguage = songService.findAll();
+        HashMap<String, Song> songHashMap = new HashMap<>();
+        for (Song song : allWithLanguage) {
+            songHashMap.put(song.getUuid(), song);
+        }
+
+        Map<Language, Collection<String>> languageMap = new HashMap<>();
+        for (Language language : languages) {
+            TreeSet<String> value = new TreeSet<>();
+            languageMap.put(language, value);
+        }
+        for (Song song : songs) {
+            Song song1 = songHashMap.get(song.getUuid());
+            if (song1 != null) {
+                Language language = song1.getLanguage();
+                Collection<String> words = languageMap.get(language);
+                addWordsInCollection(song1, words);
+            } else {
+                if (!song.isDeleted()) {
+                    continue;
+                }
+                List<String> words = new ArrayList<>();
+                addWordsInCollection(song, words);
+                Map<Language, ContainsResult> countMap = new HashMap<>(languages.size());
+                for (Language language1 : languages) {
+                    Collection<String> wordsByLanguage = languageMap.get(language1);
+                    int count = 0;
+                    Integer wordCount = 0;
+                    for (String word : words) {
+                        if (wordsByLanguage.contains(word)) {
+                            ++count;
+                        }
+                        ++wordCount;
+                    }
+                    ContainsResult containsResult = new ContainsResult();
+                    containsResult.setCount(count);
+                    containsResult.setWordCount(wordCount);
+                    countMap.put(language1, containsResult);
+                }
+                Set<Map.Entry<Language, ContainsResult>> entries = countMap.entrySet();
+                Map.Entry<Language, ContainsResult> max = new AbstractMap.SimpleEntry<>(null, new ContainsResult());
+                for (Map.Entry<Language, ContainsResult> entry : entries) {
+                    if (entry.getValue().getRatio() > max.getValue().getRatio()) {
+                        max = entry;
+                    }
+                }
+                System.out.println(song.getTitle());
+                if (max.getKey() != null) {
+                    System.out.println("Language:   " + max.getKey().getEnglishName());
+                    System.out.println("Ratio:  " + max.getValue().getRatio());
+                    System.out.println("Match count:  " + max.getValue().getCount());
+                    System.out.println("Words:  " + max.getValue().getWordCount());
+                    song.setLanguage(max.getKey());
+                    songService.create(song);
+                    addWordsInCollection(song, languageMap.get(song.getLanguage()));
+                }
+                System.out.print(">");
+            }
         }
     }
 

@@ -75,6 +75,7 @@ public class Settings {
     private Integer progressLineThickness = 5;
     private Language songSelectedLanguage;
     private boolean bibleShortName = false;
+    private boolean checkLanguages = false;
 
     protected Settings() {
         load();
@@ -332,6 +333,8 @@ public class Settings {
             }
             bw.write("bibleShortName" + System.lineSeparator());
             bw.write(bibleShortName + System.lineSeparator());
+            bw.write("checkLanguages" + System.lineSeparator());
+            bw.write(checkLanguages + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -450,6 +453,8 @@ public class Settings {
             }
             br.readLine();
             bibleShortName = Boolean.parseBoolean(br.readLine());
+            br.readLine();
+            checkLanguages = Boolean.parseBoolean(br.readLine());
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -719,5 +724,9 @@ public class Settings {
 
     public void setBibleShortName(boolean bibleShortName) {
         this.bibleShortName = bibleShortName;
+    }
+
+    public boolean isCheckLanguages() {
+        return checkLanguages;
     }
 }
