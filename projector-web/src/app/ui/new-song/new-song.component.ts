@@ -177,16 +177,6 @@ export class NewSongComponent implements OnInit {
       if (songs.length > 0) {
         this.secondSong = this.similar[0];
       } else {
-        let url = formValue.youtubeUrl;
-        this.song.youtubeUrl = null;
-        if (url) {
-          let youtubeUrl = url.replace("https://www.youtube.com/watch?v=", "");
-          youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
-          youtubeUrl = youtubeUrl.replace("https://youtu.be/", "");
-          if (youtubeUrl.length < 21 && youtubeUrl.length > 9) {
-            this.song.youtubeUrl = youtubeUrl;
-          }
-        }
         this.insertNewSong();
       }
       this.receivedSimilar = true;
@@ -195,6 +185,16 @@ export class NewSongComponent implements OnInit {
   }
 
   insertNewSong() {
+    let url = this.form.value.youtubeUrl;
+    this.song.youtubeUrl = null;
+    if (url) {
+      let youtubeUrl = url.replace("https://www.youtube.com/watch?v=", "");
+      youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
+      youtubeUrl = youtubeUrl.replace("https://youtu.be/", "");
+      if (youtubeUrl.length < 21 && youtubeUrl.length > 9) {
+        this.song.youtubeUrl = youtubeUrl;
+      }
+    }
     this.songService.createSong(this.song).subscribe(
       () => {
         // noinspection JSIgnoredPromiseFromCall
