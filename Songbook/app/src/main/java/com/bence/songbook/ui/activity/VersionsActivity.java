@@ -56,7 +56,7 @@ public class VersionsActivity extends AppCompatActivity {
             HashMap<String, Song> hashMap = new HashMap<>(songs.size());
             for (Song song : allByVersionGroup) {
                 if (!song.getUuid().equals(uuid)) {
-                    hashMap.put(song.getUuid(), song);
+                    hashMap.put(song.getUuid(), getSongFromMemory(song));
                 }
             }
             SongCollectionRepository songCollectionRepository = new SongCollectionRepositoryImpl(this);
@@ -88,6 +88,16 @@ public class VersionsActivity extends AppCompatActivity {
 
             });
         }
+    }
+
+    private Song getSongFromMemory(Song song) {
+        List<Song> songs = Memory.getInstance().getSongs();
+        for (Song iSong : songs) {
+            if (iSong.getUuid().equals(song.getUuid())) {
+                return iSong;
+            }
+        }
+        return song;
     }
 
     public void showSongFullscreen(Song song) {
@@ -132,12 +142,14 @@ public class VersionsActivity extends AppCompatActivity {
                 holder = new SongAdapter.ViewHolder();
                 holder.ordinalNumberTextView = convertView.findViewById(R.id.ordinalNumberTextView);
                 holder.titleTextView = convertView.findViewById(R.id.titleTextView);
+                holder.imageView = convertView.findViewById(R.id.imageView);
                 convertView.setTag(holder);
             } else {
                 holder = (SongAdapter.ViewHolder) convertView.getTag();
             }
 
             Song song = songList.get(position);
+            holder.imageView.setVisibility(song.isFavourite() ? View.VISIBLE : View.INVISIBLE);
             SongCollection songCollection = song.getSongCollection();
             if (songCollection != null) {
                 String collectionName = songCollection.getName();
@@ -160,6 +172,7 @@ public class VersionsActivity extends AppCompatActivity {
         private class ViewHolder {
             TextView ordinalNumberTextView;
             TextView titleTextView;
+            View imageView;
         }
 
     }

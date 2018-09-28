@@ -11,21 +11,27 @@
         android:title="@string/similar"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/action_suggest_edits"
-        android:icon="@drawable/ic_rate_review_light"
-        android:orderInCategory="10"
-        android:title="@string/suggest_edits"
-        app:showAsAction="ifRoom" />
+        android:id="@+id/action_youtube"
+        android:icon="@drawable/ic_youtube"
+        android:orderInCategory="5"
+        android:title="@string/youtube_video"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_favourite"
+        android:icon="@drawable/ic_star_border_black_24dp"
+        android:orderInCategory="7"
+        android:title="@string/favourite"
+        app:showAsAction="always" />
     <item
         android:id="@+id/action_versions"
         android:icon="@drawable/ic_versions"
-        android:orderInCategory="20"
+        android:orderInCategory="10"
         android:title="@string/versions"
         app:showAsAction="ifRoom" />
     <item
-        android:id="@+id/action_youtube"
-        android:icon="@drawable/ic_youtube"
-        android:orderInCategory="9"
-        android:title="@string/youtube_video"
+        android:id="@+id/action_suggest_edits"
+        android:icon="@drawable/ic_rate_review_light"
+        android:orderInCategory="20"
+        android:title="@string/suggest_edits"
         app:showAsAction="ifRoom" />
 </menu>

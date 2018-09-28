@@ -1,5 +1,5 @@
 #
-# generated on 2018/08/08 01:05:34
+# generated on 2018/09/28 04:23:22
 #
 # --table-start--
 dataClass=com.bence.songbook.models.AbstractModel
@@ -96,6 +96,12 @@ fieldName=versionGroup
 # --field-end--
 # --field-start--
 fieldName=youtubeUrl
+# --field-end--
+# --field-start--
+fieldName=favourite
+# --field-end--
+# --field-start--
+fieldName=favouritePublished
 # --field-end--
 # --field-start--
 fieldName=id

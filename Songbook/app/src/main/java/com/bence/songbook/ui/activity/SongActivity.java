@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
@@ -38,6 +39,7 @@ public class SongActivity extends AppCompatActivity {
 
     private Song song;
     private Memory memory;
+    private MenuItem favouriteMenuItem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,8 +54,7 @@ public class SongActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        Intent intent = getIntent();
-        song = (Song) intent.getSerializableExtra("Song");
+        song = memory.getPassingSong();
         loadSongView(song);
     }
 
@@ -65,6 +66,7 @@ public class SongActivity extends AppCompatActivity {
         if (song.getSongCollection() != null) {
             String text = song.getSongCollection().getName() + " " + song.getSongCollectionElement().getOrdinalNumber();
             collectionTextView.setText(text);
+            collectionTextView.setVisibility(View.VISIBLE);
         } else {
             collectionTextView.setVisibility(View.GONE);
         }
@@ -94,6 +96,11 @@ public class SongActivity extends AppCompatActivity {
             }
 
         });
+        if (favouriteMenuItem != null) {
+            if (song.isFavourite()) {
+                favouriteMenuItem.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_star_black_24dp));
+            }
+        }
     }
 
     @Override
@@ -175,17 +182,34 @@ public class SongActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.content_song_menu, menu);
         MenuItem showSimilarMenuItem = menu.findItem(R.id.action_similar);
-        MenuItem youtubeMenuItem = menu.findItem(R.id.action_youtube);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean show_similar = sharedPreferences.getBoolean("show_similar", false);
         if (!show_similar) {
             showSimilarMenuItem.setVisible(false);
             menu.removeItem(showSimilarMenuItem.getItemId());
         }
+        MenuItem youtubeMenuItem = menu.findItem(R.id.action_youtube);
         if (song.getYoutubeUrl() == null) {
             youtubeMenuItem.setVisible(false);
             menu.removeItem(youtubeMenuItem.getItemId());
         }
+        favouriteMenuItem = menu.findItem(R.id.action_favourite);
+        final SongActivity context = this;
+        if (song.isFavourite()) {
+            favouriteMenuItem.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_star_black_24dp));
+        }
+        favouriteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                song.setFavourite(!song.isFavourite());
+                song.setFavouritePublished(!song.isFavouritePublished());
+                favouriteMenuItem.setIcon(ContextCompat.getDrawable(context, song.isFavourite() ?
+                        R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp));
+                SongRepository songRepository = new SongRepositoryImpl(context);
+                songRepository.save(song);
+                return false;
+            }
+        });
         final MenuItem versionsMenuItem = menu.findItem(R.id.action_versions);
         versionsMenuItem.setVisible(false);
         final SongRepository songRepository = new SongRepositoryImpl(this);

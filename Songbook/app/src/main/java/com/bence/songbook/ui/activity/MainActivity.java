@@ -100,12 +100,13 @@ public class MainActivity extends AppCompatActivity
     private ListView collectionListView;
     private LanguageRepositoryImpl languageRepository;
     private SongCollectionRepositoryImpl songCollectionRepository;
-    private int collectionPosition;
     private SongAdapter adapter;
     private boolean reverseSortMethod;
     private boolean shortCollectionName;
     private boolean light_theme_switch;
     private boolean wasOrdinalNumber;
+    private Switch containingVideosSwitch;
+    private Switch favouriteSwitch;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -393,6 +394,7 @@ public class MainActivity extends AppCompatActivity
             values.add(songs.get(songs.size() - 1));
             adapter.setSongList(values);
         }
+        songListView.invalidateViews();
     }
 
     private void setShortNamesForSongCollections(List<SongCollection> songCollections) {
@@ -722,19 +724,7 @@ public class MainActivity extends AppCompatActivity
 
     public void showSongFullscreen(Song song) {
         Intent intent = new Intent(this, SongActivity.class);
-        Song copiedSong = new Song();
-        copiedSong.setUuid(song.getUuid());
-        copiedSong.setId(song.getId());
-        copiedSong.setTitle(song.getTitle());
-        copiedSong.setVerses(song.getVerses());
-        copiedSong.setAccessedTimes(song.getAccessedTimes());
-        copiedSong.setAccessedTimeAverage(song.getAccessedTimeAverage());
-        copiedSong.setLastAccessed(song.getLastAccessed());
-        copiedSong.setSongCollection(song.getSongCollection());
-        copiedSong.setSongCollectionElement(song.getSongCollectionElement());
-        copiedSong.setVersionGroup(song.getVersionGroup());
-        copiedSong.setYoutubeUrl(song.getYoutubeUrl());
-        intent.putExtra("Song", copiedSong);
+        memory.setPassingSong(song);
         intent.putExtra("verseIndex", 0);
         startActivityForResult(intent, 3);
     }
@@ -963,7 +953,7 @@ public class MainActivity extends AppCompatActivity
         @SuppressLint("InflateParams") View customView = inflater.inflate(R.layout.content_filter, null);
         filterPopupWindow = new PopupWindow(
                 customView,
-                LayoutParams.WRAP_CONTENT,
+                LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT
         );
         if (Build.VERSION.SDK_INT >= 21) {
@@ -976,56 +966,25 @@ public class MainActivity extends AppCompatActivity
                 filterPopupWindow.dismiss();
             }
         });
-        ListView listView = customView.findViewById(R.id.listView);
-        ArrayList<String> values = new ArrayList<>();
-        int k = 0;
-        final int languagePosition = k;
-        values.add(getString(R.string.language));
-        collectionPosition = -1;
-        if (songCollections.size() > 0) {
-            collectionPosition = ++k;
-            values.add(getString(R.string.collection));
+        if (songCollections.size() == 0) {
+            customView.findViewById(R.id.collectionButton).setVisibility(View.GONE);
         }
-        final int youtubePosition = ++k;
-        values.add(getString(R.string.containing_videos));
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this,
-                android.R.layout.simple_list_item_1, android.R.id.text1, values);
-        listView.setAdapter(adapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
+        containingVideosSwitch = customView.findViewById(R.id.containingVideosSwitch);
+        containingVideosSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                if (position == languagePosition) {
-                    if (selectLanguagePopupWindow != null) {
-                        selectLanguagePopupWindow.dismiss();
-                    } else {
-                        createSelectLanguagePopup();
-                    }
-                    hideKeyboard();
-                    selectLanguagePopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
-                } else if (position == collectionPosition) {
-                    if (collectionPopupWindow != null) {
-                        collectionPopupWindow.dismiss();
-                    } else {
-                        createCollectionPopup();
-                    }
-                    hideKeyboard();
-                    sortCollectionBySelectedLanguages();
-                    collectionPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
-                } else if (position == youtubePosition) {
-                    hideKeyboard();
-                    filter();
-                    ArrayList<Song> tmpSongs = new ArrayList<>(songs);
-                    songs.clear();
-                    for (Song song : tmpSongs) {
-                        if (song.getYoutubeUrl() != null) {
-                            songs.add(song);
-                        }
-                    }
-                    loadAll();
-                    filterPopupWindow.dismiss();
-                }
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                hideKeyboard();
+                filter();
+                loadAll();
+            }
+        });
+        favouriteSwitch = customView.findViewById(R.id.favouriteSwitch);
+        favouriteSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                hideKeyboard();
+                filter();
+                loadAll();
             }
         });
         filterPopupWindow.setBackgroundDrawable(new BitmapDrawable());
@@ -1078,6 +1037,7 @@ public class MainActivity extends AppCompatActivity
                 filter();
                 loadAll();
                 filterPopupWindow.dismiss();
+                collectionPopupWindow.dismiss();
             }
         });
         Collections.sort(songCollections, new Comparator<SongCollection>() {
@@ -1094,6 +1054,32 @@ public class MainActivity extends AppCompatActivity
     private void filter() {
         filterSongsByLanguage();
         filterSongsByCollection();
+        filterSongsByVideos();
+        filterSongsByFavourites();
+    }
+
+    private void filterSongsByFavourites() {
+        if (favouriteSwitch != null && favouriteSwitch.isChecked()) {
+            ArrayList<Song> tmpSongs = new ArrayList<>(songs);
+            songs.clear();
+            for (Song song : tmpSongs) {
+                if (song.isFavourite()) {
+                    songs.add(song);
+                }
+            }
+        }
+    }
+
+    private void filterSongsByVideos() {
+        if (containingVideosSwitch != null && containingVideosSwitch.isChecked()) {
+            ArrayList<Song> tmpSongs = new ArrayList<>(songs);
+            songs.clear();
+            for (Song song : tmpSongs) {
+                if (song.getYoutubeUrl() != null) {
+                    songs.add(song);
+                }
+            }
+        }
     }
 
     private void filterSongsByCollection() {
@@ -1197,6 +1183,27 @@ public class MainActivity extends AppCompatActivity
 
     public void setShortCollectionName(boolean shortCollectionName) {
         this.shortCollectionName = shortCollectionName;
+    }
+
+    public void onLanguageButtonClick(View view) {
+        if (selectLanguagePopupWindow != null) {
+            selectLanguagePopupWindow.dismiss();
+        } else {
+            createSelectLanguagePopup();
+        }
+        hideKeyboard();
+        selectLanguagePopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
+    }
+
+    public void onCollectionButtonClick(View view) {
+        if (collectionPopupWindow != null) {
+            collectionPopupWindow.dismiss();
+        } else {
+            createCollectionPopup();
+        }
+        hideKeyboard();
+        sortCollectionBySelectedLanguages();
+        collectionPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
     }
 
     private class LanguageAdapter extends ArrayAdapter<Language> {
@@ -1343,12 +1350,14 @@ public class MainActivity extends AppCompatActivity
                 holder = new SongAdapter.ViewHolder();
                 holder.ordinalNumberTextView = convertView.findViewById(R.id.ordinalNumberTextView);
                 holder.titleTextView = convertView.findViewById(R.id.titleTextView);
+                holder.imageView = convertView.findViewById(R.id.imageView);
                 convertView.setTag(holder);
             } else {
                 holder = (SongAdapter.ViewHolder) convertView.getTag();
             }
 
             Song song = songList.get(position);
+            holder.imageView.setVisibility(song.isFavourite() ? View.VISIBLE : View.INVISIBLE);
             SongCollection songCollection = song.getSongCollection();
             if (songCollection != null) {
                 String collectionName = songCollection.getName();
@@ -1384,6 +1393,7 @@ public class MainActivity extends AppCompatActivity
         private class ViewHolder {
             TextView ordinalNumberTextView;
             TextView titleTextView;
+            View imageView;
         }
 
     }
