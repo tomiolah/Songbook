@@ -40,6 +40,11 @@ public class Song extends BaseEntity {
     private String versionGroup;
     @DatabaseField
     private String youtubeUrl;
+    @DatabaseField
+    private boolean favourite;
+    @DatabaseField
+    private boolean favouritePublished = true;
+
 
     public Song() {
     }
@@ -197,5 +202,21 @@ public class Song extends BaseEntity {
 
     public void setYoutubeUrl(String youtubeUrl) {
         this.youtubeUrl = youtubeUrl;
+    }
+
+    public boolean isFavourite() {
+        return favourite;
+    }
+
+    public void setFavourite(boolean favourite) {
+        this.favourite = favourite;
+    }
+
+    public boolean isFavouritePublished() {
+        return favouritePublished;
+    }
+
+    public void setFavouritePublished(boolean favouritePublished) {
+        this.favouritePublished = favouritePublished;
     }
 }

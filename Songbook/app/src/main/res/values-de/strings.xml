@@ -83,5 +83,6 @@
     <string name="select_youtube_video">Wähle ein Video aus, als: TEILEN -> LINK KOPIEREN</string>
     <string name="containing_videos">Videos enthalten</string>
     <string name="privacy_policy">Datenschutz-Bestimmungen</string>
+    <string name="favourite">Favorit</string>
 </resources>
 

@@ -83,4 +83,5 @@
     <string name="select_youtube_video">Válasszon ki egy videót: MEGOSZTÁS -> LINK MÁSOLÁSA</string>
     <string name="containing_videos">Videokat tartalmazó</string>
     <string name="privacy_policy">Adatvédelmi irányelvek</string>
+    <string name="favourite">Kedvenc</string>
 </resources>
