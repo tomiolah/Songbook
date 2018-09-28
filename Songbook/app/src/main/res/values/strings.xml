@@ -86,4 +86,5 @@
     <string name="select_youtube_video">Select a video, than: SHARE -> COPY LINK</string>
     <string name="attach_youtube_video">Attach YouTube video</string>
     <string name="containing_videos">Containing videos</string>
+    <string name="privacy_policy">Privacy policy</string>
 </resources>

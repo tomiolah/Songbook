@@ -82,5 +82,6 @@
     <string name="insert_the_youtube_url_here">Fügen Sie die YouTube-URL hier ein</string>
     <string name="select_youtube_video">Wähle ein Video aus, als: TEILEN -> LINK KOPIEREN</string>
     <string name="containing_videos">Videos enthalten</string>
+    <string name="privacy_policy">Datenschutz-Bestimmungen</string>
 </resources>
 

@@ -82,4 +82,5 @@
     <string name="insert_the_youtube_url_here">Introduceți URL-ul YouTube aici</string>
     <string name="select_youtube_video">Selectați un videoclip: TRIMITE -> COPIAZĂ LINKUL</string>
     <string name="containing_videos">Conțină videoclipuri</string>
+    <string name="privacy_policy">Politica de confidentialitate</string>
 </resources>
