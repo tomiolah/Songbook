@@ -856,6 +856,8 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_new_song) {
             Intent loadIntent = new Intent(this, NewSongActivity.class);
             startActivityForResult(loadIntent, 4);
+        } else if (id == R.id.nav_privacy_policy) {
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://comsongbook.firebaseapp.com/privacy_policy.html")));
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
