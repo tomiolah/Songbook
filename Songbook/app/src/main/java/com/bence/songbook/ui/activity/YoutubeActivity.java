@@ -16,6 +16,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
@@ -85,7 +86,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
         setContentView(R.layout.youtube_activity);
 
         Intent intent = getIntent();
-        song = (Song) intent.getSerializableExtra("song");
+        song = Memory.getInstance().getPassingSong();
         youTubeView = findViewById(R.id.youtube_view);
         youTubeView.initialize(Config.YOUTUBE_API_KEY, this);
         try {

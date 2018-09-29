@@ -49,8 +49,8 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                 sharedOnNetwork = true;
                 projectionTextChangeListeners = memory.getProjectionTextChangeListeners();
             }
+            song = memory.getPassingSong();
             Intent intent = getIntent();
-            song = (Song) intent.getSerializableExtra("Song");
             verseList = new ArrayList<>(song.getVerses().size());
             final List<SongVerse> verses = song.getVerses();
             SongVerse chorus = null;

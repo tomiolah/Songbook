@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Énekeskönyv</string>
+    <string name="app_name">Énekeskönyv (Dev)</string>
     <string name="search">Keresés</string>
     <string name="we_need_this_permissions">Szükség van ezekre a jogosultságokra</string>
     <string name="You_need_to_wait_for_this_feature">Ezt a funkciót meg kell várnia, hogy betöltödjön!</string>

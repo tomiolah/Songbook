@@ -35,8 +35,7 @@ public class SuggestEditsChooseActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
         Button linkButton = findViewById(R.id.linkButton);
-        Intent intent = getIntent();
-        song = (Song) intent.getSerializableExtra("Song");
+        song = memory.getPassingSong();
         if (song.getUuid() == null || song.getUuid().isEmpty()) {
             linkButton.setVisibility(View.GONE);
         } else if (memory.getSongForLinking() != null) {

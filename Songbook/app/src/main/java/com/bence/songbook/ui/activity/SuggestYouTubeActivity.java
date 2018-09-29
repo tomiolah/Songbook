@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.bence.projector.common.dto.SuggestionDTO;
+import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SuggestionApiBean;
 import com.bence.songbook.models.Song;
@@ -46,7 +47,6 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         setContentView(R.layout.activity_suggest_youtube);
         youTubeView = findViewById(R.id.youtube_view);
         youTubeView.initialize(Config.YOUTUBE_API_KEY, this);
-//        youTubeView.setVisibility(View.INVISIBLE);
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -54,8 +54,7 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
                 submit();
             }
         });
-        Intent intent = getIntent();
-        song = (Song) intent.getSerializableExtra("Song");
+        song = Memory.getInstance().getPassingSong();
         youtubeEditText = findViewById(R.id.youtubeUrl);
         youtubeEditText.addTextChangedListener(new TextWatcher() {
             @Override
