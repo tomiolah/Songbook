@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Songbook</string>
+    <string name="app_name">Songbook (Dev)</string>
     <string name="search">Search</string>
     <string name="we_need_this_permissions">We need this permissions!</string>
     <string name="You_need_to_wait_for_this_feature">You need to wait for this feature to load!</string>

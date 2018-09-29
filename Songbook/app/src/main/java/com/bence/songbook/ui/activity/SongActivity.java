@@ -9,7 +9,9 @@ import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -36,6 +38,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SongActivity extends AppCompatActivity {
+
+    static {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+    }
 
     private Song song;
     private Memory memory;
@@ -72,7 +78,6 @@ public class SongActivity extends AppCompatActivity {
         }
 
         final Intent fullScreenIntent = new Intent(this, FullscreenActivity.class);
-        fullScreenIntent.putExtra("Song", song);
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -127,11 +132,9 @@ public class SongActivity extends AppCompatActivity {
             copiedSong.setVerses(song.getVerses());
             copiedSong.setSongCollection(song.getSongCollection());
             copiedSong.setSongCollectionElement(song.getSongCollectionElement());
-            intent.putExtra("Song", copiedSong);
             startActivityForResult(intent, 2);
         } else if (itemId == R.id.action_versions) {
             Intent intent = new Intent(this, VersionsActivity.class);
-            memory.setPassingSong(song);
             startActivityForResult(intent, 1);
         } else if (itemId == R.id.action_youtube) {
             Intent intent = new Intent(this, YoutubeActivity.class);
@@ -143,7 +146,6 @@ public class SongActivity extends AppCompatActivity {
             copiedSong.setSongCollection(song.getSongCollection());
             copiedSong.setSongCollectionElement(song.getSongCollectionElement());
             copiedSong.setYoutubeUrl(song.getYoutubeUrl());
-            intent.putExtra("song", copiedSong);
             startActivity(intent);
         }
         return super.onOptionsItemSelected(item);
@@ -196,15 +198,15 @@ public class SongActivity extends AppCompatActivity {
         favouriteMenuItem = menu.findItem(R.id.action_favourite);
         final SongActivity context = this;
         if (song.isFavourite()) {
-            favouriteMenuItem.setIcon(ContextCompat.getDrawable(context, R.drawable.ic_star_black_24dp));
+            favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_star_black_24dp, null));
         }
         favouriteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 song.setFavourite(!song.isFavourite());
                 song.setFavouritePublished(!song.isFavouritePublished());
-                favouriteMenuItem.setIcon(ContextCompat.getDrawable(context, song.isFavourite() ?
-                        R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp));
+                favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
+                        R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
                 SongRepository songRepository = new SongRepositoryImpl(context);
                 songRepository.save(song);
                 return false;

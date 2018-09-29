@@ -15,6 +15,7 @@ import android.widget.Toast;
 
 import com.bence.projector.common.dto.SongVerseDTO;
 import com.bence.projector.common.dto.SuggestionDTO;
+import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SuggestionApiBean;
 import com.bence.songbook.models.Song;
@@ -51,8 +52,8 @@ public class SuggestEditsActivity extends AppCompatActivity {
                 submit();
             }
         });
+        song = Memory.getInstance().getPassingSong();
         Intent intent = getIntent();
-        song = (Song) intent.getSerializableExtra("Song");
         String method = intent.getStringExtra("method");
         titleEditText = findViewById(R.id.title);
         textEditText = findViewById(R.id.text);

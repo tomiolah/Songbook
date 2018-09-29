@@ -76,7 +76,7 @@
     <string name="this_song_is_not_saved">Dieser Song ist nicht gespeichert</string>
     <string name="description">Beschreibung</string>
     <string name="youtube_video">Youtube video</string>
-    <string name="app_name">Liederbuch</string>
+    <string name="app_name">Liederbuch (Dev)</string>
     <string name="attach_youtube_video">Anfügen eines YouTube-Videos</string>
     <string name="Cannot_parse_YouTube_Url">YouTube URL kann nicht analysiert werden</string>
     <string name="insert_the_youtube_url_here">Fügen Sie die YouTube-URL hier ein</string>
