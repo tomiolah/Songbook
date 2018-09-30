@@ -17,7 +17,6 @@ public class Memory {
     private boolean shareOnNetwork;
     private List<Song> values;
     private MainActivity mainActivity;
-    private Song song;
     private Song songForLinking;
     private Song passingSong;
     private List<String> sharedTexts;
@@ -79,14 +78,6 @@ public class Memory {
 
     public void setMainActivity(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-    }
-
-    public Song getSong() {
-        return song;
-    }
-
-    public void setSong(Song song) {
-        this.song = song;
     }
 
     public Song getSongForLinking() {

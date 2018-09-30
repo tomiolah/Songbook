@@ -251,10 +251,13 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         if (activityPaused) {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
             if (clipboard != null) {
-                ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
-                CharSequence pasteData = item.getText();
-                if (pasteData != null) {
-                    youtubeEditText.setText(pasteData);
+                try {
+                    ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+                    CharSequence pasteData = item.getText();
+                    if (pasteData != null) {
+                        youtubeEditText.setText(pasteData);
+                    }
+                } catch (Exception ignored) {
                 }
             }
             activityPaused = false;

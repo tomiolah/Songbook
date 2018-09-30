@@ -89,7 +89,7 @@ public class SuggestEditsActivity extends AppCompatActivity {
         suggestionDTO.setCreatedByEmail(email);
         final EditText suggestionEditText = findViewById(R.id.suggestion);
         String description = suggestionEditText.getText().toString().trim();
-        if (description.isEmpty() && !edit) {
+        if ((description.isEmpty() || description.equals("text")) && !edit) {
             Toast.makeText(this, R.string.no_description, Toast.LENGTH_SHORT).show();
             return;
         }
@@ -97,7 +97,7 @@ public class SuggestEditsActivity extends AppCompatActivity {
         suggestionDTO.setSongId(song.getUuid());
         if (edit) {
             String title = titleEditText.getText().toString().trim();
-            if (title.isEmpty()) {
+            if (title.isEmpty() || title.equals("text")) {
                 Toast.makeText(this, R.string.no_title, Toast.LENGTH_SHORT).show();
                 return;
             }

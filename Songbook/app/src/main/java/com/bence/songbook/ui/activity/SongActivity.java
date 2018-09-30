@@ -161,7 +161,7 @@ public class SongActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == 1) {
-            song = memory.getSong();
+            song = memory.getPassingSong();
             loadSongView(song);
         } else if (requestCode == 2 && resultCode == SuggestEditsChooseActivity.LINKING) {
             finish();

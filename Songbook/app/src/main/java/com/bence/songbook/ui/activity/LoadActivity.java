@@ -36,6 +36,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.bence.songbook.models.Song.copyLocallySetted;
+
 public class LoadActivity extends AppCompatActivity {
 
     private Toast noInternetConnectionToast;
@@ -261,6 +263,7 @@ public class LoadActivity extends AppCompatActivity {
             for (Song song : onlineModifiedSongs) {
                 if (songHashMap.containsKey(song.getUuid())) {
                     Song modifiedSong = songHashMap.get(song.getUuid());
+                    copyLocallySetted(song, modifiedSong);
                     needToRemove.add(modifiedSong);
                     languageSongs.remove(modifiedSong);
                 }

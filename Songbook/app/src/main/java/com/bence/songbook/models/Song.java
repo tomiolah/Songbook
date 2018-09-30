@@ -49,6 +49,14 @@ public class Song extends BaseEntity {
     public Song() {
     }
 
+    public static void copyLocallySetted(Song song, Song modifiedSong) {
+        song.setFavouritePublished(modifiedSong.isFavouritePublished());
+        song.setFavourite(modifiedSong.isFavourite());
+        song.setAccessedTimeAverage(modifiedSong.getAccessedTimeAverage());
+        song.setAccessedTimes(modifiedSong.getAccessedTimes());
+        song.setLastAccessed(modifiedSong.getLastAccessed());
+    }
+
     public List<SongVerse> getClonedVerses() {
         ArrayList<SongVerse> clonedSongVerses = new ArrayList<>(verses.size());
         for (SongVerse songVerse : verses) {

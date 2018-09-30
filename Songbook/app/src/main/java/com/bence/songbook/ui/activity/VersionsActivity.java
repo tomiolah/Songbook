@@ -101,7 +101,7 @@ public class VersionsActivity extends AppCompatActivity {
     }
 
     public void showSongFullscreen(Song song) {
-        Memory.getInstance().setSong(song);
+        Memory.getInstance().setPassingSong(song);
         setResult(1);
         finish();
     }
