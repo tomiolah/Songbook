@@ -5,7 +5,7 @@ import {Observable} from 'rxjs/Observable';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/map';
 import {PageEvent} from '@angular/material/paginator';
-import {Router} from '@angular/router';
+import {ActivatedRoute, Params, Router} from '@angular/router';
 import {AuthService} from "../../services/auth.service";
 import {Language} from "../../models/language";
 import {LanguageDataService} from "../../services/language-data.service";
@@ -31,7 +31,6 @@ export class SongListComponent implements OnInit {
   songsType = Song.PUBLIC;
   languages: Language[];
   selectedLanguage: Language;
-  private songListComponent_sortByModifiedDate = 'songListComponent_sortByModifiedDate';
   private songListComponent_songsType = 'songListComponent_songsType';
   private _subscription: Subscription;
 
@@ -39,6 +38,7 @@ export class SongListComponent implements OnInit {
               private router: Router,
               private languageDataService: LanguageDataService,
               private titleService: Title,
+              private activatedRoute: ActivatedRoute,
               public auth: AuthService) {
     this.songControl = new FormControl();
     this.songTitles = [];
@@ -273,6 +273,12 @@ export class SongListComponent implements OnInit {
     this.sortAndUpdate();
   }
 
+  searchTermTyped() {
+    const params: Params = Object.assign({}, this.activatedRoute.snapshot.queryParams);
+    params['search'] = this.songControl.value;
+    this.router.navigate(['.'], {queryParams: params});
+  }
+
   private sortAndUpdate() {
     this.sortSongTitles();
     this.songControl.updateValueAndValidity();
@@ -313,6 +319,10 @@ export class SongListComponent implements OnInit {
         );
         break;
     }
+    this.activatedRoute.queryParams.subscribe((queryParams) => {
+      let search = queryParams['search'];
+      this.songControl.patchValue(search);
+    });
   }
 
   private containsInLocalStorage(song, titlesLocalStorage = this.songTitlesLocalStorage) {
