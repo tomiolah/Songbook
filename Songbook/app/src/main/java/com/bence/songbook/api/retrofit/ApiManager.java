@@ -19,8 +19,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ApiManager {
 
     public static Retrofit getClient() {
-        String BASE_URL = "http://192.168.100.4:80";
-        String SECOND_BASE_URL = "http://192.168.100.5:80";
+        String BASE_URL = "http://192.168.100.4:8080";
+        String SECOND_BASE_URL = "http://192.168.100.5:8080";
         HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient shortOkHttpClient = new OkHttpClient.Builder()
