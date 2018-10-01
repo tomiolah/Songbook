@@ -35,7 +35,8 @@
       </div>
       <form class="example-form">
         <mat-form-field class="example-full-width">
-          <input type="text" placeholder="Search" aria-label="Text" matInput [formControl]="songControl">
+          <input type="text" placeholder="Search" aria-label="Text" matInput [formControl]="songControl"
+                 (change)="searchTermTyped()">
         </mat-form-field>
       </form>
       <mat-paginator [length]="filteredSongsList.length"
