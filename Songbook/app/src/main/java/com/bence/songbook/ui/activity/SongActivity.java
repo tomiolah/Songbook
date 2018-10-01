@@ -10,6 +10,7 @@ import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
@@ -55,19 +56,12 @@ public class SongActivity extends AppCompatActivity {
         setContentView(R.layout.activity_song);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-        }
-
         song = memory.getPassingSong();
         loadSongView(song);
     }
 
     private void loadSongView(Song song) {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle(song.getTitle());
-        setSupportActionBar(toolbar);
+        setToolbarTitleAndSize();
         TextView collectionTextView = findViewById(R.id.collectionTextView);
         if (song.getSongCollection() != null) {
             String text = song.getSongCollection().getName() + " " + song.getSongCollectionElement().getOrdinalNumber();
@@ -106,6 +100,17 @@ public class SongActivity extends AppCompatActivity {
                 favouriteMenuItem.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_star_black_24dp));
             }
         }
+    }
+
+    private void setToolbarTitleAndSize() {
+        android.support.v7.app.ActionBar actionbar = getSupportActionBar();
+        if (actionbar == null) {
+            return;
+        }
+        actionbar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        actionbar.setCustomView(R.layout.song_activity_title_bar);
+        final TextView title = actionbar.getCustomView().findViewById(R.id.toolbarTitle);
+        title.setText(song.getTitle());
     }
 
     @Override
@@ -247,6 +252,10 @@ public class SongActivity extends AppCompatActivity {
         });
         thread.start();
         return true;
+    }
+
+    public void onBackButtonClick(View view) {
+        finish();
     }
 
     @SuppressWarnings("ConstantConditions")
