@@ -8,6 +8,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.bence.songbook.R;
+import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Language;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
@@ -23,7 +24,7 @@ import java.sql.SQLException;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final String TAG = DatabaseHelper.class.getSimpleName();
     private static final String DATABASE_NAME = "songbook.db";
-    private static final int DATABASE_VERSION = 10;
+    private static final int DATABASE_VERSION = 11;
 
     @SuppressLint("StaticFieldLeak")
     private static DatabaseHelper instance;
@@ -34,6 +35,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private Dao<Language, Long> languageDao;
     private Dao<SongCollection, Long> songCollectionDao;
     private Dao<SongCollectionElement, Long> songCollectionElementDao;
+    private Dao<FavouriteSong, Long> favouriteSongDao;
 
     private DatabaseHelper(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION, R.raw.ormlite_config);
@@ -53,7 +55,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                          final ConnectionSource connectionSource) {
         try {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-            sharedPreferences.edit().putInt("songDataBaseVersion", 7).apply();
+            sharedPreferences.edit().putInt("songDataBaseVersion", 8).apply();
             TableUtils.createTableIfNotExists(connectionSource, Song.class);
             sharedPreferences.edit().putInt("songVerseDataBaseVersion", 4).apply();
             TableUtils.createTableIfNotExists(connectionSource, SongVerse.class);
@@ -63,6 +65,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTableIfNotExists(connectionSource, SongCollection.class);
             sharedPreferences.edit().putInt("songCollectionElementDataBaseVersion", 5).apply();
             TableUtils.createTableIfNotExists(connectionSource, SongCollectionElement.class);
+            sharedPreferences.edit().putInt("favouriteSongDataBaseVersion", 1).apply();
+            TableUtils.createTableIfNotExists(connectionSource, FavouriteSong.class);
         } catch (final SQLException e) {
             Log.e(TAG, "Unable to create databases", e);
         }
@@ -84,9 +88,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                     if (songDataBaseVersion < 6) {
                         getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN youtubeUrl VARCHAR(20);");
                     }
-                    if (songDataBaseVersion < 7) {
-                        getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN favourite BIT;");
-                        getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN favouritePublished BIT;");
+                    if (songDataBaseVersion == 7) {
+                        getSongDao().executeRaw("ALTER TABLE `song` DROP COLUMN favourite ;");
+                        getSongDao().executeRaw("ALTER TABLE `song` DROP COLUMN favouritePublished ;");
                     }
                 }
                 int songVerseDataBaseVersion = sharedPreferences.getInt("songVerseDataBaseVersion", 0);
@@ -104,6 +108,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                 int songCollectionElementDataBaseVersion = sharedPreferences.getInt("songCollectionElementDataBaseVersion", 0);
                 if (songCollectionElementDataBaseVersion < 5) {
                     TableUtils.dropTable(connectionSource, SongCollectionElement.class, true);
+                }
+                int favouriteSongDataBaseVersion = sharedPreferences.getInt("favouriteSongDataBaseVersion", 0);
+                if (favouriteSongDataBaseVersion < 0) {
+                    TableUtils.dropTable(connectionSource, FavouriteSong.class, true);
                 }
             }
         } catch (final Exception e) {
@@ -152,6 +160,13 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         return songCollectionElementDao;
     }
 
+    public Dao<FavouriteSong, Long> getFavouriteSongDao() throws SQLException {
+        if (favouriteSongDao == null) {
+            favouriteSongDao = getDao(FavouriteSong.class);
+        }
+        return favouriteSongDao;
+    }
+
     @Override
     public void close() {
         super.close();
@@ -160,5 +175,6 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         languageDao = null;
         songCollectionDao = null;
         songCollectionElementDao = null;
+        favouriteSongDao = null;
     }
 }

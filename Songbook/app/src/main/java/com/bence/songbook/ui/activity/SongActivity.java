@@ -14,6 +14,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,18 +28,29 @@ import android.widget.Toast;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
+import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
+import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
+import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.SongService;
+import com.bence.songbook.ui.utils.GoogleSignInIntent;
 import com.bence.songbook.ui.utils.Preferences;
+import com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
+
 public class SongActivity extends AppCompatActivity {
+    private static final String TAG = "SongActivity";
 
     static {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
@@ -47,6 +59,7 @@ public class SongActivity extends AppCompatActivity {
     private Song song;
     private Memory memory;
     private MenuItem favouriteMenuItem;
+    private SaveFavouriteInGoogleDrive saveFavouriteInGoogleDrive;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,11 +178,30 @@ public class SongActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == 1) {
-            song = memory.getPassingSong();
-            loadSongView(song);
-        } else if (requestCode == 2 && resultCode == SuggestEditsChooseActivity.LINKING) {
-            finish();
+        switch (requestCode) {
+            case 1:
+                if (resultCode == 1) {
+                    song = memory.getPassingSong();
+                    loadSongView(song);
+                }
+                break;
+            case 2:
+                if (resultCode == SuggestEditsChooseActivity.LINKING) {
+                    finish();
+                }
+                break;
+            case REQUEST_CODE_SIGN_IN:
+                if (resultCode != RESULT_OK) {
+                    Log.e(TAG, "Sign-in failed.");
+                    return;
+                }
+                Task<GoogleSignInAccount> getAccountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
+                if (getAccountTask.isSuccessful()) {
+                    saveFavouriteInGoogleDrive.initializeDriveClient(getAccountTask.getResult());
+                } else {
+                    Log.e(TAG, "Sign-in failed.");
+                }
+                break;
         }
     }
 
@@ -209,11 +241,15 @@ public class SongActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 song.setFavourite(!song.isFavourite());
-                song.setFavouritePublished(!song.isFavouritePublished());
+                FavouriteSong favourite = song.getFavourite();
+                favourite.setFavouritePublished(!favourite.isFavouritePublished());
                 favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
                         R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
                 SongRepository songRepository = new SongRepositoryImpl(context);
                 songRepository.save(song);
+                FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
+                favouriteSongRepository.save(favourite);
+                syncFavouriteInGoogleDrive();
                 return false;
             }
         });
@@ -252,6 +288,16 @@ public class SongActivity extends AppCompatActivity {
         });
         thread.start();
         return true;
+    }
+
+    private void syncFavouriteInGoogleDrive() {
+        saveFavouriteInGoogleDrive = new SaveFavouriteInGoogleDrive(new GoogleSignInIntent() {
+            @Override
+            public void task(Intent signInIntent) {
+                startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
+            }
+        }, this, song);
+        saveFavouriteInGoogleDrive.signIn();
     }
 
     public void onBackButtonClick(View view) {
@@ -306,5 +352,4 @@ public class SongActivity extends AppCompatActivity {
         }
 
     }
-
 }

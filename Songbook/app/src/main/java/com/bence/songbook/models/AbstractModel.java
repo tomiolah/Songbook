@@ -1,5 +1,6 @@
 package com.bence.songbook.models;
 
+import com.google.gson.annotations.Expose;
 import com.j256.ormlite.field.DatabaseField;
 
 import java.io.Serializable;
@@ -7,6 +8,7 @@ import java.io.Serializable;
 public abstract class AbstractModel implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    @Expose
     @DatabaseField(index = true)
     private String uuid;
 
