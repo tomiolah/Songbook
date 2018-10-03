@@ -16,7 +16,7 @@ public class FavouriteSong extends Base {
     @DatabaseField
     private boolean favouritePublished = true;
     @DatabaseField
-    private boolean favouritePublishedToDrive = true;
+    private boolean favouritePublishedToDrive = false;
     @Expose
     @DatabaseField
     private Date modifiedDate;

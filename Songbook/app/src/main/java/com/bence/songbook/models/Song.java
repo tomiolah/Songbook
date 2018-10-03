@@ -40,7 +40,6 @@ public class Song extends BaseEntity {
     private String versionGroup;
     @DatabaseField
     private String youtubeUrl;
-    @DatabaseField(foreign = true, foreignAutoRefresh = true)
     private FavouriteSong favourite;
 
     public Song() {

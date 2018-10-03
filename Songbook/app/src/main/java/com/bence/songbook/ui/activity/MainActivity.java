@@ -339,10 +339,12 @@ public class MainActivity extends AppCompatActivity
             hashMap.put(song.getUuid(), song);
         }
         for (FavouriteSong favouriteSong : favouriteSongs) {
-            String songUuid = favouriteSong.getSong().getUuid();
-            if (hashMap.containsKey(songUuid)) {
-                Song song = hashMap.get(songUuid);
-                song.setFavourite(favouriteSong);
+            if (favouriteSong.getSong() != null) {
+                String songUuid = favouriteSong.getSong().getUuid();
+                if (hashMap.containsKey(songUuid)) {
+                    Song song = hashMap.get(songUuid);
+                    song.setFavourite(favouriteSong);
+                }
             }
         }
     }

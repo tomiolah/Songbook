@@ -140,11 +140,6 @@ fieldName=versionGroup
 fieldName=youtubeUrl
 # --field-end--
 # --field-start--
-fieldName=favourite
-foreign=true
-foreignAutoRefresh=true
-# --field-end--
-# --field-start--
 fieldName=id
 generatedId=true
 indexName=song_id_idx
