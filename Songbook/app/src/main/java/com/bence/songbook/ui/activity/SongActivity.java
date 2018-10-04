@@ -45,6 +45,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
@@ -242,13 +243,12 @@ public class SongActivity extends AppCompatActivity {
             public boolean onMenuItemClick(MenuItem item) {
                 song.setFavourite(!song.isFavourite());
                 FavouriteSong favourite = song.getFavourite();
+                favourite.setModifiedDate(new Date());
                 favourite.setFavouritePublished(!favourite.isFavouritePublished());
-                favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
-                        R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
-                SongRepository songRepository = new SongRepositoryImpl(context);
-                songRepository.save(song);
                 FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
                 favouriteSongRepository.save(favourite);
+                favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
+                        R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
                 syncFavouriteInGoogleDrive();
                 return false;
             }

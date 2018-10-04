@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.bence.projector.common.serializer.DateDeserializer;
+import com.bence.projector.common.serializer.DateSerializer;
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -74,7 +76,7 @@ abstract class FavouriteInGoogleDrive {
                 BufferedWriter writer = null;
                 try {
                     writer = new BufferedWriter(new OutputStreamWriter(driveContents.getOutputStream()));
-                    Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+                    Gson gson = getGson();
                     for (FavouriteSong favourite : favouriteSongs) {
                         favourite.setFavouritePublishedToDrive(true);
                     }
@@ -183,6 +185,12 @@ abstract class FavouriteInGoogleDrive {
     }
 
     abstract void readingFavouritesFromDrive(DriveResourceClient mDriveResourceClient);
+
+    @NonNull
+    Gson getGson() {
+        return new GsonBuilder().excludeFieldsWithoutExposeAnnotation()
+                .registerTypeAdapter(Date.class, new DateDeserializer()).registerTypeAdapter(Date.class, new DateSerializer()).create();
+    }
 
 //    private void signOut() {
 //        Task<Void> voidTask = buildGoogleSignInClient().signOut();

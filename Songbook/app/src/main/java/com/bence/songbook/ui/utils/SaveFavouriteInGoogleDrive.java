@@ -3,6 +3,7 @@ package com.bence.songbook.ui.utils;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Song;
@@ -21,7 +22,6 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
@@ -62,7 +62,7 @@ public class SaveFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                         Writer writer = null;
                         try {
                             writer = new OutputStreamWriter(outputStream);
-                            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+                            Gson gson = getGson();
                             FavouriteSong favourite = song.getFavourite();
                             favourite.setFavouritePublishedToDrive(true);
                             String str = "[" + gson.toJson(favourite) + "]";
@@ -127,6 +127,9 @@ public class SaveFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
 
     @Override
     void retrieveContents(final DriveFile file) {
+        if (song.getUuid() == null) {
+            return;
+        }
         Task<DriveContents> openFileTask =
                 mDriveResourceClient.openFile(file, DriveFile.MODE_READ_WRITE);
         openFileTask
@@ -146,8 +149,7 @@ public class SaveFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                                 builder.append(line).append("\n");
                             }
                             System.out.println("builder = " + builder.toString());
-
-                            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+                            Gson gson = getGson();
                             Type listType = new TypeToken<ArrayList<FavouriteSong>>() {
                             }.getType();
                             favouriteSongs = gson.fromJson(builder.toString(), listType);
@@ -181,9 +183,11 @@ public class SaveFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                             } else {
                                 savingFavourite();
                             }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        } catch (NumberFormatException e) {
                             rewriteContents(file, new ArrayList<FavouriteSong>());
+                        } catch (Exception e) {
+                            Toast.makeText(activity, e.getMessage(), Toast.LENGTH_LONG).show();
+                            e.printStackTrace();
                         } finally {
                             if (reader != null) {
                                 reader.close();

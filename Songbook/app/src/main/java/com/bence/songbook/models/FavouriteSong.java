@@ -8,7 +8,7 @@ import java.util.Date;
 public class FavouriteSong extends Base {
 
     @Expose
-    @DatabaseField(columnName = "song_id", foreign = true, foreignAutoRefresh = true, index = true, unique = true)
+    @DatabaseField(columnName = "song_id", foreign = true, foreignAutoRefresh = true, index = true, unique = true, canBeNull = false)
     private Song song;
     @Expose
     @DatabaseField

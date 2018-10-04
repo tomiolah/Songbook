@@ -11,8 +11,8 @@ android {
         minSdkVersion 16
         //noinspection OldTargetApi
         targetSdkVersion 27
-        versionCode 41
-        versionName "2.2.5"
+        versionCode 45
+        versionName "2.2.9"
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {

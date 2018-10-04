@@ -212,7 +212,6 @@ public class Song extends BaseEntity {
             this.favourite.setSong(this);
         }
         this.favourite.setFavourite(favourite);
-        this.favourite.setModifiedDate(new Date());
         this.favourite.setFavouritePublishedToDrive(false);
     }
 
@@ -222,7 +221,9 @@ public class Song extends BaseEntity {
 
     public void setFavourite(FavouriteSong favouriteSong) {
         this.favourite = favouriteSong;
-        favouriteSong.setSong(this);
+        if (favouriteSong != null) {
+            favouriteSong.setSong(this);
+        }
     }
 
     @Override

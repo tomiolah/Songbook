@@ -1,5 +1,5 @@
 #
-# generated on 2018/10/03 11:59:35
+# generated on 2018/10/04 01:12:05
 #
 # --table-start--
 dataClass=com.bence.songbook.models.AbstractModel
@@ -46,6 +46,7 @@ tableName=favouritesong
 # --field-start--
 fieldName=song
 columnName=song_id
+canBeNull=false
 foreign=true
 unique=true
 indexName=favouritesong_song_id_idx

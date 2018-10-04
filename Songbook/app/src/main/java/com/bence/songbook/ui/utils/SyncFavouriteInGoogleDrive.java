@@ -3,6 +3,7 @@ package com.bence.songbook.ui.utils;
 import android.app.Activity;
 import android.support.annotation.NonNull;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Song;
@@ -20,7 +21,6 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
@@ -86,7 +86,7 @@ public class SyncFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                             }
                             System.out.println("builder = " + builder.toString());
 
-                            Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+                            Gson gson = getGson();
                             Type listType = new TypeToken<ArrayList<FavouriteSong>>() {
                             }.getType();
                             favouriteSongs = gson.fromJson(builder.toString(), listType);
@@ -99,6 +99,9 @@ public class SyncFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                                 }
                                 Map<String, Song> songMap = new HashMap<>(songs.size());
                                 for (Song song : songs) {
+                                    if (song.getUuid() == null) {
+                                        continue;
+                                    }
                                     songMap.put(song.getUuid(), song);
                                 }
                                 FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(activity);
@@ -120,7 +123,13 @@ public class SyncFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                                     if (song != null) {
                                         if (song.getFavourite() == null) {
                                             if (favouriteSong.isFavourite()) {
-                                                song.setFavourite(true);
+                                                FavouriteSong bySongUuid = favouriteSongRepository.findFavouriteSongBySongUuid(uuid);
+                                                if (bySongUuid != null) {
+                                                    song.setFavourite(bySongUuid);
+                                                    song.setFavourite(true);
+                                                } else {
+                                                    song.setFavourite(true);
+                                                }
                                                 FavouriteSong favourite = song.getFavourite();
                                                 favourite.setModifiedDate(favouriteSong.getModifiedDate());
                                                 favourite.setFavouritePublishedToDrive(true);
@@ -138,32 +147,41 @@ public class SyncFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                                     }
                                 }
                                 favouriteSongRepository.save(modifiedFavourites);
-                                List<FavouriteSong> unpublishedList = new ArrayList<>();
-                                for (FavouriteSong favouriteSong : localFavourites) {
-                                    if (!favouriteSong.isFavouritePublishedToDrive()) {
-                                        unpublishedList.add(favouriteSong);
-                                    }
-                                }
+                                List<FavouriteSong> unpublishedList = new ArrayList<>(localFavourites);
                                 if (unpublishedList.size() > 0) {
+                                    boolean was = false;
                                     for (FavouriteSong favourite : unpublishedList) {
-                                        String uuid = favourite.getSong().getUuid();
+                                        Song song = favourite.getSong();
+                                        if (song == null) {
+                                            continue;
+                                        }
+                                        String uuid = song.getUuid();
+                                        if (uuid == null) {
+                                            continue;
+                                        }
                                         if (!map.containsKey(uuid)) {
                                             map.put(uuid, favourite);
+                                            was = true;
                                         } else {
                                             FavouriteSong favouriteSong = map.get(uuid);
                                             if (favourite.getModifiedDate().after(favouriteSong.getModifiedDate())) {
                                                 map.put(uuid, favourite);
+                                                was = true;
                                             }
                                         }
                                     }
-                                    unpublishedList.clear();
-                                    unpublishedList.addAll(map.values());
-                                    rewriteContents(file, unpublishedList);
+                                    if (was) {
+                                        unpublishedList.clear();
+                                        unpublishedList.addAll(map.values());
+                                        rewriteContents(file, unpublishedList);
+                                    }
                                 }
                             }
-                        } catch (Exception e) {
-                            e.printStackTrace();
+                        } catch (NumberFormatException e) {
                             rewriteContents(file, new ArrayList<FavouriteSong>());
+                        } catch (Exception e) {
+                            Toast.makeText(activity, e.getMessage(), Toast.LENGTH_LONG).show();
+                            e.printStackTrace();
                         } finally {
                             if (reader != null) {
                                 reader.close();
