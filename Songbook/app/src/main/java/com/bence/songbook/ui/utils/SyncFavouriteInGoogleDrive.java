@@ -145,6 +145,19 @@ public class SyncFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                                     }
                                 }
                                 if (unpublishedList.size() > 0) {
+                                    for (FavouriteSong favourite : unpublishedList) {
+                                        String uuid = favourite.getSong().getUuid();
+                                        if (!map.containsKey(uuid)) {
+                                            map.put(uuid, favourite);
+                                        } else {
+                                            FavouriteSong favouriteSong = map.get(uuid);
+                                            if (favourite.getModifiedDate().after(favouriteSong.getModifiedDate())) {
+                                                map.put(uuid, favourite);
+                                            }
+                                        }
+                                    }
+                                    unpublishedList.clear();
+                                    unpublishedList.addAll(map.values());
                                     rewriteContents(file, unpublishedList);
                                 }
                             }
