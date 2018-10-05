@@ -39,6 +39,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
+
 abstract class FavouriteInGoogleDrive {
     private static final String TAG = "FavouriteInGoogleDrive";
     final String FAVOURITES = "FAVOURITES";
@@ -157,6 +159,7 @@ abstract class FavouriteInGoogleDrive {
                     @Override
                     public void onSuccess(GoogleSignInAccount googleSignInAccount) {
                         Log.i(TAG, "Sign in success");
+                        saveGmail(googleSignInAccount, activity);
                         initializeDriveClient(googleSignInAccount);
                     }
                 })

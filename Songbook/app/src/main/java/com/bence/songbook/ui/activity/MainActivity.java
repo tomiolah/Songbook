@@ -22,7 +22,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -68,9 +67,6 @@ import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.ui.utils.SyncFavouriteInGoogleDrive;
 import com.bence.songbook.ui.utils.SyncInBackground;
 import com.bence.songbook.utils.Utility;
-import com.google.android.gms.auth.api.signin.GoogleSignIn;
-import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
-import com.google.android.gms.tasks.Task;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -80,8 +76,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import static com.bence.songbook.ui.utils.SyncFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 
 @SuppressWarnings({"ConstantConditions", "deprecation"})
 public class MainActivity extends AppCompatActivity
@@ -377,7 +371,6 @@ public class MainActivity extends AppCompatActivity
         syncFavouriteInGoogleDrive = new SyncFavouriteInGoogleDrive(new GoogleSignInIntent() {
             @Override
             public void task(Intent signInIntent) {
-                startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
             }
         }, this, songs, favouriteSongs);
         syncFavouriteInGoogleDrive.signIn();
@@ -448,18 +441,6 @@ public class MainActivity extends AppCompatActivity
                     values.clear();
                     values.add(songs.get(songs.size() - 1));
                     adapter.setSongList(values);
-                }
-                break;
-            case REQUEST_CODE_SIGN_IN:
-                if (resultCode != RESULT_OK) {
-                    Log.e(TAG, "Sign-in failed.");
-                    return;
-                }
-                Task<GoogleSignInAccount> getAccountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
-                if (getAccountTask.isSuccessful()) {
-                    syncFavouriteInGoogleDrive.initializeDriveClient(getAccountTask.getResult());
-                } else {
-                    Log.e(TAG, "Sign-in failed.");
                 }
                 break;
         }

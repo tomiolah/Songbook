@@ -62,6 +62,12 @@ public class SongActivity extends AppCompatActivity {
     private MenuItem favouriteMenuItem;
     private SaveFavouriteInGoogleDrive saveFavouriteInGoogleDrive;
 
+    public static void saveGmail(GoogleSignInAccount result, Context context) {
+        String email = result.getEmail();
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        sharedPreferences.edit().putString("gmail", email).apply();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(Preferences.getTheme(this));
@@ -198,7 +204,9 @@ public class SongActivity extends AppCompatActivity {
                 }
                 Task<GoogleSignInAccount> getAccountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
                 if (getAccountTask.isSuccessful()) {
-                    saveFavouriteInGoogleDrive.initializeDriveClient(getAccountTask.getResult());
+                    GoogleSignInAccount result = getAccountTask.getResult();
+                    saveGmail(result, getApplicationContext());
+                    saveFavouriteInGoogleDrive.initializeDriveClient(result);
                 } else {
                     Log.e(TAG, "Sign-in failed.");
                 }

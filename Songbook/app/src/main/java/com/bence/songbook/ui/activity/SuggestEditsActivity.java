@@ -85,8 +85,13 @@ public class SuggestEditsActivity extends AppCompatActivity {
     private void submit() {
         final SuggestionDTO suggestionDTO = new SuggestionDTO();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String email = sharedPreferences.getString("email", "");
-        suggestionDTO.setCreatedByEmail(email);
+        String gmail = sharedPreferences.getString("gmail", "");
+        if (!gmail.isEmpty()) {
+            suggestionDTO.setCreatedByEmail(gmail);
+        } else {
+            String email = sharedPreferences.getString("email", "");
+            suggestionDTO.setCreatedByEmail(email);
+        }
         final EditText suggestionEditText = findViewById(R.id.suggestion);
         String description = suggestionEditText.getText().toString().trim();
         if ((description.isEmpty() || description.equals("text")) && !edit) {
