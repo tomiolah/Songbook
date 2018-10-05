@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
   <meta name="description" th:attr="content=${song.verses.get(0).text}"></meta>
   <meta name="keywords" th:attr="content=${keywords}"></meta>
+  <meta th:if="${song.youtubeUrl!=null}" property="og:image" th:attr="content=${youtubeUrl}"/>
   <title th:text="${title}">Song</title>
 </head>
 <body>
