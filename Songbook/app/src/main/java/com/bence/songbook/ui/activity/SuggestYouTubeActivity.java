@@ -133,8 +133,13 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
     private void submit() {
         final SuggestionDTO suggestionDTO = new SuggestionDTO();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String email = sharedPreferences.getString("email", "");
-        suggestionDTO.setCreatedByEmail(email);
+        String gmail = sharedPreferences.getString("gmail", "");
+        if (!gmail.isEmpty()) {
+            suggestionDTO.setCreatedByEmail(gmail);
+        } else {
+            String email = sharedPreferences.getString("email", "");
+            suggestionDTO.setCreatedByEmail(email);
+        }
         String url = youtubeEditText.getText().toString().trim();
         if (url.isEmpty()) {
             Toast.makeText(this, R.string.no_change, Toast.LENGTH_SHORT).show();
@@ -251,10 +256,13 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         if (activityPaused) {
             ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
             if (clipboard != null) {
-                ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
-                CharSequence pasteData = item.getText();
-                if (pasteData != null) {
-                    youtubeEditText.setText(pasteData);
+                try {
+                    ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+                    CharSequence pasteData = item.getText();
+                    if (pasteData != null) {
+                        youtubeEditText.setText(pasteData);
+                    }
+                } catch (Exception ignored) {
                 }
             }
             activityPaused = false;

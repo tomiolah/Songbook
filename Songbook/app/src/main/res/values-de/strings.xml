@@ -84,5 +84,13 @@
     <string name="containing_videos">Videos enthalten</string>
     <string name="privacy_policy">Datenschutz-Bestimmungen</string>
     <string name="favourite">Favorit</string>
+    <string name="press_twice_to_exit">Drücken Sie zweimal, um zu beenden</string>
+    <string name="share">Teilen</string>
+    <string name="sign_in">Anmelden</string>
+    <string name="sync_in_google_drive">Synchronisieren Sie in Google Drive</string>
+    <string name="from_now_you_can_synchronize_your_favourite_songs_across_google_drive">Ab sofort können Sie Ihre Lieblingslieder über Google Drive synchronisieren.</string>
+    <string name="don_t_show_again">Nicht mehr anzeigen</string>
+    <string name="sign_in_with_google">Anmeldung mit Google</string>
+    <string name="sign_out">Ausloggen</string>
 </resources>
 

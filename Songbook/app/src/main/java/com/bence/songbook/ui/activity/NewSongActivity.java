@@ -69,7 +69,15 @@ public class NewSongActivity extends AppCompatActivity {
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         EditText emailEditText = findViewById(R.id.email);
-        emailEditText.setText(sharedPreferences.getString("email", ""));
+        String gmail = sharedPreferences.getString("gmail", "");
+        if (!gmail.isEmpty()) {
+            emailEditText.setText(gmail);
+            View email_textView = findViewById(R.id.email_textView);
+            email_textView.setVisibility(View.GONE);
+            emailEditText.setVisibility(View.GONE);
+        } else {
+            emailEditText.setText(sharedPreferences.getString("email", ""));
+        }
 
         LanguageRepositoryImpl languageRepository = new LanguageRepositoryImpl(this);
         final List<Language> languages = languageRepository.findAll();

@@ -34,27 +34,22 @@ public class Song extends BaseEntity {
     private Long accessedTimeAverage;
     private SongCollection songCollection;
     private SongCollectionElement songCollectionElement;
-    private Date nullDate = new Date(0);
+    private Date nullDate;
     private String createdByEmail;
     @DatabaseField
     private String versionGroup;
     @DatabaseField
     private String youtubeUrl;
-    @DatabaseField
-    private boolean favourite;
-    @DatabaseField
-    private boolean favouritePublished = true;
-
+    private FavouriteSong favourite;
 
     public Song() {
     }
 
-    public List<SongVerse> getClonedVerses() {
-        ArrayList<SongVerse> clonedSongVerses = new ArrayList<>(verses.size());
-        for (SongVerse songVerse : verses) {
-            clonedSongVerses.add(new SongVerse(songVerse));
-        }
-        return clonedSongVerses;
+    public static void copyLocallySetted(Song song, Song modifiedSong) {
+        song.setFavourite(modifiedSong.getFavourite());
+        song.setAccessedTimeAverage(modifiedSong.getAccessedTimeAverage());
+        song.setAccessedTimes(modifiedSong.getAccessedTimes());
+        song.setLastAccessed(modifiedSong.getLastAccessed());
     }
 
     public String getTitle() {
@@ -80,10 +75,6 @@ public class Song extends BaseEntity {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate == null ? null : (Date) modifiedDate.clone();
-    }
-
-    public ForeignCollection<SongVerse> getForeignCollectionVerses() {
-        return songVerseForeignCollection;
     }
 
     public List<SongVerse> getVerses() {
@@ -131,9 +122,16 @@ public class Song extends BaseEntity {
         this.language = language;
     }
 
+    private Date getNullDate() {
+        if (nullDate == null) {
+            nullDate = new Date(0);
+        }
+        return nullDate;
+    }
+
     public Date getLastAccessed() {
         if (lastAccessed == null) {
-            return nullDate;
+            return getNullDate();
         }
         return lastAccessed;
     }
@@ -205,18 +203,31 @@ public class Song extends BaseEntity {
     }
 
     public boolean isFavourite() {
-        return favourite;
+        return favourite != null && favourite.isFavourite();
     }
 
     public void setFavourite(boolean favourite) {
-        this.favourite = favourite;
+        if (this.favourite == null) {
+            this.favourite = new FavouriteSong();
+            this.favourite.setSong(this);
+        }
+        this.favourite.setFavourite(favourite);
+        this.favourite.setFavouritePublishedToDrive(false);
     }
 
-    public boolean isFavouritePublished() {
-        return favouritePublished;
+    public FavouriteSong getFavourite() {
+        return favourite;
     }
 
-    public void setFavouritePublished(boolean favouritePublished) {
-        this.favouritePublished = favouritePublished;
+    public void setFavourite(FavouriteSong favouriteSong) {
+        this.favourite = favouriteSong;
+        if (favouriteSong != null) {
+            favouriteSong.setSong(this);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return title;
     }
 }

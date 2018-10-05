@@ -88,4 +88,12 @@
     <string name="containing_videos">Containing videos</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="favourite">Favourite</string>
+    <string name="press_twice_to_exit">Press twice to exit</string>
+    <string name="share">Share</string>
+    <string name="sign_in">Sign in</string>
+    <string name="sync_in_google_drive">Sync in Google Drive</string>
+    <string name="from_now_you_can_synchronize_your_favourite_songs_across_google_drive">From now you can synchronize your favourite songs across Google Drive.</string>
+    <string name="don_t_show_again">Don\'t show again</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_out">Sign out</string>
 </resources>

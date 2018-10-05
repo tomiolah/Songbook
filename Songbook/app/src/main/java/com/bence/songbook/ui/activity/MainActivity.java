@@ -22,6 +22,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -50,18 +51,26 @@ import android.widget.Toast;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SongApiBean;
+import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Language;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongVerse;
+import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
+import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.LanguageRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.ui.utils.GoogleSignInIntent;
 import com.bence.songbook.ui.utils.Preferences;
+import com.bence.songbook.ui.utils.SyncFavouriteInGoogleDrive;
 import com.bence.songbook.ui.utils.SyncInBackground;
 import com.bence.songbook.utils.Utility;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.tasks.Task;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -72,11 +81,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
+import static com.bence.songbook.ui.activity.SongActivity.showGoogleSignIn;
+import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
+
 @SuppressWarnings({"ConstantConditions", "deprecation"})
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private final Memory memory = Memory.getInstance();
+    private final String TAG = "MainActivity";
     private List<Song> songs;
     private List<Song> values;
     private Switch inSongSearchSwitch;
@@ -107,6 +121,12 @@ public class MainActivity extends AppCompatActivity
     private boolean wasOrdinalNumber;
     private Switch containingVideosSwitch;
     private Switch favouriteSwitch;
+    private List<FavouriteSong> favouriteSongs;
+    private SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive;
+    private Date lastDatePressedAtEnd;
+    private PopupWindow googleSignInPopupWindow;
+    private boolean gSignIn;
+    private MenuItem signInMenuItem;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -132,11 +152,17 @@ public class MainActivity extends AppCompatActivity
         languageRepository = new LanguageRepositoryImpl(getApplicationContext());
         languages = languageRepository.findAll();
         songCollections = memory.getSongCollections();
+        favouriteSongs = memory.getFavouriteSongs();
         songCollectionRepository = new SongCollectionRepositoryImpl(getApplicationContext());
         if (songCollections == null) {
             songCollections = songCollectionRepository.findAll();
             setShortNamesForSongCollections(songCollections);
             memory.setSongCollections(songCollections);
+        }
+        if (favouriteSongs == null) {
+            FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(this);
+            favouriteSongs = favouriteSongRepository.findAll();
+            memory.setFavouriteSongs(favouriteSongs);
         }
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -172,6 +198,16 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        Menu menu = navigationView.getMenu();
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        gSignIn = sharedPreferences.getBoolean("gSignIn", false);
+        if (gSignIn) {
+            signInMenuItem = menu.findItem(R.id.nav_sign_in);
+            if (signInMenuItem != null) {
+                signInMenuItem.setTitle(getString(R.string.sign_out));
+            }
+        }
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.INTERNET)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -313,6 +349,22 @@ public class MainActivity extends AppCompatActivity
         syncDatabase();
     }
 
+    private void setFavouritesForSongs() {
+        HashMap<String, Song> hashMap = new HashMap<>(songs.size());
+        for (Song song : songs) {
+            hashMap.put(song.getUuid(), song);
+        }
+        for (FavouriteSong favouriteSong : favouriteSongs) {
+            if (favouriteSong.getSong() != null) {
+                String songUuid = favouriteSong.getSong().getUuid();
+                if (hashMap.containsKey(songUuid)) {
+                    Song song = hashMap.get(songUuid);
+                    song.setFavourite(favouriteSong);
+                }
+            }
+        }
+    }
+
     private void syncDatabase() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         boolean syncAutomatically = sharedPreferences.getBoolean(LanguagesActivity.syncAutomatically, true);
@@ -334,6 +386,16 @@ public class MainActivity extends AppCompatActivity
             syncInBackground.syncYoutubeUrl(getApplicationContext());
             sharedPreferences.edit().putBoolean("YoutubeUrl", false).apply();
         }
+        syncDrive();
+    }
+
+    private void syncDrive() {
+        syncFavouriteInGoogleDrive = new SyncFavouriteInGoogleDrive(new GoogleSignInIntent() {
+            @Override
+            public void task(Intent signInIntent) {
+            }
+        }, this, songs, favouriteSongs);
+        syncFavouriteInGoogleDrive.signIn();
     }
 
     private void initPreferences() {
@@ -362,37 +424,65 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1) {
-            if (resultCode >= 1) {
-                songs = songRepository.findAll();
-                memory.setSongs(songs);
-                languages = languageRepository.findAll();
-                songCollections = songCollectionRepository.findAll();
-                setShortNamesForSongCollections(songCollections);
-                memory.setSongCollections(songCollections);
-                selectLanguagePopupWindow = null;
-                collectionPopupWindow = null;
-                filterPopupWindow = null;
-                createLoadSongVerseThread();
-                loadSongVersesThread.start();
-                filter();
-                loadAll();
-                Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.downloaded) + " " + (resultCode - 1), Toast.LENGTH_SHORT);
-                toast.show();
-            }
-        } else if (requestCode == 2) {
-            final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            if (light_theme_switch != sharedPreferences.getBoolean("light_theme_switch", false)) {
-                recreate();
-            }
-        } else if (requestCode == 3 && resultCode == 1) {
-            values.clear();
-            values.addAll(memory.getValues());
-        } else if (requestCode == 4 && resultCode == 1) {
-            songs = memory.getSongs();
-            values.clear();
-            values.add(songs.get(songs.size() - 1));
-            adapter.setSongList(values);
+        switch (requestCode) {
+            case 1:
+                if (resultCode >= 1) {
+                    songs = songRepository.findAll();
+                    memory.setSongs(songs);
+                    languages = languageRepository.findAll();
+                    songCollections = songCollectionRepository.findAll();
+                    setShortNamesForSongCollections(songCollections);
+                    memory.setSongCollections(songCollections);
+                    selectLanguagePopupWindow = null;
+                    collectionPopupWindow = null;
+                    filterPopupWindow = null;
+                    createLoadSongVerseThread();
+                    loadSongVersesThread.start();
+                    filter();
+                    syncDrive();
+                    loadAll();
+                    Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.downloaded) + " " + (resultCode - 1), Toast.LENGTH_SHORT);
+                    toast.show();
+                }
+                break;
+            case 2:
+                final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                if (light_theme_switch != sharedPreferences.getBoolean("light_theme_switch", false)) {
+                    recreate();
+                }
+                break;
+            case 3:
+                if (resultCode == 1) {
+                    values.clear();
+                    values.addAll(memory.getValues());
+                }
+                break;
+            case 4:
+                if (resultCode == 1) {
+                    songs = memory.getSongs();
+                    values.clear();
+                    values.add(songs.get(songs.size() - 1));
+                    adapter.setSongList(values);
+                }
+                break;
+            case REQUEST_CODE_SIGN_IN:
+                if (resultCode != RESULT_OK) {
+                    Log.e(TAG, "Sign-in failed.");
+                    showToaster("Sign-in failed.", Toast.LENGTH_LONG);
+                    return;
+                }
+                Task<GoogleSignInAccount> getAccountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
+                if (getAccountTask.isSuccessful()) {
+                    GoogleSignInAccount result = getAccountTask.getResult();
+                    saveGmail(result, getApplicationContext());
+                    syncFavouriteInGoogleDrive.initializeDriveClient(result);
+                    signInMenuItem.setTitle(getString(R.string.sign_out));
+                    gSignIn = true;
+                } else {
+                    Log.e(TAG, "Sign-in failed.");
+                    showToaster("Sign-in failed.", Toast.LENGTH_LONG);
+                }
+                break;
         }
         songListView.invalidateViews();
     }
@@ -808,8 +898,21 @@ public class MainActivity extends AppCompatActivity
             collectionPopupWindow.dismiss();
         } else if (filterPopupWindow != null && filterPopupWindow.isShowing()) {
             filterPopupWindow.dismiss();
+        } else if (googleSignInPopupWindow != null && googleSignInPopupWindow.isShowing()) {
+            googleSignInPopupWindow.dismiss();
         } else {
-            super.onBackPressed();
+            Date now = new Date();
+            int interval = 777;
+            if (lastDatePressedAtEnd != null) {
+                if (now.getTime() - lastDatePressedAtEnd.getTime() >= interval) {
+                    Toast.makeText(this, R.string.press_twice_to_exit, Toast.LENGTH_SHORT).show();
+                } else {
+                    lastDatePressedAtEnd = null;
+                    super.onBackPressed();
+                    return;
+                }
+            }
+            lastDatePressedAtEnd = now;
         }
     }
 
@@ -848,6 +951,18 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(loadIntent, 4);
         } else if (id == R.id.nav_privacy_policy) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://comsongbook.firebaseapp.com/privacy_policy.html")));
+        } else if (id == R.id.nav_sign_in) {
+            if (!gSignIn) {
+                googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), true);
+                if (googleSignInPopupWindow != null) {
+                    googleSignInPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
+                }
+            } else {
+                new SyncFavouriteInGoogleDrive(null, this, null, null).signOut();
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+                sharedPreferences.edit().putBoolean("gSignIn", false).apply();
+                signInMenuItem.setTitle(getString(R.string.sign_in));
+            }
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -1056,6 +1171,7 @@ public class MainActivity extends AppCompatActivity
         filterSongsByCollection();
         filterSongsByVideos();
         filterSongsByFavourites();
+        setFavouritesForSongs();
     }
 
     private void filterSongsByFavourites() {
@@ -1204,6 +1320,21 @@ public class MainActivity extends AppCompatActivity
         hideKeyboard();
         sortCollectionBySelectedLanguages();
         collectionPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
+    }
+
+    public void onGoogleSignIn(View view) {
+        SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive = new SyncFavouriteInGoogleDrive(new GoogleSignInIntent() {
+            @Override
+            public void task(Intent signInIntent) {
+                startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
+            }
+        }, this, songs, favouriteSongs);
+        syncFavouriteInGoogleDrive.signIn();
+        googleSignInPopupWindow.dismiss();
+    }
+
+    private void showToaster(String s, int lengthLong) {
+        Toast.makeText(this, s, lengthLong).show();
     }
 
     private class LanguageAdapter extends ArrayAdapter<Language> {
@@ -1397,5 +1528,4 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
-
 }

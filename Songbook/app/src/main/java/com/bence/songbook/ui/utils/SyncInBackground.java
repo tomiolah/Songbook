@@ -26,6 +26,8 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.bence.songbook.models.Song.copyLocallySetted;
+
 public class SyncInBackground {
 
     private static SyncInBackground instance;
@@ -148,6 +150,7 @@ public class SyncInBackground {
             for (Song song : onlineModifiedSongs) {
                 if (songHashMap.containsKey(song.getUuid())) {
                     Song modifiedSong = songHashMap.get(song.getUuid());
+                    copyLocallySetted(song, modifiedSong);
                     needToRemove.add(modifiedSong);
                     languageSongs.remove(modifiedSong);
                 }
@@ -202,11 +205,13 @@ public class SyncInBackground {
             SongRepository songRepository = new SongRepositoryImpl(context);
             final SongApiBean songApiBean = new SongApiBean();
             List<SongTitleDTO> songTitleDTOS = songApiBean.getSongsContainingYoutubeUrl();
-            for (SongTitleDTO dto : songTitleDTOS) {
-                Song byUUID = songRepository.findByUUID(dto.getId());
-                if (byUUID != null && byUUID.getYoutubeUrl() == null) {
-                    byUUID.setYoutubeUrl(dto.getYoutubeUrl());
-                    songRepository.save(byUUID);
+            if (songTitleDTOS != null) {
+                for (SongTitleDTO dto : songTitleDTOS) {
+                    Song byUUID = songRepository.findByUUID(dto.getId());
+                    if (byUUID != null && byUUID.getYoutubeUrl() == null) {
+                        byUUID.setYoutubeUrl(dto.getYoutubeUrl());
+                        songRepository.save(byUUID);
+                    }
                 }
             }
             return null;

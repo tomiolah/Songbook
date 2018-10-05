@@ -1,5 +1,6 @@
 package com.bence.songbook;
 
+import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.network.ProjectionTextChangeListener;
@@ -17,10 +18,10 @@ public class Memory {
     private boolean shareOnNetwork;
     private List<Song> values;
     private MainActivity mainActivity;
-    private Song song;
     private Song songForLinking;
     private Song passingSong;
     private List<String> sharedTexts;
+    private List<FavouriteSong> favouriteSongs;
 
     private Memory() {
 
@@ -81,14 +82,6 @@ public class Memory {
         this.mainActivity = mainActivity;
     }
 
-    public Song getSong() {
-        return song;
-    }
-
-    public void setSong(Song song) {
-        this.song = song;
-    }
-
     public Song getSongForLinking() {
         return songForLinking;
     }
@@ -114,5 +107,13 @@ public class Memory {
 
     public void setSharedTexts(List<String> sharedTexts) {
         this.sharedTexts = sharedTexts;
+    }
+
+    public List<FavouriteSong> getFavouriteSongs() {
+        return favouriteSongs;
+    }
+
+    public void setFavouriteSongs(List<FavouriteSong> favouriteSongs) {
+        this.favouriteSongs = favouriteSongs;
     }
 }

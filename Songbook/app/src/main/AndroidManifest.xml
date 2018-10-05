@@ -11,6 +11,20 @@
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/SongBookTheme">
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+
+        </provider>
+
         <activity
             android:name=".ui.activity.MainActivity"
             android:label="@string/app_name"
@@ -42,14 +56,17 @@
             android:name=".ui.activity.LoadActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait" />
-        <activity android:name=".ui.activity.LanguagesActivity" />
+        <activity
+            android:name=".ui.activity.LanguagesActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".ui.activity.SettingsActivity"
             android:label="@string/settings"
             android:parentActivityName=".ui.activity.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.bence.songbook.ui.activity.MainActivity" />
+                android:value=".ui.activity.MainActivity" />
         </activity>
         <activity
             android:name=".ui.activity.SongActivity"

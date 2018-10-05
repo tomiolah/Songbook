@@ -4,15 +4,20 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,23 +26,36 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
+import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
+import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
+import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.SongService;
+import com.bence.songbook.ui.utils.GoogleSignInIntent;
 import com.bence.songbook.ui.utils.Preferences;
+import com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
+
 public class SongActivity extends AppCompatActivity {
+    private static final String TAG = "SongActivity";
 
     static {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
@@ -46,6 +64,40 @@ public class SongActivity extends AppCompatActivity {
     private Song song;
     private Memory memory;
     private MenuItem favouriteMenuItem;
+    private SaveFavouriteInGoogleDrive saveFavouriteInGoogleDrive;
+    private Intent signInIntent;
+    private View mainLayout;
+    private PopupWindow googleSignInPopupWindow;
+
+    public static void saveGmail(GoogleSignInAccount result, Context context) {
+        String email = result.getEmail();
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        sharedPreferences.edit().putString("gmail", email).apply();
+        sharedPreferences.edit().putBoolean("gSignIn", true).apply();
+    }
+
+    public static PopupWindow showGoogleSignIn(LayoutInflater inflater, boolean main) {
+        if (inflater != null) {
+            @SuppressLint("InflateParams") View customView = inflater.inflate(R.layout.content_ask_google_sign_in, null);
+            if (main) {
+                View viewById = customView.findViewById(R.id.dontShowButton);
+                viewById.setVisibility(View.GONE);
+            }
+            PopupWindow googleSignInPopupWindow = new PopupWindow(
+                    customView,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            if (Build.VERSION.SDK_INT >= 21) {
+                googleSignInPopupWindow.setElevation(5.0f);
+            }
+            //noinspection deprecation
+            googleSignInPopupWindow.setBackgroundDrawable(new BitmapDrawable());
+            googleSignInPopupWindow.setOutsideTouchable(true);
+            return googleSignInPopupWindow;
+        }
+        return null;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,21 +105,15 @@ public class SongActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         memory = Memory.getInstance();
         setContentView(R.layout.activity_song);
+        mainLayout = findViewById(R.id.main_layout);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
-        }
-
         song = memory.getPassingSong();
         loadSongView(song);
     }
 
     private void loadSongView(Song song) {
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        toolbar.setTitle(song.getTitle());
-        setSupportActionBar(toolbar);
+        setToolbarTitleAndSize();
         TextView collectionTextView = findViewById(R.id.collectionTextView);
         if (song.getSongCollection() != null) {
             String text = song.getSongCollection().getName() + " " + song.getSongCollectionElement().getOrdinalNumber();
@@ -108,6 +154,17 @@ public class SongActivity extends AppCompatActivity {
         }
     }
 
+    private void setToolbarTitleAndSize() {
+        android.support.v7.app.ActionBar actionbar = getSupportActionBar();
+        if (actionbar == null) {
+            return;
+        }
+        actionbar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM);
+        actionbar.setCustomView(R.layout.song_activity_title_bar);
+        final TextView title = actionbar.getCustomView().findViewById(R.id.toolbarTitle);
+        title.setText(song.getTitle());
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
@@ -121,7 +178,7 @@ public class SongActivity extends AppCompatActivity {
                 setResult(1);
                 finish();
             } else {
-                Toast.makeText(this, "No similar found", Toast.LENGTH_SHORT).show();
+                showToaster("No similar found", Toast.LENGTH_SHORT);
             }
         } else if (itemId == R.id.action_suggest_edits) {
             Intent intent = new Intent(this, SuggestEditsChooseActivity.class);
@@ -136,6 +193,14 @@ public class SongActivity extends AppCompatActivity {
         } else if (itemId == R.id.action_versions) {
             Intent intent = new Intent(this, VersionsActivity.class);
             startActivityForResult(intent, 1);
+        } else if (itemId == R.id.action_share) {
+            Intent share = new Intent(android.content.Intent.ACTION_SEND);
+            share.setType("text/plain");
+            share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+            share.putExtra(Intent.EXTRA_SUBJECT, song.getTitle());
+            share.putExtra(Intent.EXTRA_TITLE, song.getTitle());
+            share.putExtra(Intent.EXTRA_TEXT, song.getTitle() + ":\nhttp://192.168.100.4:8080/song/" + song.getUuid());
+            startActivity(Intent.createChooser(share, "Share song!"));
         } else if (itemId == R.id.action_youtube) {
             Intent intent = new Intent(this, YoutubeActivity.class);
             Song copiedSong = new Song();
@@ -153,19 +218,45 @@ public class SongActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        setBlank();
+        onBackButtonClick(null);
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == 1 && resultCode == 1) {
-            song = memory.getSong();
-            loadSongView(song);
-        } else if (requestCode == 2 && resultCode == SuggestEditsChooseActivity.LINKING) {
-            finish();
+        switch (requestCode) {
+            case 1:
+                if (resultCode == 1) {
+                    song = memory.getPassingSong();
+                    loadSongView(song);
+                }
+                break;
+            case 2:
+                if (resultCode == SuggestEditsChooseActivity.LINKING) {
+                    finish();
+                }
+                break;
+            case REQUEST_CODE_SIGN_IN:
+                if (resultCode != RESULT_OK) {
+                    Log.e(TAG, "Sign-in failed.");
+                    showToaster("Sign-in failed.", Toast.LENGTH_LONG);
+                    return;
+                }
+                Task<GoogleSignInAccount> getAccountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
+                if (getAccountTask.isSuccessful()) {
+                    GoogleSignInAccount result = getAccountTask.getResult();
+                    saveGmail(result, getApplicationContext());
+                    saveFavouriteInGoogleDrive.initializeDriveClient(result);
+                } else {
+                    Log.e(TAG, "Sign-in failed.");
+                    showToaster("Sign-in failed.", Toast.LENGTH_LONG);
+                }
+                break;
         }
+    }
+
+    private void showToaster(String s, int lengthLong) {
+        Toast.makeText(this, s, lengthLong).show();
     }
 
     private void setBlank() {
@@ -195,6 +286,11 @@ public class SongActivity extends AppCompatActivity {
             youtubeMenuItem.setVisible(false);
             menu.removeItem(youtubeMenuItem.getItemId());
         }
+        if (song.getUuid() == null) {
+            MenuItem shareMenuItem = menu.findItem(R.id.action_share);
+            shareMenuItem.setVisible(false);
+            menu.removeItem(shareMenuItem.getItemId());
+        }
         favouriteMenuItem = menu.findItem(R.id.action_favourite);
         final SongActivity context = this;
         if (song.isFavourite()) {
@@ -204,11 +300,14 @@ public class SongActivity extends AppCompatActivity {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
                 song.setFavourite(!song.isFavourite());
-                song.setFavouritePublished(!song.isFavouritePublished());
+                FavouriteSong favourite = song.getFavourite();
+                favourite.setModifiedDate(new Date());
+                favourite.setFavouritePublished(!favourite.isFavouritePublished());
+                FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
+                favouriteSongRepository.save(favourite);
                 favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
                         R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
-                SongRepository songRepository = new SongRepositoryImpl(context);
-                songRepository.save(song);
+                syncFavouriteInGoogleDrive();
                 return false;
             }
         });
@@ -247,6 +346,45 @@ public class SongActivity extends AppCompatActivity {
         });
         thread.start();
         return true;
+    }
+
+    private void syncFavouriteInGoogleDrive() {
+        saveFavouriteInGoogleDrive = new SaveFavouriteInGoogleDrive(new GoogleSignInIntent() {
+            @Override
+            public void task(Intent signInIntent) {
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(SongActivity.this);
+                boolean showGoogleSignIn = sharedPreferences.getBoolean("ShowGoogleSignInWhenFavouriteChanges", true);
+                if (!showGoogleSignIn) {
+                    return;
+                }
+                SongActivity.this.signInIntent = signInIntent;
+                googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), false);
+                if (googleSignInPopupWindow != null) {
+                    googleSignInPopupWindow.showAtLocation(mainLayout, Gravity.CENTER, 0, 0);
+                }
+            }
+        }, this, song);
+        saveFavouriteInGoogleDrive.signIn();
+    }
+
+    public void onBackButtonClick(View view) {
+        if (googleSignInPopupWindow != null && googleSignInPopupWindow.isShowing()) {
+            googleSignInPopupWindow.dismiss();
+            return;
+        }
+        setBlank();
+        finish();
+    }
+
+    public void onGoogleSignIn(View view) {
+        startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
+        googleSignInPopupWindow.dismiss();
+    }
+
+    public void onDontShowAgain(View view) {
+        googleSignInPopupWindow.dismiss();
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.edit().putBoolean("ShowGoogleSignInWhenFavouriteChanges", false).apply();
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -297,5 +435,4 @@ public class SongActivity extends AppCompatActivity {
         }
 
     }
-
 }

@@ -84,4 +84,12 @@
     <string name="containing_videos">Conțină videoclipuri</string>
     <string name="privacy_policy">Politica de confidentialitate</string>
     <string name="favourite">Favorit</string>
+    <string name="press_twice_to_exit">Apăsați de două ori pentru a ieși</string>
+    <string name="share">Trimite</string>
+    <string name="sign_in">Conectează-te</string>
+    <string name="sync_in_google_drive">Sincronizați în Google Drive</string>
+    <string name="from_now_you_can_synchronize_your_favourite_songs_across_google_drive">De acum, puteți să vă sincronizați cântecele preferate pe Google Drive.</string>
+    <string name="don_t_show_again">Nu mai afișați din nou</string>
+    <string name="sign_in_with_google">Conectați-vă la Google</string>
+    <string name="sign_out">Deconectați-vă</string>
 </resources>

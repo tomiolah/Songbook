@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
-
+ext {
+    play_services_version = "15.0.1"
+    support_version = "27.1.1"
+}
 android {
     compileSdkVersion 27
     buildToolsVersion '27.0.3'
@@ -8,8 +11,8 @@ android {
         minSdkVersion 16
         //noinspection OldTargetApi
         targetSdkVersion 27
-        versionCode 36
-        versionName "2.2.1"
+        versionCode 46
+        versionName "2.2.10"
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
@@ -35,8 +38,11 @@ dependencies {
     implementation 'com.j256.ormlite:ormlite-core:4.48'
     implementation 'com.j256.ormlite:ormlite-android:4.48'
     implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
-//    implementation 'com.google.firebase:firebase-core:16.0.1'
+//    implementation 'com.google.firebase:firebase-core:16.0.3'
     implementation files('libs/YouTubeAndroidPlayerApi.jar')
+    //noinspection GradleDependency
+    implementation "com.google.android.gms:play-services-auth:$play_services_version"
+    implementation "com.google.android.gms:play-services-drive:$play_services_version"
 }
 
 //apply plugin: 'com.google.gms.google-services'

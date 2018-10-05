@@ -88,8 +88,13 @@ public class SuggestEditsChooseActivity extends AppCompatActivity {
     private void submit(Song songForLinking, Song song) {
         final SongLinkDTO songLinkDTO = new SongLinkDTO();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String email = sharedPreferences.getString("email", "");
-        songLinkDTO.setCreatedByEmail(email);
+        String gmail = sharedPreferences.getString("gmail", "");
+        if (!gmail.isEmpty()) {
+            songLinkDTO.setCreatedByEmail(gmail);
+        } else {
+            String email = sharedPreferences.getString("email", "");
+            songLinkDTO.setCreatedByEmail(email);
+        }
         songLinkDTO.setSongId1(songForLinking.getUuid());
         songLinkDTO.setSongId2(song.getUuid());
         Thread thread = new Thread(new Runnable() {
