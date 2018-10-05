@@ -84,5 +84,7 @@
     <string name="containing_videos">Videos enthalten</string>
     <string name="privacy_policy">Datenschutz-Bestimmungen</string>
     <string name="favourite">Favorit</string>
+    <string name="press_twice_to_exit">Drücken Sie zweimal, um zu beenden</string>
+    <string name="share">Teilen</string>
 </resources>
 

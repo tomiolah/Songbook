@@ -84,4 +84,6 @@
     <string name="containing_videos">Conțină videoclipuri</string>
     <string name="privacy_policy">Politica de confidentialitate</string>
     <string name="favourite">Favorit</string>
+    <string name="press_twice_to_exit">Apăsați de două ori pentru a ieși</string>
+    <string name="share">Trimite</string>
 </resources>

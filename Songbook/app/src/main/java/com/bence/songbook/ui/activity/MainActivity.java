@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity
     private Switch favouriteSwitch;
     private List<FavouriteSong> favouriteSongs;
     private SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive;
+    private Date lastDatePressedAtEnd;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -859,7 +860,18 @@ public class MainActivity extends AppCompatActivity
         } else if (filterPopupWindow != null && filterPopupWindow.isShowing()) {
             filterPopupWindow.dismiss();
         } else {
-            super.onBackPressed();
+            Date now = new Date();
+            int interval = 777;
+            if (lastDatePressedAtEnd != null) {
+                if (now.getTime() - lastDatePressedAtEnd.getTime() >= interval) {
+                    Toast.makeText(this, R.string.press_twice_to_exit, Toast.LENGTH_SHORT).show();
+                } else {
+                    lastDatePressedAtEnd = null;
+                    super.onBackPressed();
+                    return;
+                }
+            }
+            lastDatePressedAtEnd = now;
         }
     }
 

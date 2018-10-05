@@ -84,4 +84,6 @@
     <string name="containing_videos">Videokat tartalmazó</string>
     <string name="privacy_policy">Adatvédelmi irányelvek</string>
     <string name="favourite">Kedvenc</string>
+    <string name="press_twice_to_exit">Nyomja meg kétszer a kilépéshez</string>
+    <string name="share">Megosztás</string>
 </resources>

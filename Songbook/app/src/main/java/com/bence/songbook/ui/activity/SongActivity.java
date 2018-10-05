@@ -161,6 +161,14 @@ public class SongActivity extends AppCompatActivity {
         } else if (itemId == R.id.action_versions) {
             Intent intent = new Intent(this, VersionsActivity.class);
             startActivityForResult(intent, 1);
+        } else if (itemId == R.id.action_share) {
+            Intent share = new Intent(android.content.Intent.ACTION_SEND);
+            share.setType("text/plain");
+            share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+            share.putExtra(Intent.EXTRA_SUBJECT, song.getTitle());
+            share.putExtra(Intent.EXTRA_TITLE, song.getTitle());
+            share.putExtra(Intent.EXTRA_TEXT, song.getTitle() + ":\nhttp://192.168.100.4:8080/song/" + song.getUuid());
+            startActivity(Intent.createChooser(share, "Share song!"));
         } else if (itemId == R.id.action_youtube) {
             Intent intent = new Intent(this, YoutubeActivity.class);
             Song copiedSong = new Song();
@@ -240,6 +248,11 @@ public class SongActivity extends AppCompatActivity {
         if (song.getYoutubeUrl() == null) {
             youtubeMenuItem.setVisible(false);
             menu.removeItem(youtubeMenuItem.getItemId());
+        }
+        if (song.getUuid() == null) {
+            MenuItem shareMenuItem = menu.findItem(R.id.action_share);
+            shareMenuItem.setVisible(false);
+            menu.removeItem(shareMenuItem.getItemId());
         }
         favouriteMenuItem = menu.findItem(R.id.action_favourite);
         final SongActivity context = this;

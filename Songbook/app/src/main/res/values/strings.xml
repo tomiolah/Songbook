@@ -88,4 +88,6 @@
     <string name="containing_videos">Containing videos</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="favourite">Favourite</string>
+    <string name="press_twice_to_exit">Press twice to exit</string>
+    <string name="share">Share</string>
 </resources>
