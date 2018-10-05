@@ -22,6 +22,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -67,6 +68,9 @@ import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.ui.utils.SyncFavouriteInGoogleDrive;
 import com.bence.songbook.ui.utils.SyncInBackground;
 import com.bence.songbook.utils.Utility;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.tasks.Task;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -76,6 +80,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
+import static com.bence.songbook.ui.activity.SongActivity.showGoogleSignIn;
+import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 
 @SuppressWarnings({"ConstantConditions", "deprecation"})
 public class MainActivity extends AppCompatActivity
@@ -116,6 +124,9 @@ public class MainActivity extends AppCompatActivity
     private List<FavouriteSong> favouriteSongs;
     private SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive;
     private Date lastDatePressedAtEnd;
+    private PopupWindow googleSignInPopupWindow;
+    private boolean gSignIn;
+    private MenuItem signInMenuItem;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -187,6 +198,16 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        Menu menu = navigationView.getMenu();
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        gSignIn = sharedPreferences.getBoolean("gSignIn", false);
+        if (gSignIn) {
+            signInMenuItem = menu.findItem(R.id.nav_sign_in);
+            if (signInMenuItem != null) {
+                signInMenuItem.setTitle(getString(R.string.sign_out));
+            }
+        }
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.INTERNET)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -442,6 +463,24 @@ public class MainActivity extends AppCompatActivity
                     values.clear();
                     values.add(songs.get(songs.size() - 1));
                     adapter.setSongList(values);
+                }
+                break;
+            case REQUEST_CODE_SIGN_IN:
+                if (resultCode != RESULT_OK) {
+                    Log.e(TAG, "Sign-in failed.");
+                    showToaster("Sign-in failed.", Toast.LENGTH_LONG);
+                    return;
+                }
+                Task<GoogleSignInAccount> getAccountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
+                if (getAccountTask.isSuccessful()) {
+                    GoogleSignInAccount result = getAccountTask.getResult();
+                    saveGmail(result, getApplicationContext());
+                    syncFavouriteInGoogleDrive.initializeDriveClient(result);
+                    signInMenuItem.setTitle(getString(R.string.sign_out));
+                    gSignIn = true;
+                } else {
+                    Log.e(TAG, "Sign-in failed.");
+                    showToaster("Sign-in failed.", Toast.LENGTH_LONG);
                 }
                 break;
         }
@@ -859,6 +898,8 @@ public class MainActivity extends AppCompatActivity
             collectionPopupWindow.dismiss();
         } else if (filterPopupWindow != null && filterPopupWindow.isShowing()) {
             filterPopupWindow.dismiss();
+        } else if (googleSignInPopupWindow != null && googleSignInPopupWindow.isShowing()) {
+            googleSignInPopupWindow.dismiss();
         } else {
             Date now = new Date();
             int interval = 777;
@@ -910,6 +951,18 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(loadIntent, 4);
         } else if (id == R.id.nav_privacy_policy) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://comsongbook.firebaseapp.com/privacy_policy.html")));
+        } else if (id == R.id.nav_sign_in) {
+            if (!gSignIn) {
+                googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), true);
+                if (googleSignInPopupWindow != null) {
+                    googleSignInPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
+                }
+            } else {
+                new SyncFavouriteInGoogleDrive(null, this, null, null).signOut();
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+                sharedPreferences.edit().putBoolean("gSignIn", false).apply();
+                signInMenuItem.setTitle(getString(R.string.sign_in));
+            }
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -1269,6 +1322,21 @@ public class MainActivity extends AppCompatActivity
         collectionPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
     }
 
+    public void onGoogleSignIn(View view) {
+        SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive = new SyncFavouriteInGoogleDrive(new GoogleSignInIntent() {
+            @Override
+            public void task(Intent signInIntent) {
+                startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
+            }
+        }, this, songs, favouriteSongs);
+        syncFavouriteInGoogleDrive.signIn();
+        googleSignInPopupWindow.dismiss();
+    }
+
+    private void showToaster(String s, int lengthLong) {
+        Toast.makeText(this, s, lengthLong).show();
+    }
+
     private class LanguageAdapter extends ArrayAdapter<Language> {
 
         private List<Language> languageList;
@@ -1460,5 +1528,4 @@ public class MainActivity extends AppCompatActivity
         }
 
     }
-
 }

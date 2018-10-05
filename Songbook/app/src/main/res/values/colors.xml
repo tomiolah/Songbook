@@ -1,7 +1,7 @@
 <!--?xml version="1.0" encoding="UTF-8"?-->
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools">
     <color name="black_overlay">#003602</color>
-    <color name="accent_material_dark">#009906</color>
+    <color name="accent_material_dark" tools:ignore="PrivateResource">#009906</color>
     <color name="background">#4b594b</color>
     <color name="white">#FFFFFF</color>
     <color name="black">#000000</color>
@@ -15,7 +15,7 @@
     <color name="primaryTextColor">#fffde7</color>
     <color name="secondaryTextColor">#e0f7fa</color>
 
-    <color name="primaryColor2">#fc8c4a</color>
+    <color name="primaryColor2">#27772d</color>
     <color name="primaryLightColor2">#fb5e20</color>
     <color name="primaryDarkColor2">#def6f7ff</color>
     <color name="secondaryColor2">#1030f0</color>

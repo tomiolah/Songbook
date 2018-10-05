@@ -195,19 +195,18 @@ abstract class FavouriteInGoogleDrive {
                 .registerTypeAdapter(Date.class, new DateDeserializer()).registerTypeAdapter(Date.class, new DateSerializer()).create();
     }
 
-//    private void signOut() {
-//        Task<Void> voidTask = buildGoogleSignInClient().signOut();
-//        voidTask.addOnSuccessListener(new OnSuccessListener<Void>() {
-//            @Override
-//            public void onSuccess(Void aVoid) {
-//                Log.i(TAG, "Sign out success");
-//            }
-//        }).addOnFailureListener(new OnFailureListener() {
-//            @Override
-//            public void onFailure(@NonNull Exception e) {
-//
-//                Log.w(TAG, "Sign out failed", e);
-//            }
-//        });
-//    }
+    public void signOut() {
+        Task<Void> voidTask = buildGoogleSignInClient().signOut();
+        voidTask.addOnSuccessListener(new OnSuccessListener<Void>() {
+            @Override
+            public void onSuccess(Void aVoid) {
+                Log.i(TAG, "Sign out success");
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w(TAG, "Sign out failed", e);
+            }
+        });
+    }
 }

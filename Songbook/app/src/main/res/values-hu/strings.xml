@@ -86,4 +86,10 @@
     <string name="favourite">Kedvenc</string>
     <string name="press_twice_to_exit">Nyomja meg kétszer a kilépéshez</string>
     <string name="share">Megosztás</string>
+    <string name="sign_in">Bejelentkezés</string>
+    <string name="sync_in_google_drive">Szinkronizálás a Google Drive-ban</string>
+    <string name="from_now_you_can_synchronize_your_favourite_songs_across_google_drive">Mostantól szinkronizálhatja kedvenc énekeit a Google Drive-on.</string>
+    <string name="don_t_show_again">Ne jelenjen meg többet</string>
+    <string name="sign_in_with_google">Jelentkezzen be a Google-lal</string>
+    <string name="sign_out">Kijelentkezés</string>
 </resources>

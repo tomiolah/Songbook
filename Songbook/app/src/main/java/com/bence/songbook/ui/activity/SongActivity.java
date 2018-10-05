@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
@@ -15,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -61,11 +65,38 @@ public class SongActivity extends AppCompatActivity {
     private Memory memory;
     private MenuItem favouriteMenuItem;
     private SaveFavouriteInGoogleDrive saveFavouriteInGoogleDrive;
+    private Intent signInIntent;
+    private View mainLayout;
+    private PopupWindow googleSignInPopupWindow;
 
     public static void saveGmail(GoogleSignInAccount result, Context context) {
         String email = result.getEmail();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         sharedPreferences.edit().putString("gmail", email).apply();
+        sharedPreferences.edit().putBoolean("gSignIn", true).apply();
+    }
+
+    public static PopupWindow showGoogleSignIn(LayoutInflater inflater, boolean main) {
+        if (inflater != null) {
+            @SuppressLint("InflateParams") View customView = inflater.inflate(R.layout.content_ask_google_sign_in, null);
+            if (main) {
+                View viewById = customView.findViewById(R.id.dontShowButton);
+                viewById.setVisibility(View.GONE);
+            }
+            PopupWindow googleSignInPopupWindow = new PopupWindow(
+                    customView,
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+            if (Build.VERSION.SDK_INT >= 21) {
+                googleSignInPopupWindow.setElevation(5.0f);
+            }
+            //noinspection deprecation
+            googleSignInPopupWindow.setBackgroundDrawable(new BitmapDrawable());
+            googleSignInPopupWindow.setOutsideTouchable(true);
+            return googleSignInPopupWindow;
+        }
+        return null;
     }
 
     @Override
@@ -74,6 +105,7 @@ public class SongActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         memory = Memory.getInstance();
         setContentView(R.layout.activity_song);
+        mainLayout = findViewById(R.id.main_layout);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         song = memory.getPassingSong();
@@ -146,7 +178,7 @@ public class SongActivity extends AppCompatActivity {
                 setResult(1);
                 finish();
             } else {
-                Toast.makeText(this, "No similar found", Toast.LENGTH_SHORT).show();
+                showToaster("No similar found", Toast.LENGTH_SHORT);
             }
         } else if (itemId == R.id.action_suggest_edits) {
             Intent intent = new Intent(this, SuggestEditsChooseActivity.class);
@@ -186,8 +218,7 @@ public class SongActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        setBlank();
+        onBackButtonClick(null);
     }
 
     @Override
@@ -208,6 +239,7 @@ public class SongActivity extends AppCompatActivity {
             case REQUEST_CODE_SIGN_IN:
                 if (resultCode != RESULT_OK) {
                     Log.e(TAG, "Sign-in failed.");
+                    showToaster("Sign-in failed.", Toast.LENGTH_LONG);
                     return;
                 }
                 Task<GoogleSignInAccount> getAccountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
@@ -217,9 +249,14 @@ public class SongActivity extends AppCompatActivity {
                     saveFavouriteInGoogleDrive.initializeDriveClient(result);
                 } else {
                     Log.e(TAG, "Sign-in failed.");
+                    showToaster("Sign-in failed.", Toast.LENGTH_LONG);
                 }
                 break;
         }
+    }
+
+    private void showToaster(String s, int lengthLong) {
+        Toast.makeText(this, s, lengthLong).show();
     }
 
     private void setBlank() {
@@ -315,14 +352,39 @@ public class SongActivity extends AppCompatActivity {
         saveFavouriteInGoogleDrive = new SaveFavouriteInGoogleDrive(new GoogleSignInIntent() {
             @Override
             public void task(Intent signInIntent) {
-                startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(SongActivity.this);
+                boolean showGoogleSignIn = sharedPreferences.getBoolean("ShowGoogleSignInWhenFavouriteChanges", true);
+                if (!showGoogleSignIn) {
+                    return;
+                }
+                SongActivity.this.signInIntent = signInIntent;
+                googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), false);
+                if (googleSignInPopupWindow != null) {
+                    googleSignInPopupWindow.showAtLocation(mainLayout, Gravity.CENTER, 0, 0);
+                }
             }
         }, this, song);
         saveFavouriteInGoogleDrive.signIn();
     }
 
     public void onBackButtonClick(View view) {
+        if (googleSignInPopupWindow != null && googleSignInPopupWindow.isShowing()) {
+            googleSignInPopupWindow.dismiss();
+            return;
+        }
+        setBlank();
         finish();
+    }
+
+    public void onGoogleSignIn(View view) {
+        startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
+        googleSignInPopupWindow.dismiss();
+    }
+
+    public void onDontShowAgain(View view) {
+        googleSignInPopupWindow.dismiss();
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPreferences.edit().putBoolean("ShowGoogleSignInWhenFavouriteChanges", false).apply();
     }
 
     @SuppressWarnings("ConstantConditions")
