@@ -7,7 +7,6 @@ import android.util.Log;
 import com.bence.projector.common.serializer.DateDeserializer;
 import com.bence.projector.common.serializer.DateSerializer;
 import com.bence.songbook.models.FavouriteSong;
-import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -79,14 +78,9 @@ abstract class FavouriteInGoogleDrive {
                 try {
                     writer = new BufferedWriter(new OutputStreamWriter(driveContents.getOutputStream()));
                     Gson gson = getGson();
-                    for (FavouriteSong favourite : favouriteSongs) {
-                        favourite.setFavouritePublishedToDrive(true);
-                    }
                     String toJson = gson.toJson(favouriteSongs);
                     System.out.println("gson: " + toJson);
                     writer.write(toJson);
-                    FavouriteSongRepositoryImpl favouriteSongRepository = new FavouriteSongRepositoryImpl(activity);
-                    favouriteSongRepository.save(favouriteSongs);
                 } catch (Exception e) {
                     e.printStackTrace();
                 } finally {

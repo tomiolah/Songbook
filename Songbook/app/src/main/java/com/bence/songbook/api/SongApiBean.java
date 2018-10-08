@@ -169,4 +169,14 @@ public class SongApiBean {
         }
         return null;
     }
+
+    public SongDTO uploadIncFavourite(Song song) {
+        Call<SongDTO> call = songApi.uploadIncFavourite(song.getUuid());
+        try {
+            return call.execute().body();
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return null;
+    }
 }

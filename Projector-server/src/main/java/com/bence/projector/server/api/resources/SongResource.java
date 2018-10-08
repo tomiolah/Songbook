@@ -364,10 +364,26 @@ public class SongResource {
     public ResponseEntity<Object> incrementViews(@PathVariable("songId") String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         Song song = songService.findOne(songId);
-        song.incrementViews();
-        song.setLastIncrementViewDate(new Date());
-        songRepository.save(song);
-        return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
+        if (song != null) {
+            song.incrementViews();
+            song.setLastIncrementViewDate(new Date());
+            songRepository.save(song);
+            return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
+        }
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/api/song/{songId}/incFavourites")
+    public ResponseEntity<Object> incrementFavourites(@PathVariable("songId") String songId, HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        Song song = songService.findOne(songId);
+        if (song != null) {
+            song.incrementFavourites();
+            song.setLastIncrementFavouritesDate(new Date());
+            songRepository.save(song);
+            return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
+        }
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "admin/api/songVersionGroup/{songId1}/{songId2}")

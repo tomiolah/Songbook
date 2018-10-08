@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 
 public class SyncFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
-    public static final int REQUEST_CODE_SIGN_IN = 474;
     private static final String TAG = "SyncFavouriteInGoogle";
     private final List<Song> songs;
     private final List<FavouriteSong> localFavourites;
@@ -132,7 +131,6 @@ public class SyncFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                                                 }
                                                 FavouriteSong favourite = song.getFavourite();
                                                 favourite.setModifiedDate(favouriteSong.getModifiedDate());
-                                                favourite.setFavouritePublishedToDrive(true);
                                                 modifiedFavourites.add(favourite);
                                             }
                                         } else {
@@ -140,7 +138,6 @@ public class SyncFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                                             if (favourite.getModifiedDate().before(favouriteSong.getModifiedDate())) {
                                                 song.setFavourite(favouriteSong.isFavourite());
                                                 favourite.setModifiedDate(favouriteSong.getModifiedDate());
-                                                favourite.setFavouritePublishedToDrive(true);
                                                 modifiedFavourites.add(favourite);
                                             }
                                         }

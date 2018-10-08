@@ -302,7 +302,7 @@ public class SongActivity extends AppCompatActivity {
                 song.setFavourite(!song.isFavourite());
                 FavouriteSong favourite = song.getFavourite();
                 favourite.setModifiedDate(new Date());
-                favourite.setFavouritePublished(!favourite.isFavouritePublished());
+                favourite.setFavouritePublished(favourite.isFavouriteNotPublished());
                 FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
                 favouriteSongRepository.save(favourite);
                 favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?

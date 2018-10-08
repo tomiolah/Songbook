@@ -1,5 +1,5 @@
 #
-# generated on 2018/10/04 01:12:05
+# generated on 2018/10/08 01:34:31
 #
 # --table-start--
 dataClass=com.bence.songbook.models.AbstractModel
@@ -57,9 +57,6 @@ fieldName=favourite
 # --field-end--
 # --field-start--
 fieldName=favouritePublished
-# --field-end--
-# --field-start--
-fieldName=favouritePublishedToDrive
 # --field-end--
 # --field-start--
 fieldName=modifiedDate

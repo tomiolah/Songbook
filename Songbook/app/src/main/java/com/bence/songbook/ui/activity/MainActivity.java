@@ -202,8 +202,8 @@ public class MainActivity extends AppCompatActivity
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         gSignIn = sharedPreferences.getBoolean("gSignIn", false);
+        signInMenuItem = menu.findItem(R.id.nav_sign_in);
         if (gSignIn) {
-            signInMenuItem = menu.findItem(R.id.nav_sign_in);
             if (signInMenuItem != null) {
                 signInMenuItem.setTitle(getString(R.string.sign_out));
             }
@@ -240,66 +240,7 @@ public class MainActivity extends AppCompatActivity
                 filter();
                 loadAll();
                 loadSongVersesThread.start();
-                Thread uploadViews = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                        Date lastUploadedViewsDate = new Date(sharedPreferences.getLong("lastUploadedViewsDate", 0));
-                        Date now = new Date();
-                        long lastInterval = 86400000; // one day
-                        long nowTime = now.getTime();
-                        long lastUploadedViewsDateTime = lastUploadedViewsDate.getTime();
-                        SongApiBean songApiBean = new SongApiBean();
-                        if (nowTime - lastUploadedViewsDateTime > lastInterval) {
-                            List<Song> uploadingSongs = new ArrayList<>();
-                            for (Song song : songs) {
-                                if (song.getLastAccessed().getTime() > lastUploadedViewsDateTime && song.getModifiedDate().getTime() != 123L) {
-                                    uploadingSongs.add(song);
-                                }
-                            }
-                            Collections.sort(uploadingSongs, new Comparator<Song>() {
-                                @Override
-                                public int compare(Song song1, Song song2) {
-                                    return song1.getLastAccessed().compareTo(song2.getLastAccessed());
-                                }
-                            });
-                            boolean oneUploaded = false;
-                            boolean successfully = true;
-                            for (Song song : uploadingSongs) {
-                                if (songApiBean.uploadView(song) == null) {
-                                    successfully = false;
-                                    break;
-                                } else {
-                                    oneUploaded = true;
-                                    lastUploadedViewsDateTime = song.getLastAccessed().getTime();
-                                }
-                            }
-                            if (successfully) {
-                                lastUploadedViewsDateTime = nowTime;
-                            }
-                            if (oneUploaded) {
-                                sharedPreferences.edit().putLong("lastUploadedViewsDate", lastUploadedViewsDateTime).apply();
-                            }
-                        }
-
-                        // upload songs
-                        List<Song> uploadingSongs = new ArrayList<>();
-                        for (Song song : songs) {
-                            if (song.getModifiedDate().getTime() == 123L) {
-                                uploadingSongs.add(song);
-                            }
-                        }
-                        for (Song song : uploadingSongs) {
-                            final Song uploadedSong = songApiBean.uploadSong(song);
-                            if (uploadedSong != null && !uploadedSong.getUuid().trim().isEmpty()) {
-                                song.setUuid(uploadedSong.getUuid());
-                                song.setModifiedDate(uploadedSong.getModifiedDate());
-                                songRepository.save(song);
-                            }
-                        }
-                    }
-                });
-                uploadViews.start();
+                uploadViewsFavourites();
             } else {
                 Intent loadIntent = new Intent(this, LanguagesActivity.class);
                 startActivityForResult(loadIntent, 1);
@@ -347,6 +288,86 @@ public class MainActivity extends AppCompatActivity
             }
         }
         syncDatabase();
+    }
+
+    private void uploadViewsFavourites() {
+        Thread uploadViews = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                Date lastUploadedViewsDate = new Date(sharedPreferences.getLong("lastUploadedViewsDate", 0));
+                Date now = new Date();
+                long lastInterval = 86400000; // one day
+                long nowTime = now.getTime();
+                long lastUploadedViewsDateTime = lastUploadedViewsDate.getTime();
+                SongApiBean songApiBean = new SongApiBean();
+                if (nowTime - lastUploadedViewsDateTime > lastInterval) {
+                    List<Song> uploadingSongs = new ArrayList<>();
+                    for (Song song : songs) {
+                        if (song.getLastAccessed().getTime() > lastUploadedViewsDateTime && song.getModifiedDate().getTime() != 123L) {
+                            uploadingSongs.add(song);
+                        }
+                    }
+                    Collections.sort(uploadingSongs, new Comparator<Song>() {
+                        @Override
+                        public int compare(Song song1, Song song2) {
+                            return song1.getLastAccessed().compareTo(song2.getLastAccessed());
+                        }
+                    });
+                    boolean oneUploaded = false;
+                    boolean successfully = true;
+                    for (Song song : uploadingSongs) {
+                        if (songApiBean.uploadView(song) == null) {
+                            successfully = false;
+                            break;
+                        } else {
+                            oneUploaded = true;
+                            lastUploadedViewsDateTime = song.getLastAccessed().getTime();
+                        }
+                    }
+                    if (successfully) {
+                        lastUploadedViewsDateTime = nowTime;
+                    }
+                    if (oneUploaded) {
+                        sharedPreferences.edit().putLong("lastUploadedViewsDate", lastUploadedViewsDateTime).apply();
+                    }
+                }
+
+                // upload songs
+                List<Song> uploadingSongs = new ArrayList<>();
+                for (Song song : songs) {
+                    if (song.getModifiedDate().getTime() == 123L) {
+                        uploadingSongs.add(song);
+                    }
+                }
+                for (Song song : uploadingSongs) {
+                    final Song uploadedSong = songApiBean.uploadSong(song);
+                    if (uploadedSong != null && !uploadedSong.getUuid().trim().isEmpty()) {
+                        song.setUuid(uploadedSong.getUuid());
+                        song.setModifiedDate(uploadedSong.getModifiedDate());
+                        songRepository.save(song);
+                    }
+                }
+
+                //upload inc favourites
+                List<FavouriteSong> favouriteUploadingSongs = new ArrayList<>();
+                for (FavouriteSong favouriteSong : favouriteSongs) {
+                    if (favouriteSong.isFavourite() && favouriteSong.isFavouriteNotPublished()) {
+                        favouriteUploadingSongs.add(favouriteSong);
+                    }
+                }
+                FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(MainActivity.this);
+                for (FavouriteSong favouriteSong : favouriteUploadingSongs) {
+                    if (songApiBean.uploadIncFavourite(favouriteSong.getSong()) != null) {
+                        favouriteSong.setFavouritePublished(true);
+                        favouriteSongRepository.save(favouriteSong);
+                    } else {
+                        break;
+                    }
+                }
+            }
+        });
+        uploadViews.start();
     }
 
     private void setFavouritesForSongs() {
@@ -476,7 +497,9 @@ public class MainActivity extends AppCompatActivity
                     GoogleSignInAccount result = getAccountTask.getResult();
                     saveGmail(result, getApplicationContext());
                     syncFavouriteInGoogleDrive.initializeDriveClient(result);
-                    signInMenuItem.setTitle(getString(R.string.sign_out));
+                    if (signInMenuItem != null) {
+                        signInMenuItem.setTitle(getString(R.string.sign_out));
+                    }
                     gSignIn = true;
                 } else {
                     Log.e(TAG, "Sign-in failed.");
@@ -961,7 +984,9 @@ public class MainActivity extends AppCompatActivity
                 new SyncFavouriteInGoogleDrive(null, this, null, null).signOut();
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
                 sharedPreferences.edit().putBoolean("gSignIn", false).apply();
-                signInMenuItem.setTitle(getString(R.string.sign_in));
+                if (signInMenuItem != null) {
+                    signInMenuItem.setTitle(getString(R.string.sign_in));
+                }
             }
         }
 

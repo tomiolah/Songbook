@@ -7,7 +7,6 @@ import android.widget.Toast;
 
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Song;
-import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.google.android.gms.drive.DriveContents;
 import com.google.android.gms.drive.DriveFile;
 import com.google.android.gms.drive.DriveFolder;
@@ -64,12 +63,9 @@ public class SaveFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
                             writer = new OutputStreamWriter(outputStream);
                             Gson gson = getGson();
                             FavouriteSong favourite = song.getFavourite();
-                            favourite.setFavouritePublishedToDrive(true);
                             String str = "[" + gson.toJson(favourite) + "]";
                             System.out.println("str = " + str);
                             writer.write(str);
-                            FavouriteSongRepositoryImpl favouriteSongRepository = new FavouriteSongRepositoryImpl(activity);
-                            favouriteSongRepository.save(favourite);
                         } catch (IOException e) {
                             e.printStackTrace();
                         } finally {
