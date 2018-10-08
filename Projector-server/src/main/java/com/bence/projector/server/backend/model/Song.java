@@ -18,6 +18,8 @@ public class Song extends BaseEntity {
     private Boolean uploaded;
     private long views;
     private Date lastIncrementViewDate;
+    private long favourites;
+    private Date lastIncrementFavouritesDate;
     private String createdByEmail;
     @Transient
     transient private double percentage;
@@ -150,5 +152,25 @@ public class Song extends BaseEntity {
 
     public void setYoutubeUrl(String youtubeUrl) {
         this.youtubeUrl = youtubeUrl;
+    }
+
+    public Date getLastIncrementFavouritesDate() {
+        return lastIncrementFavouritesDate;
+    }
+
+    public void setLastIncrementFavouritesDate(Date lastIncrementFavouritesDate) {
+        this.lastIncrementFavouritesDate = lastIncrementFavouritesDate;
+    }
+
+    public void incrementFavourites() {
+        ++favourites;
+    }
+
+    public long getFavourites() {
+        return favourites;
+    }
+
+    public void setFavourites(long favourites) {
+        this.favourites = favourites;
     }
 }
