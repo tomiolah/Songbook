@@ -86,7 +86,7 @@ public class SongResourceSeo {
         keywords.append(", ").append(song.getTitle().replaceAll(regex, ""));
 
         model.addAttribute("keywords", keywords.toString());
-        model.addAttribute("youtubeUrl", "http://img.youtube.com/vi/" + song.getYoutubeUrl() + "/sddefault.jpg");
+        model.addAttribute("youtubeUrl", "http://img.youtube.com/vi/" + song.getYoutubeUrl() + "/0.jpg");
         return "song";
     }
 }
