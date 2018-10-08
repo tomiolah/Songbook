@@ -212,7 +212,6 @@ public class Song extends BaseEntity {
             this.favourite.setSong(this);
         }
         this.favourite.setFavourite(favourite);
-        this.favourite.setFavouritePublishedToDrive(false);
     }
 
     public FavouriteSong getFavourite() {

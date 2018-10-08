@@ -13,10 +13,9 @@ public class FavouriteSong extends Base {
     @Expose
     @DatabaseField
     private boolean favourite;
+    @Expose
     @DatabaseField
     private boolean favouritePublished = true;
-    @DatabaseField
-    private boolean favouritePublishedToDrive = false;
     @Expose
     @DatabaseField
     private Date modifiedDate;
@@ -37,20 +36,12 @@ public class FavouriteSong extends Base {
         this.favourite = favourite;
     }
 
-    public boolean isFavouritePublished() {
-        return favouritePublished;
+    public boolean isFavouriteNotPublished() {
+        return !favouritePublished;
     }
 
     public void setFavouritePublished(boolean favouritePublished) {
         this.favouritePublished = favouritePublished;
-    }
-
-    public boolean isFavouritePublishedToDrive() {
-        return favouritePublishedToDrive;
-    }
-
-    public void setFavouritePublishedToDrive(boolean favouritePublishedToDrive) {
-        this.favouritePublishedToDrive = favouritePublishedToDrive;
     }
 
     public Date getModifiedDate() {

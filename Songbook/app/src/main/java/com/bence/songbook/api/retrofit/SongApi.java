@@ -36,4 +36,7 @@ public interface SongApi {
 
     @GET("/api/songsYoutube")
     Call<List<SongTitleDTO>> getSongsContainingYoutubeUrl();
+
+    @PUT("/api/song/{uuid}/incFavourites")
+    Call<SongDTO> uploadIncFavourite(@Path("uuid") String uuid);
 }
