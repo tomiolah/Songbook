@@ -6,7 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,8 +23,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.Gravity;
@@ -38,12 +39,12 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.RadioGroup;
+import android.widget.SearchView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -93,7 +94,6 @@ public class MainActivity extends AppCompatActivity
     private final String TAG = "MainActivity";
     private List<Song> songs;
     private List<Song> values;
-    private Switch inSongSearchSwitch;
     private String lastSearchedText = "";
     private Thread loadSongVersesThread;
     private Toast searchInSongTextIsAvailableToast;
@@ -104,9 +104,7 @@ public class MainActivity extends AppCompatActivity
     private PopupWindow selectLanguagePopupWindow;
     private MainActivity mainActivity;
     private List<Language> languages;
-    private EditText editText;
     private ListView songListView;
-    private TextWatcher previousTextWatcher;
     private PopupWindow sortPopupWindow;
     private int sortMethod;
     private PopupWindow collectionPopupWindow;
@@ -127,6 +125,7 @@ public class MainActivity extends AppCompatActivity
     private PopupWindow googleSignInPopupWindow;
     private boolean gSignIn;
     private MenuItem signInMenuItem;
+    private boolean inSongSearchSwitch = false;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -144,9 +143,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         initPreferences();
         memory.setMainActivity(this);
-        editText = findViewById(R.id.titleSearchEditText);
         songListView = findViewById(R.id.listView);
-        inSongSearchSwitch = findViewById(R.id.inSongSearchSwitch);
         mainActivity = this;
         linearLayout = findViewById(R.id.mainLinearLayout);
         languageRepository = new LanguageRepositoryImpl(getApplicationContext());
@@ -643,57 +640,11 @@ public class MainActivity extends AppCompatActivity
                 }
 
             });
-
-            TextWatcher watcher = new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                }
-
-                @Override
-                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                }
-
-                @Override
-                public void afterTextChanged(Editable editable) {
-                    System.out.println(editable.toString());
-                    String enteredText = editable.toString().trim();
-                    search(enteredText, adapter);
-                    lastSearchedText = enteredText;
-                    if (enteredText.equals("show similar")) {
-                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                        sharedPreferences.edit().putBoolean("show_similar", true).apply();
-                    }
-                }
-            };
-            if (previousTextWatcher != null) {
-                editText.removeTextChangedListener(previousTextWatcher);
-            }
-            editText.addTextChangedListener(watcher);
-            previousTextWatcher = watcher;
-            inSongSearchSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-                    if (searchInSongTextIsAvailable) {
-                        search(lastSearchedText, adapter);
-                    } else {
-                        if (!loadSongVersesThread.isAlive()) {
-                            try {
-                                loadSongVersesThread.start();
-                            } catch (IllegalThreadStateException e) {
-                                createLoadSongVerseThread();
-                                loadSongVersesThread.start();
-                            }
-                        }
-                        Toast toast = Toast.makeText(getApplicationContext(), R.string.You_need_to_wait_for_this_feature, Toast.LENGTH_LONG);
-                        toast.show();
-                    }
-                }
-            });
         }
     }
 
     public void search(String text, SongAdapter adapter) {
-        if (inSongSearchSwitch.isChecked() && (searchInSongTextIsAvailable)) {
+        if (inSongSearchSwitch && (searchInSongTextIsAvailable)) {
             inSongSearch(text);
         } else {
             titleSearch(text);
@@ -944,6 +895,83 @@ public class MainActivity extends AppCompatActivity
         hideKeyboard();
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main2, menu);
+        final MenuItem searchItem = menu.findItem(R.id.action_search);
+        final MenuItem searchInTextMenuItem = menu.findItem(R.id.action_search_in_text);
+        searchInTextMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                if (!inSongSearchSwitch) {
+                    Drawable drawable = item.getIcon();
+                    if (drawable != null) {
+                        drawable.mutate();
+                        drawable.setColorFilter(Color.rgb(153, 175, 174), PorterDuff.Mode.SRC_ATOP);
+                    }
+                    inSongSearchSwitch = true;
+                } else {
+                    Drawable drawable = item.getIcon();
+                    if (drawable != null) {
+                        drawable.mutate();
+                        drawable.setColorFilter(Color.rgb(94, 89, 94), PorterDuff.Mode.SRC_ATOP);
+                    }
+                    inSongSearchSwitch = false;
+                }
+                if (searchInSongTextIsAvailable) {
+                    search(lastSearchedText, adapter);
+                } else {
+                    if (!loadSongVersesThread.isAlive()) {
+                        try {
+                            loadSongVersesThread.start();
+                        } catch (IllegalThreadStateException e) {
+                            createLoadSongVerseThread();
+                            loadSongVersesThread.start();
+                        }
+                    }
+                    Toast toast = Toast.makeText(getApplicationContext(), R.string.You_need_to_wait_for_this_feature, Toast.LENGTH_LONG);
+                    toast.show();
+                }
+                return false;
+            }
+        });
+
+        final SearchView mSearchView = (SearchView) searchItem.getActionView();
+        searchItem.setShowAsActionFlags(MenuItem.SHOW_AS_ACTION_ALWAYS |
+                MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW);
+        mSearchView.setQueryHint(getString(R.string.search));
+        mSearchView.setIconified(false);
+        mSearchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                String enteredText = newText.trim();
+                search(enteredText, adapter);
+                lastSearchedText = enteredText;
+                if (enteredText.equals("show similar")) {
+                    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                    sharedPreferences.edit().putBoolean("show_similar", true).apply();
+                }
+                return false;
+            }
+        });
+        searchItem.expandActionView();
+        searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                searchItem.getActionView().requestFocusFromTouch();
+                mSearchView.setIconified(false);
+                showKeyboard();
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                hideKeyboard();
+                return true;
+            }
+        });
         return true;
     }
 
@@ -953,6 +981,16 @@ public class MainActivity extends AppCompatActivity
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             if (imm != null) {
                 imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+        }
+    }
+
+    private void showKeyboard() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(view, InputMethodManager.SHOW_IMPLICIT);
             }
         }
     }

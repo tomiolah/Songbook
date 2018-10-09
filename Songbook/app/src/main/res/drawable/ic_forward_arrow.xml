@@ -5,7 +5,7 @@
     android:viewportWidth="26">
     <path
         android:fillColor="#5e595e"
-        android:pathData="'M 14 9 V 5 l 7 7 l -7 7 v -4.1 c -5 0 -8.5 1.6 -11 5.1 c 1 -5 4 -10 11 -11 Z'"
+        android:pathData="M14,9V5,l 7,7 l,-7 7v-4.1c-5,0 -8.5,1.6 -11,5.1 c,1 -5,4 -10,11 -11Z"
         android:strokeColor="#00000000" />
 
 </vector>

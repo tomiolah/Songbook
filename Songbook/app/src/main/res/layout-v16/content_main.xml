@@ -58,33 +58,6 @@
                 tools:ignore="RelativeOverlap"/>
         </RelativeLayout>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="horizontal"
-            android:weightSum="1">
-
-            <EditText
-                android:id="@+id/titleSearchEditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_marginStart="8dp"
-                android:layout_marginTop="16dp"
-                android:hint="@string/search"
-                android:inputType="text"/>
-
-            <Switch
-                android:id="@+id/inSongSearchSwitch"
-                android:layout_width="50dp"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_gravity="center"
-                android:layout_marginTop="16dp"/>
-        </RelativeLayout>
-
         <ListView
             android:id="@+id/listView"
             android:layout_width="match_parent"
