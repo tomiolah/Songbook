@@ -11,6 +11,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.drive.DriveContents;
@@ -132,7 +133,7 @@ abstract class FavouriteInGoogleDrive {
     public void signIn() {
         Set<Scope> requiredScopes = new HashSet<>(2);
         requiredScopes.add(Drive.SCOPE_APPFOLDER);
-        requiredScopes.add(GoogleSignInOptions.SCOPE_EMAIL);
+        requiredScopes.add(new Scope(Scopes.EMAIL));
         GoogleSignInAccount signInAccount = GoogleSignIn.getLastSignedInAccount(activity);
         GoogleSignInClient googleSignInClient = buildGoogleSignInClient();
         if (signInAccount != null && signInAccount.getGrantedScopes().containsAll(requiredScopes)) {

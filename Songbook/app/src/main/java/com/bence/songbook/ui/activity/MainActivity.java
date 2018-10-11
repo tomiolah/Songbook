@@ -15,7 +15,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
@@ -98,6 +97,7 @@ public class MainActivity extends AppCompatActivity
 
     private final Memory memory = Memory.getInstance();
     private final String TAG = "MainActivity";
+    private final int DOWNLOAD_SONGS_REQUEST_CODE = 1;
     private List<Song> songs;
     private List<Song> values;
     private String lastSearchedText = "";
@@ -232,14 +232,6 @@ public class MainActivity extends AppCompatActivity
                     }
                     bottomSheetBehavior.setHideable(false);
                     bottomSheetBehavior.setSkipCollapsed(false);
-                    ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
-                            LayoutParams.WRAP_CONTENT,
-                            LayoutParams.WRAP_CONTENT
-                    );
-                    int dimension = (int) getResources().getDimension(R.dimen.bottom_sheet_peek_height);
-                    params.setMargins(dimension, dimension, dimension, dimension);
-                    linearLayout.setLayoutParams(params);
-                    linearLayout.requestLayout();
                 }
             }
 
@@ -404,12 +396,6 @@ public class MainActivity extends AppCompatActivity
     private void setBottomSheetHideable() {
         bottomSheetBehavior.setHideable(true);
         bottomSheetBehavior.setSkipCollapsed(true);
-        ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
-                LayoutParams.WRAP_CONTENT,
-                LayoutParams.WRAP_CONTENT
-        );
-        params.setMargins(0, 0, 0, 0);
-        linearLayout.setLayoutParams(params);
     }
 
     private void uploadViewsFavourites() {
@@ -568,13 +554,24 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case 1:
+            case DOWNLOAD_SONGS_REQUEST_CODE:
                 if (resultCode >= 1) {
                     songs = songRepository.findAll();
                     memory.setSongs(songs);
-                    memory.setQueue(new ArrayList<QueueSong>());
-                    setBottomSheetHideable();
-                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                    List<QueueSong> queue = memory.getQueue();
+                    if (queue == null) {
+                        queue = queueSongRepository.findAll();
+                        Collections.sort(queue, new Comparator<QueueSong>() {
+                            @Override
+                            public int compare(QueueSong o1, QueueSong o2) {
+                                return Utility.compare(o1.getQueueNumber(), o2.getQueueNumber());
+                            }
+                        });
+                        memory.setQueue(queue);
+                    }
+                    if (queue.size() < 1) {
+                        hideBottomSheet();
+                    }
                     languages = languageRepository.findAll();
                     songCollections = songCollectionRepository.findAll();
                     setShortNamesForSongCollections(songCollections);
@@ -787,6 +784,18 @@ public class MainActivity extends AppCompatActivity
                     showSongFullscreen(tmp);
                 }
 
+            });
+            songListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+                    QueueSong queueSong = new QueueSong();
+                    queueSong.setQueueNumber(memory.getQueue().size());
+                    queueSong.setSong(values.get(position));
+                    memory.addSongToQueue(queueSong);
+                    queueListView.invalidateViews();
+                    showToaster(getString(R.string.added_to_queue), Toast.LENGTH_LONG);
+                    return true;
+                }
             });
         }
     }
@@ -1151,7 +1160,7 @@ public class MainActivity extends AppCompatActivity
         int id = item.getItemId();
         if (id == R.id.nav_download_songs) {
             Intent loadIntent = new Intent(this, LanguagesActivity.class);
-            startActivityForResult(loadIntent, 1);
+            startActivityForResult(loadIntent, DOWNLOAD_SONGS_REQUEST_CODE);
         } else if (id == R.id.nav_settings) {
             Intent loadIntent = new Intent(this, SettingsActivity.class);
             final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -1403,8 +1412,7 @@ public class MainActivity extends AppCompatActivity
             });
             memory.setQueue(queue);
             if (queue.size() < 1) {
-                setBottomSheetHideable();
-                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                hideBottomSheet();
             }
         }
         List<Song> songs = new ArrayList<>();
@@ -1619,12 +1627,17 @@ public class MainActivity extends AppCompatActivity
         queueSongRepository.deleteAll(all);
         memory.getQueue().clear();
         queueListView.invalidateViews();
+        hideBottomSheet();
+    }
+
+    private void hideBottomSheet() {
+        setBottomSheetHideable();
+        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
     }
 
     public void onExpandBottomSheetClick(View view) {
         if (memory.getQueue().size() < 1) {
-            setBottomSheetHideable();
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            hideBottomSheet();
             return;
         }
         bottomSheetBehavior.setState(
