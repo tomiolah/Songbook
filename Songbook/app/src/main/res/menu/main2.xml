@@ -11,7 +11,7 @@
     <item
         android:id="@+id/action_search_in_text"
         android:icon="@drawable/ic_search_in_text"
-        android:title="@string/search"
+        android:title="@string/search_in_verses"
         app:showAsAction="always"
         tools:ignore="AlwaysShowAction" />
 </menu>

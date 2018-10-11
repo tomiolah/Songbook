@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -13,7 +12,7 @@
         android:id="@+id/mainLinearLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
+        android:layout_marginBottom="@dimen/bottom_sheet_peek_height"
         android:layout_marginEnd="8dp"
         android:layout_marginLeft="8dp"
         android:layout_marginRight="8dp"
@@ -41,7 +40,7 @@
                 android:layout_height="wrap_content"
                 android:onClick="onSortButtonClick"
                 android:text="@string/sort"
-                android:textAllCaps="false"/>
+                android:textAllCaps="false" />
 
             <Button
                 android:id="@+id/filterButton"
@@ -55,14 +54,13 @@
                 android:onClick="onFilterButtonClick"
                 android:text="@string/filter"
                 android:textAllCaps="false"
-                tools:ignore="RelativeOverlap"/>
+                tools:ignore="RelativeOverlap" />
         </RelativeLayout>
 
         <ListView
             android:id="@+id/listView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginBottom="9dp"
             android:layout_marginEnd="8dp"
             android:layout_marginLeft="8dp"
             android:layout_marginRight="8dp"
@@ -74,6 +72,6 @@
             tools:layout_constraintBottom_creator="1"
             tools:layout_constraintLeft_creator="1"
             tools:layout_constraintRight_creator="1"
-            tools:layout_constraintTop_creator="1"/>
+            tools:layout_constraintTop_creator="1" />
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

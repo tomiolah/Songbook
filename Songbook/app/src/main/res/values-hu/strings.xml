@@ -92,4 +92,10 @@
     <string name="don_t_show_again">Ne jelenjen meg többet</string>
     <string name="sign_in_with_google">Jelentkezzen be a Google-lal</string>
     <string name="sign_out">Kijelentkezés</string>
+    <string name="add_to_queue">Hozzáadás a várakozási sorhoz</string>
+    <string name="clear_all">Mindent kitöröl</string>
+    <string name="drag">Húzza</string>
+    <string name="queue">Várakozási sor</string>
+    <string name="added_to_queue">Hozzáadva a várakozási sorhoz</string>
+    <string name="search_in_verses">Keresés a szövegben</string>
 </resources>

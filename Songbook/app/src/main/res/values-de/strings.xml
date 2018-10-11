@@ -92,5 +92,11 @@
     <string name="don_t_show_again">Nicht mehr anzeigen</string>
     <string name="sign_in_with_google">Anmeldung mit Google</string>
     <string name="sign_out">Ausloggen</string>
+    <string name="clear_all">Alles löschen</string>
+    <string name="drag">Ziehen</string>
+    <string name="queue">Warteschlange</string>
+    <string name="search_in_verses">Suche in Versen</string>
+    <string name="add_to_queue">Zur Warteschlange hinzufügen</string>
+    <string name="added_to_queue">Zur Warteschlange hinzugefügt</string>
 </resources>
 

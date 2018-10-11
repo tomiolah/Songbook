@@ -15,6 +15,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
+import android.support.constraint.ConstraintLayout;
+import android.support.design.widget.BottomSheetBehavior;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -54,6 +56,7 @@ import com.bence.songbook.R;
 import com.bence.songbook.api.SongApiBean;
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Language;
+import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.models.SongCollectionElement;
@@ -62,10 +65,13 @@ import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
 import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.LanguageRepositoryImpl;
+import com.bence.songbook.repository.impl.ormLite.QueueSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.ui.utils.DynamicListView;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
 import com.bence.songbook.ui.utils.Preferences;
+import com.bence.songbook.ui.utils.QueueSongAdapter;
 import com.bence.songbook.ui.utils.SyncFavouriteInGoogleDrive;
 import com.bence.songbook.ui.utils.SyncInBackground;
 import com.bence.songbook.utils.Utility;
@@ -126,6 +132,11 @@ public class MainActivity extends AppCompatActivity
     private boolean gSignIn;
     private MenuItem signInMenuItem;
     private boolean inSongSearchSwitch = false;
+    private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
+    private DynamicListView queueListView;
+    private MenuItem searchItem;
+    private QueueSongRepositoryImpl queueSongRepository;
+    private View clearAllButton;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -135,12 +146,114 @@ public class MainActivity extends AppCompatActivity
         return s;
     }
 
-    @SuppressLint("ShowToast")
+    @SuppressLint({"ShowToast", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setTheme(Preferences.getTheme(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        queueListView = findViewById(R.id.queueList);
+        queueListView.setOnTouchListener(new ListView.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action = event.getAction();
+                switch (action) {
+                    case MotionEvent.ACTION_DOWN:
+                        // Disallow NestedScrollView to intercept touch events.
+                        v.getParent().requestDisallowInterceptTouchEvent(true);
+                        break;
+
+                    case MotionEvent.ACTION_UP:
+                        // Allow NestedScrollView to intercept touch events.
+                        v.getParent().requestDisallowInterceptTouchEvent(false);
+                        break;
+                }
+
+                // Handle ListView touch events.
+                v.onTouchEvent(event);
+                return true;
+            }
+        });
+
+        queueListView.setListener(new DynamicListView.Listener() {
+            @Override
+            public void swapElements(int indexOne, int indexTwo) {
+                List<QueueSong> values = memory.getQueue();
+                QueueSong temp = values.get(indexOne);
+                QueueSong secondTmp = values.get(indexTwo);
+                int queueNumber = temp.getQueueNumber();
+                temp.setQueueNumber(secondTmp.getQueueNumber());
+                secondTmp.setQueueNumber(queueNumber);
+                values.set(indexOne, secondTmp);
+                values.set(indexTwo, temp);
+                queueSongRepository.save(temp);
+                queueSongRepository.save(secondTmp);
+            }
+
+            @Override
+            public void deleteElement(int originalItem) {
+                List<QueueSong> values = memory.getQueue();
+                QueueSong temp = values.get(originalItem);
+                System.out.println(temp.getSong().getTitle());
+                memory.removeQueueSong(temp);
+                queueSongRepository.delete(temp);
+                queueListView.invalidateViews();
+                queueListView.refreshDrawableState();
+            }
+        });
+        queueSongRepository = new QueueSongRepositoryImpl(this);
+        final LinearLayout llBottomSheet = findViewById(R.id.bottom_sheet);
+        bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);
+        clearAllButton = findViewById(R.id.clearAllButton);
+        clearAllButton.setVisibility(View.INVISIBLE);
+        bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                if (newState == BottomSheetBehavior.STATE_EXPANDED) {
+                    searchItem.collapseActionView();
+                    clearAllButton.setVisibility(View.VISIBLE);
+                } else {
+                    clearAllButton.setVisibility(View.INVISIBLE);
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
+
+        memory.addOnQueueChangeListener(new Memory.Listener() {
+            @Override
+            public void onAdd(QueueSong queueSong) {
+                if (memory.getQueue().size() > 0) {
+                    if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    }
+                    bottomSheetBehavior.setHideable(false);
+                    bottomSheetBehavior.setSkipCollapsed(false);
+                    ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
+                            LayoutParams.WRAP_CONTENT,
+                            LayoutParams.WRAP_CONTENT
+                    );
+                    int dimension = (int) getResources().getDimension(R.dimen.bottom_sheet_peek_height);
+                    params.setMargins(dimension, dimension, dimension, dimension);
+                    linearLayout.setLayoutParams(params);
+                    linearLayout.requestLayout();
+                }
+            }
+
+            @Override
+            public void onRemove(QueueSong queueSong) {
+                if (memory.getQueue().size() < 1) {
+                    setBottomSheetHideable();
+                    if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                    }
+                }
+            }
+        });
+
         initPreferences();
         memory.setMainActivity(this);
         songListView = findViewById(R.id.listView);
@@ -230,11 +343,12 @@ public class MainActivity extends AppCompatActivity
             filter();
             loadAll();
         } else {
-            songs = songRepository.findAll();
+            songs = new ArrayList<>();
+            filter();
             if (songs.size() > 0) {
+                setDataToQueueSongs();
                 Memory memory = Memory.getInstance();
                 memory.setSongs(songs);
-                filter();
                 loadAll();
                 loadSongVersesThread.start();
                 uploadViewsFavourites();
@@ -285,6 +399,17 @@ public class MainActivity extends AppCompatActivity
             }
         }
         syncDatabase();
+    }
+
+    private void setBottomSheetHideable() {
+        bottomSheetBehavior.setHideable(true);
+        bottomSheetBehavior.setSkipCollapsed(true);
+        ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(0, 0, 0, 0);
+        linearLayout.setLayoutParams(params);
     }
 
     private void uploadViewsFavourites() {
@@ -447,6 +572,9 @@ public class MainActivity extends AppCompatActivity
                 if (resultCode >= 1) {
                     songs = songRepository.findAll();
                     memory.setSongs(songs);
+                    memory.setQueue(new ArrayList<QueueSong>());
+                    setBottomSheetHideable();
+                    bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                     languages = languageRepository.findAll();
                     songCollections = songCollectionRepository.findAll();
                     setShortNamesForSongCollections(songCollections);
@@ -505,6 +633,7 @@ public class MainActivity extends AppCompatActivity
                 break;
         }
         songListView.invalidateViews();
+        queueListView.invalidateViews();
     }
 
     private void setShortNamesForSongCollections(List<SongCollection> songCollections) {
@@ -619,6 +748,25 @@ public class MainActivity extends AppCompatActivity
             values = new ArrayList<>();
             values.addAll(songs);
             adapter = new SongAdapter(this, R.layout.content_song_list_row, values);
+
+            QueueSongAdapter queueSongAdapter = new QueueSongAdapter(this, R.layout.list_row, memory.getQueue(), new Listener() {
+                @Override
+                public void onGrab(int position, LinearLayout row) {
+                    queueListView.onGrab(position, row);
+                }
+            }, shortCollectionName);
+
+            queueListView.setAdapter(queueSongAdapter);
+            queueListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view,
+                                        int position, long id) {
+                    Song tmp = memory.getQueue().get(position).getSong();
+                    showSongFullscreen(tmp);
+                }
+
+            });
             songListView.setAdapter(adapter);
             titleSearch("");
             songListView.setOnTouchListener(new View.OnTouchListener() {
@@ -864,6 +1012,8 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
+        } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else if (sortPopupWindow != null && sortPopupWindow.isShowing()) {
             sortPopupWindow.dismiss();
         } else if (selectLanguagePopupWindow != null && selectLanguagePopupWindow.isShowing()) {
@@ -895,7 +1045,7 @@ public class MainActivity extends AppCompatActivity
         hideKeyboard();
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main2, menu);
-        final MenuItem searchItem = menu.findItem(R.id.action_search);
+        searchItem = menu.findItem(R.id.action_search);
         final MenuItem searchInTextMenuItem = menu.findItem(R.id.action_search_in_text);
         searchInTextMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
             @Override
@@ -1237,6 +1387,70 @@ public class MainActivity extends AppCompatActivity
         setFavouritesForSongs();
     }
 
+    private void setDataToQueueSongs() {
+        LongSparseArray<Song> sparseArray = new LongSparseArray<>(songs.size());
+        for (Song song : songs) {
+            sparseArray.put(song.getId(), song);
+        }
+        List<QueueSong> queue = memory.getQueue();
+        if (queue == null) {
+            queue = queueSongRepository.findAll();
+            Collections.sort(queue, new Comparator<QueueSong>() {
+                @Override
+                public int compare(QueueSong o1, QueueSong o2) {
+                    return Utility.compare(o1.getQueueNumber(), o2.getQueueNumber());
+                }
+            });
+            memory.setQueue(queue);
+            if (queue.size() < 1) {
+                setBottomSheetHideable();
+                bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            }
+        }
+        List<Song> songs = new ArrayList<>();
+        for (QueueSong queueSong : queue) {
+            if (queueSong.getSong() != null) {
+                Long id = queueSong.getSong().getId();
+                Song song = sparseArray.get(id);
+                if (song != null) {
+                    queueSong.setSong(song);
+                } else {
+                    song = songRepository.findOne(id);
+                    if (song != null) {
+                        queueSong.setSong(song);
+                        sparseArray.put(id, song);
+                    }
+                }
+                songs.add(song);
+            }
+        }
+        HashMap<String, Song> hashMap = new HashMap<>();
+        for (Song song : songs) {
+            if (song.getUuid() != null) {
+                hashMap.put(song.getUuid(), song);
+            }
+        }
+        for (SongCollection songCollection : songCollections) {
+            for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
+                String songUuid = songCollectionElement.getSongUuid();
+                if (hashMap.containsKey(songUuid)) {
+                    Song song = hashMap.get(songUuid);
+                    song.setSongCollection(songCollection);
+                    song.setSongCollectionElement(songCollectionElement);
+                }
+            }
+        }
+        for (FavouriteSong favouriteSong : favouriteSongs) {
+            if (favouriteSong.getSong() != null) {
+                String songUuid = favouriteSong.getSong().getUuid();
+                if (hashMap.containsKey(songUuid)) {
+                    Song song = hashMap.get(songUuid);
+                    song.setFavourite(favouriteSong);
+                }
+            }
+        }
+    }
+
     private void filterSongsByFavourites() {
         if (favouriteSwitch != null && favouriteSwitch.isChecked()) {
             ArrayList<Song> tmpSongs = new ArrayList<>(songs);
@@ -1400,6 +1614,29 @@ public class MainActivity extends AppCompatActivity
         Toast.makeText(this, s, lengthLong).show();
     }
 
+    public void onClearAllQueueClick(View view) {
+        List<QueueSong> all = queueSongRepository.findAll();
+        queueSongRepository.deleteAll(all);
+        memory.getQueue().clear();
+        queueListView.invalidateViews();
+    }
+
+    public void onExpandBottomSheetClick(View view) {
+        if (memory.getQueue().size() < 1) {
+            setBottomSheetHideable();
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            return;
+        }
+        bottomSheetBehavior.setState(
+                bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED ?
+                        BottomSheetBehavior.STATE_COLLAPSED :
+                        BottomSheetBehavior.STATE_EXPANDED);
+    }
+
+    public interface Listener {
+        void onGrab(int position, LinearLayout row);
+    }
+
     private class LanguageAdapter extends ArrayAdapter<Language> {
 
         private List<Language> languageList;
@@ -1544,7 +1781,7 @@ public class MainActivity extends AppCompatActivity
                 holder = new SongAdapter.ViewHolder();
                 holder.ordinalNumberTextView = convertView.findViewById(R.id.ordinalNumberTextView);
                 holder.titleTextView = convertView.findViewById(R.id.titleTextView);
-                holder.imageView = convertView.findViewById(R.id.imageView);
+                holder.imageView = convertView.findViewById(R.id.starImageView);
                 convertView.setTag(holder);
             } else {
                 holder = (SongAdapter.ViewHolder) convertView.getTag();
@@ -1560,12 +1797,8 @@ public class MainActivity extends AppCompatActivity
                 }
                 String text = collectionName + " " + song.getSongCollectionElement().getOrdinalNumber();
                 holder.ordinalNumberTextView.setText(text);
-//                For some reason this is not working...
-//                holder.ordinalNumberTextView.setVisibility(View.VISIBLE);
             } else {
                 holder.ordinalNumberTextView.setText("");
-//                For some reason this is not working...
-//                holder.ordinalNumberTextView.setVisibility(View.GONE);
             }
             holder.titleTextView.setText(song.getTitle());
             holder.titleTextView.setTag(song);

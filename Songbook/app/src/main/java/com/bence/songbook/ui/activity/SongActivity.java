@@ -32,12 +32,14 @@ import android.widget.Toast;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.FavouriteSong;
+import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
 import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
+import com.bence.songbook.repository.impl.ormLite.QueueSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.SongService;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
@@ -211,6 +213,14 @@ public class SongActivity extends AppCompatActivity {
             copiedSong.setSongCollectionElement(song.getSongCollectionElement());
             copiedSong.setYoutubeUrl(song.getYoutubeUrl());
             startActivity(intent);
+        } else if (itemId == R.id.action_add_to_queue) {
+            QueueSongRepositoryImpl queueSongRepository = new QueueSongRepositoryImpl(this);
+            QueueSong model = new QueueSong();
+            model.setQueueNumber(memory.getQueue().size());
+            model.setSong(song);
+            memory.addSongToQueue(model);
+            queueSongRepository.save(model);
+            showToaster(getString(R.string.added_to_queue), Toast.LENGTH_LONG);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -245,8 +255,10 @@ public class SongActivity extends AppCompatActivity {
                 Task<GoogleSignInAccount> getAccountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
                 if (getAccountTask.isSuccessful()) {
                     GoogleSignInAccount result = getAccountTask.getResult();
-                    saveGmail(result, getApplicationContext());
-                    saveFavouriteInGoogleDrive.initializeDriveClient(result);
+                    if (result != null) {
+                        saveGmail(result, getApplicationContext());
+                        saveFavouriteInGoogleDrive.initializeDriveClient(result);
+                    }
                 } else {
                     Log.e(TAG, "Sign-in failed.");
                     showToaster("Sign-in failed.", Toast.LENGTH_LONG);
