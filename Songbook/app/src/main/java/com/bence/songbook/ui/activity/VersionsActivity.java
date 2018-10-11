@@ -142,7 +142,7 @@ public class VersionsActivity extends AppCompatActivity {
                 holder = new SongAdapter.ViewHolder();
                 holder.ordinalNumberTextView = convertView.findViewById(R.id.ordinalNumberTextView);
                 holder.titleTextView = convertView.findViewById(R.id.titleTextView);
-                holder.imageView = convertView.findViewById(R.id.imageView);
+                holder.imageView = convertView.findViewById(R.id.starImageView);
                 convertView.setTag(holder);
             } else {
                 holder = (SongAdapter.ViewHolder) convertView.getTag();

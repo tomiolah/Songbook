@@ -96,4 +96,10 @@
     <string name="don_t_show_again">Don\'t show again</string>
     <string name="sign_in_with_google">Sign in with Google</string>
     <string name="sign_out">Sign out</string>
+    <string name="add_to_queue">Add to queue</string>
+    <string name="clear_all">Clear all</string>
+    <string name="drag">Drag</string>
+    <string name="queue">Queue</string>
+    <string name="added_to_queue">Added to queue</string>
+    <string name="search_in_verses">Search in verses</string>
 </resources>

@@ -28,7 +28,8 @@
         <activity
             android:name=".ui.activity.MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/SongBookTheme">
+            android:theme="@style/SongBookTheme"
+            android:windowSoftInputMode="adjustPan">
             <tools:validation testUrl="https://projector-songbook.herokuapp.com/#/song/5abf7bcde66f410004c91084" />
 
             <intent-filter>
@@ -50,6 +51,7 @@
         <activity
             android:name=".ui.activity.FullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
+            android:screenOrientation="sensor"
             android:theme="@style/FullscreenTheme" />
         <activity android:name=".ui.activity.ExplanationActivity" />
         <activity

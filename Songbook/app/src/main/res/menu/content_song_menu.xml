@@ -29,9 +29,15 @@
         android:title="@string/versions"
         app:showAsAction="ifRoom" />
     <item
+        android:id="@+id/action_add_to_queue"
+        android:icon="@drawable/ic_queue_black_24dp"
+        android:orderInCategory="11"
+        android:title="@string/add_to_queue"
+        app:showAsAction="ifRoom" />
+    <item
         android:id="@+id/action_share"
         android:icon="@drawable/ic_forward_arrow"
-        android:orderInCategory="11"
+        android:orderInCategory="12"
         android:title="@string/share"
         app:showAsAction="ifRoom" />
     <item

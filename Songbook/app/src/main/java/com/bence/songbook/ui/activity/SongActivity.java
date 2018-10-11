@@ -10,7 +10,6 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -33,12 +32,14 @@ import android.widget.Toast;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.FavouriteSong;
+import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
 import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
+import com.bence.songbook.repository.impl.ormLite.QueueSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.SongService;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
@@ -68,6 +69,7 @@ public class SongActivity extends AppCompatActivity {
     private Intent signInIntent;
     private View mainLayout;
     private PopupWindow googleSignInPopupWindow;
+    private Menu menu;
 
     public static void saveGmail(GoogleSignInAccount result, Context context) {
         String email = result.getEmail();
@@ -148,9 +150,8 @@ public class SongActivity extends AppCompatActivity {
 
         });
         if (favouriteMenuItem != null) {
-            if (song.isFavourite()) {
-                favouriteMenuItem.setIcon(ContextCompat.getDrawable(this, R.drawable.ic_star_black_24dp));
-            }
+            favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
+                    R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
         }
     }
 
@@ -212,6 +213,14 @@ public class SongActivity extends AppCompatActivity {
             copiedSong.setSongCollectionElement(song.getSongCollectionElement());
             copiedSong.setYoutubeUrl(song.getYoutubeUrl());
             startActivity(intent);
+        } else if (itemId == R.id.action_add_to_queue) {
+            QueueSongRepositoryImpl queueSongRepository = new QueueSongRepositoryImpl(this);
+            QueueSong model = new QueueSong();
+            model.setQueueNumber(memory.getQueue().size());
+            model.setSong(song);
+            memory.addSongToQueue(model);
+            queueSongRepository.save(model);
+            showToaster(getString(R.string.added_to_queue), Toast.LENGTH_LONG);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -228,6 +237,7 @@ public class SongActivity extends AppCompatActivity {
             case 1:
                 if (resultCode == 1) {
                     song = memory.getPassingSong();
+                    setUpMenu();
                     loadSongView(song);
                 }
                 break;
@@ -245,8 +255,10 @@ public class SongActivity extends AppCompatActivity {
                 Task<GoogleSignInAccount> getAccountTask = GoogleSignIn.getSignedInAccountFromIntent(data);
                 if (getAccountTask.isSuccessful()) {
                     GoogleSignInAccount result = getAccountTask.getResult();
-                    saveGmail(result, getApplicationContext());
-                    saveFavouriteInGoogleDrive.initializeDriveClient(result);
+                    if (result != null) {
+                        saveGmail(result, getApplicationContext());
+                        saveFavouriteInGoogleDrive.initializeDriveClient(result);
+                    }
                 } else {
                     Log.e(TAG, "Sign-in failed.");
                     showToaster("Sign-in failed.", Toast.LENGTH_LONG);
@@ -273,6 +285,49 @@ public class SongActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(final Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
+        this.menu = menu;
+        setUpMenu();
+        final MenuItem versionsMenuItem = menu.findItem(R.id.action_versions);
+        versionsMenuItem.setVisible(false);
+        final SongRepository songRepository = new SongRepositoryImpl(this);
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                String versionGroup = song.getVersionGroup();
+                if (versionGroup == null) {
+                    versionGroup = song.getUuid();
+                }
+                boolean was = false;
+                if (versionGroup != null) {
+                    List<Song> allByVersionGroup = songRepository.findAllByVersionGroup(versionGroup);
+                    for (Song song1 : allByVersionGroup) {
+                        if (!song1.getUuid().equals(song.getUuid())) {
+                            was = true;
+                            break;
+                        }
+                    }
+                }
+                final boolean finalWas = was;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (finalWas) {
+                            versionsMenuItem.setVisible(true);
+                        } else {
+                            menu.removeItem(versionsMenuItem.getItemId());
+                        }
+                    }
+                });
+            }
+        });
+        thread.start();
+        return true;
+    }
+
+    private void setUpMenu() {
+        if (menu != null) {
+            menu.clear();
+        }
         getMenuInflater().inflate(R.menu.content_song_menu, menu);
         MenuItem showSimilarMenuItem = menu.findItem(R.id.action_similar);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
@@ -311,41 +366,6 @@ public class SongActivity extends AppCompatActivity {
                 return false;
             }
         });
-        final MenuItem versionsMenuItem = menu.findItem(R.id.action_versions);
-        versionsMenuItem.setVisible(false);
-        final SongRepository songRepository = new SongRepositoryImpl(this);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String versionGroup = song.getVersionGroup();
-                if (versionGroup == null) {
-                    versionGroup = song.getUuid();
-                }
-                boolean was = false;
-                if (versionGroup != null) {
-                    List<Song> allByVersionGroup = songRepository.findAllByVersionGroup(versionGroup);
-                    for (Song song1 : allByVersionGroup) {
-                        if (!song1.getUuid().equals(song.getUuid())) {
-                            was = true;
-                            break;
-                        }
-                    }
-                }
-                final boolean finalWas = was;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (finalWas) {
-                            versionsMenuItem.setVisible(true);
-                        } else {
-                            menu.removeItem(versionsMenuItem.getItemId());
-                        }
-                    }
-                });
-            }
-        });
-        thread.start();
-        return true;
     }
 
     private void syncFavouriteInGoogleDrive() {

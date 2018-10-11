@@ -92,4 +92,10 @@
     <string name="don_t_show_again">Nu mai afișați din nou</string>
     <string name="sign_in_with_google">Conectați-vă la Google</string>
     <string name="sign_out">Deconectați-vă</string>
+    <string name="clear_all">Șterge tot</string>
+    <string name="drag">Trage</string>
+    <string name="search_in_verses">Căutați în versuri</string>
+    <string name="add_to_queue">Adăugați la coadă</string>
+    <string name="added_to_queue">Adăugat la coadă</string>
+    <string name="queue">În așteptare</string>
 </resources>
