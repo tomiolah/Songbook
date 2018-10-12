@@ -152,6 +152,10 @@ public class MainActivity extends AppCompatActivity
         setTheme(Preferences.getTheme(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        int queueIndex = sharedPreferences.getInt("queueIndex", -1);
+        memory.setQueueIndex(queueIndex, this);
         queueListView = findViewById(R.id.queueList);
         queueListView.setOnTouchListener(new ListView.OnTouchListener() {
             @Override
@@ -302,7 +306,6 @@ public class MainActivity extends AppCompatActivity
 
         Menu menu = navigationView.getMenu();
 
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         gSignIn = sharedPreferences.getBoolean("gSignIn", false);
         signInMenuItem = menu.findItem(R.id.nav_sign_in);
         if (gSignIn) {
@@ -759,7 +762,13 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view,
                                         int position, long id) {
-                    Song tmp = memory.getQueue().get(position).getSong();
+                    List<QueueSong> queue = memory.getQueue();
+                    Song tmp = queue.get(position).getSong();
+                    if (position + 1 < queue.size()) {
+                        memory.setQueueIndex(position + 1, MainActivity.this);
+                    } else {
+                        memory.setQueueIndex(0, MainActivity.this);
+                    }
                     showSongFullscreen(tmp);
                 }
 
@@ -792,6 +801,7 @@ public class MainActivity extends AppCompatActivity
                     queueSong.setQueueNumber(memory.getQueue().size());
                     queueSong.setSong(values.get(position));
                     memory.addSongToQueue(queueSong);
+                    queueSongRepository.save(queueSong);
                     queueListView.invalidateViews();
                     showToaster(getString(R.string.added_to_queue), Toast.LENGTH_LONG);
                     return true;

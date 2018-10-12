@@ -130,7 +130,7 @@ public class SongActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                fullScreenIntent.putExtra("verseIndex", 0);
+                fullScreenIntent.putExtra("verseIndex", -1);
                 startActivity(fullScreenIntent);
             }
         });

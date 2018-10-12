@@ -1,16 +1,19 @@
 package com.bence.songbook.ui.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.network.TCPClient;
+import com.bence.songbook.ui.utils.OnSwipeTouchListener;
 
 import java.util.List;
 
@@ -26,6 +29,7 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
         if (textIndex > 0) {
             --textIndex;
             setText(texts.get(textIndex));
+            textView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_from_left));
         }
     }
 
@@ -33,6 +37,7 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
         if (textIndex + 1 < texts.size()) {
             ++textIndex;
             setText(texts.get(textIndex));
+            textView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_from_right));
         }
     }
 
@@ -47,18 +52,28 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
             setText(getString(R.string.connection_successfully_wait_));
         }
         final View mContentView = findViewById(R.id.fullscreen_content);
-        mContentView.setOnTouchListener(new View.OnTouchListener() {
+        mContentView.setOnTouchListener(new OnSwipeTouchListener(this) {
+
+            public void onSwipeLeft() {
+                setNextVerse();
+            }
+
+            public void onSwipeRight() {
+                setPreviousVerse();
+            }
+
+            @SuppressLint("ClickableViewAccessibility")
+            public boolean onTouch(View v, MotionEvent event) {
+                return gestureDetector.onTouchEvent(event);
+            }
+
             @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                    if (motionEvent.getX() < mContentView.getWidth() / 2) {
-                        setPreviousVerse();
-                    } else {
-                        setNextVerse();
-                    }
-                    view.performClick();
+            public void performTouchLeftRight(MotionEvent event) {
+                if (event.getX() < mContentView.getWidth() / 2) {
+                    setPreviousVerse();
+                } else {
+                    setNextVerse();
                 }
-                return true;
             }
         });
         try {

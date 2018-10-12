@@ -13,6 +13,8 @@ import android.text.Layout;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,6 +25,7 @@ import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.ui.utils.OnSwipeTouchListener;
 import com.bence.songbook.utils.Config;
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
@@ -45,6 +48,12 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
             // Delayed display of UI elements
         }
     };
+    private final Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            hide();
+        }
+    };
     TextView textView;
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -61,12 +70,6 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        }
-    };
-    private final Runnable mHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            hide();
         }
     };
     private YouTubePlayerView youTubeView;
@@ -105,10 +108,13 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
                 textView.setTextSize(max_text_size);
             }
             boolean light_theme = sharedPreferences.getBoolean("light_theme_switch", false);
+            LinearLayout layout = findViewById(R.id.layout);
             if (light_theme) {
+                layout.setBackgroundResource(R.color.white);
                 textView.setBackgroundResource(R.color.white);
                 textView.setTextColor(getResources().getColor(R.color.black));
             } else {
+                layout.setBackgroundResource(R.color.black);
                 textView.setBackgroundResource(R.color.black);
                 textView.setTextColor(getResources().getColor(R.color.white));
             }
@@ -138,18 +144,28 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
             verseIndex = intent.getIntExtra("verseIndex", 0);
 
             final View mContentView = findViewById(R.id.fullscreen_content);
-            mContentView.setOnTouchListener(new View.OnTouchListener() {
+            mContentView.setOnTouchListener(new OnSwipeTouchListener(this) {
+
+                public void onSwipeLeft() {
+                    setNextVerse();
+                }
+
+                public void onSwipeRight() {
+                    setPreviousVerse();
+                }
+
+                @SuppressLint("ClickableViewAccessibility")
+                public boolean onTouch(View v, MotionEvent event) {
+                    return gestureDetector.onTouchEvent(event);
+                }
+
                 @Override
-                public boolean onTouch(View view, MotionEvent motionEvent) {
-                    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                        if (motionEvent.getX() < mContentView.getWidth() / 2) {
-                            setPreviousVerse();
-                        } else {
-                            setNextVerse();
-                        }
-                        view.performClick();
+                public void performTouchLeftRight(MotionEvent event) {
+                    if (event.getX() < mContentView.getWidth() / 2) {
+                        setPreviousVerse();
+                    } else {
+                        setNextVerse();
                     }
-                    return true;
                 }
             });
 
@@ -334,6 +350,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
         if (verseIndex > 0) {
             --verseIndex;
             setText(verseList.get(verseIndex).getText());
+            textView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_from_left));
         }
     }
 
@@ -341,6 +358,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
         if (verseIndex + 1 < verseList.size()) {
             ++verseIndex;
             setText(verseList.get(verseIndex).getText());
+            textView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_from_right));
         } else {
             Date now = new Date();
             int interval = 777;
