@@ -1,5 +1,9 @@
 package com.bence.songbook;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
@@ -24,6 +28,7 @@ public class Memory {
     private List<String> sharedTexts;
     private List<FavouriteSong> favouriteSongs;
     private List<QueueSong> queue;
+    private int queueIndex = -1;
     private List<Listener> listeners = new ArrayList<>();
 
     private Memory() {
@@ -124,6 +129,9 @@ public class Memory {
         if (queue == null) {
             queue = new ArrayList<>();
         }
+        if (queue.size() == 0) {
+            queueIndex = 0;
+        }
         queue.add(queueSong);
         for (Listener listener : listeners) {
             listener.onAdd(queueSong);
@@ -147,6 +155,16 @@ public class Memory {
         for (Listener listener : listeners) {
             listener.onRemove(temp);
         }
+    }
+
+    public int getQueueIndex() {
+        return queueIndex;
+    }
+
+    public void setQueueIndex(int queueIndex, Context context) {
+        this.queueIndex = queueIndex;
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        sharedPreferences.edit().putInt("queueIndex", queueIndex).apply();
     }
 
     public interface Listener {

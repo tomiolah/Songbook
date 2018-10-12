@@ -1,23 +1,29 @@
 package com.bence.songbook.ui.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
+import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.ui.utils.OnSwipeTouchListener;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,12 +45,14 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
     private boolean sharedOnNetwork = false;
     private Date lastDatePressedAtEnd = null;
     private boolean show_title_switch;
+    private Memory memory = Memory.getInstance();
+    private boolean blank_switch;
+    private View mContentView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
-            Memory memory = Memory.getInstance();
             if (memory.isShareOnNetwork()) {
                 sharedOnNetwork = true;
                 projectionTextChangeListeners = memory.getProjectionTextChangeListeners();
@@ -78,49 +86,60 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                 }
             }
 
-            final View mContentView = findViewById(R.id.fullscreen_content);
-            mContentView.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View view, MotionEvent motionEvent) {
-                    if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
-                        if (motionEvent.getX() < mContentView.getWidth() / 2) {
-                            setPreviousVerse();
-                        } else {
-                            setNextVerse();
-                        }
-                        view.performClick();
+            mContentView = findViewById(R.id.fullscreen_content);
+            mContentView.setOnTouchListener(new OnSwipeTouchListener(this) {
+
+                public void onSwipeTop() {
+                    if (memory.getQueue().size() > 0) {
+                        setNextInQueue(AnimationUtils.loadAnimation(FullscreenActivity.this, R.anim.slide_from_bottom));
                     }
-                    return true;
+                }
+
+                public void onSwipeLeft() {
+                    setNextVerse();
+                }
+
+                public void onSwipeRight() {
+                    setPreviousVerse();
+                }
+
+                public void onSwipeBottom() {
+                    if (memory.getQueue().size() > 0) {
+                        setPrevInQueue();
+                    }
+                }
+
+                @SuppressLint("ClickableViewAccessibility")
+                public boolean onTouch(View v, MotionEvent event) {
+                    return gestureDetector.onTouchEvent(event);
+                }
+
+                @Override
+                public void performTouchLeftRight(MotionEvent event) {
+                    if (event.getX() < mContentView.getWidth() / 2) {
+                        setPreviousVerse();
+                    } else {
+                        setNextVerse();
+                    }
                 }
             });
 
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-            show_title_switch = sharedPreferences.getBoolean("show_title_switch", false);
-            if (show_title_switch) {
-                SongVerse songVerse = new SongVerse();
-                String title = "";
-                SongCollection songCollection = song.getSongCollection();
-                if (songCollection != null) {
-                    String name = songCollection.getName();
-                    SongCollectionElement songCollectionElement = song.getSongCollectionElement();
-                    if (songCollectionElement != null) {
-                        String ordinalNumber = songCollectionElement.getOrdinalNumber().trim();
-                        if (!ordinalNumber.isEmpty()) {
-                            name += " " + ordinalNumber;
-                        }
-                    }
-                    title = name + "\n";
-                }
-                title += song.getTitle();
-                songVerse.setText(title);
-                verseList.add(0, songVerse);
-                ++verseIndex;
-            }
-            boolean blank_switch = sharedPreferences.getBoolean("blank_switch", false);
+            SharedPreferences sharedPreferences = settingTitleSlide();
+            blank_switch = sharedPreferences.getBoolean("blank_switch", false);
             if (blank_switch) {
-                SongVerse songVerse = new SongVerse();
-                songVerse.setText("");
-                verseList.add(songVerse);
+                addBlankSlide();
+            } else {
+                int queueIndex = memory.getQueueIndex();
+                if (queueIndex >= 0) {
+                    List<QueueSong> queue = memory.getQueue();
+                    Song queueSong = queue.get(queueIndex).getSong();
+                    if (!queueSong.getUuid().equals(song.getUuid())) {
+                        addBlankSlide();
+                    }
+                }
+            }
+            if (verseIndex < 0) {
+                verseIndex = 0;
             }
             setText(verseList.get(verseIndex).getText());
             Thread thread = new Thread(new Runnable() {
@@ -133,6 +152,39 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
         } catch (Exception e) {
             Log.e(FullscreenActivity.class.getSimpleName(), e.getMessage());
         }
+    }
+
+    private void addBlankSlide() {
+        SongVerse songVerse = new SongVerse();
+        songVerse.setText("");
+        verseList.add(songVerse);
+    }
+
+    @NonNull
+    private SharedPreferences settingTitleSlide() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        show_title_switch = sharedPreferences.getBoolean("show_title_switch", false);
+        if (show_title_switch) {
+            SongVerse songVerse = new SongVerse();
+            String title = "";
+            SongCollection songCollection = song.getSongCollection();
+            if (songCollection != null) {
+                String name = songCollection.getName();
+                SongCollectionElement songCollectionElement = song.getSongCollectionElement();
+                if (songCollectionElement != null) {
+                    String ordinalNumber = songCollectionElement.getOrdinalNumber().trim();
+                    if (!ordinalNumber.isEmpty()) {
+                        name += " " + ordinalNumber;
+                    }
+                }
+                title = name + "\n";
+            }
+            title += song.getTitle();
+            songVerse.setText(title);
+            verseList.add(0, songVerse);
+            ++verseIndex;
+        }
+        return sharedPreferences;
     }
 
     @Override
@@ -152,6 +204,10 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        updateSongAccessedTime();
+    }
+
+    private void updateSongAccessedTime() {
         if (songRepository != null) {
             Thread thread = new Thread(new Runnable() {
                 @Override
@@ -193,6 +249,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
         if (verseIndex > 0) {
             --verseIndex;
             setText(verseList.get(verseIndex).getText());
+            textView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_from_left));
         }
     }
 
@@ -200,25 +257,100 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
         if (verseIndex + 1 < verseList.size()) {
             ++verseIndex;
             setText(verseList.get(verseIndex).getText());
+            textView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_from_right));
+            return;
+        }
+        int queueIndex = memory.getQueueIndex();
+        if (queueIndex >= 0 && memory.getQueue().size() > 0) {
+            setNextInQueue(AnimationUtils.loadAnimation(this, R.anim.slide_from_bottom));
+            return;
+        }
+        checkPressTwice();
+    }
+
+    private void setNextInQueue(Animation animation) {
+        int queueIndex = memory.getQueueIndex();
+        updateSongAccessedTime();
+        startTime = new Date().getTime();
+        duration = 0;
+        List<QueueSong> queue = memory.getQueue();
+        if (queue.size() <= queueIndex) {
+            return;
+        }
+        song = queue.get(queueIndex).getSong();
+        setVerseSlides();
+        settingTitleSlide();
+        if (queueIndex + 1 < queue.size()) {
+            memory.setQueueIndex(queueIndex + 1, this);
+            addBlankSlide();
+        } else if (queueIndex > 0) {
+            memory.setQueueIndex(0, this);
+            addBlankSlide();
         } else {
-            Date now = new Date();
-            int interval = 777;
-            if (lastDatePressedAtEnd != null) {
-                if (now.getTime() - lastDatePressedAtEnd.getTime() >= interval) {
-                    Toast.makeText(this, R.string.press_twice, Toast.LENGTH_SHORT).show();
-                } else {
-                    if (show_title_switch) {
-                        verseIndex = 1;
-                    } else {
-                        verseIndex = 0;
+            if (blank_switch) {
+                addBlankSlide();
+            }
+        }
+        verseIndex = 0;
+        setText(verseList.get(verseIndex).getText());
+        textView.startAnimation(animation);
+    }
+
+    private void setPrevInQueue() {
+        int queueIndex = memory.getQueueIndex();
+        if (queueIndex - 2 >= 0) {
+            memory.setQueueIndex(queueIndex - 2, this);
+        } else {
+            int size = memory.getQueue().size();
+            if (queueIndex == 0 && size > 1) {
+                memory.setQueueIndex(size - 2, this);
+            } else {
+                memory.setQueueIndex(size - 1, this);
+            }
+        }
+        setNextInQueue(AnimationUtils.loadAnimation(this, R.anim.slide_from_top));
+    }
+
+    private void setVerseSlides() {
+        verseList.clear();
+        final List<SongVerse> verses = song.getVerses();
+        SongVerse chorus = null;
+        int size = verses.size();
+        for (int i = 0; i < size; ++i) {
+            SongVerse songVerse = verses.get(i);
+            verseList.add(songVerse);
+            if (songVerse.isChorus()) {
+                chorus = songVerse;
+            } else if (chorus != null) {
+                if (i + 1 < size) {
+                    if (!verses.get(i + 1).isChorus()) {
+                        verseList.add(chorus);
                     }
-                    setText(verseList.get(verseIndex).getText());
-                    lastDatePressedAtEnd = null;
-                    return;
+                } else {
+                    verseList.add(chorus);
                 }
             }
-            lastDatePressedAtEnd = now;
         }
+    }
+
+    private void checkPressTwice() {
+        Date now = new Date();
+        int interval = 777;
+        if (lastDatePressedAtEnd != null) {
+            if (now.getTime() - lastDatePressedAtEnd.getTime() >= interval) {
+                Toast.makeText(this, R.string.press_twice, Toast.LENGTH_SHORT).show();
+            } else {
+                if (show_title_switch) {
+                    verseIndex = 1;
+                } else {
+                    verseIndex = 0;
+                }
+                setText(verseList.get(verseIndex).getText());
+                lastDatePressedAtEnd = null;
+                return;
+            }
+        }
+        lastDatePressedAtEnd = now;
     }
 
     @Override

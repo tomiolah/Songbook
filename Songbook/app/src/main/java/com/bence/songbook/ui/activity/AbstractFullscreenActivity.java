@@ -12,6 +12,7 @@ import android.text.Html;
 import android.text.Layout;
 import android.util.Log;
 import android.view.View;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 
 import com.bence.songbook.R;
@@ -86,10 +87,13 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
                 textView.setTextSize(max_text_size);
             }
             boolean light_theme = sharedPreferences.getBoolean("light_theme_switch", false);
+            FrameLayout frameLayout = findViewById(R.id.layout);
             if (light_theme) {
+                frameLayout.setBackgroundResource(R.color.white);
                 textView.setBackgroundResource(R.color.white);
                 textView.setTextColor(getResources().getColor(R.color.black));
             } else {
+                frameLayout.setBackgroundResource(R.color.black);
                 textView.setBackgroundResource(R.color.black);
                 textView.setTextColor(getResources().getColor(R.color.white));
             }

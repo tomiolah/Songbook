@@ -27,6 +27,8 @@
         <item name="secondaryDarkColor">@color/secondaryDarkColor</item>
         <item name="primaryTextColor">@color/primaryTextColor</item>
         <item name="secondaryTextColor">@color/secondaryTextColor</item>
+        <item name="backgroundC">@color/backgroundC</item>
+        <item name="foregroundC">@color/foregroundC</item>
     </style>
 
     <style name="SongBookTheme.Light" parent="Theme.AppCompat.DayNight.NoActionBar">
@@ -39,9 +41,11 @@
         <item name="secondaryDarkColor">@color/secondaryDarkColor2</item>
         <item name="primaryTextColor">@color/primaryTextColor2</item>
         <item name="secondaryTextColor">@color/secondaryTextColor2</item>
+        <item name="backgroundC">@color/backgroundC2</item>
+        <item name="foregroundC">@color/foregroundC2</item>
     </style>
 
-    <style name="SongBookTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar"/>
+    <style name="SongBookTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
 
     <style name="SongBookTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light">
         <item name="android:itemBackground">@color/primaryTextColor</item>
