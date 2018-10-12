@@ -469,7 +469,8 @@ public class MainActivity extends AppCompatActivity
                 }
                 FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(MainActivity.this);
                 for (FavouriteSong favouriteSong : favouriteUploadingSongs) {
-                    if (songApiBean.uploadIncFavourite(favouriteSong.getSong()) != null) {
+                    Song song = favouriteSong.getSong();
+                    if (song != null && song.getUuid() != null && songApiBean.uploadIncFavourite(song) != null) {
                         favouriteSong.setFavouritePublished(true);
                         favouriteSongRepository.save(favouriteSong);
                     } else {
