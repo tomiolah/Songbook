@@ -13,7 +13,7 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/chorus"
-        android:textColor="@color/secondaryLightColor"
+        android:textColor="?attr/secondaryTextColor"
         />
 
     <TextView
@@ -21,6 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
+        android:textColor="?attr/primaryTextColor"
         android:padding="6dp"
         android:text="1. Majd ha Jézus vére érdemében mind
 Látjuk eltörölve minden bűneink,

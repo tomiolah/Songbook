@@ -53,7 +53,7 @@
     <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Introduceți aici versurile cântece separate printr-o linie goală.\n\n1. Exemplu\n\n2. Exemplu</string>
     <string name="your_email">Email:</string>
     <string name="languageD">Limba:</string>
-    <string name="title">Titlu:</string>
+    <string name="title">Titlu</string>
     <string name="language_of_the_song">Limba cântecului</string>
     <string name="successfully_uploaded">S-a încărcat cu succes!</string>
     <string name="upload_failed">Încărcare eșuată</string>

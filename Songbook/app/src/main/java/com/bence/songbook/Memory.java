@@ -8,6 +8,7 @@ import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
+import com.bence.songbook.models.SongList;
 import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.ui.activity.MainActivity;
 
@@ -30,6 +31,8 @@ public class Memory {
     private List<QueueSong> queue;
     private int queueIndex = -1;
     private List<Listener> listeners = new ArrayList<>();
+    private SongList passingSongList;
+    private SongList editingSongList;
 
     private Memory() {
 
@@ -132,6 +135,7 @@ public class Memory {
         if (queue.size() == 0) {
             queueIndex = 0;
         }
+        queueSong.setQueueNumber(queue.size());
         queue.add(queueSong);
         for (Listener listener : listeners) {
             listener.onAdd(queueSong);
@@ -165,6 +169,22 @@ public class Memory {
         this.queueIndex = queueIndex;
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         sharedPreferences.edit().putInt("queueIndex", queueIndex).apply();
+    }
+
+    public SongList getPassingSongList() {
+        return passingSongList;
+    }
+
+    public void setPassingSongList(SongList passingSongList) {
+        this.passingSongList = passingSongList;
+    }
+
+    public SongList getEditingSongList() {
+        return editingSongList;
+    }
+
+    public void setEditingSongList(SongList editingSongList) {
+        this.editingSongList = editingSongList;
     }
 
     public interface Listener {

@@ -52,7 +52,7 @@
     <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Fügen Sie hier die Liedverse getrennt durch eine Leerzeile ein.\n\n1. Beispiel\n\n2. Beispiel</string>
     <string name="your_email">Ihre E-Mailadresse:</string>
     <string name="languageD">Sprache:</string>
-    <string name="title">Titel:</string>
+    <string name="title">Titel</string>
     <string name="language_of_the_song">Sprache des Liedes</string>
     <string name="successfully_uploaded">Erfolgreich hochgeladen!</string>
     <string name="upload_failed">Hochladen fehlgeschlagen</string>

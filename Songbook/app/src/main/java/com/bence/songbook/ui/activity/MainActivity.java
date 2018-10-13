@@ -59,6 +59,8 @@ import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.models.SongCollectionElement;
+import com.bence.songbook.models.SongList;
+import com.bence.songbook.models.SongListElement;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
@@ -66,6 +68,8 @@ import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.LanguageRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.QueueSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
+import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
+import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.ui.utils.DynamicListView;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
@@ -96,7 +100,6 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private final Memory memory = Memory.getInstance();
-    private final String TAG = "MainActivity";
     private final int DOWNLOAD_SONGS_REQUEST_CODE = 1;
     private List<Song> songs;
     private List<Song> values;
@@ -133,10 +136,13 @@ public class MainActivity extends AppCompatActivity
     private MenuItem signInMenuItem;
     private boolean inSongSearchSwitch = false;
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
-    private DynamicListView queueListView;
+    private DynamicListView<QueueSongAdapter> queueListView;
     private MenuItem searchItem;
     private QueueSongRepositoryImpl queueSongRepository;
-    private View clearAllButton;
+    private View buttonLayout;
+    private View peekLayout;
+    private PopupWindow saveQueuePopupWindow;
+    private PopupWindow addDuplicatesPopupWindow;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -208,16 +214,19 @@ public class MainActivity extends AppCompatActivity
         queueSongRepository = new QueueSongRepositoryImpl(this);
         final LinearLayout llBottomSheet = findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);
-        clearAllButton = findViewById(R.id.clearAllButton);
-        clearAllButton.setVisibility(View.INVISIBLE);
+        buttonLayout = findViewById(R.id.buttonLayout);
+        buttonLayout.setVisibility(View.GONE);
+        peekLayout = findViewById(R.id.peekLayout);
         bottomSheetBehavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
                 if (newState == BottomSheetBehavior.STATE_EXPANDED) {
                     searchItem.collapseActionView();
-                    clearAllButton.setVisibility(View.VISIBLE);
+                    buttonLayout.setVisibility(View.VISIBLE);
+                    peekLayout.setVisibility(View.GONE);
                 } else {
-                    clearAllButton.setVisibility(View.INVISIBLE);
+                    buttonLayout.setVisibility(View.GONE);
+                    peekLayout.setVisibility(View.VISIBLE);
                 }
             }
 
@@ -337,6 +346,10 @@ public class MainActivity extends AppCompatActivity
         if (songs != null) {
             filter();
             loadAll();
+            List<QueueSong> queue = memory.getQueue();
+            if (queue == null || queue.size() == 0) {
+                setDataToQueueSongs();
+            }
         } else {
             songs = new ArrayList<>();
             filter();
@@ -355,45 +368,102 @@ public class MainActivity extends AppCompatActivity
         Intent appLinkIntent = getIntent();
         Uri appLinkData = appLinkIntent.getData();
         if (appLinkData != null) {
-            try {
-                final Toast this_song_is_not_saved = Toast.makeText(this, R.string.this_song_is_not_saved, Toast.LENGTH_LONG);
-                String text = appLinkData.toString();
-                String[] str = {"/#/song/", "/song/"};
-                if (text != null) {
-                    for (String s : str) {
-                        if (text.contains(s)) {
-                            final String songUuid = text.substring(text.lastIndexOf(s) + s.length(), text.length());
-                            Song song = null;
-                            for (Song song1 : songs) {
-                                if (song1.getUuid().equals(songUuid)) {
-                                    song = song1;
-                                    break;
-                                }
-                            }
-                            if (song != null) {
-                                showSongFullscreen(song);
-                            } else {
-                                Thread thread = new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        SongApiBean songApiBean = new SongApiBean();
-                                        Song newSong = songApiBean.getSong(songUuid);
-                                        if (newSong != null) {
-                                            this_song_is_not_saved.show();
-                                            showSongFullscreen(newSong);
-                                        }
-                                    }
-                                });
-                                thread.start();
-                            }
-                            break;
-                        }
-                    }
-                }
-            } catch (Exception ignored) {
-            }
+            parseAppLink(appLinkData);
         }
         syncDatabase();
+    }
+
+    @SuppressLint("ShowToast")
+    private void parseAppLink(Uri appLinkData) {
+        try {
+            Toast this_song_is_not_saved = Toast.makeText(this, R.string.this_song_is_not_saved, Toast.LENGTH_LONG);
+            String text = appLinkData.toString();
+            String[] str = {"/#/song/", "/song/"};
+            if (text != null) {
+                String prefix = "queue?ids=";
+                if (text.contains(prefix)) {
+                    parseQueueLink(text, prefix);
+                }
+                for (String s : str) {
+                    if (text.contains(s)) {
+                        parseSongLink(this_song_is_not_saved, text, s);
+                        break;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
+    private void parseSongLink(final Toast this_song_is_not_saved, String text, String s) {
+        final String songUuid = text.substring(text.lastIndexOf(s) + s.length(), text.length());
+        Song song = null;
+        for (Song song1 : songs) {
+            if (song1.getUuid() != null && song1.getUuid().equals(songUuid)) {
+                song = song1;
+                break;
+            }
+        }
+        if (song == null) {
+            song = songRepository.findByUUID(songUuid);
+        }
+        if (song != null) {
+            showSongFullscreen(song);
+        } else {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    SongApiBean songApiBean = new SongApiBean();
+                    Song newSong = songApiBean.getSong(songUuid);
+                    if (newSong != null) {
+                        this_song_is_not_saved.show();
+                        showSongFullscreen(newSong);
+                    }
+                }
+            });
+            thread.start();
+        }
+    }
+
+    private void parseQueueLink(String text, String prefix) {
+        String ids = text.substring(text.lastIndexOf(prefix) + prefix.length(), text.length());
+        String[] split = ids.split(",");
+        for (final String uuid : split) {
+            Song song = null;
+            for (Song song1 : songs) {
+                if (song1.getUuid() != null && song1.getUuid().equals(uuid)) {
+                    song = song1;
+                    break;
+                }
+            }
+            if (song == null) {
+                song = songRepository.findByUUID(uuid);
+            }
+            if (song == null) {
+                Thread thread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        SongApiBean songApiBean = new SongApiBean();
+                        Song newSong = songApiBean.getSong(uuid);
+                        addToQueue(newSong);
+                    }
+                });
+                thread.start();
+            }
+            addToQueue(song);
+        }
+        setDataToQueueSongs();
+        queueListView.invalidateViews();
+        showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
+    }
+
+    private void addToQueue(Song song) {
+        if (song != null) {
+            QueueSong queueSong = new QueueSong();
+            queueSong.setSong(song);
+            memory.addSongToQueue(queueSong);
+            queueSongRepository.save(queueSong);
+        }
     }
 
     private void setBottomSheetHideable() {
@@ -613,6 +683,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
             case REQUEST_CODE_SIGN_IN:
+                String TAG = "MainActivity";
                 if (resultCode != RESULT_OK) {
                     Log.e(TAG, "Sign-in failed.");
                     showToaster("Sign-in failed.", Toast.LENGTH_LONG);
@@ -799,12 +870,11 @@ public class MainActivity extends AppCompatActivity
                 @Override
                 public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
                     QueueSong queueSong = new QueueSong();
-                    queueSong.setQueueNumber(memory.getQueue().size());
                     queueSong.setSong(values.get(position));
                     memory.addSongToQueue(queueSong);
                     queueSongRepository.save(queueSong);
                     queueListView.invalidateViews();
-                    showToaster(getString(R.string.added_to_queue), Toast.LENGTH_LONG);
+                    showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
                     return true;
                 }
             });
@@ -1032,10 +1102,14 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
-        } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else if (sortPopupWindow != null && sortPopupWindow.isShowing()) {
             sortPopupWindow.dismiss();
+        } else if (saveQueuePopupWindow != null && saveQueuePopupWindow.isShowing()) {
+            saveQueuePopupWindow.dismiss();
+        } else if (addDuplicatesPopupWindow != null && addDuplicatesPopupWindow.isShowing()) {
+            addDuplicatesPopupWindow.dismiss();
+        } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else if (selectLanguagePopupWindow != null && selectLanguagePopupWindow.isShowing()) {
             selectLanguagePopupWindow.dismiss();
         } else if (collectionPopupWindow != null && collectionPopupWindow.isShowing()) {
@@ -1180,6 +1254,9 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_new_song) {
             Intent loadIntent = new Intent(this, NewSongActivity.class);
             startActivityForResult(loadIntent, 4);
+        } else if (id == R.id.nav_library) {
+            Intent loadIntent = new Intent(this, LibraryActivity.class);
+            startActivityForResult(loadIntent, 5);
         } else if (id == R.id.nav_privacy_policy) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://comsongbook.firebaseapp.com/privacy_policy.html")));
         } else if (id == R.id.nav_sign_in) {
@@ -1655,6 +1732,142 @@ public class MainActivity extends AppCompatActivity
                 bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED ?
                         BottomSheetBehavior.STATE_COLLAPSED :
                         BottomSheetBehavior.STATE_EXPANDED);
+    }
+
+    public void onShareQueue(View view) {
+        Intent share = new Intent(android.content.Intent.ACTION_SEND);
+        share.setType("text/plain");
+        share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        String string = getString(R.string.queue);
+        share.putExtra(Intent.EXTRA_SUBJECT, string);
+        share.putExtra(Intent.EXTRA_TITLE, string);
+        StringBuilder ids = new StringBuilder();
+        for (QueueSong queueSong : memory.getQueue()) {
+            String uuid = queueSong.getSong().getUuid();
+            if (uuid != null) {
+                ids.append(",").append(uuid);
+            }
+        }
+        share.putExtra(Intent.EXTRA_TEXT, "http://localhost/queue?ids=" + ids.substring(1, ids.length()));
+        startActivity(Intent.createChooser(share, "Share queue!"));
+    }
+
+    public void onSaveQueue(View view) {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        @SuppressLint("InflateParams") View customView = inflater.inflate(R.layout.content_save_queue, null);
+        saveQueuePopupWindow = new PopupWindow(
+                customView,
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+        );
+        if (Build.VERSION.SDK_INT >= 21) {
+            saveQueuePopupWindow.setElevation(5.0f);
+        }
+        Button closeButton = customView.findViewById(R.id.closeButton);
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveQueuePopupWindow.dismiss();
+            }
+        });
+        ListView listView = customView.findViewById(R.id.listView);
+        SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
+        final List<SongList> songLists = songListRepository.findAll();
+        List<String> all = new ArrayList<>(songLists.size());
+        for (SongList songList : songLists) {
+            all.add(songList.getTitle());
+        }
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_1,
+                all);
+        listView.setAdapter(arrayAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                SongList songList = songLists.get(position);
+                List<QueueSong> queue = memory.getQueue();
+                List<SongListElement> songListElements = songList.getSongListElements();
+                LongSparseArray<Object> hashMap = new LongSparseArray<>(songListElements.size());
+                for (SongListElement element : songListElements) {
+                    hashMap.put(element.getSong().getId(), element.getSong());
+                }
+                boolean duplicate = false;
+                for (QueueSong queueSong : queue) {
+                    if (hashMap.get(queueSong.getSong().getId()) != null) {
+                        duplicate = true;
+                        break;
+                    }
+                }
+                if (!duplicate) {
+                    addQueueToList(songList, queue, false, hashMap);
+                } else {
+                    askAddDuplicates(songList, queue, hashMap);
+                }
+                saveQueuePopupWindow.dismiss();
+            }
+        });
+        saveQueuePopupWindow.setBackgroundDrawable(new BitmapDrawable());
+        saveQueuePopupWindow.setOutsideTouchable(true);
+        saveQueuePopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
+    }
+
+    private void addQueueToList(SongList songList, List<QueueSong> queue, boolean skipDuplicate, LongSparseArray<Object> hashMap) {
+        List<SongListElement> songListElements = songList.getSongListElements();
+        int count = 0;
+        for (QueueSong queueSong : queue) {
+            if (skipDuplicate && hashMap.get(queueSong.getSong().getId()) != null) {
+                continue;
+            }
+            SongListElement element = new SongListElement();
+            element.setSong(queueSong.getSong());
+            element.setNumber(songListElements.size());
+            element.setSongList(songList);
+            songListElements.add(element);
+            ++count;
+        }
+        SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(MainActivity.this);
+        songListElementRepository.save(songListElements);
+        showToaster(count + " " + getString(R.string.songs_added_to) + " " + songList.getTitle(), Toast.LENGTH_LONG);
+    }
+
+    private void askAddDuplicates(final SongList songList, final List<QueueSong> queue, final LongSparseArray<Object> hashMap) {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        @SuppressLint("InflateParams") View customView = inflater.inflate(R.layout.content_add_duplicate, null);
+        addDuplicatesPopupWindow = new PopupWindow(
+                customView,
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+        );
+        if (Build.VERSION.SDK_INT >= 21) {
+            addDuplicatesPopupWindow.setElevation(5.0f);
+        }
+        Button skipButton = customView.findViewById(R.id.skipButton);
+        skipButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addQueueToList(songList, queue, true, hashMap);
+                addDuplicatesPopupWindow.dismiss();
+            }
+        });
+        Button addButton = customView.findViewById(R.id.okButton);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addQueueToList(songList, queue, false, hashMap);
+                addDuplicatesPopupWindow.dismiss();
+            }
+        });
+        addDuplicatesPopupWindow.setBackgroundDrawable(new BitmapDrawable());
+        addDuplicatesPopupWindow.setOutsideTouchable(true);
+        addDuplicatesPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
+    }
+
+    public void onNewSongListClick(View view) {
+        saveQueuePopupWindow.dismiss();
+        Intent intent = new Intent(this, NewSongListActivity.class);
+        intent.putExtra("saveQueue", true);
+        startActivity(intent);
     }
 
     public interface Listener {

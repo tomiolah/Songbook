@@ -14,6 +14,8 @@ import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.models.SongCollectionElement;
+import com.bence.songbook.models.SongList;
+import com.bence.songbook.models.SongListElement;
 import com.bence.songbook.models.SongVerse;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
 import com.j256.ormlite.dao.Dao;
@@ -25,7 +27,7 @@ import java.sql.SQLException;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final String TAG = DatabaseHelper.class.getSimpleName();
     private static final String DATABASE_NAME = "songbook.db";
-    private static final int DATABASE_VERSION = 13;
+    private static final int DATABASE_VERSION = 14;
 
     @SuppressLint("StaticFieldLeak")
     private static DatabaseHelper instance;
@@ -38,6 +40,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private Dao<SongCollectionElement, Long> songCollectionElementDao;
     private Dao<FavouriteSong, Long> favouriteSongDao;
     private Dao<QueueSong, Long> queueSongDao;
+    private Dao<SongList, Long> songListDao;
+    private Dao<SongListElement, Long> songListElementDao;
 
     private DatabaseHelper(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION, R.raw.ormlite_config);
@@ -71,6 +75,10 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTableIfNotExists(connectionSource, FavouriteSong.class);
             sharedPreferences.edit().putInt("queueSongDataBaseVersion", 1).apply();
             TableUtils.createTableIfNotExists(connectionSource, QueueSong.class);
+            sharedPreferences.edit().putInt("songListDataBaseVersion", 1).apply();
+            TableUtils.createTableIfNotExists(connectionSource, SongList.class);
+            sharedPreferences.edit().putInt("songListDataElementBaseVersion", 1).apply();
+            TableUtils.createTableIfNotExists(connectionSource, SongListElement.class);
         } catch (final SQLException e) {
             Log.e(TAG, "Unable to create databases", e);
         }
@@ -185,6 +193,20 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         return queueSongDao;
     }
 
+    public Dao<SongList, Long> getSongListDao() throws SQLException {
+        if (songListDao == null) {
+            songListDao = getDao(SongList.class);
+        }
+        return songListDao;
+    }
+
+    public Dao<SongListElement, Long> getSongListElementDao() throws SQLException {
+        if (songListElementDao == null) {
+            songListElementDao = getDao(SongListElement.class);
+        }
+        return songListElementDao;
+    }
+
     @Override
     public void close() {
         super.close();
@@ -195,5 +217,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         songCollectionElementDao = null;
         favouriteSongDao = null;
         queueSongDao = null;
+        songListDao = null;
+        songListElementDao = null;
     }
 }

@@ -216,11 +216,10 @@ public class SongActivity extends AppCompatActivity {
         } else if (itemId == R.id.action_add_to_queue) {
             QueueSongRepositoryImpl queueSongRepository = new QueueSongRepositoryImpl(this);
             QueueSong model = new QueueSong();
-            model.setQueueNumber(memory.getQueue().size());
             model.setSong(song);
             memory.addSongToQueue(model);
             queueSongRepository.save(model);
-            showToaster(getString(R.string.added_to_queue), Toast.LENGTH_LONG);
+            showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
         }
         return super.onOptionsItemSelected(item);
     }

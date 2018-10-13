@@ -35,13 +35,15 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.AbsListView;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.bence.songbook.R;
 
-public class DynamicListView extends ListView {
+@SuppressWarnings("unchecked")
+public class DynamicListView<T extends ArrayAdapter> extends ListView {
     final static int topPadding = 5;
     final static int bottomPadding = 10;
     final static int rightPadding = 10;
@@ -282,7 +284,7 @@ public class DynamicListView extends ListView {
      */
     private void updateNeighborViewsForID(long itemID) {
         int position = getPositionForID(itemID);
-        QueueSongAdapter adapter = ((QueueSongAdapter) getAdapter());
+        T adapter = (T) getAdapter();
         mAboveItemId = adapter.getItemId(position - 1);
         mBelowItemId = adapter.getItemId(position + 1);
     }
@@ -292,7 +294,7 @@ public class DynamicListView extends ListView {
      */
     public View getViewForID(long itemID) {
         int firstVisiblePosition = getFirstVisiblePosition();
-        QueueSongAdapter adapter = ((QueueSongAdapter) getAdapter());
+        T adapter = ((T) getAdapter());
         for (int i = 0; i < getChildCount(); i++) {
             View v = getChildAt(i);
             int position = firstVisiblePosition + i;

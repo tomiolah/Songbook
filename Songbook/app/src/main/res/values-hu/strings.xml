@@ -53,7 +53,7 @@
     <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Írja ide az ének verszakait egy üres sorral elválasztva.</string>
     <string name="your_email">Email:</string>
     <string name="languageD">Nyelv:</string>
-    <string name="title">Cím:</string>
+    <string name="title">Cím</string>
     <string name="language_of_the_song">Az ének nyelve</string>
     <string name="successfully_uploaded">Sikeresen feltöltve!</string>
     <string name="upload_failed">Feltöltés sikertelen</string>

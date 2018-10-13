@@ -22,7 +22,7 @@
         android:ellipsize="none"
         android:gravity="center"
         android:singleLine="false"
-        android:text="Auto Resized Text, max 2 lines"
+        android:text="Reload"
         android:textAlignment="center"
         android:textColor="@color/white"
         android:textSize="50sp"
