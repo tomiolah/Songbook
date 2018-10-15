@@ -89,6 +89,16 @@ public class SettingsActivity extends AppCompatActivity {
                 Memory.getInstance().getMainActivity().setShortCollectionName(checked);
             }
         });
+        boolean rotateInFullscreen = sharedPreferences.getBoolean("rotateInFullscreen", true);
+        final Switch rotateInFullscreenSwitch = findViewById(R.id.rotateInFullscreenSwitch);
+        rotateInFullscreenSwitch.setChecked(rotateInFullscreen);
+        rotateInFullscreenSwitch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean checked = rotateInFullscreenSwitch.isChecked();
+                sharedPreferences.edit().putBoolean("rotateInFullscreen", checked).apply();
+            }
+        });
         final Switch shareOnNetworkSwitch = findViewById(R.id.shareOnNetworkSwitch);
         final Memory memory = Memory.getInstance();
         shareOnNetworkSwitch.setChecked(memory.isShareOnNetwork());

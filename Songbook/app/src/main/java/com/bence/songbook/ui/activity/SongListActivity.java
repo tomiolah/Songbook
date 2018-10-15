@@ -12,8 +12,10 @@ import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.bence.projector.common.dto.SongListDTO;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
+import com.bence.songbook.api.SongListApiBean;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongList;
@@ -38,6 +40,7 @@ public class SongListActivity extends AppCompatActivity {
     private final Memory memory = Memory.getInstance();
     private List<SongListElement> songListElements;
     private SongList songList;
+    private SongListRepositoryImpl songListRepository;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +73,7 @@ public class SongListActivity extends AppCompatActivity {
                 }, false);
         fetchSongAttributes();
         final SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(this);
-        final SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
+        songListRepository = new SongListRepositoryImpl(this);
         listView.setAdapter(songListAdapter);
         listView.setListener(new DynamicListView.Listener() {
             @Override
@@ -91,6 +94,13 @@ public class SongListActivity extends AppCompatActivity {
             @Override
             public void deleteElement(int originalItem) {
                 SongListElement temp = songListElements.remove(originalItem);
+                List<SongListElement> listElements = new ArrayList<>();
+                for (int i = originalItem + 1; i < songListElements.size(); ++i) {
+                    SongListElement element = songListElements.get(i);
+                    element.setNumber(element.getNumber() - 1);
+                    listElements.add(element);
+                }
+                songListElementRepository.save(listElements);
                 songListElementRepository.delete(temp);
                 songList.setModifiedDate(new Date());
                 songListRepository.save(songList);
@@ -107,6 +117,9 @@ public class SongListActivity extends AppCompatActivity {
                 startActivityForResult(intent, NEW_SONG_LIST_REQUEST_CODE);
             }
         });
+        if (getIntent().getBooleanExtra("newSongList", false)) {
+            edit(2);
+        }
     }
 
     private void fetchSongAttributes() {
@@ -151,11 +164,37 @@ public class SongListActivity extends AppCompatActivity {
                 queueSongRepository.save(newQueueSongs);
                 showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
                 break;
+            case R.id.action_share:
+                songList.setPublish(true);
+                songListRepository.save(songList);
+                if (songList.getUuid() != null) {
+                    Thread thread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            SongListApiBean songListApiBean = new SongListApiBean(SongListActivity.this);
+                            songListApiBean.uploadSongList(songList);
+                        }
+                    });
+                    thread.start();
+                    shareSongList();
+                } else {
+                    Thread thread = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            SongListApiBean songListApiBean = new SongListApiBean(SongListActivity.this);
+                            SongListDTO songListDTO = songListApiBean.uploadSongList(songList);
+                            if (songListDTO != null) {
+                                songList.setUuid(songListDTO.getUuid());
+                                songListRepository.save(songList);
+                                shareSongList();
+                            }
+                        }
+                    });
+                    thread.start();
+                }
+                break;
             case R.id.action_edit:
-                Intent intent = new Intent(this, NewSongListActivity.class);
-                memory.setEditingSongList(songList);
-                intent.putExtra("edit", true);
-                startActivityForResult(intent, NEW_SONG_LIST_REQUEST_CODE);
+                edit(NEW_SONG_LIST_REQUEST_CODE);
                 break;
             case R.id.action_delete:
                 SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
@@ -165,6 +204,23 @@ public class SongListActivity extends AppCompatActivity {
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void edit(int requestCode) {
+        Intent intent = new Intent(this, NewSongListActivity.class);
+        memory.setEditingSongList(songList);
+        intent.putExtra("edit", true);
+        startActivityForResult(intent, requestCode);
+    }
+
+    private void shareSongList() {
+        Intent share = new Intent(Intent.ACTION_SEND);
+        share.setType("text/plain");
+        share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        share.putExtra(Intent.EXTRA_SUBJECT, songList.getTitle());
+        share.putExtra(Intent.EXTRA_TITLE, songList.getTitle());
+        share.putExtra(Intent.EXTRA_TEXT, songList.getTitle() + ":\nhttp://192.168.100.4:8080/songList/" + songList.getUuid());
+        startActivity(Intent.createChooser(share, "Share song list!"));
     }
 
     private void showToaster(String s, int lengthLong) {

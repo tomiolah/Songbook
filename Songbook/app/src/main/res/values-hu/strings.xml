@@ -111,4 +111,5 @@
     <string name="new_song_list">Új éneklista</string>
     <string name="song_lists">Éneklisták</string>
     <string name="my_library">A könyvtáram</string>
+    <string name="sensor_rotate_in_fullscreen">Képernyő forgatása</string>
 </resources>

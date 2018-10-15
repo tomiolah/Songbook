@@ -111,4 +111,5 @@
     <string name="new_song_list">Listă nouă de cântece</string>
     <string name="song_lists">Liste de cântece</string>
     <string name="my_library">Biblioteca mea</string>
+    <string name="sensor_rotate_in_fullscreen">Rotiți ecranul</string>
 </resources>

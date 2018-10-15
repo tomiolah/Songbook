@@ -24,6 +24,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
@@ -34,12 +35,16 @@ import com.bence.songbook.R;
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
+import com.bence.songbook.models.SongList;
+import com.bence.songbook.models.SongListElement;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
 import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.QueueSongRepositoryImpl;
+import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
+import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.SongService;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
@@ -70,6 +75,7 @@ public class SongActivity extends AppCompatActivity {
     private View mainLayout;
     private PopupWindow googleSignInPopupWindow;
     private Menu menu;
+    private PopupWindow saveToSongListPopupWindow;
 
     public static void saveGmail(GoogleSignInAccount result, Context context) {
         String email = result.getEmail();
@@ -220,8 +226,65 @@ public class SongActivity extends AppCompatActivity {
             memory.addSongToQueue(model);
             queueSongRepository.save(model);
             showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
+        } else if (itemId == R.id.action_save_to_song_list) {
+            saveToSongList();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @SuppressLint("InflateParams")
+    private void saveToSongList() {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        @SuppressLint("InflateParams") View customView;
+        if (inflater == null) {
+            return;
+        }
+        customView = inflater.inflate(R.layout.content_save_queue, null);
+        saveToSongListPopupWindow = new PopupWindow(
+                customView,
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+        if (Build.VERSION.SDK_INT >= 21) {
+            saveToSongListPopupWindow.setElevation(5.0f);
+        }
+        Button closeButton = customView.findViewById(R.id.closeButton);
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                saveToSongListPopupWindow.dismiss();
+            }
+        });
+        ListView listView = customView.findViewById(R.id.listView);
+        SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
+        final List<SongList> songLists = songListRepository.findAll();
+        List<String> all = new ArrayList<>(songLists.size());
+        for (SongList songList : songLists) {
+            all.add(songList.getTitle());
+        }
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_list_item_1,
+                all);
+        listView.setAdapter(arrayAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                SongList songList = songLists.get(position);
+                List<SongListElement> songListElements = songList.getSongListElements();
+                SongListElement songListElement = new SongListElement();
+                songListElement.setSong(song);
+                songListElement.setNumber(songListElements.size());
+                songListElement.setSongList(songList);
+                songListElements.add(songListElement);
+                new SongListElementRepositoryImpl(SongActivity.this).save(songListElement);
+                saveToSongListPopupWindow.dismiss();
+            }
+        });
+        //noinspection deprecation
+        saveToSongListPopupWindow.setBackgroundDrawable(new BitmapDrawable());
+        saveToSongListPopupWindow.setOutsideTouchable(true);
+        saveToSongListPopupWindow.showAtLocation(mainLayout, Gravity.CENTER, 0, 0);
     }
 
     @Override
@@ -404,6 +467,14 @@ public class SongActivity extends AppCompatActivity {
         googleSignInPopupWindow.dismiss();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.edit().putBoolean("ShowGoogleSignInWhenFavouriteChanges", false).apply();
+    }
+
+    public void onNewSongListClick(View view) {
+        saveToSongListPopupWindow.dismiss();
+        Intent intent = new Intent(this, NewSongListActivity.class);
+        intent.putExtra("addSongToSongList", true);
+        memory.setPassingSong(song);
+        startActivity(intent);
     }
 
     @SuppressWarnings("ConstantConditions")

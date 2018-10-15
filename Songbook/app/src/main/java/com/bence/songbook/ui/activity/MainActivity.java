@@ -13,6 +13,8 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
@@ -53,6 +55,7 @@ import android.widget.Toast;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SongApiBean;
+import com.bence.songbook.api.SongListApiBean;
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Language;
 import com.bence.songbook.models.QueueSong;
@@ -143,6 +146,7 @@ public class MainActivity extends AppCompatActivity
     private View peekLayout;
     private PopupWindow saveQueuePopupWindow;
     private PopupWindow addDuplicatesPopupWindow;
+    private PopupWindow addSongListLinkPopupWindow;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -204,7 +208,13 @@ public class MainActivity extends AppCompatActivity
             public void deleteElement(int originalItem) {
                 List<QueueSong> values = memory.getQueue();
                 QueueSong temp = values.get(originalItem);
-                System.out.println(temp.getSong().getTitle());
+                List<QueueSong> listElements = new ArrayList<>();
+                for (int i = originalItem + 1; i < values.size(); ++i) {
+                    QueueSong queueSong = values.get(i);
+                    queueSong.setQueueNumber(queueSong.getQueueNumber() - 1);
+                    listElements.add(queueSong);
+                }
+                queueSongRepository.save(listElements);
                 memory.removeQueueSong(temp);
                 queueSongRepository.delete(temp);
                 queueListView.invalidateViews();
@@ -383,6 +393,12 @@ public class MainActivity extends AppCompatActivity
                 String prefix = "queue?ids=";
                 if (text.contains(prefix)) {
                     parseQueueLink(text, prefix);
+                    return;
+                }
+                prefix = "songList/";
+                if (text.contains(prefix)) {
+                    parseSongListLink(text, prefix);
+                    return;
                 }
                 for (String s : str) {
                     if (text.contains(s)) {
@@ -455,6 +471,83 @@ public class MainActivity extends AppCompatActivity
         setDataToQueueSongs();
         queueListView.invalidateViews();
         showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
+    }
+
+    private void parseSongListLink(String text, String prefix) {
+        final String uuid = text.substring(text.lastIndexOf(prefix) + prefix.length(), text.length());
+        SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
+        final SongList byUuid = songListRepository.findByUuid(uuid);
+        if (byUuid == null) {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    SongListApiBean songListApiBean = new SongListApiBean(MainActivity.this);
+                    SongList songList = songListApiBean.getSongList(uuid);
+                    if (songList != null) {
+                        askSongListLink(songList);
+                    }
+                }
+            });
+            thread.start();
+        } else {
+            Intent intent = new Intent(MainActivity.this, SongListActivity.class);
+            memory.setPassingSongList(byUuid);
+            startActivityForResult(intent, 7);
+        }
+    }
+
+    private void askSongListLink(final SongList songList) {
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        @SuppressLint("InflateParams") View customView = inflater.inflate(R.layout.content_ask_song_list_link, null);
+        addSongListLinkPopupWindow = new PopupWindow(
+                customView,
+                LayoutParams.MATCH_PARENT,
+                LayoutParams.WRAP_CONTENT
+        );
+        if (Build.VERSION.SDK_INT >= 21) {
+            addSongListLinkPopupWindow.setElevation(5.0f);
+        }
+        Button addButton = customView.findViewById(R.id.addToButton);
+        addButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                List<SongListElement> songListElements = songList.getSongListElements();
+                QueueSongRepositoryImpl queueSongRepository = new QueueSongRepositoryImpl(MainActivity.this);
+                List<QueueSong> newQueueSongs = new ArrayList<>(songListElements.size());
+                for (SongListElement element : songListElements) {
+                    QueueSong queueSong = new QueueSong();
+                    queueSong.setSong(element.getSong());
+                    memory.addSongToQueue(queueSong);
+                    newQueueSongs.add(queueSong);
+                }
+                queueSongRepository.save(newQueueSongs);
+                showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
+                addSongListLinkPopupWindow.dismiss();
+            }
+        });
+        Button newSongListButton = customView.findViewById(R.id.newSongListButton);
+        newSongListButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, SongListActivity.class);
+                SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(MainActivity.this);
+                songListRepository.save(songList);
+                SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(MainActivity.this);
+                songListElementRepository.save(songList.getSongListElements());
+                memory.setPassingSongList(songList);
+                intent.putExtra("newSongList", true);
+                startActivityForResult(intent, 7);
+                addSongListLinkPopupWindow.dismiss();
+            }
+        });
+        addSongListLinkPopupWindow.setBackgroundDrawable(new BitmapDrawable());
+        addSongListLinkPopupWindow.setOutsideTouchable(true);
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                addSongListLinkPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
+            }
+        });
     }
 
     private void addToQueue(Song song) {
@@ -1108,6 +1201,8 @@ public class MainActivity extends AppCompatActivity
             saveQueuePopupWindow.dismiss();
         } else if (addDuplicatesPopupWindow != null && addDuplicatesPopupWindow.isShowing()) {
             addDuplicatesPopupWindow.dismiss();
+        } else if (addSongListLinkPopupWindow != null && addSongListLinkPopupWindow.isShowing()) {
+            addSongListLinkPopupWindow.dismiss();
         } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else if (selectLanguagePopupWindow != null && selectLanguagePopupWindow.isShowing()) {

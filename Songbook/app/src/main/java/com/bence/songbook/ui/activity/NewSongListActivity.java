@@ -10,6 +10,7 @@ import android.widget.EditText;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.QueueSong;
+import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongList;
 import com.bence.songbook.models.SongListElement;
 import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
@@ -26,6 +27,7 @@ public class NewSongListActivity extends AppCompatActivity {
     private EditText titleEditText;
     private EditText descriptionEditText;
     private boolean edit;
+    private boolean addSongToSongList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,12 +42,15 @@ public class NewSongListActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
         saveQueue = getIntent().getBooleanExtra("saveQueue", false);
+        addSongToSongList = getIntent().getBooleanExtra("addSongToSongList", false);
         titleEditText = findViewById(R.id.titleEditText);
         descriptionEditText = findViewById(R.id.descriptionEditText);
         edit = getIntent().getBooleanExtra("edit", false);
         if (edit) {
-            toolbar.setTitle(R.string.edit_song_list);
             SongList songList = Memory.getInstance().getEditingSongList();
+            if (songList.getId() != null) {
+                toolbar.setTitle(R.string.edit_song_list);
+            }
             titleEditText.setText(songList.getTitle());
             descriptionEditText.setText(songList.getDescription());
         }
@@ -91,6 +96,17 @@ public class NewSongListActivity extends AppCompatActivity {
                 SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(this);
                 songListElementRepository.save(songListElements);
             }
+        }
+        if (addSongToSongList) {
+            List<SongListElement> songListElements = new ArrayList<>(1);
+            Song song = Memory.getInstance().getPassingSong();
+            SongListElement songListElement = new SongListElement();
+            songListElement.setNumber(0);
+            songListElement.setSong(song);
+            songListElements.add(songListElement);
+            songList.setSongListElements(songListElements);
+            SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(this);
+            songListElementRepository.save(songListElements);
         }
         setResult(1);
         finish();

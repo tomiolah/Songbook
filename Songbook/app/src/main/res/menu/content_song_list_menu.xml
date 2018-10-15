@@ -11,15 +11,21 @@
         android:title="@string/add_to_queue"
         app:showAsAction="always" />
     <item
+        android:id="@+id/action_share"
+        android:icon="@drawable/ic_forward_arrow"
+        android:orderInCategory="12"
+        android:title="@string/share"
+        app:showAsAction="always" />
+    <item
         android:id="@+id/action_edit"
         android:icon="@drawable/ic_edit_black_24dp"
-        android:orderInCategory="11"
-        android:title="@string/delete"
-        app:showAsAction="always" />
+        android:orderInCategory="15"
+        android:title="@string/edit"
+        app:showAsAction="ifRoom" />
     <item
         android:id="@+id/action_delete"
         android:icon="@drawable/ic_delete_black_24dp"
-        android:orderInCategory="12"
+        android:orderInCategory="16"
         android:title="@string/delete"
         app:showAsAction="ifRoom" />
 </menu>

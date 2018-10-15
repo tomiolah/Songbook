@@ -111,5 +111,6 @@
     <string name="new_song_list">Neue Songliste</string>
     <string name="song_lists">Liedlisten</string>
     <string name="my_library">Meine Bibliothek</string>
+    <string name="sensor_rotate_in_fullscreen">Bildschirm drehen</string>
 </resources>
 
