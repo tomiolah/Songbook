@@ -1,5 +1,5 @@
 #
-# generated on 2018/10/10 01:56:46
+# generated on 2018/10/13 08:12:50
 #
 # --table-start--
 dataClass=com.bence.songbook.models.AbstractModel
@@ -225,6 +225,71 @@ indexName=songcollectionelement_id_idx
 # --field-start--
 fieldName=uuid
 indexName=songcollectionelement_uuid_idx
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.bence.songbook.models.SongList
+tableName=songlist
+# --table-fields-start--
+# --field-start--
+fieldName=title
+# --field-end--
+# --field-start--
+fieldName=description
+# --field-end--
+# --field-start--
+fieldName=createdDate
+# --field-end--
+# --field-start--
+fieldName=modifiedDate
+# --field-end--
+# --field-start--
+fieldName=owned
+# --field-end--
+# --field-start--
+fieldName=publish
+# --field-end--
+# --field-start--
+fieldName=songListElementForeignList
+foreignCollection=true
+# --field-end--
+# --field-start--
+fieldName=id
+generatedId=true
+indexName=songlist_id_idx
+# --field-end--
+# --field-start--
+fieldName=uuid
+indexName=songlist_uuid_idx
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.bence.songbook.models.SongListElement
+tableName=songlistelement
+# --table-fields-start--
+# --field-start--
+fieldName=song
+columnName=song_id
+canBeNull=false
+foreign=true
+indexName=songlistelement_song_id_idx
+foreignAutoRefresh=true
+# --field-end--
+# --field-start--
+fieldName=number
+# --field-end--
+# --field-start--
+fieldName=songList
+foreign=true
+indexName=songlistelement_songList_idx
+# --field-end--
+# --field-start--
+fieldName=id
+generatedId=true
 # --field-end--
 # --table-fields-end--
 # --table-end--

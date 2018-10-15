@@ -53,7 +53,7 @@
     <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Introduceți aici versurile cântece separate printr-o linie goală.\n\n1. Exemplu\n\n2. Exemplu</string>
     <string name="your_email">Email:</string>
     <string name="languageD">Limba:</string>
-    <string name="title">Titlu:</string>
+    <string name="title">Titlu</string>
     <string name="language_of_the_song">Limba cântecului</string>
     <string name="successfully_uploaded">S-a încărcat cu succes!</string>
     <string name="upload_failed">Încărcare eșuată</string>
@@ -98,4 +98,18 @@
     <string name="add_to_queue">Adăugați la coadă</string>
     <string name="added_to_queue">Adăugat la coadă</string>
     <string name="queue">În așteptare</string>
+    <string name="edit_song_list">Editați lista de cântece</string>
+    <string name="some_of_these_songs_are_already_in_this_song_list">Unele dintre aceste cântece se află deja în această listă de cântece.</string>
+    <string name="delete">Șterge</string>
+    <string name="add">Adăugă</string>
+    <string name="add_duplicate_songs">Adăugați cântece duplicat?</string>
+    <string name="songs_added_to">cântecele adăugate la</string>
+    <string name="required">Necesar</string>
+    <string name="cancel">Anulare</string>
+    <string name="add_to_song_list">Adăugați la lista de cântece</string>
+    <string name="save">Salvați</string>
+    <string name="new_song_list">Listă nouă de cântece</string>
+    <string name="song_lists">Liste de cântece</string>
+    <string name="my_library">Biblioteca mea</string>
+    <string name="sensor_rotate_in_fullscreen">Rotiți ecranul</string>
 </resources>

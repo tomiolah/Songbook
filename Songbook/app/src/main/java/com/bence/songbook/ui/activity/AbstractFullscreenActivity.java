@@ -2,6 +2,7 @@ package com.bence.songbook.ui.activity;
 
 import android.annotation.SuppressLint;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -82,6 +83,10 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
             // operations to prevent the jarring behavior of controls going away
             // while interacting with the UI.
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            boolean rotateInFullscreen = sharedPreferences.getBoolean("rotateInFullscreen", true);
+            if (!rotateInFullscreen) {
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
+            }
             int max_text_size = sharedPreferences.getInt("max_text_size", -1);
             if (max_text_size > 0) {
                 textView.setTextSize(max_text_size);

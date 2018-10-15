@@ -104,6 +104,14 @@
             android:name=".ui.activity.YoutubeActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.LibraryActivity"
+            android:theme="@style/SongBookTheme" />
+        <activity
+            android:name=".ui.activity.NewSongListActivity"
+            android:theme="@style/SongBookTheme"
+            android:windowSoftInputMode="stateVisible" />
+        <activity android:name=".ui.activity.SongListActivity" />
     </application>
 
 </manifest>

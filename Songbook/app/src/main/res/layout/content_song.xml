@@ -18,7 +18,7 @@
         android:paddingRight="5dp"
         android:paddingTop="5dp"
         android:text="Hallelujah 175"
-        android:textColor="@color/secondaryLightColor"
+        android:textColor="?attr/secondaryTextColor"
         tools:ignore="HardcodedText"/>
 
     <ListView

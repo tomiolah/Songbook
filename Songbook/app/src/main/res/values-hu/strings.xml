@@ -53,7 +53,7 @@
     <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Írja ide az ének verszakait egy üres sorral elválasztva.</string>
     <string name="your_email">Email:</string>
     <string name="languageD">Nyelv:</string>
-    <string name="title">Cím:</string>
+    <string name="title">Cím</string>
     <string name="language_of_the_song">Az ének nyelve</string>
     <string name="successfully_uploaded">Sikeresen feltöltve!</string>
     <string name="upload_failed">Feltöltés sikertelen</string>
@@ -98,4 +98,18 @@
     <string name="queue">Várakozási sor</string>
     <string name="added_to_queue">Hozzáadva a várakozási sorhoz</string>
     <string name="search_in_verses">Keresés a szövegben</string>
+    <string name="edit_song_list">Éneklista modosítása</string>
+    <string name="delete">Töröl</string>
+    <string name="add">Hozzáad</string>
+    <string name="some_of_these_songs_are_already_in_this_song_list">Néhány ének már szerepel ebben az éneklistában.</string>
+    <string name="add_duplicate_songs">Ismétlödő énekek hozzáadása?</string>
+    <string name="songs_added_to">ének hozzáadva a</string>
+    <string name="required">Kötelező</string>
+    <string name="cancel">Mégsem</string>
+    <string name="add_to_song_list">Add hozzá az éneklistához</string>
+    <string name="save">Mentés</string>
+    <string name="new_song_list">Új éneklista</string>
+    <string name="song_lists">Éneklisták</string>
+    <string name="my_library">A könyvtáram</string>
+    <string name="sensor_rotate_in_fullscreen">Képernyő forgatása</string>
 </resources>

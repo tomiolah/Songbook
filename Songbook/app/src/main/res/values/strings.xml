@@ -56,7 +56,7 @@
     <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Insert here the song verses\n  separated by an empty line.\n\n  1. Example\n\n  2. Example</string>
     <string name="your_email">Your email:</string>
     <string name="languageD">Language:</string>
-    <string name="title">Title:</string>
+    <string name="title">Title</string>
     <string name="language_of_the_song">Language of the song</string>
     <string name="successfully_uploaded">Successfully uploaded!</string>
     <string name="upload_failed">Upload failed</string>
@@ -102,4 +102,18 @@
     <string name="queue">Queue</string>
     <string name="added_to_queue">Added to queue</string>
     <string name="search_in_verses">Search in verses</string>
+    <string name="my_library">My library</string>
+    <string name="song_lists">Song lists</string>
+    <string name="new_song_list">New song list</string>
+    <string name="save">Save</string>
+    <string name="add_to_song_list">Add to song list</string>
+    <string name="cancel">Cancel</string>
+    <string name="required">Required</string>
+    <string name="songs_added_to">songs added to</string>
+    <string name="add_duplicate_songs">Add duplicate songs?</string>
+    <string name="some_of_these_songs_are_already_in_this_song_list">Some of these songs are already in this song list.</string>
+    <string name="add">Add</string>
+    <string name="delete">Delete</string>
+    <string name="edit_song_list">Edit song list</string>
+    <string name="sensor_rotate_in_fullscreen">Rotate screen</string>
 </resources>

@@ -52,7 +52,7 @@
     <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Fügen Sie hier die Liedverse getrennt durch eine Leerzeile ein.\n\n1. Beispiel\n\n2. Beispiel</string>
     <string name="your_email">Ihre E-Mailadresse:</string>
     <string name="languageD">Sprache:</string>
-    <string name="title">Titel:</string>
+    <string name="title">Titel</string>
     <string name="language_of_the_song">Sprache des Liedes</string>
     <string name="successfully_uploaded">Erfolgreich hochgeladen!</string>
     <string name="upload_failed">Hochladen fehlgeschlagen</string>
@@ -98,5 +98,19 @@
     <string name="search_in_verses">Suche in Versen</string>
     <string name="add_to_queue">Zur Warteschlange hinzufügen</string>
     <string name="added_to_queue">Zur Warteschlange hinzugefügt</string>
+    <string name="some_of_these_songs_are_already_in_this_song_list">Einige dieser Songs sind bereits in dieser Songliste enthalten.</string>
+    <string name="edit_song_list">Liedliste bearbeiten</string>
+    <string name="add">Hinzufügen</string>
+    <string name="delete">Löschen</string>
+    <string name="add_duplicate_songs">Doppelte Lieder hinzufügen?</string>
+    <string name="songs_added_to">Lied hinzugefügt  zu</string>
+    <string name="required">Erforderlich</string>
+    <string name="cancel">Stornieren</string>
+    <string name="add_to_song_list">Hinzufügen zur Songliste</string>
+    <string name="save">Sparen</string>
+    <string name="new_song_list">Neue Songliste</string>
+    <string name="song_lists">Liedlisten</string>
+    <string name="my_library">Meine Bibliothek</string>
+    <string name="sensor_rotate_in_fullscreen">Bildschirm drehen</string>
 </resources>
 
