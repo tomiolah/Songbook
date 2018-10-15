@@ -98,4 +98,17 @@
     <string name="queue">Várakozási sor</string>
     <string name="added_to_queue">Hozzáadva a várakozási sorhoz</string>
     <string name="search_in_verses">Keresés a szövegben</string>
+    <string name="edit_song_list">Éneklista modosítása</string>
+    <string name="delete">Töröl</string>
+    <string name="add">Hozzáad</string>
+    <string name="some_of_these_songs_are_already_in_this_song_list">Néhány ének már szerepel ebben az éneklistában.</string>
+    <string name="add_duplicate_songs">Ismétlödő énekek hozzáadása?</string>
+    <string name="songs_added_to">ének hozzáadva a</string>
+    <string name="required">Kötelező</string>
+    <string name="cancel">Mégsem</string>
+    <string name="add_to_song_list">Add hozzá az éneklistához</string>
+    <string name="save">Mentés</string>
+    <string name="new_song_list">Új éneklista</string>
+    <string name="song_lists">Éneklisták</string>
+    <string name="my_library">A könyvtáram</string>
 </resources>

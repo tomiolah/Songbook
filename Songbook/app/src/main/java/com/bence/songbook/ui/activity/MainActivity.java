@@ -1826,8 +1826,11 @@ public class MainActivity extends AppCompatActivity
             songListElements.add(element);
             ++count;
         }
-        SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(MainActivity.this);
+        SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(this);
         songListElementRepository.save(songListElements);
+        SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
+        songList.setModifiedDate(new Date());
+        songListRepository.save(songList);
         showToaster(count + " " + getString(R.string.songs_added_to) + " " + songList.getTitle(), Toast.LENGTH_LONG);
     }
 

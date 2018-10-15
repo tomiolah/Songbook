@@ -65,13 +65,14 @@ public class NewSongListActivity extends AppCompatActivity {
         SongList songList;
         if (edit) {
             songList = Memory.getInstance().getEditingSongList();
+            songList.setModifiedDate(new Date());
         } else {
             songList = new SongList();
             songList.setCreatedDate(new Date());
             songList.setOwned(true);
             songList.setPublish(false);
+            songList.setModifiedDate(songList.getCreatedDate());
         }
-        songList.setModifiedDate(songList.getCreatedDate());
         songList.setTitle(title);
         songList.setDescription(description);
         SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
