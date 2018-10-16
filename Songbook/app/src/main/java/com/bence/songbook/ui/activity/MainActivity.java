@@ -83,6 +83,7 @@ import com.bence.songbook.ui.utils.SyncInBackground;
 import com.bence.songbook.utils.Utility;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.drive.Drive;
 import com.google.android.gms.tasks.Task;
 
 import java.text.Normalizer;
@@ -147,6 +148,7 @@ public class MainActivity extends AppCompatActivity
     private PopupWindow saveQueuePopupWindow;
     private PopupWindow addDuplicatesPopupWindow;
     private PopupWindow addSongListLinkPopupWindow;
+    private boolean alreadyTried;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -1794,7 +1796,16 @@ public class MainActivity extends AppCompatActivity
         SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive = new SyncFavouriteInGoogleDrive(new GoogleSignInIntent() {
             @Override
             public void task(Intent signInIntent) {
-                startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
+                if (!alreadyTried) {
+                    startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
+                    alreadyTried = true;
+                } else {
+                    GoogleSignIn.requestPermissions(
+                            MainActivity.this,
+                            REQUEST_CODE_SIGN_IN,
+                            GoogleSignIn.getLastSignedInAccount(MainActivity.this),
+                            Drive.SCOPE_APPFOLDER);
+                }
             }
         }, this, songs, favouriteSongs);
         syncFavouriteInGoogleDrive.signIn();

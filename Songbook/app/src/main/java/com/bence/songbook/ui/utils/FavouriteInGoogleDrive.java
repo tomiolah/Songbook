@@ -135,11 +135,11 @@ abstract class FavouriteInGoogleDrive {
         requiredScopes.add(Drive.SCOPE_APPFOLDER);
         requiredScopes.add(new Scope(Scopes.EMAIL));
         GoogleSignInAccount signInAccount = GoogleSignIn.getLastSignedInAccount(activity);
-        GoogleSignInClient googleSignInClient = buildGoogleSignInClient();
         if (signInAccount != null && signInAccount.getGrantedScopes().containsAll(requiredScopes)) {
             initializeDriveClient(signInAccount);
         } else {
             try {
+                GoogleSignInClient googleSignInClient = buildGoogleSignInClient();
                 Task<GoogleSignInAccount> googleSignInAccountTask = googleSignInClient.silentSignIn();
                 updateViewWithGoogleSignInAccountTask(googleSignInAccountTask);
             } catch (Exception e) {
