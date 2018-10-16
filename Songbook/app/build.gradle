@@ -5,14 +5,14 @@ ext {
 }
 android {
     compileSdkVersion 27
-    buildToolsVersion '27.0.3'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         applicationId "com.bence.songbook.dev"
         minSdkVersion 16
         //noinspection OldTargetApi
         targetSdkVersion 27
-        versionCode 53
-        versionName "2.5.0"
+        versionCode 54
+        versionName "2.5.1"
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
