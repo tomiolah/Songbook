@@ -852,14 +852,15 @@ public class SongController {
                 Language all = new Language();
                 all.setEnglishName("All");
                 all.setNativeName("All");
-                all.setSongs(ServiceManager.getSongService().findAll());
+                List<Song> songs = ServiceManager.getSongService().findAll();
                 List<Song> noLanguageSongs = new ArrayList<>();
-                for (Song song : all.getSongs()) {
+                for (Song song : songs) {
                     if (song.getLanguage() == null) {
                         System.out.println("song = " + song.getTitle());
                         noLanguageSongs.add(song);
                     }
                 }
+                all.setSongs(songs);
                 if (noLanguageSongs.size() > 0) {
                     setLanguagesForSongs(noLanguageSongs);
                 }
@@ -897,15 +898,18 @@ public class SongController {
         for (Language language : languages) {
             TreeSet<String> value = new TreeSet<>();
             languageMap.put(language, value);
+            for (Song song : language.getSongs()) {
+                addWordsInCollection(song, value);
+            }
         }
         for (Song song : songs) {
             Song song1 = songHashMap.get(song.getUuid());
-            if (song1 != null) {
+            if (song1 != null && song1.getLanguage() != null) {
                 Language language = song1.getLanguage();
                 Collection<String> words = languageMap.get(language);
                 addWordsInCollection(song1, words);
             } else {
-                if (!song.isDeleted()) {
+                if (song.isDeleted()) {
                     continue;
                 }
                 List<String> words = new ArrayList<>();
@@ -933,17 +937,17 @@ public class SongController {
                         max = entry;
                     }
                 }
-                System.out.println(song.getTitle());
                 if (max.getKey() != null) {
-                    System.out.println("Language:   " + max.getKey().getEnglishName());
-                    System.out.println("Ratio:  " + max.getValue().getRatio());
-                    System.out.println("Match count:  " + max.getValue().getCount());
-                    System.out.println("Words:  " + max.getValue().getWordCount());
+//                    System.out.println("Language:   " + max.getKey().getEnglishName());
+//                    System.out.println("Ratio:  " + max.getValue().getRatio());
+//                    System.out.println("Match count:  " + max.getValue().getCount());
+//                    System.out.println("Words:  " + max.getValue().getWordCount());
                     song.setLanguage(max.getKey());
                     songService.create(song);
                     addWordsInCollection(song, languageMap.get(song.getLanguage()));
+                } else {
+                    System.out.println(song.getTitle());
                 }
-                System.out.print(">");
             }
         }
     }
