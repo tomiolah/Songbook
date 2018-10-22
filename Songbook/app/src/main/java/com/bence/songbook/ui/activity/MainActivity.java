@@ -5,6 +5,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
@@ -52,10 +53,12 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bence.projector.common.dto.StackDTO;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SongApiBean;
 import com.bence.songbook.api.SongListApiBean;
+import com.bence.songbook.api.StackApiBean;
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Language;
 import com.bence.songbook.models.QueueSong;
@@ -86,6 +89,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.tasks.Task;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -158,16 +163,62 @@ public class MainActivity extends AppCompatActivity
         return s;
     }
 
-    @SuppressLint({"ShowToast", "ClickableViewAccessibility"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(Preferences.getTheme(this));
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        try {
+            setTheme(Preferences.getTheme(this));
+            super.onCreate(savedInstanceState);
+            onCreate2();
+        } catch (Exception e) {
+            uploadExceptionStack(e);
+            throw e;
+        }
+    }
 
+    private void uploadExceptionStack(Exception e) {
+        e.printStackTrace();
+        StringWriter writer = new StringWriter();
+        PrintWriter printWriter = new PrintWriter(writer);
+        e.printStackTrace(printWriter);
+        final StackApiBean stackApiBean = new StackApiBean();
+        final StackDTO stackDTO = new StackDTO();
+        stackDTO.setCreatedDate(new Date());
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        String gmail = sharedPreferences.getString("gmail", "");
+        if (!gmail.isEmpty()) {
+            stackDTO.setEmail(gmail);
+        } else {
+            stackDTO.setEmail(sharedPreferences.getString("email", ""));
+        }
+        stackDTO.setMessage(e.getMessage());
+        stackDTO.setStackTrace(writer.toString());
+        try {
+            PackageInfo pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+            String version = pInfo.versionName;
+            stackDTO.setVersion(version);
+        } catch (Exception ignored) {
+        }
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                stackApiBean.uploadStack(stackDTO);
+            }
+        });
+        thread.start();
+        try {
+            thread.join(7000L);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+    }
+
+    @SuppressLint({"ShowToast", "ClickableViewAccessibility"})
+    private void onCreate2() {
+        setContentView(R.layout.activity_main);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         int queueIndex = sharedPreferences.getInt("queueIndex", -1);
         memory.setQueueIndex(queueIndex, this);
+        queueListView.setListener(null);
         queueListView = findViewById(R.id.queueList);
         queueListView.setOnTouchListener(new ListView.OnTouchListener() {
             @Override
