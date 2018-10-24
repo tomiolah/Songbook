@@ -92,7 +92,7 @@
     <string name="don_t_show_again">Nicht mehr anzeigen</string>
     <string name="sign_in_with_google">Anmeldung mit Google</string>
     <string name="sign_out">Ausloggen</string>
-    <string name="clear_all">Alles löschen</string>
+    <string name="clear_all">Löschen</string>
     <string name="drag">Ziehen</string>
     <string name="queue">Warteschlange</string>
     <string name="search_in_verses">Suche in Versen</string>
@@ -112,5 +112,6 @@
     <string name="song_lists">Liedlisten</string>
     <string name="my_library">Meine Bibliothek</string>
     <string name="sensor_rotate_in_fullscreen">Bildschirm drehen</string>
+    <string name="probably_sign_in_not_works_on_your_device">Wahrscheinlich funktioniert die Anmeldung nicht auf Ihrem Gerät.</string>
 </resources>
 

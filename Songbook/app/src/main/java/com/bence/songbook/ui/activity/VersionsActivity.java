@@ -90,7 +90,7 @@ public class VersionsActivity extends AppCompatActivity {
         }
     }
 
-    private Song getSongFromMemory(Song song) {
+    public static Song getSongFromMemory(Song song) {
         List<Song> songs = Memory.getInstance().getSongs();
         for (Song iSong : songs) {
             if (iSong.getUuid().equals(song.getUuid())) {

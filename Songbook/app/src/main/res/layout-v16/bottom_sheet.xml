@@ -46,7 +46,7 @@
             style="@style/Base.Widget.AppCompat.Button.Borderless"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="0.25"
+            android:layout_weight="0.16"
             android:clickable="false"
             android:contentDescription="@string/close"
             android:gravity="center"
@@ -55,7 +55,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="0.25"
+            android:layout_weight="0.28"
             android:gravity="center"
             android:onClick="onSaveQueue"
             android:orientation="vertical"
@@ -87,7 +87,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="0.25"
+            android:layout_weight="0.28"
             android:gravity="center"
             android:onClick="onShareQueue"
             android:orientation="vertical"
@@ -118,7 +118,7 @@
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="0.25"
+            android:layout_weight="0.28"
             android:gravity="center"
             android:onClick="onClearAllQueueClick"
             android:orientation="vertical"

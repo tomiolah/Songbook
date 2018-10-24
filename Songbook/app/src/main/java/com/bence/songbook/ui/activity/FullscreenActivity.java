@@ -129,13 +129,9 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             if (blank_switch) {
                 addBlankSlide();
             } else {
-                int queueIndex = memory.getQueueIndex();
-                if (queueIndex >= 0) {
-                    List<QueueSong> queue = memory.getQueue();
-                    Song queueSong = queue.get(queueIndex).getSong();
-                    if (!queueSong.getUuid().equals(song.getUuid())) {
-                        addBlankSlide();
-                    }
+                List<QueueSong> queue = memory.getQueue();
+                if (queue.size() > 1) {
+                    addBlankSlide();
                 }
             }
             if (verseIndex < 0) {
@@ -261,7 +257,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             return;
         }
         int queueIndex = memory.getQueueIndex();
-        if (queueIndex >= 0 && memory.getQueue().size() > 0) {
+        if (queueIndex >= 0 && memory.getQueue().size() > 1) {
             setNextInQueue(AnimationUtils.loadAnimation(this, R.anim.slide_from_bottom));
             return;
         }

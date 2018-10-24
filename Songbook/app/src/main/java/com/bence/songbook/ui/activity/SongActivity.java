@@ -8,9 +8,10 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.TabLayout;
 import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.AppCompatDelegate;
@@ -35,19 +36,23 @@ import com.bence.songbook.R;
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
+import com.bence.songbook.models.SongCollection;
+import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongList;
 import com.bence.songbook.models.SongListElement;
-import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.repository.FavouriteSongRepository;
+import com.bence.songbook.repository.SongCollectionRepository;
 import com.bence.songbook.repository.SongRepository;
 import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.QueueSongRepositoryImpl;
+import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.SongService;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
+import com.bence.songbook.ui.utils.PageAdapter;
 import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -56,8 +61,10 @@ import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
+import static com.bence.songbook.ui.activity.VersionsActivity.getSongFromMemory;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 
 public class SongActivity extends AppCompatActivity {
@@ -67,6 +74,9 @@ public class SongActivity extends AppCompatActivity {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
 
+    TabLayout tabLayout;
+    ViewPager viewPager;
+    PageAdapter pageAdapter;
     private Song song;
     private Memory memory;
     private MenuItem favouriteMenuItem;
@@ -76,6 +86,7 @@ public class SongActivity extends AppCompatActivity {
     private PopupWindow googleSignInPopupWindow;
     private Menu menu;
     private PopupWindow saveToSongListPopupWindow;
+    private List<Song> allByVersionGroup = new ArrayList<>();
 
     public static void saveGmail(GoogleSignInAccount result, Context context) {
         String email = result.getEmail();
@@ -117,19 +128,73 @@ public class SongActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         song = memory.getPassingSong();
-        loadSongView(song);
-    }
 
-    private void loadSongView(Song song) {
-        setToolbarTitleAndSize();
-        TextView collectionTextView = findViewById(R.id.collectionTextView);
-        if (song.getSongCollection() != null) {
-            String text = song.getSongCollection().getName() + " " + song.getSongCollectionElement().getOrdinalNumber();
-            collectionTextView.setText(text);
-            collectionTextView.setVisibility(View.VISIBLE);
-        } else {
-            collectionTextView.setVisibility(View.GONE);
+        tabLayout = findViewById(R.id.tablayout);
+        viewPager = findViewById(R.id.viewPager);
+        final SongRepository songRepository = new SongRepositoryImpl(this);
+        allByVersionGroup.clear();
+        String versionGroup = song.getVersionGroup();
+        String uuid = song.getUuid();
+        if (versionGroup == null) {
+            versionGroup = uuid;
         }
+        if (versionGroup != null) {
+            allByVersionGroup.addAll(songRepository.findAllByVersionGroup(versionGroup));
+        }
+        final List<Song> songs = new ArrayList<>(allByVersionGroup.size());
+        songs.add(song);
+        HashMap<String, Song> hashMap = new HashMap<>(songs.size());
+        for (Song song : allByVersionGroup) {
+            if (!song.getUuid().equals(uuid)) {
+                hashMap.put(song.getUuid(), getSongFromMemory(song));
+            }
+        }
+        SongCollectionRepository songCollectionRepository = new SongCollectionRepositoryImpl(this);
+        List<SongCollection> songCollections = songCollectionRepository.findAll();
+        for (SongCollection songCollection : songCollections) {
+            for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
+                String songUuid = songCollectionElement.getSongUuid();
+                if (hashMap.containsKey(songUuid)) {
+                    Song song = hashMap.get(songUuid);
+                    song.setSongCollection(songCollection);
+                    song.setSongCollectionElement(songCollectionElement);
+                    songs.add(song);
+                    hashMap.remove(songUuid);
+                }
+            }
+        }
+        songs.addAll(hashMap.values());
+        for (Song song : songs) {
+            tabLayout.addTab(tabLayout.newTab().setText(song.getTitle()));
+        }
+        if (songs.size() == 1) {
+            tabLayout.setVisibility(View.GONE);
+        }
+        pageAdapter = new PageAdapter(getSupportFragmentManager(), tabLayout.getTabCount(), songs);
+        viewPager.setAdapter(pageAdapter);
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                int position = tab.getPosition();
+                viewPager.setCurrentItem(position);
+                song = songs.get(position);
+                memory.setPassingSong(song);
+                setToolbarTitleAndSize();
+                setUpMenu();
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
+        viewPager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
 
         final Intent fullScreenIntent = new Intent(this, FullscreenActivity.class);
         FloatingActionButton fab = findViewById(R.id.fab);
@@ -140,25 +205,7 @@ public class SongActivity extends AppCompatActivity {
                 startActivity(fullScreenIntent);
             }
         });
-
-        MyCustomAdapter dataAdapter = new MyCustomAdapter(this,
-                R.layout.content_song_verse, song.getVerses());
-        ListView listView = findViewById(R.id.listView);
-        listView.setAdapter(dataAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                fullScreenIntent.putExtra("verseIndex", position);
-                startActivity(fullScreenIntent);
-            }
-
-        });
-        if (favouriteMenuItem != null) {
-            favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
-                    R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
-        }
+        setToolbarTitleAndSize();
     }
 
     private void setToolbarTitleAndSize() {
@@ -197,9 +244,6 @@ public class SongActivity extends AppCompatActivity {
             copiedSong.setSongCollection(song.getSongCollection());
             copiedSong.setSongCollectionElement(song.getSongCollectionElement());
             startActivityForResult(intent, 2);
-        } else if (itemId == R.id.action_versions) {
-            Intent intent = new Intent(this, VersionsActivity.class);
-            startActivityForResult(intent, 1);
         } else if (itemId == R.id.action_share) {
             Intent share = new Intent(android.content.Intent.ACTION_SEND);
             share.setType("text/plain");
@@ -296,13 +340,6 @@ public class SongActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
-            case 1:
-                if (resultCode == 1) {
-                    song = memory.getPassingSong();
-                    setUpMenu();
-                    loadSongView(song);
-                }
-                break;
             case 2:
                 if (resultCode == SuggestEditsChooseActivity.LINKING) {
                     finish();
@@ -349,40 +386,6 @@ public class SongActivity extends AppCompatActivity {
         // Inflate the menu; this adds items to the action bar if it is present.
         this.menu = menu;
         setUpMenu();
-        final MenuItem versionsMenuItem = menu.findItem(R.id.action_versions);
-        versionsMenuItem.setVisible(false);
-        final SongRepository songRepository = new SongRepositoryImpl(this);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                String versionGroup = song.getVersionGroup();
-                if (versionGroup == null) {
-                    versionGroup = song.getUuid();
-                }
-                boolean was = false;
-                if (versionGroup != null) {
-                    List<Song> allByVersionGroup = songRepository.findAllByVersionGroup(versionGroup);
-                    for (Song song1 : allByVersionGroup) {
-                        if (!song1.getUuid().equals(song.getUuid())) {
-                            was = true;
-                            break;
-                        }
-                    }
-                }
-                final boolean finalWas = was;
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (finalWas) {
-                            versionsMenuItem.setVisible(true);
-                        } else {
-                            menu.removeItem(versionsMenuItem.getItemId());
-                        }
-                    }
-                });
-            }
-        });
-        thread.start();
         return true;
     }
 
@@ -475,54 +478,5 @@ public class SongActivity extends AppCompatActivity {
         intent.putExtra("addSongToSongList", true);
         memory.setPassingSong(song);
         startActivity(intent);
-    }
-
-    @SuppressWarnings("ConstantConditions")
-    private class MyCustomAdapter extends ArrayAdapter<SongVerse> {
-
-        private List<SongVerse> songVerses;
-
-        MyCustomAdapter(Context context, int textViewResourceId,
-                        List<SongVerse> songVerses) {
-            super(context, textViewResourceId, songVerses);
-            this.songVerses = new ArrayList<>();
-            this.songVerses.addAll(songVerses);
-        }
-
-        @SuppressLint({"InflateParams", "SetTextI18n"})
-        @NonNull
-        @Override
-        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-
-            MyCustomAdapter.ViewHolder holder;
-
-            if (convertView == null) {
-                LayoutInflater layoutInflater = (LayoutInflater) getSystemService(
-                        Context.LAYOUT_INFLATER_SERVICE);
-                convertView = layoutInflater.inflate(R.layout.content_song_verse, null);
-
-                holder = new MyCustomAdapter.ViewHolder();
-                holder.textView = convertView.findViewById(R.id.textView);
-                holder.chorusTextView = convertView.findViewById(R.id.chorusTextView);
-                convertView.setTag(holder);
-            } else {
-                holder = (MyCustomAdapter.ViewHolder) convertView.getTag();
-            }
-
-            SongVerse songVerse = songVerses.get(position);
-            holder.textView.setText(songVerse.getText());
-            if (!songVerse.isChorus()) {
-                holder.chorusTextView.setVisibility(View.GONE);
-            } else {
-                holder.chorusTextView.setVisibility(View.VISIBLE);
-            }
-            return convertView;
-        }
-
-        private class ViewHolder {
-            TextView textView;
-            TextView chorusTextView;
-        }
-
     }
 }

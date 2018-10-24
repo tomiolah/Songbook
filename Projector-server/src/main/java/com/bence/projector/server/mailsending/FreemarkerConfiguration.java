@@ -16,6 +16,7 @@ public class FreemarkerConfiguration extends WebMvcConfigurerAdapter {
     public static final String NEW_SONG = "newSongPage";
     public static final String NEW_SUGGESTION = "newSuggestionPage";
     public static final String NEW_SONG_LINK = "newSongLinkPage";
+    public static final String NEW_STACK = "newStackPage";
     private static final String[] CLASSPATH_RESOURCE_LOCATIONS = {"classpath:/resources/", "classpath:/static/",
             "classpath:/webapp/"};
 
