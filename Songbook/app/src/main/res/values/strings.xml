@@ -116,4 +116,5 @@
     <string name="delete">Delete</string>
     <string name="edit_song_list">Edit song list</string>
     <string name="sensor_rotate_in_fullscreen">Rotate screen</string>
+    <string name="probably_sign_in_not_works_on_your_device">Probably sign in not works on your device.</string>
 </resources>

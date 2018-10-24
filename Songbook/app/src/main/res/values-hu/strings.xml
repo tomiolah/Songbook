@@ -85,7 +85,7 @@
     <string name="privacy_policy">Adatvédelmi irányelvek</string>
     <string name="favourite">Kedvenc</string>
     <string name="press_twice_to_exit">Nyomja meg kétszer a kilépéshez</string>
-    <string name="share">Megosztás</string>
+    <string name="share">Megoszt</string>
     <string name="sign_in">Bejelentkezés</string>
     <string name="sync_in_google_drive">Szinkronizálás a Google Drive-ban</string>
     <string name="from_now_you_can_synchronize_your_favourite_songs_across_google_drive">Mostantól szinkronizálhatja kedvenc énekeit a Google Drive-on.</string>
@@ -93,7 +93,7 @@
     <string name="sign_in_with_google">Jelentkezzen be a Google-lal</string>
     <string name="sign_out">Kijelentkezés</string>
     <string name="add_to_queue">Hozzáadás a várakozási sorhoz</string>
-    <string name="clear_all">Mindent kitöröl</string>
+    <string name="clear_all">Törlés</string>
     <string name="drag">Húzza</string>
     <string name="queue">Várakozási sor</string>
     <string name="added_to_queue">Hozzáadva a várakozási sorhoz</string>
@@ -112,4 +112,5 @@
     <string name="song_lists">Éneklisták</string>
     <string name="my_library">A könyvtáram</string>
     <string name="sensor_rotate_in_fullscreen">Képernyő forgatása</string>
+    <string name="probably_sign_in_not_works_on_your_device">Valószínűleg a bejelentkezés nem működik a készülékén.</string>
 </resources>

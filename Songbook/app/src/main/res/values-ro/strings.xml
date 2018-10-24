@@ -92,7 +92,7 @@
     <string name="don_t_show_again">Nu mai afișați din nou</string>
     <string name="sign_in_with_google">Conectați-vă la Google</string>
     <string name="sign_out">Deconectați-vă</string>
-    <string name="clear_all">Șterge tot</string>
+    <string name="clear_all">Șterge</string>
     <string name="drag">Trage</string>
     <string name="search_in_verses">Căutați în versuri</string>
     <string name="add_to_queue">Adăugați la coadă</string>
@@ -112,4 +112,5 @@
     <string name="song_lists">Liste de cântece</string>
     <string name="my_library">Biblioteca mea</string>
     <string name="sensor_rotate_in_fullscreen">Rotiți ecranul</string>
+    <string name="probably_sign_in_not_works_on_your_device">Probabil logarea nu funcționează pe dispozitivul dvs.</string>
 </resources>

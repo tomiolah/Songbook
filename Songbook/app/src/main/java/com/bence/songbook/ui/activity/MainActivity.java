@@ -218,7 +218,6 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         int queueIndex = sharedPreferences.getInt("queueIndex", -1);
         memory.setQueueIndex(queueIndex, this);
-        queueListView.setListener(null);
         queueListView = findViewById(R.id.queueList);
         queueListView.setOnTouchListener(new ListView.OnTouchListener() {
             @Override
@@ -1411,6 +1410,10 @@ public class MainActivity extends AppCompatActivity
             if (!gSignIn) {
                 googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), true);
                 if (googleSignInPopupWindow != null) {
+                    if (alreadyTried) {
+                        View viewById = googleSignInPopupWindow.getContentView().findViewById(R.id.notWorksTextView);
+                        viewById.setVisibility(View.VISIBLE);
+                    }
                     googleSignInPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
                 }
             } else {
@@ -1665,7 +1668,9 @@ public class MainActivity extends AppCompatActivity
                         sparseArray.put(id, song);
                     }
                 }
-                songs.add(song);
+                if (song != null) {
+                    songs.add(song);
+                }
             }
         }
         HashMap<String, Song> hashMap = new HashMap<>();

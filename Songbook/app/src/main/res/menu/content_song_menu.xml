@@ -23,12 +23,6 @@
         android:title="@string/favourite"
         app:showAsAction="always" />
     <item
-        android:id="@+id/action_versions"
-        android:icon="@drawable/ic_versions"
-        android:orderInCategory="10"
-        android:title="@string/versions"
-        app:showAsAction="ifRoom" />
-    <item
         android:id="@+id/action_add_to_queue"
         android:icon="@drawable/ic_queue_black_24dp"
         android:orderInCategory="11"
