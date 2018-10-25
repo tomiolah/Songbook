@@ -170,7 +170,7 @@ public class SongActivity extends AppCompatActivity {
         if (songs.size() == 1) {
             tabLayout.setVisibility(View.GONE);
         }
-        pageAdapter = new PageAdapter(getSupportFragmentManager(), tabLayout.getTabCount(), songs);
+        pageAdapter = new PageAdapter(getSupportFragmentManager(), songs);
         viewPager.setAdapter(pageAdapter);
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
