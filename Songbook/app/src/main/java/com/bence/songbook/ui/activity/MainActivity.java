@@ -23,9 +23,13 @@ import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.LinearSmoothScroller;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.util.LongSparseArray;
@@ -44,6 +48,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupWindow;
@@ -79,6 +84,7 @@ import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.ui.utils.DynamicListView;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
+import com.bence.songbook.ui.utils.MainPageAdapter;
 import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.ui.utils.QueueSongAdapter;
 import com.bence.songbook.ui.utils.SyncFavouriteInGoogleDrive;
@@ -100,6 +106,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
 import static com.bence.songbook.ui.activity.SongActivity.showGoogleSignIn;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
@@ -122,7 +129,7 @@ public class MainActivity extends AppCompatActivity
     private PopupWindow selectLanguagePopupWindow;
     private MainActivity mainActivity;
     private List<Language> languages;
-    private ListView songListView;
+    private RecyclerView songListView;
     private PopupWindow sortPopupWindow;
     private int sortMethod;
     private PopupWindow collectionPopupWindow;
@@ -154,6 +161,10 @@ public class MainActivity extends AppCompatActivity
     private PopupWindow addDuplicatesPopupWindow;
     private PopupWindow addSongListLinkPopupWindow;
     private boolean alreadyTried;
+    private ViewPager viewPager;
+    private int view_mode;
+    private MainPageAdapter pageAdapter;
+    private int firstVisibleItemPosition;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -323,7 +334,30 @@ public class MainActivity extends AppCompatActivity
 
         initPreferences();
         memory.setMainActivity(this);
-        songListView = findViewById(R.id.listView);
+        songListView = findViewById(R.id.songListView);
+        CenterLayoutManager layoutManager = new CenterLayoutManager(this);
+        layoutManager.setOrientation(CenterLayoutManager.VERTICAL);
+        songListView.setLayoutManager(layoutManager);
+        songListView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == SCROLL_STATE_IDLE) {
+                    CenterLayoutManager manager = (CenterLayoutManager) songListView.getLayoutManager();
+                    firstVisibleItemPosition = manager.findFirstCompletelyVisibleItemPosition();
+                }
+            }
+        });
+        viewPager = findViewById(R.id.viewPager);
+        viewPager.setOffscreenPageLimit(1);
+        viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                songListView.smoothScrollToPosition(position);
+                hideKeyboard();
+            }
+        });
         mainActivity = this;
         linearLayout = findViewById(R.id.mainLinearLayout);
         languageRepository = new LanguageRepositoryImpl(getApplicationContext());
@@ -433,6 +467,10 @@ public class MainActivity extends AppCompatActivity
             parseAppLink(appLinkData);
         }
         syncDatabase();
+        setView();
+        if (memory.getQueue().size() < 1) {
+            hideBottomSheet();
+        }
     }
 
     @SuppressLint("ShowToast")
@@ -825,6 +863,7 @@ public class MainActivity extends AppCompatActivity
                     values.clear();
                     values.add(songs.get(songs.size() - 1));
                     adapter.setSongList(values);
+                    pageAdapter.notifyDataSetChanged();
                 }
                 break;
             case REQUEST_CODE_SIGN_IN:
@@ -849,7 +888,7 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
         }
-        songListView.invalidateViews();
+        adapter.notifyDataSetChanged();
         queueListView.invalidateViews();
     }
 
@@ -964,8 +1003,32 @@ public class MainActivity extends AppCompatActivity
             sortSongs(songs);
             values = new ArrayList<>();
             values.addAll(songs);
-            adapter = new SongAdapter(this, R.layout.content_song_list_row, values);
+            adapter = new SongAdapter(values, new OnItemClickListener() {
+                @Override
+                public void onItemClick(Song song, int position) {
+                    if (view_mode == 0) {
+                        showSongFullscreen(song);
+                    } else {
+                        if (viewPager.getCurrentItem() == position) {
+                            showSongFullscreen(song);
+                        } else {
+                            viewPager.setCurrentItem(position);
+                        }
+                    }
+                }
 
+                @Override
+                public void onLongClick(Song song, int position) {
+                    QueueSong queueSong = new QueueSong();
+                    queueSong.setSong(song);
+                    memory.addSongToQueue(queueSong);
+                    queueSongRepository.save(queueSong);
+                    queueListView.invalidateViews();
+                    showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
+                }
+            });
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            view_mode = sharedPreferences.getInt("view_mode", 0);
             QueueSongAdapter queueSongAdapter = new QueueSongAdapter(this, R.layout.list_row, memory.getQueue(), new Listener() {
                 @Override
                 public void onGrab(int position, LinearLayout row) {
@@ -990,8 +1053,8 @@ public class MainActivity extends AppCompatActivity
                 }
 
             });
+            songListView.setHasFixedSize(true);
             songListView.setAdapter(adapter);
-            titleSearch("");
             songListView.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
@@ -1001,28 +1064,11 @@ public class MainActivity extends AppCompatActivity
                     return false;
                 }
             });
-            songListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view,
-                                        int position, long id) {
-                    Song tmp = values.get(position);
-                    showSongFullscreen(tmp);
-                }
-
-            });
-            songListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                    QueueSong queueSong = new QueueSong();
-                    queueSong.setSong(values.get(position));
-                    memory.addSongToQueue(queueSong);
-                    queueSongRepository.save(queueSong);
-                    queueListView.invalidateViews();
-                    showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
-                    return true;
-                }
-            });
+            if (view_mode == 1) {
+                pageAdapter = new MainPageAdapter(getSupportFragmentManager(), values);
+                viewPager.setAdapter(pageAdapter);
+            }
+            search(lastSearchedText, adapter);
         }
     }
 
@@ -1033,6 +1079,9 @@ public class MainActivity extends AppCompatActivity
             titleSearch(text);
         }
         adapter.setSongList(values);
+        if (pageAdapter != null) {
+            pageAdapter.notifyDataSetChanged();
+        }
     }
 
     public void titleSearch(String title) {
@@ -1787,6 +1836,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 languageRepository.save(languages);
                 filter();
+                lastSearchedText = "";
                 loadAll();
                 selectLanguagePopupWindow.dismiss();
                 filterPopupWindow.dismiss();
@@ -2035,8 +2085,62 @@ public class MainActivity extends AppCompatActivity
         startActivity(intent);
     }
 
+    public void onChangeViewButtonClick(View view) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        view_mode = sharedPreferences.getInt("view_mode", 0);
+        switch (view_mode) {
+            case 0:
+                sharedPreferences.edit().putInt("view_mode", 1).apply();
+                break;
+            case 1:
+                sharedPreferences.edit().putInt("view_mode", 0).apply();
+                break;
+        }
+        loadAll();
+        setView();
+    }
+
+    private void setView() {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+        int view_mode = sharedPreferences.getInt("view_mode", 0);
+        ImageView changeViewButton = findViewById(R.id.changeViewButton);
+        CenterLayoutManager layoutManager = (CenterLayoutManager) songListView.getLayoutManager();
+        switch (view_mode) {
+            case 0:
+                if (viewPager != null) {
+                    int currentItem = viewPager.getCurrentItem();
+                    if (currentItem >= 0 && values.size() > currentItem) {
+                        songListView.scrollToPosition(currentItem);
+                    }
+                }
+                changeViewButton.setImageResource(R.drawable.ic_view_array_black_24dp);
+                findViewById(R.id.array_view).setVisibility(View.GONE);
+                layoutManager.setOrientation(CenterLayoutManager.VERTICAL);
+                break;
+            case 1:
+                if (songListView != null) {
+                    int position = firstVisibleItemPosition;
+                    if (position >= 0 && values.size() > position) {
+                        viewPager.setCurrentItem(position);
+                        songListView.scrollToPosition(position);
+                        songListView.smoothScrollToPosition(position);
+                    }
+                }
+                changeViewButton.setImageResource(R.drawable.ic_view_headline_black_24dp);
+                findViewById(R.id.array_view).setVisibility(View.VISIBLE);
+                layoutManager.setOrientation(CenterLayoutManager.HORIZONTAL);
+                break;
+        }
+    }
+
     public interface Listener {
         void onGrab(int position, LinearLayout row);
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(Song song, int position);
+
+        void onLongClick(Song song, int position);
     }
 
     private class LanguageAdapter extends ArrayAdapter<Language> {
@@ -2156,40 +2260,71 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private class SongAdapter extends ArrayAdapter<Song> {
+    class MyViewHolder extends RecyclerView.ViewHolder {
 
-        private List<Song> songList;
+        TextView ordinalNumberTextView;
+        TextView titleTextView;
+        View imageView;
+        View parentLayout;
 
-        SongAdapter(Context context, int textViewResourceId,
-                    List<Song> songList) {
-            super(context, textViewResourceId, songList);
-            this.songList = new ArrayList<>();
-            this.songList.addAll(songList);
+        MyViewHolder(View v) {
+            super(v);
+            titleTextView = v.findViewById(R.id.titleTextView);
+            ordinalNumberTextView = v.findViewById(R.id.ordinalNumberTextView);
+            titleTextView = v.findViewById(R.id.titleTextView);
+            imageView = v.findViewById(R.id.starImageView);
+            parentLayout = v.findViewById(R.id.parentLayout);
         }
 
-        @SuppressLint({"InflateParams", "SetTextI18n"})
-        @SuppressWarnings("ConstantConditions")
+        void bind(final Song song, final OnItemClickListener listener, final int position) {
+            parentLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onItemClick(song, position);
+                }
+            });
+            parentLayout.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    listener.onLongClick(song, position);
+                    return true;
+                }
+            });
+        }
+    }
+
+    private class SongAdapter extends RecyclerView.Adapter<MyViewHolder> {
+
+        private final OnItemClickListener listener;
+        private List<Song> songList;
+
+        SongAdapter(List<Song> songList, OnItemClickListener onItemClickListener) {
+            this.songList = new ArrayList<>();
+            this.songList.addAll(songList);
+            this.listener = onItemClickListener;
+        }
+
         @NonNull
         @Override
-        public View getView(final int position, View convertView, @NonNull ViewGroup parent) {
+        public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            // create a new view
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.content_song_list_row, parent, false);
+            return new MyViewHolder(view);
+        }
 
-            SongAdapter.ViewHolder holder;
-
-            if (convertView == null) {
-                LayoutInflater layoutInflater = (LayoutInflater) getSystemService(
-                        Context.LAYOUT_INFLATER_SERVICE);
-                convertView = layoutInflater.inflate(R.layout.content_song_list_row, null);
-
-                holder = new SongAdapter.ViewHolder();
-                holder.ordinalNumberTextView = convertView.findViewById(R.id.ordinalNumberTextView);
-                holder.titleTextView = convertView.findViewById(R.id.titleTextView);
-                holder.imageView = convertView.findViewById(R.id.starImageView);
-                convertView.setTag(holder);
+        @Override
+        public void onBindViewHolder(@NonNull final MyViewHolder holder, int position) {
+            View parentLayout = holder.parentLayout;
+            LayoutParams layoutParams = parentLayout.getLayoutParams();
+            if (view_mode == 0) {
+                layoutParams.width = LayoutParams.MATCH_PARENT;
             } else {
-                holder = (SongAdapter.ViewHolder) convertView.getTag();
+                layoutParams.width = LayoutParams.WRAP_CONTENT;
             }
-
+            parentLayout.setLayoutParams(layoutParams);
             Song song = songList.get(position);
+            holder.bind(song, listener, position);
             holder.imageView.setVisibility(song.isFavourite() ? View.VISIBLE : View.INVISIBLE);
             SongCollection songCollection = song.getSongCollection();
             if (songCollection != null) {
@@ -2204,13 +2339,11 @@ public class MainActivity extends AppCompatActivity
             }
             holder.titleTextView.setText(song.getTitle());
             holder.titleTextView.setTag(song);
-
-            return convertView;
         }
 
         @Override
-        public void notifyDataSetChanged() {
-            super.notifyDataSetChanged();
+        public int getItemCount() {
+            return songList.size();
         }
 
         void setSongList(List<Song> songs) {
@@ -2219,11 +2352,31 @@ public class MainActivity extends AppCompatActivity
             this.notifyDataSetChanged();
         }
 
-        private class ViewHolder {
-            TextView ordinalNumberTextView;
-            TextView titleTextView;
-            View imageView;
+    }
+
+    public class CenterLayoutManager extends LinearLayoutManager {
+
+        CenterLayoutManager(Context context) {
+            super(context);
         }
 
+        @Override
+        public void smoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state, int position) {
+            RecyclerView.SmoothScroller smoothScroller = new CenterSmoothScroller(recyclerView.getContext());
+            smoothScroller.setTargetPosition(position);
+            startSmoothScroll(smoothScroller);
+        }
+
+        private class CenterSmoothScroller extends LinearSmoothScroller {
+
+            CenterSmoothScroller(Context context) {
+                super(context);
+            }
+
+            @Override
+            public int calculateDtToFit(int viewStart, int viewEnd, int boxStart, int boxEnd, int snapPreference) {
+                return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2);
+            }
+        }
     }
 }

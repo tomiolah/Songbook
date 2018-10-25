@@ -113,4 +113,5 @@
     <string name="my_library">Biblioteca mea</string>
     <string name="sensor_rotate_in_fullscreen">Rotiți ecranul</string>
     <string name="probably_sign_in_not_works_on_your_device">Probabil logarea nu funcționează pe dispozitivul dvs.</string>
+    <string name="change_view">Schimbă privirea</string>
 </resources>

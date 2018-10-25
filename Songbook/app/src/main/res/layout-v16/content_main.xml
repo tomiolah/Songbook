@@ -12,11 +12,10 @@
         android:id="@+id/mainLinearLayout"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginLeft="8dp"
-        android:layout_marginRight="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginLeft="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginRight="8dp"
         android:orientation="vertical"
         android:weightSum="1"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -28,43 +27,59 @@
         tools:layout_constraintRight_creator="1"
         tools:layout_constraintTop_creator="1">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="40dp">
+            android:layout_height="40dp"
+            android:layout_marginBottom="2dp"
+            android:weightSum="1.0">
 
             <Button
                 android:id="@+id/sortButton"
                 style="@style/Base.Widget.AppCompat.ActionButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.45"
+                android:gravity="left|center"
                 android:onClick="onSortButtonClick"
                 android:text="@string/sort"
-                android:textAllCaps="false" />
+                android:textAllCaps="false"
+                tools:ignore="RtlHardcoded" />
 
             <Button
                 android:id="@+id/filterButton"
                 style="@style/Base.Widget.AppCompat.ActionButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentTop="true"
+                android:layout_weight="0.45"
                 android:gravity="end|center"
                 android:onClick="onFilterButtonClick"
                 android:text="@string/filter"
                 android:textAllCaps="false"
                 tools:ignore="RelativeOverlap" />
-        </RelativeLayout>
 
-        <ListView
-            android:id="@+id/listView"
+            <ImageView
+                android:id="@+id/changeViewButton"
+                style="@style/Base.Widget.AppCompat.ActionButton"
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:layout_weight="0.10"
+                android:contentDescription="@string/change_view"
+                android:drawablePadding="5dp"
+                android:gravity="end|center"
+                android:onClick="onChangeViewButtonClick"
+                app:srcCompat="@drawable/ic_view_array_black_24dp"
+                tools:ignore="RelativeOverlap" />
+        </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/songListView"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginEnd="8dp"
-            android:layout_marginLeft="8dp"
-            android:layout_marginRight="8dp"
+            android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
             android:layout_marginTop="7dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -72,5 +87,22 @@
             tools:layout_constraintLeft_creator="1"
             tools:layout_constraintRight_creator="1"
             tools:layout_constraintTop_creator="1" />
+
+        <LinearLayout
+            android:id="@+id/array_view"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="7dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:orientation="vertical">
+
+            <android.support.v4.view.ViewPager
+                android:id="@+id/viewPager"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

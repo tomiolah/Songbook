@@ -6,15 +6,15 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 import com.bence.songbook.models.Song;
-import com.bence.songbook.ui.fragment.SongFragment;
+import com.bence.songbook.ui.fragment.MainSongFragment;
 
 import java.util.List;
 
-public class PageAdapter extends FragmentStatePagerAdapter {
+public class MainPageAdapter extends FragmentStatePagerAdapter {
 
     private List<Song> songs;
 
-    public PageAdapter(FragmentManager fm, List<Song> songs) {
+    public MainPageAdapter(FragmentManager fm, List<Song> songs) {
         super(fm);
         this.songs = songs;
     }
@@ -25,9 +25,9 @@ public class PageAdapter extends FragmentStatePagerAdapter {
             return null;
         }
         if (songs.size() > position) {
-            return new SongFragment().setSong(songs.get(position));
+            return new MainSongFragment().setSong(songs.get(position));
         }
-        return new SongFragment();
+        return new MainSongFragment();
     }
 
     @Override
