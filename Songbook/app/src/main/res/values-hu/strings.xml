@@ -114,4 +114,5 @@
     <string name="sensor_rotate_in_fullscreen">Képernyő forgatása</string>
     <string name="probably_sign_in_not_works_on_your_device">Valószínűleg a bejelentkezés nem működik a készülékén.</string>
     <string name="change_view">Válts nézetet</string>
+    <string name="relevance">Relevancia</string>
 </resources>

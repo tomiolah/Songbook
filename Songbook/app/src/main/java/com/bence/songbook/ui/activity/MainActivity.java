@@ -106,6 +106,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static android.support.v7.widget.RecyclerView.SCROLL_STATE_DRAGGING;
 import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
 import static com.bence.songbook.ui.activity.SongActivity.showGoogleSignIn;
@@ -118,7 +119,7 @@ public class MainActivity extends AppCompatActivity
     private final Memory memory = Memory.getInstance();
     private final int DOWNLOAD_SONGS_REQUEST_CODE = 1;
     private List<Song> songs;
-    private List<Song> values;
+    private List<Song> values = new ArrayList<>();
     private String lastSearchedText = "";
     private Thread loadSongVersesThread;
     private Toast searchInSongTextIsAvailableToast;
@@ -161,6 +162,7 @@ public class MainActivity extends AppCompatActivity
     private PopupWindow addDuplicatesPopupWindow;
     private PopupWindow addSongListLinkPopupWindow;
     private boolean alreadyTried;
+    private boolean alreadyTried2;
     private ViewPager viewPager;
     private int view_mode;
     private MainPageAdapter pageAdapter;
@@ -315,6 +317,7 @@ public class MainActivity extends AppCompatActivity
                 if (memory.getQueue().size() > 0) {
                     if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_HIDDEN) {
                         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        setBottomSheetPadding();
                     }
                     bottomSheetBehavior.setHideable(false);
                     bottomSheetBehavior.setSkipCollapsed(false);
@@ -328,6 +331,7 @@ public class MainActivity extends AppCompatActivity
                     if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
                         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                     }
+                    linearLayout.setPadding(0, 0, 0, 0);
                 }
             }
         });
@@ -355,7 +359,14 @@ public class MainActivity extends AppCompatActivity
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
                 songListView.smoothScrollToPosition(position);
-                hideKeyboard();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                super.onPageScrollStateChanged(state);
+                if (state == SCROLL_STATE_DRAGGING) {
+                    hideKeyboard();
+                }
             }
         });
         mainActivity = this;
@@ -471,6 +482,11 @@ public class MainActivity extends AppCompatActivity
         if (memory.getQueue().size() < 1) {
             hideBottomSheet();
         }
+    }
+
+    private void setBottomSheetPadding() {
+        int paddingDp = (int) getResources().getDimension(R.dimen.bottom_sheet_peek_height);
+        linearLayout.setPadding(0, 0, 0, paddingDp);
     }
 
     @SuppressLint("ShowToast")
@@ -766,6 +782,14 @@ public class MainActivity extends AppCompatActivity
                 syncInBackground.sync(getApplicationContext());
                 sharedPreferences.edit().putLong(syncDateTime, date.getTime()).apply();
             }
+            syncDateTime = "lastViewsSyncDateTime";
+            lastSyncDateTime = sharedPreferences.getLong(syncDateTime, 0);
+            long i = 1000L * 60L * 60L * 24L * 30L;
+            if (date.getTime() - i > lastSyncDateTime) {
+                SyncInBackground syncInBackground = SyncInBackground.getInstance();
+                syncInBackground.syncViews(getApplicationContext());
+                sharedPreferences.edit().putLong(syncDateTime, date.getTime()).apply();
+            }
         }
         if (sharedPreferences.getBoolean("YoutubeUrl", true)) {
             SyncInBackground syncInBackground = SyncInBackground.getInstance();
@@ -786,7 +810,12 @@ public class MainActivity extends AppCompatActivity
 
     private void initPreferences() {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        sortMethod = sharedPreferences.getInt("sortMethod", 5);
+        sortMethod = sharedPreferences.getInt("sortMethod", 7);
+        if (!sharedPreferences.getBoolean("wasRelevanceSort", false)) {
+            sharedPreferences.edit().putBoolean("wasRelevanceSort", true).apply();
+            sortMethod = 7;
+            sharedPreferences.edit().putInt("sortMethod", sortMethod).apply();
+        }
         reverseSortMethod = sharedPreferences.getBoolean("reverseSortMethod", false);
         shortCollectionName = sharedPreferences.getBoolean("shortCollectionName", false);
     }
@@ -1029,12 +1058,18 @@ public class MainActivity extends AppCompatActivity
             });
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
             view_mode = sharedPreferences.getInt("view_mode", 0);
-            QueueSongAdapter queueSongAdapter = new QueueSongAdapter(this, R.layout.list_row, memory.getQueue(), new Listener() {
+            List<QueueSong> queue = memory.getQueue();
+            QueueSongAdapter queueSongAdapter = new QueueSongAdapter(this, R.layout.list_row, queue, new Listener() {
                 @Override
                 public void onGrab(int position, LinearLayout row) {
                     queueListView.onGrab(position, row);
                 }
             }, shortCollectionName);
+            if (queue.size() < 1) {
+                linearLayout.setPadding(0, 0, 0, 0);
+            } else {
+                setBottomSheetPadding();
+            }
 
             queueListView.setAdapter(queueSongAdapter);
             queueListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -1085,6 +1120,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void titleSearch(String title) {
+        memory.setLastSearchedInText(null);
         values.clear();
         String text = title.toLowerCase();
         String stripped = stripAccents(text);
@@ -1201,6 +1237,7 @@ public class MainActivity extends AppCompatActivity
         }
         values.clear();
         String text = stripAccents(title.toLowerCase());
+        memory.setLastSearchedInText(text);
         for (int i = 0; i < songs.size(); ++i) {
             Song song = songs.get(i);
             boolean contains = song.getStrippedTitle().contains(text);
@@ -1226,7 +1263,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void sortSongs(List<Song> all) {
-        if (sortMethod == 0) {
+        if (sortMethod == 7) {
+            Collections.sort(all, new Comparator<Song>() {
+                @Override
+                public int compare(Song lhs, Song rhs) {
+                    Integer scoreL = lhs.getScore();
+                    Integer scoreR = rhs.getScore();
+                    if (scoreL.equals(scoreR)) {
+                        return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
+                    }
+                    return scoreR.compareTo(scoreL);
+                }
+            });
+        } else if (sortMethod == 0) {
             Collections.sort(all, new Comparator<Song>() {
                 @Override
                 public int compare(Song lhs, Song rhs) {
@@ -1298,22 +1347,22 @@ public class MainActivity extends AppCompatActivity
             drawer.closeDrawer(GravityCompat.START);
         } else if (sortPopupWindow != null && sortPopupWindow.isShowing()) {
             sortPopupWindow.dismiss();
-        } else if (saveQueuePopupWindow != null && saveQueuePopupWindow.isShowing()) {
-            saveQueuePopupWindow.dismiss();
-        } else if (addDuplicatesPopupWindow != null && addDuplicatesPopupWindow.isShowing()) {
-            addDuplicatesPopupWindow.dismiss();
-        } else if (addSongListLinkPopupWindow != null && addSongListLinkPopupWindow.isShowing()) {
-            addSongListLinkPopupWindow.dismiss();
-        } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
-            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else if (selectLanguagePopupWindow != null && selectLanguagePopupWindow.isShowing()) {
             selectLanguagePopupWindow.dismiss();
         } else if (collectionPopupWindow != null && collectionPopupWindow.isShowing()) {
             collectionPopupWindow.dismiss();
         } else if (filterPopupWindow != null && filterPopupWindow.isShowing()) {
             filterPopupWindow.dismiss();
+        } else if (saveQueuePopupWindow != null && saveQueuePopupWindow.isShowing()) {
+            saveQueuePopupWindow.dismiss();
+        } else if (addDuplicatesPopupWindow != null && addDuplicatesPopupWindow.isShowing()) {
+            addDuplicatesPopupWindow.dismiss();
+        } else if (addSongListLinkPopupWindow != null && addSongListLinkPopupWindow.isShowing()) {
+            addSongListLinkPopupWindow.dismiss();
         } else if (googleSignInPopupWindow != null && googleSignInPopupWindow.isShowing()) {
             googleSignInPopupWindow.dismiss();
+        } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
+            bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else {
             Date now = new Date();
             int interval = 777;
@@ -1459,7 +1508,7 @@ public class MainActivity extends AppCompatActivity
             if (!gSignIn) {
                 googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), true);
                 if (googleSignInPopupWindow != null) {
-                    if (alreadyTried) {
+                    if (alreadyTried2) {
                         View viewById = googleSignInPopupWindow.getContentView().findViewById(R.id.notWorksTextView);
                         viewById.setVisibility(View.VISIBLE);
                     }
@@ -1500,7 +1549,9 @@ public class MainActivity extends AppCompatActivity
         );
         final Switch reverseSwitch = customView.findViewById(R.id.reverseSwitch);
         RadioGroup radioGroup = customView.findViewById(R.id.radioSort);
-        if (sortMethod == 0) {
+        if (sortMethod == 7) {
+            radioGroup.check(R.id.relevanceRadioButton);
+        } else if (sortMethod == 0) {
             radioGroup.check(R.id.modifiedDateRadioButton);
         } else if (sortMethod == 1) {
             radioGroup.check(R.id.byTitleRadioButton);
@@ -1534,7 +1585,9 @@ public class MainActivity extends AppCompatActivity
         radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if (checkedId == R.id.modifiedDateRadioButton) {
+                if (checkedId == R.id.relevanceRadioButton) {
+                    sortMethod = 7;
+                } else if (checkedId == R.id.modifiedDateRadioButton) {
                     sortMethod = 0;
                 } else if (checkedId == R.id.byTitleRadioButton) {
                     sortMethod = 1;
@@ -1916,6 +1969,7 @@ public class MainActivity extends AppCompatActivity
         }, this, songs, favouriteSongs);
         syncFavouriteInGoogleDrive.signIn();
         googleSignInPopupWindow.dismiss();
+        alreadyTried2 = true;
     }
 
     private void showToaster(String s, int lengthLong) {
@@ -1928,6 +1982,7 @@ public class MainActivity extends AppCompatActivity
         memory.getQueue().clear();
         queueListView.invalidateViews();
         hideBottomSheet();
+        linearLayout.setPadding(0, 0, 0, 0);
     }
 
     private void hideBottomSheet() {

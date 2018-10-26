@@ -4,12 +4,14 @@ import android.content.Context;
 import android.util.Log;
 import android.widget.ProgressBar;
 
+import com.bence.projector.common.dto.SongViewsDTO;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.SongRepository;
 import com.bence.songbook.repository.SongVerseRepository;
 import com.bence.songbook.repository.exception.RepositoryException;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.misc.TransactionManager;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -18,6 +20,7 @@ import java.util.concurrent.Callable;
 
 public class SongRepositoryImpl extends AbstractRepository<Song> implements SongRepository {
     private static final String TAG = SongRepositoryImpl.class.getSimpleName();
+    private final DatabaseHelper databaseHelper;
 
     private Dao<Song, Long> songDao;
     private SongVerseRepository songVerseRepository;
@@ -26,6 +29,7 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
         super(Song.class);
         try {
             DatabaseHelper databaseHelper = DatabaseHelper.getInstance(context);
+            this.databaseHelper = databaseHelper;
             songDao = databaseHelper.getSongDao();
             super.setDao(songDao);
             songVerseRepository = new SongVerseRepositoryImpl(context);
@@ -80,7 +84,7 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
         try {
             songDao.callBatchTasks(
                     new Callable<Void>() {
-                        public Void call() throws SQLException {
+                        public Void call() {
                             for (final Song song : songs) {
                                 save(song);
                             }
@@ -103,7 +107,7 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
         try {
             songDao.callBatchTasks(
                     new Callable<Void>() {
-                        public Void call() throws SQLException {
+                        public Void call() {
                             int i = 0;
                             for (final Song song : newSongs) {
                                 save(song);
@@ -155,6 +159,30 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
             Log.e(TAG, msg);
             throw new RepositoryException(msg, e);
         } catch (Exception e) {
+            Log.e(TAG, msg);
+            throw new RepositoryException(msg, e);
+        }
+    }
+
+    @Override
+    public void saveViews(final List<SongViewsDTO> songViewsDTOS) {
+        try {
+            TransactionManager.callInTransaction(databaseHelper.getConnectionSource(),
+                    new Callable<Void>() {
+                        @Override
+                        public Void call() throws Exception {
+                            if (songViewsDTOS.size() > 0) {
+                                for (SongViewsDTO verseIndex : songViewsDTOS) {
+                                    songDao.executeRaw("UPDATE song SET views = "
+                                            + verseIndex.getViews()
+                                            + " WHERE uuid = '" + verseIndex.getUuid() + "'");
+                                }
+                            }
+                            return null;
+                        }
+                    });
+        } catch (SQLException e) {
+            String msg = "Could not save verseIndices";
             Log.e(TAG, msg);
             throw new RepositoryException(msg, e);
         }

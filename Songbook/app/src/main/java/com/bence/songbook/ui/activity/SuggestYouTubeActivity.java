@@ -257,6 +257,7 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
             ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
             if (clipboard != null) {
                 try {
+                    @SuppressWarnings("ConstantConditions")
                     ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
                     CharSequence pasteData = item.getText();
                     if (pasteData != null) {
@@ -277,5 +278,9 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
 
     protected YouTubePlayer.Provider getYouTubePlayerProvider() {
         return youTubeView;
+    }
+
+    public void onBackButtonClick(View view) {
+        finish();
     }
 }

@@ -781,10 +781,15 @@ public class SongController {
         int matchCount = 0;
         char[] chars = text.toCharArray();
         StringBuilder tmp = new StringBuilder();
-        for (char c : chars) {
+        int whitespaceCount = 0;
+        for (int i = 0; i < chars.length; ++i) {
+            char c = chars[i];
             String s1 = stripAccents((c + "").toLowerCase());
             if (!s1.isEmpty()) {
                 if (s1.charAt(0) == lastSearch[matchCount]) {
+                    if (matchCount == 0) {
+                        whitespaceCount = 0;
+                    }
                     ++matchCount;
                     if (matchCount == lastSearch.length) {
                         matchCount = 0;
@@ -793,10 +798,16 @@ public class SongController {
                         continue;
                     }
                 } else {
-                    matchCount = 0;
-                    s.append(tmp);
-                    tmp = new StringBuilder();
+                    if (matchCount > 0) {
+                        i -= matchCount + whitespaceCount;
+                        s.append(chars[i]);
+                        matchCount = 0;
+                        tmp = new StringBuilder();
+                        continue;
+                    }
                 }
+            } else {
+                ++whitespaceCount;
             }
             if (matchCount == 0) {
                 s.append(c);

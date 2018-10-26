@@ -2,6 +2,7 @@ package com.bence.songbook.ui.fragment;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -9,6 +10,8 @@ import android.support.v7.app.AppCompatDelegate;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -66,6 +69,26 @@ public abstract class BaseSongFragment extends Fragment {
             }
 
         });
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView v, int scrollState) {
+                if (scrollState == SCROLL_STATE_TOUCH_SCROLL) {
+                    @SuppressWarnings("ConstantConditions")
+                    View view = BaseSongFragment.this.getActivity().getCurrentFocus();
+                    if (view != null) {
+                        InputMethodManager imm = (InputMethodManager) BaseSongFragment.this.getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
+                        if (imm != null) {
+                            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+
+            }
+        });
     }
 
     public Fragment setSong(Song song) {
@@ -77,6 +100,24 @@ public abstract class BaseSongFragment extends Fragment {
     }
 
     protected abstract void onSongVerseClick(int position);
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        try {
+            LayoutInflater inflater = LayoutInflater.from(getActivity());
+            ViewGroup viewGroup = (ViewGroup) getView();
+            if (viewGroup != null) {
+                viewGroup.removeAllViewsInLayout();
+                View view = onCreateView(inflater, viewGroup, null);
+                viewGroup.addView(view);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    protected abstract void setText(SongVerse songVerse, TextView textView);
 
     @SuppressWarnings("ConstantConditions")
     private class MyCustomAdapter extends ArrayAdapter<SongVerse> {
@@ -111,7 +152,7 @@ public abstract class BaseSongFragment extends Fragment {
             }
 
             SongVerse songVerse = songVerses.get(position);
-            holder.textView.setText(songVerse.getText());
+            setText(songVerse, holder.textView);
             if (!songVerse.isChorus()) {
                 holder.chorusTextView.setVisibility(View.GONE);
             } else {

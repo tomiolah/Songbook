@@ -40,6 +40,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             song.setCreatedByEmail(songDTO.getCreatedByEmail());
             song.setVersionGroup(songDTO.getVersionGroup());
             song.setYoutubeUrl(songDTO.getYoutubeUrl());
+            song.setViews(songDTO.getViews());
         }
         return song;
     }
