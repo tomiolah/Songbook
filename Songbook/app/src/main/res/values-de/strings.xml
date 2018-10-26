@@ -114,5 +114,6 @@
     <string name="sensor_rotate_in_fullscreen">Bildschirm drehen</string>
     <string name="probably_sign_in_not_works_on_your_device">Wahrscheinlich funktioniert die Anmeldung nicht auf Ihrem Gerät.</string>
     <string name="change_view">Ansicht ändern</string>
+    <string name="relevance">Relevanz</string>
 </resources>
 

@@ -61,6 +61,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.Task;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -165,6 +167,23 @@ public class SongActivity extends AppCompatActivity {
             }
         }
         songs.addAll(hashMap.values());
+        Collections.sort(songs, new Comparator<Song>() {
+            @Override
+            public int compare(Song lhs, Song rhs) {
+                Integer scoreL = lhs.getScore();
+                if (lhs.getLanguage().getId().equals(song.getLanguage().getId())) {
+                    scoreL += 1;
+                }
+                Integer scoreR = rhs.getScore();
+                if (rhs.getLanguage().getId().equals(song.getLanguage().getId())) {
+                    scoreR += 1;
+                }
+                if (scoreL.equals(scoreR)) {
+                    return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
+                }
+                return scoreR.compareTo(scoreL);
+            }
+        });
         for (Song song : songs) {
             tabLayout.addTab(tabLayout.newTab().setText(song.getTitle()));
         }
@@ -173,6 +192,10 @@ public class SongActivity extends AppCompatActivity {
         }
         pageAdapter = new PageAdapter(getSupportFragmentManager(), songs);
         viewPager.setAdapter(pageAdapter);
+
+        int position = songs.indexOf(song);
+        viewPager.setCurrentItem(position, true);
+        tabLayout.setScrollPosition(position, 0f, true);
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override

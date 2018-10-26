@@ -2,6 +2,7 @@ package com.bence.songbook.api.retrofit;
 
 import com.bence.projector.common.dto.SongDTO;
 import com.bence.projector.common.dto.SongTitleDTO;
+import com.bence.projector.common.dto.SongViewsDTO;
 
 import java.util.List;
 
@@ -39,4 +40,7 @@ public interface SongApi {
 
     @PUT("/api/song/{uuid}/incFavourites")
     Call<SongDTO> uploadIncFavourite(@Path("uuid") String uuid);
+
+    @GET("/api/songViews/language/{language}")
+    Call<List<SongViewsDTO>> getSongViewsByLanguage(@Path("language") String language);
 }

@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.bence.projector.common.dto.SongDTO;
 import com.bence.projector.common.dto.SongTitleDTO;
+import com.bence.projector.common.dto.SongViewsDTO;
 import com.bence.songbook.ProgressMessage;
 import com.bence.songbook.api.assembler.SongAssembler;
 import com.bence.songbook.api.retrofit.ApiManager;
@@ -172,6 +173,16 @@ public class SongApiBean {
 
     public SongDTO uploadIncFavourite(Song song) {
         Call<SongDTO> call = songApi.uploadIncFavourite(song.getUuid());
+        try {
+            return call.execute().body();
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public List<SongViewsDTO> getSongViewsByLanguage(Language language) {
+        Call<List<SongViewsDTO>> call = songApi.getSongViewsByLanguage(language.getUuid());
         try {
             return call.execute().body();
         } catch (Exception e) {

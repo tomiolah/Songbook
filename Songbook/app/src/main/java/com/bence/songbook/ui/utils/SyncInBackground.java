@@ -7,6 +7,7 @@ import android.os.AsyncTask;
 import android.preference.PreferenceManager;
 
 import com.bence.projector.common.dto.SongTitleDTO;
+import com.bence.projector.common.dto.SongViewsDTO;
 import com.bence.songbook.api.SongApiBean;
 import com.bence.songbook.api.SongCollectionApiBean;
 import com.bence.songbook.models.Language;
@@ -54,6 +55,28 @@ public class SyncInBackground {
             new Downloader(language, context).execute();
         }
         sharedPreferences.edit().putBoolean("incorrectSyncSave", false).apply();
+    }
+
+    public void syncViews(final Context context) {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    while (finished != 0) {
+                        Thread.sleep(100);
+                    }
+                    LanguageRepository languageRepository = new LanguageRepositoryImpl(context);
+                    List<Language> languages = languageRepository.findAll();
+                    for (Language language : languages) {
+                        new ViewsDownloader(context, language).execute();
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        });
+        thread.start();
     }
 
     private void sortSongs(List<Song> all) {
@@ -183,7 +206,7 @@ public class SyncInBackground {
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            ++finished;
+            --finished;
         }
 
         @Override
@@ -213,6 +236,38 @@ public class SyncInBackground {
                         songRepository.save(byUUID);
                     }
                 }
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+
+        @Override
+        protected void onProgressUpdate(Integer... values) {
+            super.onProgressUpdate(values);
+        }
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    class ViewsDownloader extends AsyncTask<Void, Integer, Void> {
+        private final Context context;
+        private final Language language;
+
+        ViewsDownloader(Context context, Language language) {
+            this.context = context;
+            this.language = language;
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            SongRepository songRepository = new SongRepositoryImpl(context);
+            final SongApiBean songApiBean = new SongApiBean();
+            List<SongViewsDTO> songViewsDTOS = songApiBean.getSongViewsByLanguage(language);
+            if (songViewsDTOS != null) {
+                songRepository.saveViews(songViewsDTOS);
             }
             return null;
         }

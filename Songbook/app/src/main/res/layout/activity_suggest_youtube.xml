@@ -12,10 +12,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:padding="12dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        tools:context="com.bence.songbook.ui.activity.SuggestEditsActivity"
-        tools:showIn="@layout/activity_suggest_choose">
+        android:padding="12dp">
+
+        <ImageView
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/ic_arrow_back_black_24dp"
+            android:contentDescription="@string/close"
+            android:onClick="onBackButtonClick"
+            android:tint="#FFFFFF"
+            app:srcCompat="@drawable/ic_arrow_back_black_24dp"
+            tools:srcCompat="@drawable/ic_arrow_back_black_24dp" />
 
         <TextView
             android:layout_width="match_parent"
@@ -29,9 +36,7 @@
             android:layout_height="48dp"
             android:hint="@string/insert_the_youtube_url_here"
             android:inputType="textNoSuggestions|textUri"
-            android:maxLength="30"
-            android:paddingBottom="6dp"
-            android:paddingTop="6dp" />
+            android:maxLength="30" />
 
         <com.google.android.youtube.player.YouTubePlayerView
             android:id="@+id/youtube_view"

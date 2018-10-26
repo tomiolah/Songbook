@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/sortLayout"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
@@ -14,10 +13,9 @@
         android:layout_height="wrap_content"
         android:gravity="center|end"
         android:switchPadding="6dp"
-        android:text="@string/reverse"/>
+        android:text="@string/reverse" />
 
-    <ScrollView
-        xmlns:android="http://schemas.android.com/apk/res/android"
+    <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="?attr/primaryDarkColor"
@@ -29,43 +27,48 @@
             android:layout_height="wrap_content">
 
             <RadioButton
-                android:id="@+id/modifiedDateRadioButton"
+                android:id="@+id/relevanceRadioButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:checked="true"
                 android:padding="7dp"
-                android:text="@string/modified_date"/>
+                android:text="@string/relevance" />
+
+            <RadioButton
+                android:id="@+id/modifiedDateRadioButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:padding="7dp"
+                android:text="@string/modified_date" />
 
             <RadioButton
                 android:id="@+id/byTitleRadioButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="7dp"
-                android:text="@string/by_title"/>
+                android:text="@string/by_title" />
 
             <RadioButton
                 android:id="@+id/byCollectionRadioButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="7dp"
-                android:text="@string/by_collection"
-                />
+                android:text="@string/by_collection" />
 
             <RadioButton
                 android:id="@+id/byCreatedDateRadioButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="7dp"
-                android:text="@string/by_created_date"
-                />
+                android:text="@string/by_created_date" />
 
             <RadioButton
                 android:id="@+id/recentlyViewedRadioButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:padding="7dp"
-                android:text="@string/recently_viewed"
-                />
+                android:text="@string/recently_viewed" />
         </RadioGroup>
 
     </ScrollView>

@@ -12,6 +12,7 @@ import static com.bence.songbook.ui.utils.StringUtils.stripAccents;
 
 public class Song extends BaseEntity {
 
+    private static long currentDate = new Date().getTime();
     @DatabaseField
     private String title;
     @DatabaseField
@@ -41,6 +42,8 @@ public class Song extends BaseEntity {
     @DatabaseField
     private String youtubeUrl;
     private FavouriteSong favourite;
+    @DatabaseField
+    private long views;
 
     public Song() {
     }
@@ -50,6 +53,10 @@ public class Song extends BaseEntity {
         song.setAccessedTimeAverage(modifiedSong.getAccessedTimeAverage());
         song.setAccessedTimes(modifiedSong.getAccessedTimes());
         song.setLastAccessed(modifiedSong.getLastAccessed());
+    }
+
+    private static long getCurrentDate() {
+        return currentDate;
     }
 
     public String getTitle() {
@@ -228,5 +235,35 @@ public class Song extends BaseEntity {
     @Override
     public String toString() {
         return title;
+    }
+
+    private long getViews() {
+        return views;
+    }
+
+    public void setViews(long views) {
+        this.views = views;
+    }
+
+    public Integer getScore() {
+        int score = 0;
+        score += getAccessedTimes() * 3;
+        score += getViews();
+        if (getYoutubeUrl() != null) {
+            score += 10;
+        }
+        FavouriteSong favourite = getFavourite();
+        if (favourite != null && favourite.isFavourite()) {
+            score += 10;
+        }
+        long l = Song.getCurrentDate() - createdDate.getTime();
+        if (l < 2592000000L) {
+            score += 14 * ((1 - (double) l / 2592000000L));
+        }
+        l = Song.getCurrentDate() - modifiedDate.getTime();
+        if (l < 2592000000L) {
+            score += 4 * ((1 - (double) l / 2592000000L));
+        }
+        return score;
     }
 }

@@ -27,7 +27,7 @@ import java.sql.SQLException;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final String TAG = DatabaseHelper.class.getSimpleName();
     private static final String DATABASE_NAME = "songbook.db";
-    private static final int DATABASE_VERSION = 14;
+    private static final int DATABASE_VERSION = 15;
 
     @SuppressLint("StaticFieldLeak")
     private static DatabaseHelper instance;
@@ -61,7 +61,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                          final ConnectionSource connectionSource) {
         try {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-            sharedPreferences.edit().putInt("songDataBaseVersion", 8).apply();
+            sharedPreferences.edit().putInt("songDataBaseVersion", 9).apply();
             TableUtils.createTableIfNotExists(connectionSource, Song.class);
             sharedPreferences.edit().putInt("songVerseDataBaseVersion", 4).apply();
             TableUtils.createTableIfNotExists(connectionSource, SongVerse.class);
@@ -106,6 +106,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                             getSongDao().executeRaw("ALTER TABLE `song` DROP COLUMN favouritePublished ;");
                         } catch (Exception ignored) {
                         }
+                    }
+                    if (songDataBaseVersion < 9) {
+                        getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN views INTEGER");
                     }
                 }
                 int songVerseDataBaseVersion = sharedPreferences.getInt("songVerseDataBaseVersion", 0);
