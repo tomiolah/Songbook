@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
@@ -208,6 +209,12 @@ public class SongActivity extends AppCompatActivity {
         setToolbarTitleAndSize();
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        invalidateOptionsMenu();
+    }
+
     private void setToolbarTitleAndSize() {
         android.support.v7.app.ActionBar actionbar = getSupportActionBar();
         if (actionbar == null) {
@@ -390,9 +397,10 @@ public class SongActivity extends AppCompatActivity {
     }
 
     private void setUpMenu() {
-        if (menu != null) {
-            menu.clear();
+        if (menu == null) {
+            return;
         }
+        menu.clear();
         getMenuInflater().inflate(R.menu.content_song_menu, menu);
         MenuItem showSimilarMenuItem = menu.findItem(R.id.action_similar);
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);

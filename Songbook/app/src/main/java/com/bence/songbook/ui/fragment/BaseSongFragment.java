@@ -2,6 +2,7 @@ package com.bence.songbook.ui.fragment;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -77,6 +78,22 @@ public abstract class BaseSongFragment extends Fragment {
     }
 
     protected abstract void onSongVerseClick(int position);
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        try {
+            LayoutInflater inflater = LayoutInflater.from(getActivity());
+            ViewGroup viewGroup = (ViewGroup) getView();
+            if (viewGroup != null) {
+                viewGroup.removeAllViewsInLayout();
+                View view = onCreateView(inflater, viewGroup, null);
+                viewGroup.addView(view);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @SuppressWarnings("ConstantConditions")
     private class MyCustomAdapter extends ArrayAdapter<SongVerse> {

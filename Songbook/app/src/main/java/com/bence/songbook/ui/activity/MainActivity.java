@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity
     private final Memory memory = Memory.getInstance();
     private final int DOWNLOAD_SONGS_REQUEST_CODE = 1;
     private List<Song> songs;
-    private List<Song> values;
+    private List<Song> values = new ArrayList<>();
     private String lastSearchedText = "";
     private Thread loadSongVersesThread;
     private Toast searchInSongTextIsAvailableToast;
@@ -161,6 +161,7 @@ public class MainActivity extends AppCompatActivity
     private PopupWindow addDuplicatesPopupWindow;
     private PopupWindow addSongListLinkPopupWindow;
     private boolean alreadyTried;
+    private boolean alreadyTried2;
     private ViewPager viewPager;
     private int view_mode;
     private MainPageAdapter pageAdapter;
@@ -1459,7 +1460,7 @@ public class MainActivity extends AppCompatActivity
             if (!gSignIn) {
                 googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), true);
                 if (googleSignInPopupWindow != null) {
-                    if (alreadyTried) {
+                    if (alreadyTried2) {
                         View viewById = googleSignInPopupWindow.getContentView().findViewById(R.id.notWorksTextView);
                         viewById.setVisibility(View.VISIBLE);
                     }
@@ -1916,6 +1917,7 @@ public class MainActivity extends AppCompatActivity
         }, this, songs, favouriteSongs);
         syncFavouriteInGoogleDrive.signIn();
         googleSignInPopupWindow.dismiss();
+        alreadyTried2 = true;
     }
 
     private void showToaster(String s, int lengthLong) {
