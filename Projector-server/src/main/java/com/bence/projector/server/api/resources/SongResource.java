@@ -3,6 +3,7 @@ package com.bence.projector.server.api.resources;
 import com.bence.projector.common.dto.LoginSongDTO;
 import com.bence.projector.common.dto.SongDTO;
 import com.bence.projector.common.dto.SongTitleDTO;
+import com.bence.projector.common.dto.SongViewsDTO;
 import com.bence.projector.server.api.assembler.SongAssembler;
 import com.bence.projector.server.api.assembler.SongTitleAssembler;
 import com.bence.projector.server.backend.model.Language;
@@ -37,6 +38,7 @@ import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -118,6 +120,20 @@ public class SongResource {
         saveStatistics(httpServletRequest, statisticsService);
         List<Song> songs = songService.findAllByLanguageAndModifiedDate(languageId, new Date(lastModifiedDate));
         return songTitleAssembler.createDtoList(songs);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/api/songViews/language/{language}")
+    public List<SongViewsDTO> getSongViewsByLanguage(HttpServletRequest httpServletRequest, @PathVariable("language") String languageId) {
+        saveStatistics(httpServletRequest, statisticsService);
+        List<Song> songs = songService.findAllByLanguageContainingViews(languageId);
+        List<SongViewsDTO> songViewsDTOS = new ArrayList<>(songs.size());
+        for (Song song : songs) {
+            SongViewsDTO dto = new SongViewsDTO();
+            dto.setUuid(song.getId());
+            dto.setViews(song.getViews());
+            songViewsDTOS.add(dto);
+        }
+        return songViewsDTOS;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/song")
