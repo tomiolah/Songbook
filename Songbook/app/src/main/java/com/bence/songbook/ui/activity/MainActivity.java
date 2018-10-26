@@ -106,6 +106,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static android.support.v7.widget.RecyclerView.SCROLL_STATE_DRAGGING;
 import static android.support.v7.widget.RecyclerView.SCROLL_STATE_IDLE;
 import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
 import static com.bence.songbook.ui.activity.SongActivity.showGoogleSignIn;
@@ -356,7 +357,14 @@ public class MainActivity extends AppCompatActivity
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
                 songListView.smoothScrollToPosition(position);
-                hideKeyboard();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+                super.onPageScrollStateChanged(state);
+                if (state == SCROLL_STATE_DRAGGING) {
+                    hideKeyboard();
+                }
             }
         });
         mainActivity = this;
@@ -1086,6 +1094,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void titleSearch(String title) {
+        memory.setLastSearchedInText(null);
         values.clear();
         String text = title.toLowerCase();
         String stripped = stripAccents(text);
@@ -1202,6 +1211,7 @@ public class MainActivity extends AppCompatActivity
         }
         values.clear();
         String text = stripAccents(title.toLowerCase());
+        memory.setLastSearchedInText(text);
         for (int i = 0; i < songs.size(); ++i) {
             Song song = songs.get(i);
             boolean contains = song.getStrippedTitle().contains(text);

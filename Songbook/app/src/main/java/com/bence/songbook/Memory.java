@@ -33,6 +33,7 @@ public class Memory {
     private List<Listener> listeners = new ArrayList<>();
     private SongList passingSongList;
     private SongList editingSongList;
+    private String lastSearchedInText;
 
     private Memory() {
 
@@ -185,6 +186,14 @@ public class Memory {
 
     public void setEditingSongList(SongList editingSongList) {
         this.editingSongList = editingSongList;
+    }
+
+    public String getLastSearchedInText() {
+        return lastSearchedInText;
+    }
+
+    public void setLastSearchedInText(String lastSearchedInText) {
+        this.lastSearchedInText = lastSearchedInText;
     }
 
     public interface Listener {
