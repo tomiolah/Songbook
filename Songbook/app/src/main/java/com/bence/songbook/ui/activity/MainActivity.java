@@ -147,7 +147,6 @@ public class MainActivity extends AppCompatActivity
     private Switch favouriteSwitch;
     private List<FavouriteSong> favouriteSongs;
     private SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive;
-    private Date lastDatePressedAtEnd;
     private PopupWindow googleSignInPopupWindow;
     private boolean gSignIn;
     private MenuItem signInMenuItem;
@@ -479,7 +478,8 @@ public class MainActivity extends AppCompatActivity
         }
         syncDatabase();
         setView();
-        if (memory.getQueue().size() < 1) {
+        List<QueueSong> queue = memory.getQueue();
+        if (queue != null && queue.size() < 1) {
             hideBottomSheet();
         }
     }
@@ -1364,18 +1364,7 @@ public class MainActivity extends AppCompatActivity
         } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else {
-            Date now = new Date();
-            int interval = 777;
-            if (lastDatePressedAtEnd != null) {
-                if (now.getTime() - lastDatePressedAtEnd.getTime() >= interval) {
-                    Toast.makeText(this, R.string.press_twice_to_exit, Toast.LENGTH_SHORT).show();
-                } else {
-                    lastDatePressedAtEnd = null;
-                    super.onBackPressed();
-                    return;
-                }
-            }
-            lastDatePressedAtEnd = now;
+            super.onBackPressed();
         }
     }
 
@@ -1462,6 +1451,15 @@ public class MainActivity extends AppCompatActivity
             }
         });
         return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (searchItem != null) {
+            searchItem.expandActionView();
+            showKeyboard();
+        }
     }
 
     private void hideKeyboard() {
