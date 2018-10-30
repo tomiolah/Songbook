@@ -2,7 +2,6 @@ package com.bence.projector.server.api.resources.seo;
 
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
-import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -21,9 +20,10 @@ import java.util.Set;
 @Controller
 public class SongResourceSeo {
     private final SongService songService;
+    private List<Song> songs;
 
     @Autowired
-    public SongResourceSeo(SongService songService, LanguageService languageService) {
+    public SongResourceSeo(SongService songService) {
         this.songService = songService;
     }
 
@@ -88,5 +88,22 @@ public class SongResourceSeo {
         model.addAttribute("keywords", keywords.toString());
         model.addAttribute("youtubeUrl", "http://img.youtube.com/vi/" + song.getYoutubeUrl() + "/0.jpg");
         return "song";
+    }
+
+    @GetMapping("/song")
+    public String songs(Model model) {
+        List<Song> songs = getSongs();
+        model.addAttribute("songs", songs);
+        return "songs";
+    }
+
+    private List<Song> getSongs() {
+        if (songs == null) {
+            songs = songService.findAll();
+            for (Song song : songs) {
+                song.setId("../song/" + song.getId());
+            }
+        }
+        return songs;
     }
 }
