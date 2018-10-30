@@ -22,3 +22,15 @@
     left: 0
   }
 }
+
+.title {
+  text-align: center;
+}
+
+.verse {
+  text-align: center;
+}
+
+.chorus {
+  z-index: 1;
+}

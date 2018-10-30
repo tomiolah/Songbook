@@ -7,6 +7,7 @@ import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
 import {MatDialog, MatSnackBar} from "@angular/material";
 import {ShareComponent} from "../share/share.component";
 import {AuthenticateComponent} from "../authenticate/authenticate.component";
+import {OpenInAppComponent} from "../open-in-app/open-in-app.component";
 
 @Component({
   selector: 'app-song',
@@ -26,6 +27,7 @@ export class SongComponent implements OnInit, OnDestroy {
   markedVersionGroup: string;
   songsByVersionGroup: Song[] = [];
   public safeUrl: SafeResourceUrl = null;
+  public isAndroid = false;
   private sub: Subscription;
 
   constructor(private activatedRoute: ActivatedRoute,
@@ -101,6 +103,10 @@ export class SongComponent implements OnInit, OnDestroy {
             this.songService.getSong(song.originalId).subscribe((song) => {
               this.secondSong = song;
             });
+          }
+          this.isAndroid = /(android)/i.test(navigator.userAgent);
+          if (this.isAndroid) {
+            this.showOpenInAppDialog();
           }
           this.loadVersionGroup();
         });
@@ -236,6 +242,22 @@ export class SongComponent implements OnInit, OnDestroy {
       }
     };
     const dialogRef = this.dialog.open(ShareComponent, config);
+
+    dialogRef.afterClosed().subscribe(() => {
+    });
+  }
+
+  showOpenInAppDialog(): void {
+    if (localStorage.getItem("OpenInAppComponent_dontShow") != undefined) {
+      return;
+    }
+    const config = {
+      data: {
+        uuid: this.song.uuid,
+        title: this.song.title,
+      }
+    };
+    const dialogRef = this.dialog.open(OpenInAppComponent, config);
 
     dialogRef.afterClosed().subscribe(() => {
     });

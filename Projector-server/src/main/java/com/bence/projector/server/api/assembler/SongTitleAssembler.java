@@ -12,9 +12,11 @@ public class SongTitleAssembler implements GeneralAssembler<Song, SongTitleDTO> 
         SongTitleDTO songTitleDTO = new SongTitleDTO();
         songTitleDTO.setId(song.getId());
         songTitleDTO.setTitle(song.getTitle());
+        songTitleDTO.setCreatedDate(song.getCreatedDate());
         songTitleDTO.setModifiedDate(song.getModifiedDate());
         songTitleDTO.setDeleted(song.isDeleted());
         songTitleDTO.setViews(song.getViews());
+        songTitleDTO.setFavourites(song.getFavourites());
         songTitleDTO.setYoutubeUrl(song.getYoutubeUrl());
         return songTitleDTO;
     }

@@ -9,6 +9,8 @@ public class SongTitleDTO extends BaseDTO {
     private boolean deleted;
     private long views;
     private String youtubeUrl;
+    private Date createdDate;
+    private Long favourites;
 
     public String getTitle() {
         return title;
@@ -48,5 +50,21 @@ public class SongTitleDTO extends BaseDTO {
 
     public void setYoutubeUrl(String youtubeUrl) {
         this.youtubeUrl = youtubeUrl;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public long getFavourites() {
+        return favourites;
+    }
+
+    public void setFavourites(long favourites) {
+        this.favourites = favourites;
     }
 }
