@@ -892,7 +892,9 @@ public class MainActivity extends AppCompatActivity
                     values.clear();
                     values.add(songs.get(songs.size() - 1));
                     adapter.setSongList(values);
-                    pageAdapter.notifyDataSetChanged();
+                    if (pageAdapter != null) {
+                        pageAdapter.notifyDataSetChanged();
+                    }
                 }
                 break;
             case REQUEST_CODE_SIGN_IN:
@@ -917,7 +919,9 @@ public class MainActivity extends AppCompatActivity
                 }
                 break;
         }
-        adapter.notifyDataSetChanged();
+        if (adapter != null) {
+            adapter.notifyDataSetChanged();
+        }
         queueListView.invalidateViews();
     }
 
