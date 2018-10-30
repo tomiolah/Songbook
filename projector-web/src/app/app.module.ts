@@ -65,6 +65,7 @@ import {DownloadAppComponent} from './ui/download-app/download-app.component';
 import {ShareComponent} from './ui/share/share.component';
 import {HttpClientModule} from "@angular/common/http";
 import {AuthenticateComponent} from "./ui/authenticate/authenticate.component";
+import {OpenInAppComponent} from './ui/open-in-app/open-in-app.component';
 
 @NgModule({
   exports: [
@@ -123,6 +124,7 @@ export class PlunkerMaterialModule {
     DownloadAppComponent,
     ShareComponent,
     AuthenticateComponent,
+    OpenInAppComponent,
   ],
   imports: [
     BrowserModule,
@@ -140,6 +142,7 @@ export class PlunkerMaterialModule {
     NewLanguageComponent,
     ShareComponent,
     AuthenticateComponent,
+    OpenInAppComponent,
   ],
   providers: [
     ApiService,

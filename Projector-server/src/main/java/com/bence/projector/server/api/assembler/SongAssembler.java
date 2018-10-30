@@ -39,6 +39,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         songDTO.setLanguageDTO(languageAssembler.createDto(song.getLanguage()));
         songDTO.setUploaded(song.getUploaded());
         songDTO.setViews(song.getViews());
+        songDTO.setFavourites(song.getFavourites());
         songDTO.setCreatedByEmail(song.getCreatedByEmail());
         songDTO.setVersionGroup(song.getVersionGroup());
         songDTO.setYoutubeUrl(song.getYoutubeUrl());

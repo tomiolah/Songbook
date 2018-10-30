@@ -1,14 +1,13 @@
 <div class="container">
   <br>
   <mat-card>
-    <mat-card-header>
-      <mat-card-title>{{song.title}}</mat-card-title>
-    </mat-card-header>
+    <h3 class="title">{{song.title}}</h3>
     <mat-card-content>
-      <mat-card *ngFor="let songVerse of song.songVerseDTOS">
+      <mat-card *ngFor="let songVerse of song.songVerseDTOS"
+                [ngClass]="songVerse.chorus?['chorus','mat-elevation-z5']:'mat-elevation-z1'">
         <mat-card-content>
           <div *ngFor="let line of songVerse.lines">
-            <h4>{{line}}</h4>
+            <h4 class="verse">{{line}}</h4>
           </div>
         </mat-card-content>
       </mat-card>
@@ -35,6 +34,17 @@
   </div>
 
   <div *ngIf="auth.isLoggedIn && auth.user.role === 'ROLE_ADMIN'">
+    <br>
+    <table>
+      <tr *ngIf="song.views>0">
+        <td>Views:&nbsp;</td>
+        <td>{{song.views}}</td>
+      </tr>
+      <tr *ngIf="song.favourites>0">
+        <td>Favourites:&nbsp;</td>
+        <td>{{song.favourites}}</td>
+      </tr>
+    </table>
     <br>
     <div *ngIf="song.originalId!==undefined">
       <h4>Uploaded modified song:</h4>

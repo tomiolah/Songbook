@@ -17,6 +17,7 @@ public class SongDTO extends BaseDTO {
     private String originalId;
     private String versionGroup;
     private String youtubeUrl;
+    private Long favourites;
 
     public SongDTO() {
     }
@@ -115,5 +116,13 @@ public class SongDTO extends BaseDTO {
 
     public void setYoutubeUrl(String youtubeUrl) {
         this.youtubeUrl = youtubeUrl;
+    }
+
+    public long getFavourites() {
+        return favourites;
+    }
+
+    public void setFavourites(long favourites) {
+        this.favourites = favourites;
     }
 }

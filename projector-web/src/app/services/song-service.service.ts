@@ -28,21 +28,50 @@ export class Song extends BaseModel {
 
   static PUBLIC = "PUBLIC";
   static UPLOADED = "UPLOADED";
+  private static currentDate = new Date().getTime();
   originalId: string;
   title = '';
   songVerseDTOS: SongVerseDTO[];
   modifiedDate: number;
+  createdDate: number;
   deleted = false;
   uuid: '';
   languageDTO: Language;
   uploaded: Boolean;
   versionGroup: '';
   views = 0;
+  favourites = 0;
   youtubeUrl;
 
   constructor(values: Object = {}) {
     super(values);
     Object.assign(this, values);
+  }
+
+  static getScore(song) {
+    let score = 0;
+    if (song.views != null) {
+      score += song.views;
+    }
+    if (song.favourites != null) {
+      score += song.favourites * 3;
+    }
+    if (song.youtubeUrl != null) {
+      score += 10;
+    }
+    let l = Song.getCurrentDate() - song.createdDate;
+    if (l < 2592000000) {
+      score += 14 * ((1 - l / 2592000000));
+    }
+    l = Song.getCurrentDate() - song.modifiedDate;
+    if (l < 2592000000) {
+      score += 4 * ((1 - l / 2592000000));
+    }
+    return score;
+  }
+
+  private static getCurrentDate() {
+    return this.currentDate;
   }
 }
 

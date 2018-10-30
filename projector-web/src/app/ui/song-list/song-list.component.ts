@@ -18,7 +18,7 @@ import {Title} from "@angular/platform-browser";
   styleUrls: ['./song-list.component.css']
 })
 export class SongListComponent implements OnInit {
-
+  sortMode = "sortMode";
   filteredSongsList: Song[];
   songTitles: Song[];
   songControl: FormControl;
@@ -26,11 +26,12 @@ export class SongListComponent implements OnInit {
   song: Song;
   pageE: PageEvent;
   paginatedSongs: Song[];
-  sortType = "MODIFIED_DATE";
+  sortType = "RELEVANCE";
   songTitlesLocalStorage: Song[];
   songsType = Song.PUBLIC;
   languages: Language[];
   selectedLanguage: Language;
+  languagesKey = 'languages_v2';
   private songListComponent_songsType = 'songListComponent_songsType';
   private _subscription: Subscription;
 
@@ -73,9 +74,9 @@ export class SongListComponent implements OnInit {
 
   ngOnInit() {
     this.titleService.setTitle('Songs');
-    this.sortType = JSON.parse(localStorage.getItem("sortType"));
+    this.sortType = JSON.parse(localStorage.getItem(this.sortMode));
     if (this.sortType === null) {
-      this.sortType = "MODIFIED_DATE";
+      this.sortType = "RELEVANCE";
     }
     this.songsType = localStorage.getItem(this.songListComponent_songsType);
     if (this.songsType === null) {
@@ -109,10 +110,10 @@ export class SongListComponent implements OnInit {
     this.languageDataService.getAll().subscribe(
       (languages) => {
         this.languages = languages;
-        if (localStorage.getItem('languages') == null) {
-          localStorage.setItem('languages', JSON.stringify(languages));
+        if (localStorage.getItem(this.languagesKey) == null) {
+          localStorage.setItem(this.languagesKey, JSON.stringify(languages));
         } else {
-          let localStorageLanguages: Language[] = JSON.parse(localStorage.getItem('languages'));
+          let localStorageLanguages: Language[] = JSON.parse(localStorage.getItem(this.languagesKey));
           if (localStorageLanguages.length != languages.length) {
             let index = 0;
             for (let storageLanguage of localStorageLanguages) {
@@ -141,7 +142,7 @@ export class SongListComponent implements OnInit {
                 localStorageLanguages = localStorageLanguages.concat(language);
               }
             }
-            localStorage.setItem('languages', JSON.stringify(localStorageLanguages));
+            localStorage.setItem(this.languagesKey, JSON.stringify(localStorageLanguages));
           }
         }
         this.selectedLanguage = JSON.parse(localStorage.getItem('selectedLanguage'));
@@ -161,9 +162,16 @@ export class SongListComponent implements OnInit {
     );
   }
 
+  stripAccents(s) {
+    s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
+    s = s.replace(/[^a-zA-Z]/g, '');
+    return s.toLowerCase();
+  }
+
   filterStates(filter: string) {
+    filter = this.stripAccents(filter);
     return this.songTitles.filter(song => {
-        return song.title.toLowerCase().indexOf(filter.toLowerCase()) >= 0;
+      return this.stripAccents(song.title).indexOf(filter) >= 0;
       }
     );
   }
@@ -185,7 +193,7 @@ export class SongListComponent implements OnInit {
   }
 
   changeSorting() {
-    localStorage.setItem("sortType", JSON.stringify(this.sortType));
+    localStorage.setItem(this.sortMode, JSON.stringify(this.sortType));
     this.sortSongTitles();
     this.filteredSongs = this.songControl.valueChanges
       .startWith(null)
@@ -211,7 +219,7 @@ export class SongListComponent implements OnInit {
     if (this._subscription != undefined) {
       this._subscription.unsubscribe();
     }
-    let languages: Language[] = JSON.parse(localStorage.getItem('languages'));
+    let languages: Language[] = JSON.parse(localStorage.getItem(this.languagesKey));
     for (let lang of languages) {
       if (lang.uuid === language.uuid) {
         if (lang.songTitles === undefined) {
@@ -254,7 +262,7 @@ export class SongListComponent implements OnInit {
             this.songTitles = lang.songTitles.concat(songTitles);
             lang.songTitles = this.songTitles;
           }
-          localStorage.setItem('languages', JSON.stringify(languages));
+          localStorage.setItem(this.languagesKey, JSON.stringify(languages));
           this.sortAndUpdate();
         });
       }
@@ -265,7 +273,7 @@ export class SongListComponent implements OnInit {
     if (this._subscription != undefined) {
       this._subscription.unsubscribe();
     }
-    let languages: Language[] = JSON.parse(localStorage.getItem('languages'));
+    let languages: Language[] = JSON.parse(localStorage.getItem(this.languagesKey));
     this.songTitles = [];
     for (let language of languages) {
       this.songTitles = this.songTitles.concat(language.songTitles);
@@ -276,6 +284,7 @@ export class SongListComponent implements OnInit {
   searchTermTyped() {
     const params: Params = Object.assign({}, this.activatedRoute.snapshot.queryParams);
     params['search'] = this.songControl.value;
+    params['language'] = this.selectedLanguage.uuid;
     this.router.navigate(['.'], {queryParams: params});
   }
 
@@ -321,6 +330,17 @@ export class SongListComponent implements OnInit {
     }
     this.activatedRoute.queryParams.subscribe((queryParams) => {
       let search = queryParams['search'];
+      let language = queryParams['language'];
+      for (let l of this.languages) {
+        if (l.uuid == language) {
+          language = l;
+          if (this.selectedLanguage != language) {
+            this.selectedLanguage = language;
+            this.selectLanguage(language);
+          }
+          break;
+        }
+      }
       this.songControl.patchValue(search);
     });
   }
@@ -370,28 +390,38 @@ export class SongListComponent implements OnInit {
         }
         return 0;
       });
-    } else {
+    } else if (this.sortType === "RELEVANCE") {
       this.songTitles.sort((song1, song2) => {
-        if (song1.title.toLocaleLowerCase() > song2.title.toLocaleLowerCase()) {
+        let score1 = Song.getScore(song1);
+        let score2 = Song.getScore(song2);
+        if (score1 < score2) {
           return 1;
         }
-        if (song1.title.toLocaleLowerCase() < song2.title.toLocaleLowerCase()) {
+        if (score1 > score2) {
           return -1;
         }
-        return 0;
+        return this.compare(song2.modifiedDate, song1.modifiedDate);
+      });
+    } else {
+      this.songTitles.sort((song1, song2) => {
+        return this.compare(song1.title.toLocaleLowerCase(), song2.title.toLocaleLowerCase());
       });
     }
   }
 
+  private compare(a, b) {
+    if (a < b) {
+      return -1;
+    }
+    if (a > b) {
+      return 1;
+    }
+    return 0;
+  }
+
   private sortSongTitlesByModifiedDate() {
     this.songTitles.sort((song1, song2) => {
-      if (song1.modifiedDate < song2.modifiedDate) {
-        return 1;
-      }
-      if (song1.modifiedDate > song2.modifiedDate) {
-        return -1;
-      }
-      return 0;
+      return this.compare(song2.modifiedDate, song1.modifiedDate);
     });
   }
 }
