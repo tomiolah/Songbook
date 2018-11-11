@@ -1117,6 +1117,10 @@ public class MainActivity extends AppCompatActivity
         } else {
             titleSearch(text);
         }
+        if (adapter == null) {
+            loadAll();
+            return;
+        }
         adapter.setSongList(values);
         if (pageAdapter != null) {
             pageAdapter.notifyDataSetChanged();
