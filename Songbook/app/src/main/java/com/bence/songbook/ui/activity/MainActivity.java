@@ -1063,6 +1063,9 @@ public class MainActivity extends AppCompatActivity
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
             view_mode = sharedPreferences.getInt("view_mode", 0);
             List<QueueSong> queue = memory.getQueue();
+            if (queue == null) {
+                setDataToQueueSongs();
+            }
             QueueSongAdapter queueSongAdapter = new QueueSongAdapter(this, R.layout.list_row, queue, new Listener() {
                 @Override
                 public void onGrab(int position, LinearLayout row) {
