@@ -31,6 +31,16 @@ import java.util.List;
 
 public class VersionsActivity extends AppCompatActivity {
 
+    public static Song getSongFromMemory(Song song) {
+        List<Song> songs = Memory.getInstance().getSongs();
+        for (Song iSong : songs) {
+            if (iSong != null && iSong.getUuid().equals(song.getUuid())) {
+                return iSong;
+            }
+        }
+        return song;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -88,16 +98,6 @@ public class VersionsActivity extends AppCompatActivity {
 
             });
         }
-    }
-
-    public static Song getSongFromMemory(Song song) {
-        List<Song> songs = Memory.getInstance().getSongs();
-        for (Song iSong : songs) {
-            if (iSong.getUuid().equals(song.getUuid())) {
-                return iSong;
-            }
-        }
-        return song;
     }
 
     public void showSongFullscreen(Song song) {
