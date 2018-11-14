@@ -37,7 +37,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 5;
+    private final int DATABASE_VERSION = 6;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
     private ConnectionSource connectionSource;
@@ -75,6 +75,10 @@ public class DatabaseHelper {
                     getSongCollectionElementDao().executeRaw("DELETE FROM SONGCOLLECTIONELEMENT \n" +
                             " WHERE SONGCOLLECTION_ID NOT IN (SELECT f.id \n" +
                             "                        FROM SONGCOLLECTION f)");
+                } else if (oldVersion == 5) {
+                    Dao<Song, Long> songDao = getSongDao();
+                    songDao.executeRaw("ALTER TABLE `song` ADD COLUMN views INTEGER");
+                    songDao.executeRaw("ALTER TABLE `song` ADD COLUMN favouriteCount INTEGER");
                 }
                 saveNewVersion();
             }

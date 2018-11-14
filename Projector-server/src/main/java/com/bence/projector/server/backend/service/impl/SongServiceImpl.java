@@ -352,6 +352,19 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
+    public List<Song> findAllByLanguageContainingFavourites(String languageId) {
+        Language language = languageRepository.findOne(languageId);
+        List<Song> songs = new ArrayList<>(language.getSongs().size());
+        for (Song song : language.getSongs()) {
+            if (song.isDeleted() || song.getFavourites() == 0) {
+                continue;
+            }
+            songs.add(song);
+        }
+        return songs;
+    }
+
+    @Override
     public Iterable save(List<Song> songs) {
         for (Song song : songs) {
             save(song);

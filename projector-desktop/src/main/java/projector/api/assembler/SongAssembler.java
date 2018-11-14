@@ -61,6 +61,8 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             song.setVerses(songVerseAssembler.createModelList(songDTO.getSongVerseDTOS()));
             song.setDeleted(songDTO.isDeleted());
             song.setVersionGroup(songDTO.getVersionGroup());
+            song.setViews(songDTO.getViews());
+            song.setFavouriteCount(songDTO.getFavourites());
         }
         return song;
     }

@@ -13,6 +13,7 @@ import static projector.utils.StringUtils.stripAccents;
 
 public class Song extends BaseEntity {
 
+    private static long currentDate = new Date().getTime();
     @Expose
     @DatabaseField
     private String title;
@@ -20,7 +21,6 @@ public class Song extends BaseEntity {
     private String strippedTitle;
     @ForeignCollectionField
     private ForeignCollection<SongVerse> songVerseForeignCollection;
-
     @Expose
     private List<SongVerse> verses;
     @Expose
@@ -36,7 +36,6 @@ public class Song extends BaseEntity {
     private String fileText;
     //	@Transient
     private double[] versTimes;
-
     //	@ManyToMany(fetch = FetchType.LAZY, mappedBy = "songs")
     private List<SongBook> songBooks;
     @Expose
@@ -49,10 +48,13 @@ public class Song extends BaseEntity {
     private Language language;
     private transient SongCollection songCollection;
     private transient SongCollectionElement songCollectionElement;
-
     @Expose
     @DatabaseField
     private String versionGroup;
+    @DatabaseField
+    private long views;
+    @DatabaseField
+    private long favouriteCount;
 
     public Song() {
     }
@@ -63,6 +65,10 @@ public class Song extends BaseEntity {
         this.fileText = fileText;
         this.versTimes = versTimes == null ? null : versTimes.clone();
         this.songBooks = songBooks;
+    }
+
+    private static long getCurrentDate() {
+        return currentDate;
     }
 
     public String getTitle() {
@@ -232,5 +238,36 @@ public class Song extends BaseEntity {
 
     public void setVersionGroup(String versionGroup) {
         this.versionGroup = versionGroup;
+    }
+
+    private long getViews() {
+        return views;
+    }
+
+    public void setViews(long views) {
+        this.views = views;
+    }
+
+    private long getFavouriteCount() {
+        return favouriteCount;
+    }
+
+    public void setFavouriteCount(long favouriteCount) {
+        this.favouriteCount = favouriteCount;
+    }
+
+    public Integer getScore() {
+        int score = 0;
+        score += getViews();
+        score += getFavouriteCount() * 2;
+        long l = Song.getCurrentDate() - createdDate.getTime();
+        if (l < 2592000000L) {
+            score += 14 * ((1 - (double) l / 2592000000L));
+        }
+        l = Song.getCurrentDate() - modifiedDate.getTime();
+        if (l < 2592000000L) {
+            score += 4 * ((1 - (double) l / 2592000000L));
+        }
+        return score;
     }
 }

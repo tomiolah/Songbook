@@ -1,5 +1,7 @@
 package projector.controller.song;
 
+import com.bence.projector.common.dto.SongFavouritesDTO;
+import com.bence.projector.common.dto.SongViewsDTO;
 import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -111,6 +113,18 @@ public class DownloadSongsController {
             remainingLanguages = getSelectedLanguageSize();
             for (Language language : languages) {
                 if (language.isSelected()) {
+                    Thread thread1 = new Thread(() -> {
+                        final SongApiBean songApiBean = new SongApiBean();
+                        List<SongViewsDTO> songViewsDTOS = songApiBean.getSongViewsByLanguage(language);
+                        if (songViewsDTOS != null) {
+                            songService.saveViews(songViewsDTOS);
+                        }
+                        List<SongFavouritesDTO> songFavouritesDTOS = songApiBean.getSongFavouritesByLanguage(language);
+                        if (songFavouritesDTOS != null) {
+                            songService.saveFavouriteCount(songFavouritesDTOS);
+                        }
+                    });
+                    thread1.start();
                     List<Song> newSongList = new ArrayList<>();
                     final List<Song> songApiSongs = songApi.getSongsByLanguageAndAfterModifiedDate(language, getLastModifiedSongDate(language));
                     if (songApiSongs == null) {

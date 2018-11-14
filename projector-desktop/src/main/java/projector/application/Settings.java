@@ -69,7 +69,7 @@ public class Settings {
     private SimpleBooleanProperty showProgressLine = new SimpleBooleanProperty(true);
     private Color progressLineColor = new Color(1.0, 1.0, 1.0, 0.7);
     private SimpleBooleanProperty progressLinePositionIsTop = new SimpleBooleanProperty(true);
-    private OrderMethod songOrderMethod = OrderMethod.BY_COLLECTION;
+    private OrderMethod songOrderMethod = OrderMethod.RELEVANCE;
     private boolean breakLines = false;
     private int breakAfter = 77;
     private Integer progressLineThickness = 5;

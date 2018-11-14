@@ -820,8 +820,9 @@ public class SongController {
 
     private void initializeSortComboBox() {
         try {
-            OrderMethod ascendingByTitle = OrderMethod.ASCENDING_BY_TITLE;
-            sortComboBox.getItems().addAll(ascendingByTitle,
+            sortComboBox.getItems().addAll(
+                    OrderMethod.RELEVANCE,
+                    OrderMethod.ASCENDING_BY_TITLE,
                     OrderMethod.DESCENDING_BY_TITLE,
                     OrderMethod.BY_MODIFIED_DATE,
                     OrderMethod.BY_PUBLISHED,
@@ -1505,7 +1506,16 @@ public class SongController {
     private void sortSongs(List<Song> songs) {
         try {
             OrderMethod selectedItem = sortComboBox.getSelectionModel().getSelectedItem();
-            if (selectedItem.equals(OrderMethod.ASCENDING_BY_TITLE)) {
+            if (selectedItem.equals(OrderMethod.RELEVANCE)) {
+                songs.sort((lhs, rhs) -> {
+                    Integer scoreL = lhs.getScore();
+                    Integer scoreR = rhs.getScore();
+                    if (scoreL.equals(scoreR)) {
+                        return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
+                    }
+                    return scoreR.compareTo(scoreL);
+                });
+            } else if (selectedItem.equals(OrderMethod.ASCENDING_BY_TITLE)) {
                 songs.sort(Comparator.comparing(l -> l.getStrippedTitle().toLowerCase()));
             } else if (selectedItem.equals(OrderMethod.DESCENDING_BY_TITLE)) {
                 songs.sort((l, r) -> r.getStrippedTitle().toLowerCase().compareTo(l.getStrippedTitle().toLowerCase()));

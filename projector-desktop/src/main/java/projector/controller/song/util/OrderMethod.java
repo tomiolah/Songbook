@@ -3,6 +3,7 @@ package projector.controller.song.util;
 import projector.application.Settings;
 
 public enum OrderMethod {
+    RELEVANCE("Relevance"),
     ASCENDING_BY_TITLE("Ascending by title"),
     DESCENDING_BY_TITLE("Descending by title"),
     BY_MODIFIED_DATE("By modified date"),
