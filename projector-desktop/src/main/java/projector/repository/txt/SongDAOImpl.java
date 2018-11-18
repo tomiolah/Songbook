@@ -1,5 +1,7 @@
 package projector.repository.txt;
 
+import com.bence.projector.common.dto.SongFavouritesDTO;
+import com.bence.projector.common.dto.SongViewsDTO;
 import projector.model.Song;
 import projector.model.SongVerse;
 import projector.repository.RepositoryException;
@@ -10,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,7 +25,7 @@ public class SongDAOImpl implements SongDAO {
         FileInputStream fstream;
         try {
             fstream = new FileInputStream(path);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream, StandardCharsets.UTF_8));
             LinkedList<Song> songs = new LinkedList<>();
             br.mark(4);
             if ('\ufeff' != br.read()) {
@@ -166,5 +169,15 @@ public class SongDAOImpl implements SongDAO {
     @Override
     public List<Song> findAllByVersionGroup(String versionGroup) {
         return null;
+    }
+
+    @Override
+    public void saveViews(List<SongViewsDTO> songViewsDTOS) {
+
+    }
+
+    @Override
+    public void saveFavouriteCount(List<SongFavouritesDTO> songFavouritesDTOS) {
+
     }
 }

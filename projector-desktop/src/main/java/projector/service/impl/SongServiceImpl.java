@@ -1,5 +1,7 @@
 package projector.service.impl;
 
+import com.bence.projector.common.dto.SongFavouritesDTO;
+import com.bence.projector.common.dto.SongViewsDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.model.Song;
@@ -84,6 +86,26 @@ public class SongServiceImpl extends AbstractBaseService<Song> implements SongSe
     public List<Song> findAllByVersionGroup(String versionGroup) {
         try {
             return songDAO.findAllByVersionGroup(versionGroup);
+        } catch (RepositoryException e) {
+            LOG.error(e.getMessage(), e);
+            throw new ServiceException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void saveViews(List<SongViewsDTO> songViewsDTOS) {
+        try {
+            songDAO.saveViews(songViewsDTOS);
+        } catch (RepositoryException e) {
+            LOG.error(e.getMessage(), e);
+            throw new ServiceException(e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void saveFavouriteCount(List<SongFavouritesDTO> songFavouritesDTOS) {
+        try {
+            songDAO.saveFavouriteCount(songFavouritesDTOS);
         } catch (RepositoryException e) {
             LOG.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage(), e);

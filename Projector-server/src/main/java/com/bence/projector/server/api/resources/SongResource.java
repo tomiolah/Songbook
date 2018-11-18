@@ -2,6 +2,7 @@ package com.bence.projector.server.api.resources;
 
 import com.bence.projector.common.dto.LoginSongDTO;
 import com.bence.projector.common.dto.SongDTO;
+import com.bence.projector.common.dto.SongFavouritesDTO;
 import com.bence.projector.common.dto.SongTitleDTO;
 import com.bence.projector.common.dto.SongViewsDTO;
 import com.bence.projector.server.api.assembler.SongAssembler;
@@ -134,6 +135,20 @@ public class SongResource {
             songViewsDTOS.add(dto);
         }
         return songViewsDTOS;
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/api/songFavourites/language/{language}")
+    public List<SongFavouritesDTO> getSongFavouritesByLanguage(HttpServletRequest httpServletRequest, @PathVariable("language") String languageId) {
+        saveStatistics(httpServletRequest, statisticsService);
+        List<Song> songs = songService.findAllByLanguageContainingFavourites(languageId);
+        List<SongFavouritesDTO> songFavouritesDTOS = new ArrayList<>(songs.size());
+        for (Song song : songs) {
+            SongFavouritesDTO dto = new SongFavouritesDTO();
+            dto.setUuid(song.getId());
+            dto.setFavourites(song.getViews());
+            songFavouritesDTOS.add(dto);
+        }
+        return songFavouritesDTOS;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/song")

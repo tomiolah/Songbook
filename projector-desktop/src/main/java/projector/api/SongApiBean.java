@@ -3,6 +3,8 @@ package projector.api;
 import com.bence.projector.common.dto.LoginDTO;
 import com.bence.projector.common.dto.LoginSongDTO;
 import com.bence.projector.common.dto.SongDTO;
+import com.bence.projector.common.dto.SongFavouritesDTO;
+import com.bence.projector.common.dto.SongViewsDTO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.api.assembler.SongAssembler;
@@ -118,6 +120,26 @@ public class SongApiBean {
             List<SongDTO> songDTOs = call.execute().body();
             songs = songAssembler.createModelList(songDTOs);
             return songs;
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public List<SongViewsDTO> getSongViewsByLanguage(Language language) {
+        Call<List<SongViewsDTO>> call = songApi.getSongViewsByLanguage(language.getUuid());
+        try {
+            return call.execute().body();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public List<SongFavouritesDTO> getSongFavouritesByLanguage(Language language) {
+        Call<List<SongFavouritesDTO>> call = songApi.getSongFavouritesByLanguage(language.getUuid());
+        try {
+            return call.execute().body();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

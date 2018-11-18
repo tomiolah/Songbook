@@ -14,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 public class ApiManager {
 
     public static Retrofit getClient() {
-        String BASE_URL = "http://localhost:80";
+        String BASE_URL = "http://localhost:8080";
         HttpLoggingInterceptor httpLoggingInterceptor = new HttpLoggingInterceptor();
         httpLoggingInterceptor.setLevel(HttpLoggingInterceptor.Level.BODY);
         OkHttpClient okHttpClient = new OkHttpClient.Builder()

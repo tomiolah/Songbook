@@ -28,4 +28,6 @@ public interface SongService extends BaseService<Song> {
     List<Song> findAllContainingYoutubeUrl();
 
     List<Song> findAllByLanguageContainingViews(String languageId);
+
+    List<Song> findAllByLanguageContainingFavourites(String languageId);
 }
