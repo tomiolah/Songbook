@@ -17,6 +17,7 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
@@ -58,8 +59,12 @@ import projector.utils.MarkTextFlow;
 import projector.utils.StringUtils;
 import projector.utils.Triplet;
 
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -138,6 +143,7 @@ public class BibleController {
     private boolean newReferenceAdded = false;
     private Settings settings = Settings.getInstance();
     private Font verseFont;
+    private Date lastUpdateSelected;
 
     private static String strip(String s) {
         try {
@@ -196,6 +202,7 @@ public class BibleController {
             // System.out.println("Ido4: " + (System.currentTimeMillis() - x));
             // double x = System.currentTimeMillis();
             bibleListView.orientationProperty().set(Orientation.HORIZONTAL);
+            final MultipleSelectionModel<MarkTextFlow> verseListViewSelectionModel = verseListView.getSelectionModel();
             bibleListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 try {
                     if (newValue == null) {
@@ -208,7 +215,7 @@ public class BibleController {
                     sortParallelBibles();
                     int bookI = selectedBook;// bookListView.getSelectionModel().getSelectedIndex();
                     int partI = selectedPart;// partListView.getSelectionModel().getSelectedIndex();
-                    ObservableList<Integer> obVerseI = verseListView.getSelectionModel().getSelectedIndices();
+                    ObservableList<Integer> obVerseI = verseListViewSelectionModel.getSelectedIndices();
                     Vector<Integer> verseI = new Vector<>(obVerseI.size());
                     verseI.addAll(obVerseI);
                     Reader.setBooksRead(false);
@@ -234,11 +241,11 @@ public class BibleController {
                                 for (Integer aVerseI : verseI) {
                                     if (aVerseI > bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size()
                                             - 1) {
-                                        verseListView.getSelectionModel().select(
+                                        verseListViewSelectionModel.select(
                                                 bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size() - 1);
                                         break;
                                     } else {
-                                        verseListView.getSelectionModel().select(aVerseI);
+                                        verseListViewSelectionModel.select(aVerseI);
                                     }
                                 }
                                 verseListView.scrollTo(verseI.get(0));
@@ -250,7 +257,7 @@ public class BibleController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            verseListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+            verseListViewSelectionModel.setSelectionMode(SelectionMode.MULTIPLE);
             bookTextField.textProperty().addListener((observable, oldValue, newValue) -> titleSearch(newValue));
             bookTextField.setOnKeyPressed(event -> {
                 try {
@@ -369,9 +376,9 @@ public class BibleController {
                                 verseListView.scrollTo(tmp - 2);
                                 verseListView.getFocusModel().focus(tmp - 1);
                                 if (tmp * 10 > verseListView.getItems().size()) {
-                                    verseListView.getSelectionModel().clearSelection();
+                                    verseListViewSelectionModel.clearSelection();
                                     if (settings.isFastMode()) {
-                                        verseListView.getSelectionModel().select(tmp - 1);
+                                        verseListViewSelectionModel.select(tmp - 1);
                                     } else {
                                         verseListView.getFocusModel().focus(tmp - 1);
                                     }
@@ -402,7 +409,7 @@ public class BibleController {
                             int tmp = Integer.parseInt(verseTextField.getText());
                             verseListView.scrollTo(tmp - 2);
                             if (settings.isFastMode()) {
-                                verseListView.getSelectionModel().clearAndSelect(tmp - 1);
+                                verseListViewSelectionModel.clearAndSelect(tmp - 1);
                             } else {
                                 verseListView.getFocusModel().focus(tmp - 1);
                             }
@@ -473,7 +480,7 @@ public class BibleController {
                             if (isLastVerse) {
                                 isLastVerse = false;
                                 selectedVerse = verseListView.getItems().size() - 1;
-                                verseListView.getSelectionModel().select(selectedVerse);
+                                verseListViewSelectionModel.select(selectedVerse);
                                 verseListView.scrollTo(selectedVerse);
                             }
                             searchSelected = 3;
@@ -505,7 +512,7 @@ public class BibleController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            verseListView.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+            verseListViewSelectionModel.selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
                 try {
                     selectedVerse = newValue.intValue();
                 } catch (Exception e) {
@@ -531,6 +538,26 @@ public class BibleController {
                     } else if (keyCode == KeyCode.UP) {
                         if (setPreviousPart()) {
                             event.consume();
+                        }
+                    } else if (keyCode == KeyCode.PAGE_DOWN) {
+                        setNextVerse();
+                        event.consume();
+                    } else if (keyCode == KeyCode.PAGE_UP) {
+                        setPreviousVerse();
+                        event.consume();
+                    } else if (keyCode == KeyCode.ESCAPE) {
+                        verseListViewSelectionModel.clearSelection();
+                    } else if (keyCode.equals(KeyCode.C) && event.isControlDown()) {
+                        if (selectedBook >= 0 && selectedPart >= 0 && selectedVerse >= 0) {
+                            ObservableList<Integer> ob = verseListViewSelectionModel.getSelectedIndices();
+                            List<BibleVerse> bibleVerses = new ArrayList<>(ob.size());
+                            for (int i : ob) {
+                                BibleVerse bibleVerse = bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().get(i);
+                                bibleVerses.add(bibleVerse);
+                            }
+                            StringSelection stringSelection = new StringSelection(getVersesAndReference(bible, bibleVerses).replaceFirst("\n", ""));
+                            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+                            clipboard.setContents(stringSelection, null);
                         }
                     } else if ((keyCode.equals(KeyCode.ADD) || keyCode.equals(KeyCode.EQUALS)) && event.isControlDown()) {
                         enlargeVerseListViewText();
@@ -567,7 +594,20 @@ public class BibleController {
                             LOG.error(e.getMessage(), e);
                         }
                     }
+
+                    @Override
+                    public void updateSelected(boolean selected) {
+                        super.updateSelected(selected);
+                        lastUpdateSelected = new Date();
+                    }
                 };
+                cell.setOnMousePressed(event -> {
+                    if (event.isControlDown() && cell.isSelected()
+                            && (lastUpdateSelected == null || new Date().getTime() - lastUpdateSelected.getTime() > 1000)) {
+                        verseListViewSelectionModel.clearSelection(cell.getIndex());
+                        event.consume();
+                    }
+                });
                 cell.setOnMouseDragEntered(t -> {
                     try {
                         if (isSelecting() && !firstDrag) {
@@ -779,7 +819,7 @@ public class BibleController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            verseListView.getSelectionModel().getSelectedIndices().addListener((ListChangeListener<Integer>) c -> {
+            verseListViewSelectionModel.getSelectedIndices().addListener((ListChangeListener<Integer>) c -> {
                 try {
                     if (!isSelecting()) {
                         verseSelected();
@@ -1286,9 +1326,6 @@ public class BibleController {
         try {
             if (this.isSelecting && !isSelecting) {
                 verseSelected();
-            }
-            if (!this.isSelecting && isSelecting) {
-                verseListView.getSelectionModel().clearSelection();
             }
             this.isSelecting = isSelecting;
         } catch (Exception e) {

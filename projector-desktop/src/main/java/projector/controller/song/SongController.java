@@ -461,15 +461,22 @@ public class SongController {
                             || keyCode == KeyCode.END || keyCode == KeyCode.PAGE_DOWN
                             || keyCode == KeyCode.PAGE_UP) {
                         double x = System.currentTimeMillis() - timeStart;
-                        x /= 1000;
-                        if (x < 1) {
+                        if (x < 700) {
                             event.consume();
+                            return;
                         }
                     } else if (keyCode == KeyCode.ENTER) {
                         mainController.setBlank(false);
                     } else if (keyCode.isDigitKey()) {
                         verseTextField.setText(event.getCharacter());
                         verseTextField.requestFocus();
+                        event.consume();
+                    }
+                    if (keyCode == KeyCode.PAGE_DOWN) {
+                        setNext();
+                        event.consume();
+                    } else if (keyCode == KeyCode.PAGE_UP) {
+                        setPrevious();
                         event.consume();
                     }
                 } catch (Exception e) {

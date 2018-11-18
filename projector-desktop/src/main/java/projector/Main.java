@@ -56,32 +56,39 @@ public class Main extends Application {
             primaryScene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
             primaryStage.setMinHeight(600);
             primaryScene.setOnKeyPressed(event -> {
+                KeyCode keyCode = event.getCode();
                 if (event.isControlDown()) {
-                    if (event.getCode() == KeyCode.DIGIT1) {
+                    if (keyCode == KeyCode.DIGIT1) {
                         myController.selectTab(1);
-                    } else if (event.getCode() == KeyCode.DIGIT2) {
+                    } else if (keyCode == KeyCode.DIGIT2) {
                         myController.selectTab(2);
-                    } else if (event.getCode() == KeyCode.DIGIT3) {
+                    } else if (keyCode == KeyCode.DIGIT3) {
                         myController.selectTab(3);
-                    } else if (event.getCode() == KeyCode.DIGIT4) {
+                    } else if (keyCode == KeyCode.DIGIT4) {
                         myController.selectTab(4);
-                    } else if (event.getCode() == KeyCode.DIGIT5) {
+                    } else if (keyCode == KeyCode.DIGIT5) {
                         myController.selectTab(5);
                     }
+                }
+                if (keyCode == KeyCode.PAGE_DOWN) {
+                    myController.goNext();
+                }
+                if (keyCode == KeyCode.PAGE_UP) {
+                    myController.goPrev();
                 }
                 if (event.isControlDown()) {
                     myController.setSelecting(true);
                 }
-                if (event.getCode() == KeyCode.F1) {
+                if (keyCode == KeyCode.F1) {
                     myController.setBlank();
                 }
 //                if (event.getCode() == KeyCode.F3) {
 //                    setCanvasToSecondScreen();
 //                }
-                if (event.getCode() == KeyCode.F8) {
+                if (keyCode == KeyCode.F8) {
                     myController.duplicateCanvas();
                 }
-                if (event.getCode() == KeyCode.F5) {
+                if (keyCode == KeyCode.F5) {
                     myController.previewCanvas();
                 }
             });
