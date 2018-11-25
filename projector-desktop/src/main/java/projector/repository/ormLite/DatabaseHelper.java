@@ -37,7 +37,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 6;
+    private final int DATABASE_VERSION = 7;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
     private ConnectionSource connectionSource;
@@ -79,6 +79,9 @@ public class DatabaseHelper {
                     Dao<Song, Long> songDao = getSongDao();
                     songDao.executeRaw("ALTER TABLE `song` ADD COLUMN views INTEGER");
                     songDao.executeRaw("ALTER TABLE `song` ADD COLUMN favouriteCount INTEGER");
+                } else if (oldVersion == 6) {
+                    Dao<Bible, Long> bibleDao = getBibleDao();
+                    bibleDao.executeRaw("ALTER TABLE `bible` ADD COLUMN showAbbreviation INTEGER");
                 }
                 saveNewVersion();
             }

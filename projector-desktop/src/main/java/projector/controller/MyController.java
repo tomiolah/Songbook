@@ -1,12 +1,16 @@
 package projector.controller;
 
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.Main;
 import projector.application.Settings;
 import projector.controller.song.ScheduleController;
@@ -18,6 +22,7 @@ import java.util.ResourceBundle;
 
 public class MyController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(MyController.class);
     @FXML
     private ToggleButton showProjectionScreenToggleButton;
     @FXML
@@ -88,12 +93,13 @@ public class MyController {
     public void initialize() {
         settings = Settings.getInstance();
         bibleSearchController.setBibleController(bibleController);
-        // bibleSearchController.setSettings();
+        bibleSearchController.setMainController(this);
         bibleController.setMainController(this);
         songController.setMainController(this);
         bibleController.setBibleSearchController(bibleSearchController);
         bibleController.setRecentController(recentController);
         bibleController.setHistoryController(historyController);
+        bibleController.setSettingsController(settingsController);
         songController.setRecentController(recentController);
         scheduleController = new ScheduleController();
         songController.setScheduleController(scheduleController);
@@ -176,12 +182,6 @@ public class MyController {
         }
     }
 
-    // public void accentsButtonOnAction() {
-    // bibleSearchController.setWithAccents(accentsButton.isSelected());
-    // songController.setWithAccents(accentsButton.isSelected());
-    // settings.setWithAccents(accentsButton.isSelected());
-    // }
-
     public void close() {
         recentController.close();
         songController.onClose();
@@ -259,5 +259,18 @@ public class MyController {
 
     public void setMain(Main main) {
         this.main = main;
+    }
+
+    public EventHandler<KeyEvent> globalKeyEventHandler() {
+        return event -> {
+            try {
+                if (event.getCode() == KeyCode.F1) {
+                    setBlank();
+                    event.consume();
+                }
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        };
     }
 }
