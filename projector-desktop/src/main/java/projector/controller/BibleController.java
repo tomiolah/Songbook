@@ -1575,7 +1575,7 @@ public class BibleController {
     public void toggleAbbreviation() {
         try {
             if (bible != null) {
-                bible.setShowAbbreviation(abbreviationToggleButton.isSelected());
+                bible.setShowAbbreviation(!abbreviationToggleButton.isSelected());
                 ServiceManager.getBibleService().update(bible);
             }
         } catch (Exception e) {
