@@ -2003,7 +2003,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void onExpandBottomSheetClick(View view) {
-        if (memory.getQueue().size() < 1) {
+        List<QueueSong> queue = memory.getQueue();
+        if (queue == null || queue.size() < 1) {
             hideBottomSheet();
             return;
         }

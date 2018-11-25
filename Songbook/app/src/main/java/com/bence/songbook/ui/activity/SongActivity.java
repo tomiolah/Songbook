@@ -35,6 +35,7 @@ import android.widget.Toast;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.FavouriteSong;
+import com.bence.songbook.models.Language;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
@@ -174,12 +175,15 @@ public class SongActivity extends AppCompatActivity {
             @Override
             public int compare(Song lhs, Song rhs) {
                 Integer scoreL = lhs.getScore();
-                if (lhs.getLanguage().getId().equals(song.getLanguage().getId())) {
-                    scoreL += 1;
-                }
                 Integer scoreR = rhs.getScore();
-                if (rhs.getLanguage().getId().equals(song.getLanguage().getId())) {
-                    scoreR += 1;
+                Language language = song.getLanguage();
+                if (language != null) {
+                    if (lhs.getLanguage().getId().equals(language.getId())) {
+                        scoreL += 1;
+                    }
+                    if (rhs.getLanguage().getId().equals(language.getId())) {
+                        scoreR += 1;
+                    }
                 }
                 if (scoreL.equals(scoreR)) {
                     return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
@@ -424,6 +428,10 @@ public class SongActivity extends AppCompatActivity {
 
     private void setUpMenu() {
         if (menu == null) {
+            return;
+        }
+        if (song == null) {
+            finish();
             return;
         }
         menu.clear();
