@@ -1324,7 +1324,7 @@ public class BibleController {
 
     void setSelecting(boolean isSelecting) {
         try {
-            if (this.isSelecting && !isSelecting) {
+            if (this.isSelecting && !isSelecting && verseListView.isFocused()) {
                 verseSelected();
             }
             this.isSelecting = isSelecting;
