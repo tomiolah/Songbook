@@ -39,6 +39,8 @@ public class Bible extends BaseEntity {
     private Double blue;
     @DatabaseField
     private Double opacity;
+    @DatabaseField
+    private Integer showAbbreviation;
 
     public String getName() {
         return name;
@@ -149,5 +151,17 @@ public class Bible extends BaseEntity {
         green = color.getGreen();
         blue = color.getBlue();
         opacity = color.getOpacity();
+    }
+
+    public boolean isShowAbbreviation() {
+        return showAbbreviation == null || showAbbreviation < 0;
+    }
+
+    public void setShowAbbreviation(boolean showAbbreviation) {
+        if (showAbbreviation) {
+            this.showAbbreviation = 1;
+        } else {
+            this.showAbbreviation = -1;
+        }
     }
 }

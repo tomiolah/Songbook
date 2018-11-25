@@ -422,7 +422,7 @@ public class SongController {
                                 times[j] = i.length() * 0.72782;
                             }
                         } else {
-                            for (int j = 0; j < times.length; ++j) {
+                            for (int j = 0; j < times.length && j < songListViewItems.size(); ++j) {
                                 String i = songListViewItems.get(j).getRawText();
                                 i = i.replaceAll("[^aeiouAEIOUéáőúöüóűíÉÁŰŐÚÜÓÖÍâÂăĂîÎ]", "");
                                 double v = i.length() * 0.72782;
@@ -764,6 +764,7 @@ public class SongController {
                 }
             }
             songs.addAll(hashMap.values());
+            sortSongsByRelevanceOrder(songs);
             listView.getItems().clear();
             for (Song song : songs) {
                 SearchedSong searchedSong = new SearchedSong(song);
@@ -998,6 +999,10 @@ public class SongController {
             }
         });
         verseTextField.setOnKeyPressed(event -> {
+            mainController.globalKeyEventHandler().handle(event);
+            if (event.isConsumed()) {
+                return;
+            }
             KeyCode keyCode = event.getCode();
             if (keyCode.equals(KeyCode.ENTER)) {
                 selectByVerseTextFieldNumber();
@@ -1514,14 +1519,7 @@ public class SongController {
         try {
             OrderMethod selectedItem = sortComboBox.getSelectionModel().getSelectedItem();
             if (selectedItem.equals(OrderMethod.RELEVANCE)) {
-                songs.sort((lhs, rhs) -> {
-                    Integer scoreL = lhs.getScore();
-                    Integer scoreR = rhs.getScore();
-                    if (scoreL.equals(scoreR)) {
-                        return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
-                    }
-                    return scoreR.compareTo(scoreL);
-                });
+                sortSongsByRelevanceOrder(songs);
             } else if (selectedItem.equals(OrderMethod.ASCENDING_BY_TITLE)) {
                 songs.sort(Comparator.comparing(l -> l.getStrippedTitle().toLowerCase()));
             } else if (selectedItem.equals(OrderMethod.DESCENDING_BY_TITLE)) {
@@ -1562,6 +1560,17 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void sortSongsByRelevanceOrder(List<Song> songs) {
+        songs.sort((lhs, rhs) -> {
+            Integer scoreL = lhs.getScore();
+            Integer scoreR = rhs.getScore();
+            if (scoreL.equals(scoreR)) {
+                return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
+            }
+            return scoreR.compareTo(scoreL);
+        });
     }
     //        }
     //            }

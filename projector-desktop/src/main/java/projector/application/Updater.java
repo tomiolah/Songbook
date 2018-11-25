@@ -29,7 +29,7 @@ public class Updater {
     private static final Logger LOG = LoggerFactory.getLogger(Updater.class);
     private static Updater instance;
     @SuppressWarnings("FieldCanBeLocal")
-    private final int projectorVersionNumber = 6;
+    private final int projectorVersionNumber = 8;
 
     private Updater() {
     }

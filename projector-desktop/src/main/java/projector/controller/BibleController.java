@@ -23,6 +23,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
@@ -123,6 +124,8 @@ public class BibleController {
     private Button increaseButton;
     @FXML
     private Button nextButton;
+    @FXML
+    private ToggleButton abbreviationToggleButton;
 
     private Bible bible;
     private List<Bible> parallelBibles = new ArrayList<>();
@@ -137,6 +140,7 @@ public class BibleController {
     private int selectedVerse = -1;
     private boolean isLastVerse = false;
 
+    private Reference allReference;
     private Reference ref;
     private List<Reference> references;
     private boolean oldReplace = false;
@@ -220,6 +224,7 @@ public class BibleController {
                     verseI.addAll(obVerseI);
                     Reader.setBooksRead(false);
                     bible = newValue;
+                    setAbbreviationButtonVisibility();
                     addAllBooks();
                     bibleSearchController.setBooks(bible.getBooks());
                     historyController.setBible(bible);
@@ -725,6 +730,8 @@ public class BibleController {
             });
             ref = new Reference();
             ref.setBible(bible);
+            allReference = new Reference();
+            allReference.setBible(bible);
             referenceTextArea.selectionProperty().addListener((observable, oldValue, newValue) -> {
                 try {
                     int startIndex = referenceTextArea.getSelection().getStart();
@@ -829,9 +836,11 @@ public class BibleController {
                 }
             });
             referenceListView.orientationProperty().set(Orientation.HORIZONTAL);
+            referenceListView.getItems().add(settings.getResourceBundle().getString("All"));
             referenceListView.getItems().add("1");
             referenceListView.getItems().add(settings.getResourceBundle().getString("New"));
             references = new LinkedList<>();
+            references.add(allReference);
             references.add(ref);
             referenceListView.getSelectionModel().getSelectedIndices().addListener(new ListChangeListener<Integer>() {
                 @Override
@@ -845,7 +854,7 @@ public class BibleController {
                                 Reference reference = new Reference();
                                 reference.setBible(bible);
                                 references.add(reference);
-                                referenceListView.getItems().add(lastIndex, (lastIndex + 1) + "");
+                                referenceListView.getItems().add(lastIndex, lastIndex + "");
                             }
                             ref = references.get(selectedIndex);
                             refreshReferenceTextArea();
@@ -867,11 +876,17 @@ public class BibleController {
             partLabel.setText("");
             foundLabel.setText("");
             searchTextField.textProperty().addListener((observable, oldValue, newValue) -> search(newValue));
+            searchTextField.setOnKeyPressed(event -> mainController.globalKeyEventHandler().handle(event));
             verseFont = Font.font(settings.getVerseListViewFontSize());
             initializeDecreaseIncreaseButtons();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void setAbbreviationButtonVisibility() {
+        abbreviationToggleButton.setManaged(settings.getBibleShortName());
+        abbreviationToggleButton.setSelected(bible.isShowAbbreviation());
     }
 
     private void initializeDecreaseIncreaseButtons() {
@@ -1324,7 +1339,7 @@ public class BibleController {
 
     void setSelecting(boolean isSelecting) {
         try {
-            if (this.isSelecting && !isSelecting) {
+            if (this.isSelecting && !isSelecting && verseListView.isFocused()) {
                 verseSelected();
             }
             this.isSelecting = isSelecting;
@@ -1371,7 +1386,7 @@ public class BibleController {
             result.append("[");
         }
         result.append(reference.getReference());
-        if (settings.getBibleShortName()) {
+        if (settings.getBibleShortName() && bible.isShowAbbreviation()) {
             result.append(" (").append(bible.getShortName()).append(")");
         }
         if (settings.isReferenceItalic()) {
@@ -1425,6 +1440,7 @@ public class BibleController {
                         i = verseListView.getSelectionModel().getSelectedIndex();
                     }
                     ref.addVerse(selectedBook, selectedPart + 1, i + 1);
+                    allReference.addVerse(selectedBook, selectedPart + 1, i + 1);
                 }
                 refreshReferenceTextArea();
                 if (settings.isShowReferenceOnly()) {
@@ -1554,5 +1570,20 @@ public class BibleController {
 
     void sortParallelBibles() {
         ParallelBiblesController.sortParallelBibles(parallelBibles);
+    }
+
+    public void toggleAbbreviation() {
+        try {
+            if (bible != null) {
+                bible.setShowAbbreviation(abbreviationToggleButton.isSelected());
+                ServiceManager.getBibleService().update(bible);
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    void setSettingsController(SettingsController settingsController) {
+        settingsController.addOnSaveListener(this::setAbbreviationButtonVisibility);
     }
 }

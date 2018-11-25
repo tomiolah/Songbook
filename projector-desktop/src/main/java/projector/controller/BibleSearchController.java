@@ -10,6 +10,8 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.application.Settings;
 import projector.model.Book;
 
@@ -21,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 public class BibleSearchController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(BibleSearchController.class);
     @FXML
     private TextField searchTextField;
     @FXML
@@ -35,6 +38,7 @@ public class BibleSearchController {
     private String newSearchText = "";
     private String searchText = "";
     private int maxResults;
+    private MyController mainController;
 
     private static String strip(String s) {
         s = stripAccents(s).replaceAll("[^a-zA-Z]", "").toLowerCase(Locale.US).trim();
@@ -54,6 +58,7 @@ public class BibleSearchController {
             search(newValue);
             System.out.println("newValue: " + newValue);
         });
+        searchTextField.setOnKeyPressed(event -> mainController.globalKeyEventHandler().handle(event));
         searchListView.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
             int index = searchListView.getSelectionModel().selectedIndexProperty().get();
             if (index >= 0) {
@@ -243,4 +248,13 @@ public class BibleSearchController {
             bibleController.initializeBibles();
         }
     }
+
+    void setMainController(MyController mainController) {
+        try {
+            this.mainController = mainController;
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
 }

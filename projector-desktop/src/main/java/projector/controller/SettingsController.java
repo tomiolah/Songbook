@@ -33,6 +33,8 @@ import projector.network.TCPServer;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class SettingsController {
@@ -99,6 +101,8 @@ public class SettingsController {
     @FXML
     private CheckBox previewLoadOnStartCheckbox;
     private SongController songController;
+
+    private List<Listener> listeners;
 
     public synchronized void initialize() {
         settings = Settings.getInstance();
@@ -267,6 +271,11 @@ public class SettingsController {
         settings.setBibleShortName(bibleShortNameCheckBox.isSelected());
         settings.save();
         projectionScreenController.setBackGroundColor(backgroundColorPicker.getValue());
+        if (listeners != null) {
+            for (Listener listener : listeners) {
+                listener.onSave();
+            }
+        }
     }
 
     public synchronized void setSettings(Settings settings) {
@@ -330,5 +339,16 @@ public class SettingsController {
 
     public synchronized void setSongController(SongController songController) {
         this.songController = songController;
+    }
+
+    void addOnSaveListener(Listener listener) {
+        if (listeners == null) {
+            listeners = new ArrayList<>();
+        }
+        listeners.add(listener);
+    }
+
+    public interface Listener {
+        void onSave();
     }
 }
