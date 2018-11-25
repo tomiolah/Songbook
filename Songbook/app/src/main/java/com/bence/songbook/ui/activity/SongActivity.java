@@ -131,7 +131,10 @@ public class SongActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         song = memory.getPassingSong();
-
+        if (song == null) {
+            finish();
+            return;
+        }
         tabLayout = findViewById(R.id.tablayout);
         viewPager = findViewById(R.id.viewPager);
         final SongRepository songRepository = new SongRepositoryImpl(this);

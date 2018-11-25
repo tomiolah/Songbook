@@ -1066,6 +1066,9 @@ public class MainActivity extends AppCompatActivity
             if (queue == null) {
                 setDataToQueueSongs();
             }
+            if (queue == null) {
+                return;
+            }
             QueueSongAdapter queueSongAdapter = new QueueSongAdapter(this, R.layout.list_row, queue, new Listener() {
                 @Override
                 public void onGrab(int position, LinearLayout row) {
