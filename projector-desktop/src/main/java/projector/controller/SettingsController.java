@@ -13,6 +13,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.layout.BackgroundImage;
@@ -29,6 +30,7 @@ import projector.application.Updater;
 import projector.controller.song.SongController;
 import projector.network.TCPClient;
 import projector.network.TCPServer;
+import projector.remote.RemoteServer;
 
 import java.awt.*;
 import java.io.File;
@@ -38,6 +40,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class SettingsController {
+    @FXML
+    private ToggleButton allowRemoteButton;
     @FXML
     private CheckBox bibleShortNameCheckBox;
     @FXML
@@ -168,6 +172,7 @@ public class SettingsController {
         });
         connectToSharedButton.setOnAction(event -> TCPClient.connectToShared(projectionScreenController));
         settings.connectedToSharedProperty().addListener((observable, oldValue, newValue) -> shareOnLocalNetworkButton.setDisable(newValue));
+        allowRemoteButton.setSelected(settings.isAllowRemote());
     }
 
     private void initializeProgressLine() {
@@ -346,6 +351,13 @@ public class SettingsController {
             listeners = new ArrayList<>();
         }
         listeners.add(listener);
+    }
+
+    public void allowRemoteButtonOnAction() {
+        settings.setAllowRemote(allowRemoteButton.isSelected());
+        if (settings.isAllowRemote()) {
+            RemoteServer.startRemoteServer(projectionScreenController, songController);
+        }
     }
 
     public interface Listener {

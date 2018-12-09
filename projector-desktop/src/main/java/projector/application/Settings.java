@@ -76,6 +76,7 @@ public class Settings {
     private Language songSelectedLanguage;
     private boolean bibleShortName = false;
     private boolean checkLanguages = false;
+    private boolean allowRemote = false;
 
     protected Settings() {
         load();
@@ -335,6 +336,8 @@ public class Settings {
             bw.write(bibleShortName + System.lineSeparator());
             bw.write("checkLanguages" + System.lineSeparator());
             bw.write(checkLanguages + System.lineSeparator());
+            bw.write("allowRemote" + System.lineSeparator());
+            bw.write(allowRemote + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -455,6 +458,8 @@ public class Settings {
             bibleShortName = Boolean.parseBoolean(br.readLine());
             br.readLine();
             checkLanguages = Boolean.parseBoolean(br.readLine());
+            br.readLine();
+            allowRemote = Boolean.parseBoolean(br.readLine());
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -728,5 +733,13 @@ public class Settings {
 
     public boolean isCheckLanguages() {
         return checkLanguages;
+    }
+
+    public boolean isAllowRemote() {
+        return allowRemote;
+    }
+
+    public void setAllowRemote(boolean allowRemote) {
+        this.allowRemote = allowRemote;
     }
 }

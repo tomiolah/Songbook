@@ -17,6 +17,7 @@ import projector.controller.song.ScheduleController;
 import projector.controller.song.SongController;
 import projector.network.TCPClient;
 import projector.network.TCPServer;
+import projector.remote.RemoteServer;
 
 import java.util.ResourceBundle;
 
@@ -88,6 +89,9 @@ public class MyController {
         }
         primaryStage.toFront();
         primaryStage.requestFocus();
+        if (settings.isAllowRemote()) {
+            RemoteServer.startRemoteServer(projectionScreenController, songController);
+        }
     }
 
     public void initialize() {

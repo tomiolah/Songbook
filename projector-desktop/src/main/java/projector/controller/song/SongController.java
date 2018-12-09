@@ -70,6 +70,8 @@ import projector.model.Song;
 import projector.model.SongCollection;
 import projector.model.SongCollectionElement;
 import projector.model.SongVerse;
+import projector.remote.SongReadRemoteListener;
+import projector.remote.SongRemoteListener;
 import projector.service.ServiceException;
 import projector.service.ServiceManager;
 import projector.service.SongCollectionService;
@@ -178,6 +180,8 @@ public class SongController {
     private Song selectedSong;
     private ArrayList<SongVerse> selectedSongVerseList;
     private int successfullyCreated;
+    private SongRemoteListener songRemoteListener;
+    private SongReadRemoteListener songReadRemoteListener;
 
     public SongController() {
         songService = ServiceManager.getSongService();
@@ -433,6 +437,9 @@ public class SongController {
                                 }
                             }
                         }
+                        if (songRemoteListener != null) {
+                            songRemoteListener.onSongListViewChanged(songListViewItems);
+                        }
                     }
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
@@ -492,7 +499,7 @@ public class SongController {
                         if (selectedIndex < 0) {
                             return;
                         }
-                        if (settings.isShareOnNetwork() && projectionTextChangeListeners != null) {
+                        if ((settings.isShareOnNetwork() || settings.isAllowRemote()) && projectionTextChangeListeners != null) {
                             try {
                                 String secondText = getSecondText(selectedIndex - 1);
                                 for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
@@ -2195,5 +2202,20 @@ public class SongController {
         listViewItems.clear();
         listViewItems.add(new SearchedSong(song));
         listView.getSelectionModel().selectFirst();
+    }
+
+    public void setSongRemoteListener(SongRemoteListener songRemoteListener) {
+        this.songRemoteListener = songRemoteListener;
+    }
+
+    public SongReadRemoteListener getSongReadRemoteListener() {
+        if (songReadRemoteListener == null) {
+            songReadRemoteListener = index -> Platform.runLater(() -> {
+                if (songListView.getItems().size() > index) {
+                    songListView.getSelectionModel().clearAndSelect(index);
+                }
+            });
+        }
+        return songReadRemoteListener;
     }
 }

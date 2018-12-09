@@ -201,7 +201,7 @@ public class ProjectionScreenController {
             if (doubleProjectionScreenController != null) {
                 doubleProjectionScreenController.setText(newText, projectionType);
             }
-            if (settings.isShareOnNetwork() && projectionTextChangeListeners != null && projectionType != ProjectionType.SONG) {
+            if (projectionTextChangeListeners != null) {
                 for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
                     projectionTextChangeListener.onSetText(newText, projectionType);
                 }
