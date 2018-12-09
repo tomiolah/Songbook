@@ -37,7 +37,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 7;
+    private final int DATABASE_VERSION = 8;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
     private ConnectionSource connectionSource;
@@ -75,14 +75,23 @@ public class DatabaseHelper {
                     getSongCollectionElementDao().executeRaw("DELETE FROM SONGCOLLECTIONELEMENT \n" +
                             " WHERE SONGCOLLECTION_ID NOT IN (SELECT f.id \n" +
                             "                        FROM SONGCOLLECTION f)");
-                } else if (oldVersion == 5) {
-                    Dao<Song, Long> songDao = getSongDao();
-                    songDao.executeRaw("ALTER TABLE `song` ADD COLUMN views INTEGER");
-                    songDao.executeRaw("ALTER TABLE `song` ADD COLUMN favouriteCount INTEGER");
-                } else if (oldVersion == 6) {
-                    Dao<Bible, Long> bibleDao = getBibleDao();
-                    bibleDao.executeRaw("ALTER TABLE `bible` ADD COLUMN showAbbreviation INTEGER");
                 }
+//                if (oldVersion <= 7) {
+                Dao<Song, Long> songDao = getSongDao();
+                try {
+                    songDao.executeRaw("ALTER TABLE `song` ADD COLUMN views INTEGER");
+                } catch (Exception ignored) {
+                }
+                try {
+                    songDao.executeRaw("ALTER TABLE `song` ADD COLUMN favouriteCount INTEGER");
+                } catch (Exception ignored) {
+                }
+                Dao<Bible, Long> bibleDao = getBibleDao();
+                try {
+                    bibleDao.executeRaw("ALTER TABLE `bible` ADD COLUMN showAbbreviation INTEGER");
+                } catch (Exception ignored) {
+                }
+//                }
                 saveNewVersion();
             }
             onCreate(connectionSource);

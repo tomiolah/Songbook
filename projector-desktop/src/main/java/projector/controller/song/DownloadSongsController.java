@@ -210,13 +210,22 @@ public class DownloadSongsController {
                         for (Song song : newSongList) {
                             newSongListView.getItems().add(song);
                         }
-                        setNextConflictSong();
+                        showConflictSong();
+                        --remainingLanguages;
                     });
                 }
             }
         });
         thread.start();
         initializeButtons();
+    }
+
+    private void showConflictSong() {
+        if (!conflictGridPane.isVisible()) {
+            setNextConflictSong();
+        } else {
+            showCompletedMessage();
+        }
     }
 
     private void saveLocalSongAndUpdateDates(Song song, Song localSong) {
@@ -300,14 +309,17 @@ public class DownloadSongsController {
             ++conflictIndex;
         } else {
             conflictGridPane.setVisible(false);
-            --remainingLanguages;
-            if (remainingLanguages == 0) {
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                final ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
-                alert.setTitle(resourceBundle.getString("Completed"));
-                alert.setHeaderText(resourceBundle.getString("Close the window to finish!"));
-                alert.showAndWait();
-            }
+            showCompletedMessage();
+        }
+    }
+
+    private void showCompletedMessage() {
+        if (remainingLanguages == 0) {
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            final ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
+            alert.setTitle(resourceBundle.getString("Completed"));
+            alert.setHeaderText(resourceBundle.getString("Close the window to finish!"));
+            alert.showAndWait();
         }
     }
 
