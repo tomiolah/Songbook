@@ -1,11 +1,16 @@
 package projector.remote;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import javafx.collections.ObservableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.ProjectionType;
 import projector.controller.ProjectionScreenController;
 import projector.controller.ProjectionTextChangeListener;
 import projector.controller.song.SongController;
+import projector.controller.song.util.SearchedSong;
+import projector.model.Song;
 import projector.utils.scene.text.MyTextFlow;
 
 import java.io.BufferedReader;
@@ -15,6 +20,7 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Sender {
@@ -62,14 +68,41 @@ public class Sender {
             };
             SongRemoteListener songRemoteListener = new SongRemoteListener() {
                 @Override
-                public void onSongListViewChanged(List<MyTextFlow> newList) {
+                public void onSongVerseListViewChanged(List<MyTextFlow> newList) {
                     try {
-                        StringBuilder s = new StringBuilder("start onSongListViewChanged\n" +
+                        StringBuilder s = new StringBuilder("start onSongVerseListViewChanged\n" +
                                 newList.size() + "\n");
                         for (MyTextFlow textFlow : newList) {
                             s.append(textFlow.getRawText().replaceAll("\n", "╤~'newLinew'~╤")).append("\n");
                         }
                         s.append("end\n");
+                        outToClient.write(s.toString().getBytes(StandardCharsets.UTF_8));
+                    } catch (SocketException e) {
+                        String message = e.getMessage();
+                        if (message.equals("Socket closed")) {
+                            close();
+                        } else if (!message.equals("Connection reset by peer: socket write error") &&
+                                !message.equals("Software caused connection abort: socket write error")) {
+                            LOG.error(message, e);
+                        }
+                    } catch (Exception e) {
+                        LOG.error(e.getMessage(), e);
+                        close();
+                    }
+                }
+
+                @Override
+                public void onSongListViewChanged(ObservableList<SearchedSong> items) {
+                    try {
+                        StringBuilder s = new StringBuilder("start onSongListViewChanged\n" +
+                                items.size() + "\n");
+                        ArrayList<Song> songs = new ArrayList<>(items.size());
+                        for (SearchedSong searchedSong : items) {
+                            songs.add(searchedSong.getSong());
+                        }
+                        Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
+                        s.append(gson.toJson(songs).replaceAll("\n", "╤~'newLinew'~╤"));
+                        s.append("\nend\n");
                         outToClient.write(s.toString().getBytes(StandardCharsets.UTF_8));
                     } catch (SocketException e) {
                         String message = e.getMessage();
@@ -95,12 +128,36 @@ public class Sender {
             try {
                 String s = inFromClient.readLine();
                 while (!s.equals("Finished")) {
-                    if (s.equals("onSongListViewItemClick")) {
-                        int position = Integer.parseInt(inFromClient.readLine());
-                        songReadRemoteListener.onSongListViewItemClick(position);
-                        do {
-                            s = inFromClient.readLine();
-                        } while (!s.equals("end"));
+                    switch (s) {
+                        case "onSongVerseListViewItemClick": {
+                            int position = Integer.parseInt(inFromClient.readLine());
+                            songReadRemoteListener.onSongVerseListViewItemClick(position);
+                            do {
+                                s = inFromClient.readLine();
+                            } while (!s.equals("end"));
+                            break;
+                        }
+                        case "onSongListViewItemClick": {
+                            int position = Integer.parseInt(inFromClient.readLine());
+                            songReadRemoteListener.onSongListViewItemClick(position);
+                            do {
+                                s = inFromClient.readLine();
+                            } while (!s.equals("end"));
+                            break;
+                        }
+                        case "onSearch":
+                            String text = inFromClient.readLine();
+                            songReadRemoteListener.onSearch(text);
+                            do {
+                                s = inFromClient.readLine();
+                            } while (!s.equals("end"));
+                            break;
+                        case "onSongPrev":
+                            songReadRemoteListener.onSongPrev();
+                            break;
+                        case "onSongNext":
+                            songReadRemoteListener.onSongNext();
+                            break;
                     }
                     s = inFromClient.readLine();
                 }

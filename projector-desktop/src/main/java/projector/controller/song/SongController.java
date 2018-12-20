@@ -438,7 +438,7 @@ public class SongController {
                             }
                         }
                         if (songRemoteListener != null) {
-                            songRemoteListener.onSongListViewChanged(songListViewItems);
+                            songRemoteListener.onSongVerseListViewChanged(songListViewItems);
                         }
                     }
                 } catch (Exception e) {
@@ -1448,6 +1448,9 @@ public class SongController {
                 });
             }
             selectIfJustOne();
+            if (songRemoteListener != null) {
+                songRemoteListener.onSongListViewChanged(listView.getItems());
+            }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -2210,11 +2213,43 @@ public class SongController {
 
     public SongReadRemoteListener getSongReadRemoteListener() {
         if (songReadRemoteListener == null) {
-            songReadRemoteListener = index -> Platform.runLater(() -> {
-                if (songListView.getItems().size() > index) {
-                    songListView.getSelectionModel().clearAndSelect(index);
+            songReadRemoteListener = new SongReadRemoteListener() {
+                @Override
+                public void onSongVerseListViewItemClick(int index) {
+                    Platform.runLater(() -> {
+                        if (songListView.getItems().size() > index) {
+                            songListView.getSelectionModel().clearAndSelect(index);
+                        }
+                    });
                 }
-            });
+
+                @Override
+                public void onSongListViewItemClick(int index) {
+                    Platform.runLater(() -> {
+                        if (listView.getItems().size() > index) {
+                            listView.getSelectionModel().clearAndSelect(index);
+                        }
+                    });
+                }
+
+                @Override
+                public void onSearch(String text) {
+                    Platform.runLater(() -> titleSearch(text));
+                }
+
+                @Override
+                public void onSongPrev() {
+                    Platform.runLater(() -> setPrevious());
+                }
+
+                @Override
+                public void onSongNext() {
+                    Platform.runLater(() -> {
+                        selectNextSongFromScheduleIfLastIndex();
+                        setNext();
+                    });
+                }
+            };
         }
         return songReadRemoteListener;
     }

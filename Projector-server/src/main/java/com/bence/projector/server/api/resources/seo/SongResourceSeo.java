@@ -64,20 +64,24 @@ public class SongResourceSeo {
         }
         Set<String> strings = sortedMap.keySet();
         StringBuilder keywords = new StringBuilder("lyrics");
-        String englishName = song.getLanguage().getEnglishName();
-        switch (englishName) {
-            case "Hungarian":
-                keywords.append(", dalszöveg, szöveg, ének");
-                break;
-            case "Romanian":
-                keywords.append(", versuri, text, cântec, imn");
-                break;
-            case "German":
-                keywords.append(", text, lied, hymne");
-                break;
-            default: //if (englishName.equals("English"))
-                keywords.append(", text, hymn, song");
-                break;
+        if (song.getLanguage() != null) {
+            String englishName = song.getLanguage().getEnglishName();
+            switch (englishName) {
+                case "Hungarian":
+                    keywords.append(", dalszöveg, szöveg, ének");
+                    break;
+                case "Romanian":
+                    keywords.append(", versuri, text, cântec, imn");
+                    break;
+                case "German":
+                    keywords.append(", text, lied, hymne");
+                    break;
+                default: //if (englishName.equals("English"))
+                    keywords.append(", text, hymn, song");
+                    break;
+            }
+//        } else {
+//            todo send email just once per day.
         }
         Iterator<String> iterator = strings.iterator();
         for (int i = 0; iterator.hasNext() && i < 4; ++i) {
