@@ -1,12 +1,18 @@
-package com.bence.psbremote;
+package com.bence.psbremote.ui.activity;
 
+import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
+import android.widget.TextView;
 
-import com.bence.psbremote.ui.activity.AbstractFullscreenActivity;
+import com.bence.psbremote.ProjectionTextChangeListener;
+import com.bence.psbremote.R;
+import com.bence.psbremote.SongRemoteListener;
+import com.bence.psbremote.TCPClient;
+import com.bence.psbremote.model.Song;
+import com.bence.psbremote.util.Memory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -18,9 +24,10 @@ import java.util.List;
 
 import static com.bence.psbremote.TCPClient.PORT;
 
-public class MainActivity extends AbstractFullscreenActivity {
+public class MainActivity extends AppCompatActivity {
 
-    private SongSenderRemoteListener songSenderRemoteListener;
+    private Memory memory = Memory.getInstance();
+    private TextView infoText;
 
     private static boolean isOpenAddress(String ip) {
         try {
@@ -36,46 +43,9 @@ public class MainActivity extends AbstractFullscreenActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        final List<String> openIps = new ArrayList<>();
-        findShared(openIps);
-        final ListView listView = findViewById(R.id.listView);
-        if (openIps.size() > 0) {
-            String connectToShared = openIps.get(0);
-            TCPClient.connectToShared(this, connectToShared, new ProjectionTextChangeListener() {
-                @Override
-                public void onSetText(final String text) {
-                    try {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                System.out.println(text);
-                                setText(text);
-                            }
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, new SongRemoteListener() {
-                @Override
-                public void onSongListViewChanged(final List<String> list) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this,
-                                    android.R.layout.simple_list_item_1, android.R.id.text1, list);
-                            listView.setAdapter(adapter);
-                        }
-                    });
-                }
-            });
-        }
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                songSenderRemoteListener.onSongListViewItemClick(position);
-            }
-        });
+        setContentView(R.layout.activity_main);
+        infoText = findViewById(R.id.infoText);
+        connectClick(null);
     }
 
     private void findShared(final List<String> openIps) {
@@ -123,7 +93,43 @@ public class MainActivity extends AbstractFullscreenActivity {
         }
     }
 
-    public void setSongSenderRemoteListener(SongSenderRemoteListener songSenderRemoteListener) {
-        this.songSenderRemoteListener = songSenderRemoteListener;
+    public void songButtonClick(View view) {
+        Intent intent = new Intent(this, SongsActivity.class);
+        startActivity(intent);
+    }
+
+    @SuppressLint("SetTextI18n")
+    public void connectClick(View view) {
+        final List<String> openIps = new ArrayList<>();
+        findShared(openIps);
+        if (openIps.size() > 0) {
+            String connectToShared = openIps.get(0);
+            infoText.setText("Connected to: " + connectToShared);
+            TCPClient.connectToShared(this, connectToShared, new ProjectionTextChangeListener() {
+                @Override
+                public void onSetText(final String text) {
+                    try {
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                memory.setProjectionText(text);
+                            }
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, new SongRemoteListener() {
+                @Override
+                public void onSongVerseListViewChanged(final List<String> list) {
+                    memory.setSongVerses(list);
+                }
+
+                @Override
+                public void onSongListViewChanged(List<Song> list) {
+                    memory.setSongs(list);
+                }
+            });
+        }
     }
 }

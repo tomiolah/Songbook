@@ -1,37 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              xmlns:tools="http://schemas.android.com/tools"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              tools:context=".MainActivity">
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.activity.MainActivity">
 
-    <com.bence.psbremote.ui.AutoResizeTextView
-            android:id="@+id/fullscreen_content"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:background="#000000"
-            android:ellipsize="none"
-            android:gravity="center"
-            android:singleLine="false"
-            android:text="Reload"
-            android:textAlignment="center"
-            android:textColor="#FFFFFF"
-            android:textSize="50sp"
-            tools:ignore="HardcodedText"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical">
 
-    <TextView
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:onClick="songButtonClick"
+            android:padding="4dp"
+            android:text=">>"
+            tools:ignore="HardcodedText,RtlHardcoded" />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="4dp"
+            android:onClick="connectClick"
+            android:padding="4dp"
+            android:text="Connect"
+            tools:ignore="HardcodedText,RtlHardcoded" />
+
+        <TextView
+            android:id="@+id/infoText"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="Hello World!"/>
+            android:layout_margin="12dp"
+            android:text="Not connected"
+            tools:ignore="HardcodedText" />
+    </LinearLayout>
 
-    <ListView
-            android:id="@+id/listView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            tools:layout_editor_absoluteX="8dp"
-            tools:layout_editor_absoluteY="208dp"/>
-
-
-</LinearLayout>
+</android.support.constraint.ConstraintLayout>

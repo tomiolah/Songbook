@@ -63,12 +63,16 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
     };
+    private int activity = -1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         try {
-            setContentView(R.layout.activity_main);
+            if (activity == -1) {
+                activity = R.layout.activity_song;
+            }
+            setContentView(activity);
             textView = findViewById(R.id.fullscreen_content);
             textView.setSingleLine(false);
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -130,6 +134,9 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
     }
 
     public void setText(String text) {
+        if (text == null) {
+            return;
+        }
         String s = text.replaceAll("<color=\"0x(.{0,6})..\">", "<font color='0x$1'>")
                 .replaceAll("</color>", "</font>")
                 .replaceAll("\\[", "<i>")

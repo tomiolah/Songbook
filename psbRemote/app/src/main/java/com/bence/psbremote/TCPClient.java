@@ -2,17 +2,25 @@ package com.bence.psbremote;
 
 import android.util.Log;
 
+import com.bence.psbremote.model.Song;
+import com.bence.psbremote.ui.activity.MainActivity;
+import com.bence.psbremote.util.Memory;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class TCPClient {
 
-    static final int PORT = 21042;
+    public static final int PORT = 21042;
     private static final String TAG = TCPClient.class.getSimpleName();
     private static Thread thread;
     private static Thread reader;
@@ -20,8 +28,9 @@ public class TCPClient {
     private static Socket clientSocket;
     private static DataOutputStream outToServer;
     private static BufferedReader inFromServer;
+    private static Memory memory = Memory.getInstance();
 
-    synchronized static void connectToShared(final MainActivity mainActivity, final String openIp, final ProjectionTextChangeListener projectionTextChangeListener, final SongRemoteListener songRemoteListener) {
+    public synchronized static void connectToShared(final MainActivity mainActivity, final String openIp, final ProjectionTextChangeListener projectionTextChangeListener, final SongRemoteListener songRemoteListener) {
         if (thread != null) {
             close();
         }
@@ -51,10 +60,16 @@ public class TCPClient {
                                             mainActivity.finish();
                                             return;
                                         }
-                                        if (fromServer.equals("start 'text'")) {
-                                            newText(projectionTextChangeListener);
-                                        } else if (fromServer.equals("start onSongListViewChanged")) {
-                                            onSongListViewChanged(songRemoteListener);
+                                        switch (fromServer) {
+                                            case "start 'text'":
+                                                newText(projectionTextChangeListener);
+                                                break;
+                                            case "start onSongVerseListViewChanged":
+                                                onSongVerseListViewChanged(songRemoteListener);
+                                                break;
+                                            case "start onSongListViewChanged":
+                                                onSongListViewChanged(songRemoteListener);
+                                                break;
                                         }
                                     } catch (Exception e) {
                                         Log.e(TAG, e.getMessage(), e);
@@ -69,6 +84,18 @@ public class TCPClient {
                             public void run() {
                                 SongSenderRemoteListener songSenderRemoteListener = new SongSenderRemoteListener() {
                                     @Override
+                                    public void onSongVerseListViewItemClick(int position) {
+                                        try {
+                                            String s = "onSongVerseListViewItemClick\n"
+                                                    + position + "\n"
+                                                    + "end\n";
+                                            outToServer.write(s.getBytes(StandardCharsets.UTF_8));
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
+                                    @Override
                                     public void onSongListViewItemClick(int position) {
                                         try {
                                             String s = "onSongListViewItemClick\n"
@@ -79,8 +106,40 @@ public class TCPClient {
                                             e.printStackTrace();
                                         }
                                     }
+
+                                    @Override
+                                    public void onSearch(String text) {
+                                        try {
+                                            String s = "onSearch\n"
+                                                    + text.replaceAll("\n", "") + "\n"
+                                                    + "end\n";
+                                            outToServer.write(s.getBytes(StandardCharsets.UTF_8));
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onSongPrev() {
+                                        try {
+                                            String s = "onSongPrev\n";
+                                            outToServer.write(s.getBytes(StandardCharsets.UTF_8));
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onSongNext() {
+                                        try {
+                                            String s = "onSongNext\n";
+                                            outToServer.write(s.getBytes(StandardCharsets.UTF_8));
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
                                 };
-                                mainActivity.setSongSenderRemoteListener(songSenderRemoteListener);
+                                memory.setSongSenderRemoteListener(songSenderRemoteListener);
                             }
                         });
                         writer.start();
@@ -111,16 +170,36 @@ public class TCPClient {
         }
     }
 
-    private static void onSongListViewChanged(SongRemoteListener songRemoteListener) throws IOException {
-        ArrayList<String> list = new ArrayList<>();
+    private static void onSongVerseListViewChanged(SongRemoteListener songRemoteListener) throws IOException {
         int size = Integer.parseInt(inFromServer.readLine());
+        ArrayList<String> list = new ArrayList<>(size);
         for (int i = 0; i < size; ++i) {
             list.add(inFromServer.readLine().replaceAll("╤~'newLinew'~╤", "\n"));
         }
         String fromServer = inFromServer.readLine();
         if (fromServer.equals("end")) {
-            songRemoteListener.onSongListViewChanged(list);
+            songRemoteListener.onSongVerseListViewChanged(list);
         }
+    }
+
+    private static void onSongListViewChanged(SongRemoteListener songRemoteListener) throws IOException {
+        inFromServer.readLine();
+        String fromServer;
+        StringBuilder s = new StringBuilder();
+        do {
+            fromServer = inFromServer.readLine();
+            if (!fromServer.equals("end")) {
+                s.append(fromServer);
+            } else {
+                break;
+            }
+        } while (true);
+        Gson gson = new GsonBuilder().serializeNulls().create();
+        ArrayList<Song> songArrayList;
+        Type listType = new TypeToken<ArrayList<Song>>() {
+        }.getType();
+        songArrayList = gson.fromJson(s.toString().replaceAll("╤~'newLinew'~╤", "\n"), listType);
+        songRemoteListener.onSongListViewChanged(songArrayList);
     }
 
     public synchronized static void close() {
