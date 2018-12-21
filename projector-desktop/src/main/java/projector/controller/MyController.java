@@ -196,6 +196,9 @@ public class MyController {
         if (settings.isConnectedToShared()) {
             TCPClient.close();
         }
+        if (settings.isAllowRemote()) {
+            RemoteServer.close();
+        }
     }
 
     public void selectTab(int tabIndex) {
