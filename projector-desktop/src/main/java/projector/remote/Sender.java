@@ -73,7 +73,7 @@ public class Sender {
                         StringBuilder s = new StringBuilder("start onSongVerseListViewChanged\n" +
                                 newList.size() + "\n");
                         for (MyTextFlow textFlow : newList) {
-                            s.append(textFlow.getRawText().replaceAll("\n", "╤~'newLinew'~╤")).append("\n");
+                            s.append(textFlow.getRawText().replaceAll("\n", "`~'newLinew'~`")).append("\n");
                         }
                         s.append("end\n");
                         outToClient.write(s.toString().getBytes(StandardCharsets.UTF_8));
@@ -101,7 +101,7 @@ public class Sender {
                             songs.add(searchedSong.getSong());
                         }
                         Gson gson = new GsonBuilder().excludeFieldsWithoutExposeAnnotation().create();
-                        s.append(gson.toJson(songs).replaceAll("\n", "╤~'newLinew'~╤"));
+                        s.append(gson.toJson(songs).replaceAll("\n", "`~'newLinew'~`"));
                         s.append("\nend\n");
                         outToClient.write(s.toString().getBytes(StandardCharsets.UTF_8));
                     } catch (SocketException e) {
@@ -127,37 +127,39 @@ public class Sender {
         reader = new Thread(() -> {
             try {
                 String s = inFromClient.readLine();
-                while (!s.equals("Finished")) {
-                    switch (s) {
-                        case "onSongVerseListViewItemClick": {
-                            int position = Integer.parseInt(inFromClient.readLine());
-                            songReadRemoteListener.onSongVerseListViewItemClick(position);
-                            do {
-                                s = inFromClient.readLine();
-                            } while (!s.equals("end"));
-                            break;
+                while (s == null || !s.equals("Finished")) {
+                    if (s != null) {
+                        switch (s) {
+                            case "onSongVerseListViewItemClick": {
+                                int position = Integer.parseInt(inFromClient.readLine());
+                                songReadRemoteListener.onSongVerseListViewItemClick(position);
+                                do {
+                                    s = inFromClient.readLine();
+                                } while (!s.equals("end"));
+                                break;
+                            }
+                            case "onSongListViewItemClick": {
+                                int position = Integer.parseInt(inFromClient.readLine());
+                                songReadRemoteListener.onSongListViewItemClick(position);
+                                do {
+                                    s = inFromClient.readLine();
+                                } while (!s.equals("end"));
+                                break;
+                            }
+                            case "onSearch":
+                                String text = inFromClient.readLine();
+                                songReadRemoteListener.onSearch(text);
+                                do {
+                                    s = inFromClient.readLine();
+                                } while (!s.equals("end"));
+                                break;
+                            case "onSongPrev":
+                                songReadRemoteListener.onSongPrev();
+                                break;
+                            case "onSongNext":
+                                songReadRemoteListener.onSongNext();
+                                break;
                         }
-                        case "onSongListViewItemClick": {
-                            int position = Integer.parseInt(inFromClient.readLine());
-                            songReadRemoteListener.onSongListViewItemClick(position);
-                            do {
-                                s = inFromClient.readLine();
-                            } while (!s.equals("end"));
-                            break;
-                        }
-                        case "onSearch":
-                            String text = inFromClient.readLine();
-                            songReadRemoteListener.onSearch(text);
-                            do {
-                                s = inFromClient.readLine();
-                            } while (!s.equals("end"));
-                            break;
-                        case "onSongPrev":
-                            songReadRemoteListener.onSongPrev();
-                            break;
-                        case "onSongNext":
-                            songReadRemoteListener.onSongNext();
-                            break;
                     }
                     s = inFromClient.readLine();
                 }

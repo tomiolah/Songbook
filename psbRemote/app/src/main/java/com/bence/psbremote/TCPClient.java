@@ -84,59 +84,84 @@ public class TCPClient {
                             public void run() {
                                 SongSenderRemoteListener songSenderRemoteListener = new SongSenderRemoteListener() {
                                     @Override
-                                    public void onSongVerseListViewItemClick(int position) {
-                                        try {
-                                            String s = "onSongVerseListViewItemClick\n"
-                                                    + position + "\n"
-                                                    + "end\n";
-                                            outToServer.write(s.getBytes(StandardCharsets.UTF_8));
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
+                                    public void onSongVerseListViewItemClick(final int position) {
+                                        new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                try {
+                                                    String s = "onSongVerseListViewItemClick\n"
+                                                            + position + "\n"
+                                                            + "end\n";
+                                                    outToServer.write(s.getBytes(StandardCharsets.UTF_8));
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }).start();
                                     }
 
                                     @Override
-                                    public void onSongListViewItemClick(int position) {
-                                        try {
-                                            String s = "onSongListViewItemClick\n"
-                                                    + position + "\n"
-                                                    + "end\n";
-                                            outToServer.write(s.getBytes(StandardCharsets.UTF_8));
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
+                                    public void onSongListViewItemClick(final int position) {
+                                        new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                try {
+                                                    String s = "onSongListViewItemClick\n"
+                                                            + position + "\n"
+                                                            + "end\n";
+                                                    outToServer.write(s.getBytes(StandardCharsets.UTF_8));
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }).start();
                                     }
 
                                     @Override
-                                    public void onSearch(String text) {
-                                        try {
-                                            String s = "onSearch\n"
-                                                    + text.replaceAll("\n", "") + "\n"
-                                                    + "end\n";
-                                            outToServer.write(s.getBytes(StandardCharsets.UTF_8));
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
+                                    public void onSearch(final String text) {
+                                        new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                try {
+                                                    String s = "onSearch\n"
+                                                            + text.replaceAll("\n", "") + "\n"
+                                                            + "end\n";
+                                                    outToServer.write(s.getBytes(StandardCharsets.UTF_8));
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }).start();
                                     }
 
                                     @Override
                                     public void onSongPrev() {
-                                        try {
-                                            String s = "onSongPrev\n";
-                                            outToServer.write(s.getBytes(StandardCharsets.UTF_8));
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
+                                        new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                try {
+                                                    String s = "onSongPrev\n";
+                                                    outToServer.write(s.getBytes(StandardCharsets.UTF_8));
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }).start();
                                     }
 
                                     @Override
                                     public void onSongNext() {
-                                        try {
-                                            String s = "onSongNext\n";
-                                            outToServer.write(s.getBytes(StandardCharsets.UTF_8));
-                                        } catch (IOException e) {
-                                            e.printStackTrace();
-                                        }
+                                        new Thread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                try {
+                                                    String s = "onSongNext\n";
+                                                    outToServer.write(s.getBytes(StandardCharsets.UTF_8));
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }).start();
                                     }
                                 };
                                 memory.setSongSenderRemoteListener(songSenderRemoteListener);
@@ -174,7 +199,7 @@ public class TCPClient {
         int size = Integer.parseInt(inFromServer.readLine());
         ArrayList<String> list = new ArrayList<>(size);
         for (int i = 0; i < size; ++i) {
-            list.add(inFromServer.readLine().replaceAll("╤~'newLinew'~╤", "\n"));
+            list.add(inFromServer.readLine().replaceAll("`~'newLinew'~`", "\n"));
         }
         String fromServer = inFromServer.readLine();
         if (fromServer.equals("end")) {
@@ -198,7 +223,7 @@ public class TCPClient {
         ArrayList<Song> songArrayList;
         Type listType = new TypeToken<ArrayList<Song>>() {
         }.getType();
-        songArrayList = gson.fromJson(s.toString().replaceAll("╤~'newLinew'~╤", "\n"), listType);
+        songArrayList = gson.fromJson(s.toString().replaceAll("`~'newLinew'~`", "\n"), listType);
         songRemoteListener.onSongListViewChanged(songArrayList);
     }
 
