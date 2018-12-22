@@ -86,6 +86,9 @@ public class Song extends BaseEntity {
 
     public List<SongVerse> getVerses() {
         if (verses == null) {
+            if (songVerseForeignCollection == null) {
+                return new ArrayList<>();
+            }
             List<SongVerse> songVerses = new ArrayList<>(songVerseForeignCollection.size());
             songVerses.addAll(songVerseForeignCollection);
             verses = songVerses;
@@ -103,6 +106,9 @@ public class Song extends BaseEntity {
 
     public void fetchVerses() {
         if (verses == null) {
+            if (songVerseForeignCollection == null) {
+                return;
+            }
             List<SongVerse> songVerses = new ArrayList<>(songVerseForeignCollection.size());
             songVerses.addAll(songVerseForeignCollection);
             verses = songVerses;

@@ -55,7 +55,7 @@ public class SongListActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
-        final DynamicListView<SongListElementAdapter> listView = findViewById(R.id.listView);
+        final DynamicListView<SongListElementAdapter> listView = findViewById(R.id.dListView);
         songListElements = songList.getSongListElements();
         Collections.sort(songListElements, new Comparator<SongListElement>() {
             @Override
@@ -124,6 +124,9 @@ public class SongListActivity extends AppCompatActivity {
 
     private void fetchSongAttributes() {
         List<Song> songs = memory.getSongs();
+        if (songs == null) {
+            return;
+        }
         LongSparseArray<Song> hashMap = new LongSparseArray<>(songs.size());
         for (Song song : songs) {
             hashMap.put(song.getId(), song);
