@@ -166,6 +166,9 @@ public class MainActivity extends AppCompatActivity
     private int view_mode;
     private MainPageAdapter pageAdapter;
     private int firstVisibleItemPosition;
+    private String previouslyTitleSearchText = "";
+    private String previouslyInSongSearchText = "";
+    private Thread lastSearchThread;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -1117,25 +1120,39 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void search(String text, SongAdapter adapter) {
-        if (inSongSearchSwitch && (searchInSongTextIsAvailable)) {
-            inSongSearch(text);
-        } else {
-            titleSearch(text);
+    public void search(final String text, final SongAdapter adapter) {
+        Thread searchThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (inSongSearchSwitch && (searchInSongTextIsAvailable)) {
+                    inSongSearch(text);
+                } else {
+                    titleSearch(text);
+                }
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (adapter == null) {
+                            loadAll();
+                            return;
+                        }
+                        adapter.setSongList(values);
+                        if (pageAdapter != null) {
+                            pageAdapter.notifyDataSetChanged();
+                        }
+                    }
+                });
+            }
+        });
+        if (lastSearchThread != null && lastSearchThread.isAlive()) {
+            lastSearchThread.interrupt();
         }
-        if (adapter == null) {
-            loadAll();
-            return;
-        }
-        adapter.setSongList(values);
-        if (pageAdapter != null) {
-            pageAdapter.notifyDataSetChanged();
-        }
+        searchThread.start();
+        lastSearchThread = searchThread;
     }
 
-    public void titleSearch(String title) {
+    public void titleSearch(final String title) {
         memory.setLastSearchedInText(null);
-        values.clear();
         String text = title.toLowerCase();
         String stripped = stripAccents(text);
         String firstWord = stripAccents(text.split(" ")[0].toLowerCase());
@@ -1164,27 +1181,45 @@ public class MainActivity extends AppCompatActivity
         } catch (Exception ignored) {
         }
         wasOrdinalNumber = false;
-        for (int i = 0; i < songs.size(); ++i) {
-            Song song = songs.get(i);
+        List<Song> songList = new ArrayList<>();
+        if (values.size() > 0 && title.contains(previouslyTitleSearchText) && !previouslyTitleSearchText.trim().isEmpty()) {
+            songList.addAll(values);
+        } else {
+            songList.addAll(songs);
+        }
+        final List<Song> tempSongList = new ArrayList<>();
+        for (Song song : songList) {
             if (containsInTitle(stripped, song, other, collectionName, ordinalNumber, ordinalNumberInt)) {
-                values.add(song);
+                tempSongList.add(song);
             }
         }
         if (wasOrdinalNumber) {
-            Collections.sort(values, new Comparator<Song>() {
-                @Override
-                public int compare(Song l, Song r) {
-                    SongCollectionElement lSongCollectionElement = l.getSongCollectionElement();
-                    SongCollectionElement rSongCollectionElement = r.getSongCollectionElement();
-                    if (lSongCollectionElement != null && rSongCollectionElement != null) {
-                        Integer ordinalNumberInt = lSongCollectionElement.getOrdinalNumberInt();
-                        return ordinalNumberInt.compareTo(rSongCollectionElement.getOrdinalNumberInt());
-                    } else {
-                        return 1;
+            try {
+                Collections.sort(tempSongList, new Comparator<Song>() {
+                    @Override
+                    public int compare(Song l, Song r) {
+                        SongCollectionElement lSongCollectionElement = l.getSongCollectionElement();
+                        SongCollectionElement rSongCollectionElement = r.getSongCollectionElement();
+                        if (lSongCollectionElement != null && rSongCollectionElement != null) {
+                            Integer ordinalNumberInt = lSongCollectionElement.getOrdinalNumberInt();
+                            return ordinalNumberInt.compareTo(rSongCollectionElement.getOrdinalNumberInt());
+                        } else {
+                            return 1;
+                        }
                     }
-                }
-            });
+                });
+            } catch (IllegalArgumentException ignored) {
+            }
         }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                values.clear();
+                values.addAll(tempSongList);
+                previouslyTitleSearchText = title;
+                previouslyInSongSearchText = "";
+            }
+        });
     }
 
     private boolean containsInTitle(String stripped, Song song, String other, String collectionName, String ordinalNumber, int ordinalNumberInt) {
@@ -1244,16 +1279,21 @@ public class MainActivity extends AppCompatActivity
         return b2;
     }
 
-    public void inSongSearch(String title) {
+    public void inSongSearch(final String title) {
         if (!searchInSongTextIsAvailable) {
             titleSearch(title);
             return;
         }
-        values.clear();
         String text = stripAccents(title.toLowerCase());
         memory.setLastSearchedInText(text);
-        for (int i = 0; i < songs.size(); ++i) {
-            Song song = songs.get(i);
+        List<Song> songList = new ArrayList<>();
+        if (values.size() > 0 && title.contains(previouslyInSongSearchText) && !previouslyInSongSearchText.trim().isEmpty()) {
+            songList.addAll(values);
+        } else {
+            songList.addAll(songs);
+        }
+        final List<Song> tempSongList = new ArrayList<>();
+        for (Song song : songList) {
             boolean contains = song.getStrippedTitle().contains(text);
             if (!contains) {
                 for (SongVerse verse : song.getVerses()) {
@@ -1264,9 +1304,18 @@ public class MainActivity extends AppCompatActivity
                 }
             }
             if (contains) {
-                values.add(song);
+                tempSongList.add(song);
             }
         }
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                values.clear();
+                values.addAll(tempSongList);
+                previouslyInSongSearchText = title;
+                previouslyTitleSearchText = "";
+            }
+        });
     }
 
     public void showSongFullscreen(Song song) {
