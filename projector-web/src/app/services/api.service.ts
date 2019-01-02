@@ -64,6 +64,15 @@ export class ApiService {
       .catch(ApiService.handleError);
   }
 
+  public put<T extends BaseModel>(c: new (data) => T, api_url: string, t: T): Observable<T> {
+    return this.http
+      .put(api_url, t)
+      .map(response => {
+        return new c(response.json());
+      })
+      .catch(ApiService.handleError);
+  }
+
   public deleteById(api_url: string, id): Observable<null> {
     return this.http
       .delete(api_url + id)

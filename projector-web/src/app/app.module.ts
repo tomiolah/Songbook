@@ -66,6 +66,8 @@ import {ShareComponent} from './ui/share/share.component';
 import {HttpClientModule} from "@angular/common/http";
 import {AuthenticateComponent} from "./ui/authenticate/authenticate.component";
 import {OpenInAppComponent} from './ui/open-in-app/open-in-app.component';
+import {AddToCollectionComponent} from './ui/add-to-collection/add-to-collection.component';
+import {SongCollectionDataService} from "./services/song-collection-data.service";
 
 @NgModule({
   exports: [
@@ -125,6 +127,7 @@ export class PlunkerMaterialModule {
     ShareComponent,
     AuthenticateComponent,
     OpenInAppComponent,
+    AddToCollectionComponent,
   ],
   imports: [
     BrowserModule,
@@ -143,6 +146,7 @@ export class PlunkerMaterialModule {
     ShareComponent,
     AuthenticateComponent,
     OpenInAppComponent,
+    AddToCollectionComponent,
   ],
   providers: [
     ApiService,
@@ -153,6 +157,7 @@ export class PlunkerMaterialModule {
     StatisticsDataService,
     SuggestionDataService,
     LanguageDataService,
+    SongCollectionDataService,
     Title,
   ],
   bootstrap: [AppComponent]

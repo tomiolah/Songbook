@@ -24,6 +24,7 @@ export function replace(formValue: any, key) {
   newValue = replaceMatch(newValue, /\( /g, '(');
   newValue = replaceMatch(newValue, /\. "/g, '."');
   newValue = replaceMatch(newValue, /! "/g, '!"');
+  newValue = replaceMatch(newValue, /\r\n/g, '\n');
   newValue = replaceMatch(newValue, /\n\n/g, '\n');
   newValue = replaceMatch(newValue, / \t/g, ' ');
   newValue = replaceMatch(newValue, /\t /g, ' ');
@@ -36,6 +37,8 @@ export function replace(formValue: any, key) {
   newValue = replaceMatch(newValue, /ţ/g, 'ț');
   newValue = replaceMatch(newValue, /ã/g, 'ă');
   newValue = replaceMatch(newValue, /õ/g, 'ő');
+  newValue = replaceMatch(newValue, /Õ/g, 'Ő');
+  newValue = replaceMatch(newValue, /û/g, 'ű');
   return newValue;
 }
 
@@ -55,13 +58,15 @@ function replaceMatch(newValue: string, matcher, replaceValue) {
 export class NewSongComponent implements OnInit {
   form: FormGroup;
   formErrors = {
-    'title': ''
+    'title': '',
+    'verseOrder': ''
   };
 
   validationMessages = {
     'title': {
       'required': 'Required field',
-    }
+    },
+    'verseOrder': {}
   };
   verses: SongVerseDTO[];
   verseControls: FormControl[];
@@ -162,10 +167,11 @@ export class NewSongComponent implements OnInit {
     const formValue = this.form.value;
     this.song.title = formValue.title;
     this.song.songVerseDTOS = [];
+    this.song.verseOrder = formValue.verseOrder;
     this.song.languageDTO = this.selectedLanguage;
     let i = 0;
     for (const key in formValue) {
-      if (formValue.hasOwnProperty(key) && key.startsWith('verse')) {
+      if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
         const value = formValue[key];
         const songVerseDTO = new SongVerseDTO();
         songVerseDTO.text = value;
@@ -199,9 +205,9 @@ export class NewSongComponent implements OnInit {
       }
     }
     this.songService.createSong(this.song).subscribe(
-      () => {
+      (song) => {
         // noinspection JSIgnoredPromiseFromCall
-        this.router.navigate(['/songs']);
+        this.router.navigate(['/song/' + song.uuid]);
       },
       (err) => {
         console.log(err);
@@ -244,7 +250,7 @@ export class NewSongComponent implements OnInit {
       let i = 0;
       let text = '';
       for (const key in formValue) {
-        if (formValue.hasOwnProperty(key) && key.startsWith('verse')) {
+        if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
           const value = formValue[key];
           if (text.length > 0) {
             text = text + "\n\n";
@@ -261,7 +267,7 @@ export class NewSongComponent implements OnInit {
       let i = 0;
       const formValue = this.form.value;
       for (const key in formValue) {
-        if (formValue.hasOwnProperty(key) && key.startsWith('verse')) {
+        if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
           this.form.removeControl(key);
           ++i;
         }
@@ -298,7 +304,7 @@ export class NewSongComponent implements OnInit {
       const formValue = this.form.value;
       let i = 0;
       for (const key in formValue) {
-        if (formValue.hasOwnProperty(key) && key.startsWith('verse')) {
+        if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
           let newValue = replace(formValue, key);
           this.form.controls['verse' + i].setValue(newValue);
           this.form.controls['verse' + i].updateValueAndValidity();

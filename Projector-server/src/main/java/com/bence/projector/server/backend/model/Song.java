@@ -25,6 +25,7 @@ public class Song extends BaseEntity {
     transient private double percentage;
     private String versionGroup;
     private String youtubeUrl;
+    private String verseOrder;
 
     public Song() {
     }
@@ -172,5 +173,13 @@ public class Song extends BaseEntity {
 
     public void setFavourites(long favourites) {
         this.favourites = favourites;
+    }
+
+    public String getVerseOrder() {
+        return verseOrder;
+    }
+
+    public void setVerseOrder(String verseOrder) {
+        this.verseOrder = verseOrder;
     }
 }

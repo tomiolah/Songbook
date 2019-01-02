@@ -65,6 +65,14 @@
               <button type="button" mat-icon-button (click)="refactor()">
                 <mat-icon svgIcon="magic_tool">magic_tool</mat-icon>
               </button>
+              <mat-form-field class="example-full-width">
+                <mat-label>Verse order</mat-label>
+                <input type="text" id="verseOrder" formControlName="verseOrder" matInput placeholder="V1x2 V1">
+              </mat-form-field>
+              <mat-error *ngIf="formErrors.verseOrder">
+                <mat-icon class="material-icon">error</mat-icon>
+                {{formErrors.verseOrder}}
+              </mat-error>
             </div>
             <div *ngIf="editorType==='raw'">
               <mat-form-field class="example-full-width">

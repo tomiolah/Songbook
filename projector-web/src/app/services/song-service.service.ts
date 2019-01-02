@@ -42,6 +42,7 @@ export class Song extends BaseModel {
   views = 0;
   favourites = 0;
   youtubeUrl;
+  verseOrder: string;
 
   constructor(values: Object = {}) {
     super(values);

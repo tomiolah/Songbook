@@ -18,6 +18,7 @@ public class SongDTO extends BaseDTO {
     private String versionGroup;
     private String youtubeUrl;
     private Long favourites;
+    private String verseOrder;
 
     public SongDTO() {
     }
@@ -124,5 +125,13 @@ public class SongDTO extends BaseDTO {
 
     public void setFavourites(long favourites) {
         this.favourites = favourites;
+    }
+
+    public String getVerseOrder() {
+        return verseOrder;
+    }
+
+    public void setVerseOrder(String verseOrder) {
+        this.verseOrder = verseOrder;
     }
 }
