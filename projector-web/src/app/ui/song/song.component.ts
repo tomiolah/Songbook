@@ -8,6 +8,7 @@ import {MatDialog, MatSnackBar} from "@angular/material";
 import {ShareComponent} from "../share/share.component";
 import {AuthenticateComponent} from "../authenticate/authenticate.component";
 import {OpenInAppComponent} from "../open-in-app/open-in-app.component";
+import {AddToCollectionComponent} from "../add-to-collection/add-to-collection.component";
 
 @Component({
   selector: 'app-song',
@@ -280,6 +281,22 @@ export class SongComponent implements OnInit, OnDestroy {
     } else {
       this.safeUrl = null;
     }
+  }
+
+  addToCollectionSong() {
+    this.openAddToCollectionDialog();
+  }
+
+  openAddToCollectionDialog(): void {
+    const dialogRef = this.dialog.open(AddToCollectionComponent, {
+      data: {
+        song: this.song
+      }
+    });
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'ok') {
+      }
+    });
   }
 
   private openAuthenticateDialog() {

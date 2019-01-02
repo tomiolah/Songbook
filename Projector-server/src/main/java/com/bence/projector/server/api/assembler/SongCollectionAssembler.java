@@ -22,15 +22,26 @@ public class SongCollectionAssembler implements GeneralAssembler<SongCollection,
         songCollectionDTO.setModifiedDate(songCollection.getModifiedDate());
         ArrayList<SongCollectionElementDTO> songCollectionElements = new ArrayList<>();
         for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
-            SongCollectionElementDTO songCollectionElementDTO = new SongCollectionElementDTO();
-            songCollectionElementDTO.setOrdinalNumber(songCollectionElement.getOrdinalNumber());
-            songCollectionElementDTO.setSongUuid(songCollectionElement.getSongUuid());
-            songCollectionElements.add(songCollectionElementDTO);
+            songCollectionElements.add(createElementModelDTO(songCollectionElement));
         }
         songCollectionDTO.setSongCollectionElements(songCollectionElements);
         songCollectionDTO.setName(songCollection.getName());
         songCollectionDTO.setLanguageUuid(songCollection.getId());
         return songCollectionDTO;
+    }
+
+    private SongCollectionElementDTO createElementModelDTO(SongCollectionElement songCollectionElement) {
+        SongCollectionElementDTO songCollectionElementDTO = new SongCollectionElementDTO();
+        songCollectionElementDTO.setOrdinalNumber(songCollectionElement.getOrdinalNumber());
+        songCollectionElementDTO.setSongUuid(songCollectionElement.getSongUuid());
+        return songCollectionElementDTO;
+    }
+
+    public SongCollectionElement createElementModel(SongCollectionElementDTO songCollectionElementDTO) {
+        SongCollectionElement songCollectionElement = new SongCollectionElement();
+        songCollectionElement.setOrdinalNumber(songCollectionElementDTO.getOrdinalNumber());
+        songCollectionElement.setSongUuid(songCollectionElementDTO.getSongUuid());
+        return songCollectionElement;
     }
 
     @Override

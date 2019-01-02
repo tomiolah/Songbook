@@ -43,6 +43,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         songDTO.setCreatedByEmail(song.getCreatedByEmail());
         songDTO.setVersionGroup(song.getVersionGroup());
         songDTO.setYoutubeUrl(song.getYoutubeUrl());
+        songDTO.setVerseOrder(song.getVerseOrder());
         return songDTO;
     }
 
@@ -81,6 +82,11 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         song.setCreatedByEmail(songDTO.getCreatedByEmail());
         song.setVersionGroup(songDTO.getVersionGroup());
         song.setYoutubeUrl(songDTO.getYoutubeUrl());
+        if (songDTO.getVerseOrder() != null && !songDTO.getVerseOrder().isEmpty()) {
+            song.setVerseOrder(songDTO.getVerseOrder().toUpperCase());
+        } else {
+            song.setVerseOrder(null);
+        }
         return song;
     }
 }
