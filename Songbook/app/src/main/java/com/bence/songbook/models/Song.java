@@ -44,6 +44,8 @@ public class Song extends BaseEntity {
     private FavouriteSong favourite;
     @DatabaseField
     private long views;
+    @DatabaseField
+    private String verseOrder;
 
     public Song() {
     }
@@ -271,5 +273,13 @@ public class Song extends BaseEntity {
             score += 4 * ((1 - (double) l / 2592000000L));
         }
         return score;
+    }
+
+    public String getVerseOrder() {
+        return verseOrder;
+    }
+
+    public void setVerseOrder(String verseOrder) {
+        this.verseOrder = verseOrder;
     }
 }

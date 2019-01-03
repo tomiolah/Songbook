@@ -381,6 +381,7 @@ public class SongActivity extends AppCompatActivity {
                 if (resultCode == SuggestEditsChooseActivity.LINKING) {
                     finish();
                 }
+                setUpMenu();
                 break;
             case REQUEST_CODE_SIGN_IN:
                 if (resultCode != RESULT_OK) {
