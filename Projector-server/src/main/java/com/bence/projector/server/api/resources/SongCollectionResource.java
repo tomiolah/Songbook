@@ -50,7 +50,7 @@ public class SongCollectionResource {
         return songCollectionAssembler.createDtoList(all);
     }
 
-    @RequestMapping(method = RequestMethod.PUT, value = "api/songCollection/{songCollectionUuid}/songCollectionElement")
+    @RequestMapping(method = RequestMethod.PUT, value = "admin/api/songCollection/{songCollectionUuid}/songCollectionElement")
     public ResponseEntity<Object> addToSongCollection(HttpServletRequest httpServletRequest, @PathVariable String songCollectionUuid, @RequestBody SongCollectionElementDTO elementDTO) {
         saveStatistics(httpServletRequest, statisticsService);
         final SongCollection songCollection = songCollectionService.findOne(songCollectionUuid);

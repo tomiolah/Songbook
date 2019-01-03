@@ -22,6 +22,7 @@ import com.bence.songbook.R;
 import com.bence.songbook.api.SuggestionApiBean;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
+import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.utils.Config;
 import com.google.android.youtube.player.YouTubeBaseActivity;
@@ -171,6 +172,9 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
             }
         });
         thread.start();
+        song.setYoutubeUrl(youtubeId);
+        SongRepositoryImpl songRepository = new SongRepositoryImpl(this);
+        songRepository.save(song);
         finish();
     }
 

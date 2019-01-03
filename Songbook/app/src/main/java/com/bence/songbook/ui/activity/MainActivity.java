@@ -1129,11 +1129,17 @@ public class MainActivity extends AppCompatActivity
                 } else {
                     titleSearch(text);
                 }
+                if (Thread.interrupted()) {
+                    return;
+                }
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         if (adapter == null) {
                             loadAll();
+                            return;
+                        }
+                        if (Thread.interrupted()) {
                             return;
                         }
                         adapter.setSongList(values);
@@ -1191,6 +1197,9 @@ public class MainActivity extends AppCompatActivity
         for (Song song : songList) {
             if (containsInTitle(stripped, song, other, collectionName, ordinalNumber, ordinalNumberInt)) {
                 tempSongList.add(song);
+            }
+            if (Thread.interrupted()) {
+                return;
             }
         }
         if (wasOrdinalNumber) {
@@ -1305,6 +1314,9 @@ public class MainActivity extends AppCompatActivity
             }
             if (contains) {
                 tempSongList.add(song);
+            }
+            if (Thread.interrupted()) {
+                return;
             }
         }
         runOnUiThread(new Runnable() {
