@@ -145,6 +145,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                 }
             });
             thread.start();
+            super.setContext(this);
         } catch (Exception e) {
             Log.e(FullscreenActivity.class.getSimpleName(), e.getMessage());
         }

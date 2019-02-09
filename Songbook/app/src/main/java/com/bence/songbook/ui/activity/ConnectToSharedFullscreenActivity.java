@@ -109,6 +109,7 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
             setResult(-1);
             finish();
         }
+        super.setContext(this);
     }
 
     @Override

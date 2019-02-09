@@ -1,6 +1,7 @@
 package com.bence.songbook.ui.activity;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Build;
@@ -12,6 +13,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
 import android.text.Layout;
 import android.util.Log;
+import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -66,6 +69,8 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
             hide();
         }
     };
+    private ScaleGestureDetector scaleGestureDetector;
+    private float textSize;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,6 +150,12 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
         hide();
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        scaleGestureDetector.onTouchEvent(event);
+        return true;
+    }
+
     void setText(String text) {
         String s = text.replaceAll("<color=\"0x(.{0,6})..\">", "<font color='0x$1'>")
                 .replaceAll("</color>", "</font>")
@@ -152,5 +163,33 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
                 .replaceAll("]", "</i>")
                 .replaceAll("\n", "<br>");
         textView.setText(Html.fromHtml(s), TextView.BufferType.SPANNABLE);
+        textSize = textView.getTextSize();
+    }
+
+    protected void setContext(Context context) {
+        scaleGestureDetector = new ScaleGestureDetector(context, new ScaleListener());
+    }
+
+    class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScaleBegin(ScaleGestureDetector detector) {
+            System.out.println(textView.getTextSize());
+            return super.onScaleBegin(detector);
+        }
+
+        @Override
+        public boolean onScale(ScaleGestureDetector scaleGestureDetector) {
+            float size = textView.getTextSize();
+            if (Math.abs(textSize - size) > 24) {
+                textSize = size;
+            }
+            float scaleFactor = scaleGestureDetector.getScaleFactor();
+            float newSize = textSize * scaleFactor;
+            if (newSize >= 12 && newSize <= 200) {
+                textSize = newSize;
+                textView.setTextSize(textSize);
+            }
+            return true;
+        }
     }
 }
