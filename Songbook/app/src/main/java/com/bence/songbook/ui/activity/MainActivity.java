@@ -330,7 +330,7 @@ public class MainActivity extends AppCompatActivity
             public void onRemove(QueueSong queueSong) {
                 if (memory.getQueue().size() < 1) {
                     setBottomSheetHideable();
-                    if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_EXPANDED) {
+                    if (bottomSheetBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
                         bottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                     }
                     linearLayout.setPadding(0, 0, 0, 0);
@@ -521,7 +521,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void parseSongLink(final Toast this_song_is_not_saved, String text, String s) {
-        final String songUuid = text.substring(text.lastIndexOf(s) + s.length(), text.length());
+        final String songUuid = text.substring(text.lastIndexOf(s) + s.length());
         Song song = null;
         for (Song song1 : songs) {
             if (song1.getUuid() != null && song1.getUuid().equals(songUuid)) {
@@ -551,7 +551,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void parseQueueLink(String text, String prefix) {
-        String ids = text.substring(text.lastIndexOf(prefix) + prefix.length(), text.length());
+        String ids = text.substring(text.lastIndexOf(prefix) + prefix.length());
         String[] split = ids.split(",");
         for (final String uuid : split) {
             Song song = null;
@@ -583,7 +583,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void parseSongListLink(String text, String prefix) {
-        final String uuid = text.substring(text.lastIndexOf(prefix) + prefix.length(), text.length());
+        final String uuid = text.substring(text.lastIndexOf(prefix) + prefix.length());
         SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
         final SongList byUuid = songListRepository.findByUuid(uuid);
         if (byUuid == null) {
@@ -1164,7 +1164,7 @@ public class MainActivity extends AppCompatActivity
         String firstWord = stripAccents(text.split(" ")[0].toLowerCase());
         String other;
         if (text.length() > firstWord.length()) {
-            other = stripAccents(text.substring(firstWord.length() + 1, text.length()).toLowerCase());
+            other = stripAccents(text.substring(firstWord.length() + 1).toLowerCase());
         } else {
             other = "";
         }
@@ -1179,7 +1179,7 @@ public class MainActivity extends AppCompatActivity
                 }
             }
             collectionName = stripAccents(firstWord.substring(0, i).toLowerCase());
-            ordinalNumber = firstWord.substring(i, firstWord.length());
+            ordinalNumber = firstWord.substring(i);
         }
         int ordinalNumberInt = Integer.MIN_VALUE;
         try {
