@@ -1619,9 +1619,11 @@ public class SongController {
                 }
             });
             MenuItem editMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Edit"));
+            MenuItem addToCollectionMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Add to collection"));
+            MenuItem removeFromCollectionMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Remove from collection"));
             MenuItem deleteMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Delete"));
             MenuItem addScheduleMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Add to schedule"));
-            cm.getItems().addAll(editMenuItem, deleteMenuItem, addScheduleMenuItem);
+            cm.getItems().addAll(editMenuItem, addToCollectionMenuItem, deleteMenuItem, addScheduleMenuItem);
             editMenuItem.setOnAction(new EventHandler<ActionEvent>() {
 
                 @Override
@@ -1672,6 +1674,43 @@ public class SongController {
                     }
                 }
             });
+            addToCollectionMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+
+                @Override
+                public void handle(ActionEvent event) {
+                    try {
+                        Song selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
+                        FXMLLoader loader = new FXMLLoader();
+                        loader.setLocation(Main.class.getResource("/view/song/AddToCollection.fxml"));
+                        loader.setResources(Settings.getInstance().getResourceBundle());
+                        Pane root = loader.load();
+                        AddToCollectionController addToCollectionController = loader.getController();
+                        addToCollectionController.setSongController(songController);
+                        addToCollectionController.setSelectedSong(selectedSong);
+                        Scene scene = new Scene(root);
+                        scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                        Stage stage = new Stage();
+                        stage.setScene(scene);
+                        stage.setTitle(Settings.getInstance().getResourceBundle().getString("Add to collection"));
+                        addToCollectionController.setStage(stage);
+                        stage.show();
+                    } catch (Exception e) {
+                        LOG.error(e.getMessage(), e);
+                    }
+                }
+            });
+            removeFromCollectionMenuItem.setOnAction(event -> {
+                try {
+                    Song selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
+                    SongCollectionElement songCollectionElement = selectedSong.getSongCollectionElement();
+                    ServiceManager.getSongCollectionElementService().delete(songCollectionElement);
+                    selectedSong.setSongCollection(null);
+                    selectedSong.setSongCollectionElement(null);
+                    addSongCollections();
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
+            });
             deleteMenuItem.setOnAction(event -> {
                 try {
                     deleteSong(listView.getSelectionModel().getSelectedItem());
@@ -1690,6 +1729,15 @@ public class SongController {
             listView.setOnMouseClicked(event -> {
                 try {
                     if (event.getButton() == MouseButton.SECONDARY) {
+                        Song selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
+                        boolean hasSongCollection = selectedSong.getSongCollectionElement() != null;
+                        if (hasSongCollection) {
+                            cm.getItems().remove(addToCollectionMenuItem);
+                            cm.getItems().add(1, removeFromCollectionMenuItem);
+                        } else {
+                            cm.getItems().remove(removeFromCollectionMenuItem);
+                            cm.getItems().add(1, addToCollectionMenuItem);
+                        }
                         cm.show(listView, event.getScreenX(), event.getScreenY());
                     } else {
                         cm.hide();

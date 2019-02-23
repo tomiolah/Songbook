@@ -44,7 +44,8 @@ public class SongCollection extends BaseEntity {
     }
 
     public List<SongCollectionElement> getSongCollectionElements() {
-        if (songCollectionElements == null) {
+        if (songCollectionElements == null) //noinspection RedundantSuppression
+        {
             //noinspection ConstantConditions
             if (songCollectionElementForeignCollection == null) {
                 songCollectionElements = new ArrayList<>();
@@ -140,6 +141,10 @@ public class SongCollection extends BaseEntity {
         return shortName;
     }
 
+    public void setShortName(String shortName) {
+        this.shortName = shortName;
+    }
+
     private String parseToShortName() {
         StringBuilder shortName = new StringBuilder();
         String[] split = name.trim().split(" ");
@@ -170,7 +175,8 @@ public class SongCollection extends BaseEntity {
         return strippedShortName;
     }
 
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
+    @Override
+    public String toString() {
+        return name;
     }
 }

@@ -886,7 +886,9 @@ public class BibleController {
 
     private void setAbbreviationButtonVisibility() {
         abbreviationToggleButton.setManaged(settings.getBibleShortName());
-        abbreviationToggleButton.setSelected(bible.isShowAbbreviation());
+        if (bible != null) {
+            abbreviationToggleButton.setSelected(bible.isShowAbbreviation());
+        }
     }
 
     private void initializeDecreaseIncreaseButtons() {
