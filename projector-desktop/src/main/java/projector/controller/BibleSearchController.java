@@ -39,6 +39,7 @@ public class BibleSearchController {
     private String searchText = "";
     private int maxResults;
     private MyController mainController;
+    private boolean initialized = false;
 
     private static String strip(String s) {
         s = stripAccents(s).replaceAll("[^a-zA-Z]", "").toLowerCase(Locale.US).trim();
@@ -51,7 +52,11 @@ public class BibleSearchController {
         return s;
     }
 
-    public void initialize() {
+    void lazyInitialize() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
         maxResults = 1200;
         searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             setNewSearchText(newValue);

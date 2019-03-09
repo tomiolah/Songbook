@@ -182,6 +182,7 @@ public class SongController {
     private int successfullyCreated;
     private SongRemoteListener songRemoteListener;
     private SongReadRemoteListener songReadRemoteListener;
+    private boolean initialized = false;
 
     public SongController() {
         songService = ServiceManager.getSongService();
@@ -244,7 +245,11 @@ public class SongController {
         }
     }
 
-    public synchronized void initialize() {
+    public synchronized void lazyInitialize() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
         try {
             songVersTimes = SongVersTimes.getInstance();
             previousSongVersTimeList = new LinkedList<>();

@@ -21,6 +21,7 @@ import projector.application.Updater;
 import projector.controller.MyController;
 import projector.controller.ProjectionScreenController;
 
+import java.util.Date;
 import java.util.ListIterator;
 
 public class Main extends Application {
@@ -43,6 +44,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        Date date = new Date();
         this.primaryStage = primaryStage;
         primaryScene = null;
         try {
@@ -127,6 +129,8 @@ public class Main extends Application {
         projectionScreenController.setText("<color=\"0xffffff0c\">.</color>", ProjectionType.REFERENCE);
         projectionScreenController.setBlank(false);
         Updater.getInstance().checkForUpdate();
+        Date date1 = new Date();
+        System.out.println(date1.getTime() - date.getTime());
     }
 
     private void setProjectionScreen() {
