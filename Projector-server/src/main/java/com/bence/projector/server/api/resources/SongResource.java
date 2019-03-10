@@ -15,6 +15,7 @@ import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
+import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -256,7 +257,7 @@ public class SongResource {
             e.printStackTrace();
             helper.getMimeMessage().setContent("<div>\n" +
                     "    <h3>Új ének: " + song.getTitle() + "</h3>\n" +
-                    "    <a href=\"https://projector-songbook.herokuapp.com/#/song/" + song.getId() + "\">Link</a>\n" +
+                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + song.getId() + "\">Link</a>\n" +
                     "  <h3>Email </h3><h4>" + song.getCreatedByEmail() + "</h4>" +
                     "</div>", "text/html;charset=utf-8");
         }
@@ -265,6 +266,7 @@ public class SongResource {
 
     private Map<String, Object> createPattern(Song song) {
         Map<String, Object> data = new HashMap<>();
+        data.put("baseUrl", AppProperties.getInstance().baseUrl());
         data.put("title", song.getTitle());
         data.put("songUuid", song.getId());
         data.put("email", song.getCreatedByEmail());

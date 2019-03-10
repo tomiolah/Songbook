@@ -50,6 +50,7 @@ public class AddToCollectionController {
         songCollectionElement.setSongUuid(selectedSong.getUuid());
         SongCollection songCollection = collectionComboBox.getSelectionModel().getSelectedItem();
         songCollection.setModifiedDate(new Date());
+        songCollection.setNeedUpload(true);
         songCollectionService.create(songCollection);
         songCollectionElement.setSongCollection(songCollection);
         ServiceManager.getSongCollectionElementService().create(songCollectionElement);

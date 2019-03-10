@@ -23,7 +23,22 @@ public class SongCollectionAssembler implements GeneralAssembler<SongCollection,
 
     @Override
     public SongCollectionDTO createDto(SongCollection songCollection) {
-        return null;
+        SongCollectionDTO songCollectionDTO = new SongCollectionDTO();
+        songCollectionDTO.setId(songCollection.getUuid());
+        songCollectionDTO.setUuid(songCollection.getUuid());
+        songCollectionDTO.setCreatedDate(songCollection.getCreatedDate());
+        songCollectionDTO.setModifiedDate(songCollection.getModifiedDate());
+        songCollectionDTO.setLanguageUuid(songCollection.getLanguage().getUuid());
+        songCollectionDTO.setName(songCollection.getName());
+        ArrayList<SongCollectionElementDTO> songCollectionElementDTOS = new ArrayList<>();
+        for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
+            SongCollectionElementDTO songCollectionElementDTO = new SongCollectionElementDTO();
+            songCollectionElementDTO.setOrdinalNumber(songCollectionElement.getOrdinalNumber());
+            songCollectionElementDTO.setSongUuid(songCollectionElement.getSongUuid());
+            songCollectionElementDTOS.add(songCollectionElementDTO);
+        }
+        songCollectionDTO.setSongCollectionElements(songCollectionElementDTOS);
+        return songCollectionDTO;
     }
 
     @Override

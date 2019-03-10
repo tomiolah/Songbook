@@ -35,6 +35,8 @@ public class SongCollection extends BaseEntity {
     private String strippedName;
     private String strippedShortName;
     private String shortName;
+    @DatabaseField
+    private Boolean needUpload;
 
     public SongCollection() {
     }
@@ -178,5 +180,20 @@ public class SongCollection extends BaseEntity {
     @Override
     public String toString() {
         return name;
+    }
+
+    public Boolean getNeedUpload() {
+        return needUpload;
+    }
+
+    public boolean isNeedUpload() {
+        if (needUpload == null) {
+            return false;
+        }
+        return needUpload;
+    }
+
+    public void setNeedUpload(Boolean needUpload) {
+        this.needUpload = needUpload;
     }
 }
