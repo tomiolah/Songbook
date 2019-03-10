@@ -6,6 +6,8 @@ import {ActivatedRoute} from "@angular/router";
 import {Suggestion} from "../../models/suggestion";
 import {SuggestionDataService} from "../../services/suggestion-data.service";
 import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
+import {AuthenticateComponent} from "../authenticate/authenticate.component";
+import {MatDialog} from "@angular/material";
 
 @Component({
   selector: 'app-suggestion',
@@ -25,7 +27,8 @@ export class SuggestionComponent implements OnInit, OnDestroy {
               private titleService: Title,
               private songService: SongService,
               public auth: AuthService,
-              public sanitizer: DomSanitizer) {
+              public sanitizer: DomSanitizer,
+              private dialog: MatDialog) {
     auth.getUserFromLocalStorage();
   }
 
@@ -41,28 +44,49 @@ export class SuggestionComponent implements OnInit, OnDestroy {
     this.sub = this.activatedRoute.params.subscribe(params => {
       if (params['suggestionId']) {
         const suggestionId = params['suggestionId'];
-        this.suggestionService.getSuggestion(suggestionId).subscribe((suggestion) => {
-          this.suggestion = suggestion;
-          if (this.suggestion.title != undefined) {
-            this.suggestionSong = new Song();
-            this.suggestionSong.title = this.suggestion.title;
-            this.suggestionSong.songVerseDTOS = this.suggestion.verses;
-          } else {
-            this.suggestionSong = undefined;
-          }
-          if (this.suggestion.youtubeUrl != undefined) {
-            this.calculateUrlId(this.suggestion.youtubeUrl);
-          }
-          this.songService.getSong(suggestion.songId).subscribe((song) => {
-            this.song = song;
+        this.suggestionService.getSuggestion(suggestionId).subscribe(
+          (suggestion) => {
+            this.suggestion = suggestion;
+            if (this.suggestion.title != undefined) {
+              this.suggestionSong = new Song();
+              this.suggestionSong.title = this.suggestion.title;
+              this.suggestionSong.songVerseDTOS = this.suggestion.verses;
+            } else {
+              this.suggestionSong = undefined;
+            }
+            if (this.suggestion.youtubeUrl != undefined) {
+              this.calculateUrlId(this.suggestion.youtubeUrl);
+            }
+            this.songService.getSong(suggestion.songId).subscribe((song) => {
+              this.song = song;
+            });
+          },
+          (err) => {
+            if (err.message === 'Unexpected token < in JSON at position 0') {
+              this.openAuthenticateDialog();
+            }
           });
-        });
       }
     });
   }
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
+  }
+  
+  private openAuthenticateDialog() {
+    let user = JSON.parse(localStorage.getItem('currentUser'));
+    const dialogRef = this.dialog.open(AuthenticateComponent, {
+      data: {
+        email: user.email
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'ok') {
+        this.ngOnInit();
+      }
+    });
   }
 
   calculateUrlId(url: string) {
