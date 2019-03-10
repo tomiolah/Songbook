@@ -8,6 +8,7 @@ import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.SongLinkService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
+import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -116,8 +117,8 @@ public class SongLinkResource {
             }
             helper.getMimeMessage().setContent("<div>\n" +
                     "    <h3>Új verzió összekötés: </h3>\n" +
-                    "    <a href=\"https://projector-songbook.herokuapp.com/#/song/" + songLink.getSongId1() + "\">Link1</a>\n" +
-                    "<br><a href=\"https://projector-songbook.herokuapp.com/#/song/" + songLink.getSongId2() + "\">Link2</a>\n" +
+                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + songLink.getSongId1() + "\">Link1</a>\n" +
+                    "<br><a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + songLink.getSongId2() + "\">Link2</a>\n" +
                     "  <h3>Email </h3><h4>" + createdByEmail + "</h4>" +
                     "</div>", "text/html;charset=utf-8");
         }
@@ -130,6 +131,7 @@ public class SongLinkResource {
         if (createdByEmail == null) {
             createdByEmail = "";
         }
+        data.put("baseUrl", AppProperties.getInstance().baseUrl());
         data.put("id", songLink.getId());
         data.put("email", createdByEmail);
         Song song1 = songRepository.findOne(songLink.getSongId1());

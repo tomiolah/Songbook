@@ -6,6 +6,7 @@ import com.bence.projector.server.backend.model.Stack;
 import com.bence.projector.server.backend.service.StackService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
+import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -121,6 +122,7 @@ public class StackResource {
         if (createdByEmail == null) {
             createdByEmail = "";
         }
+        data.put("baseUrl", AppProperties.getInstance().baseUrl());
         data.put("id", stack.getId());
         data.put("email", createdByEmail);
         data.put("message", stack.getMessage());

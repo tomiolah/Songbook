@@ -107,8 +107,13 @@ public class SettingsController {
     private SongController songController;
 
     private List<Listener> listeners;
+    private boolean initialized = false;
 
-    public synchronized void initialize() {
+    synchronized void lazyInitialize() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
         settings = Settings.getInstance();
         ToggleGroup group = new ToggleGroup();
         colorRadioButton.setToggleGroup(group);

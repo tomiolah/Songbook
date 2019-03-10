@@ -10,6 +10,7 @@ import projector.model.Language;
 import projector.model.SongCollection;
 import retrofit2.Call;
 
+import java.net.UnknownHostException;
 import java.util.Date;
 import java.util.List;
 
@@ -32,6 +33,20 @@ public class SongCollectionApiBean {
                 songCollection.setLanguage(language);
             }
             return songCollections;
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public SongCollection uploadSongCollection(SongCollection songCollection) {
+        final SongCollectionDTO dto = songCollectionAssembler.createDto(songCollection);
+        Call<SongCollectionDTO> call = songCollectionApi.uploadSongCollection(dto);
+        try {
+            SongCollectionDTO songCollectionDTO = call.execute().body();
+            return songCollectionAssembler.createModel(songCollectionDTO);
+        } catch (UnknownHostException e) {
+            return null;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

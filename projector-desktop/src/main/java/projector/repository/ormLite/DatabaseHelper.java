@@ -37,7 +37,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 8;
+    private final int DATABASE_VERSION = 9;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
     private ConnectionSource connectionSource;
@@ -59,7 +59,6 @@ public class DatabaseHelper {
             connectionSource = new JdbcConnectionSource(DATABASE_URL);
             int oldVersion = getOldVersion();
             if (oldVersion < DATABASE_VERSION) {
-                //noinspection ConstantConditions
                 if (oldVersion < 1) {
                     onUpgrade(connectionSource);
                 } else if (oldVersion == 3) {
@@ -76,22 +75,30 @@ public class DatabaseHelper {
                             " WHERE SONGCOLLECTION_ID NOT IN (SELECT f.id \n" +
                             "                        FROM SONGCOLLECTION f)");
                 }
-//                if (oldVersion <= 7) {
-                Dao<Song, Long> songDao = getSongDao();
-                try {
-                    songDao.executeRaw("ALTER TABLE `song` ADD COLUMN views INTEGER");
-                } catch (Exception ignored) {
+                if (oldVersion <= 7) {
+                    Dao<Song, Long> songDao = getSongDao();
+                    try {
+                        songDao.executeRaw("ALTER TABLE `song` ADD COLUMN views INTEGER");
+                    } catch (Exception ignored) {
+                    }
+                    try {
+                        songDao.executeRaw("ALTER TABLE `song` ADD COLUMN favouriteCount INTEGER");
+                    } catch (Exception ignored) {
+                    }
+                    Dao<Bible, Long> bibleDao = getBibleDao();
+                    try {
+                        bibleDao.executeRaw("ALTER TABLE `bible` ADD COLUMN showAbbreviation INTEGER");
+                    } catch (Exception ignored) {
+                    }
                 }
-                try {
-                    songDao.executeRaw("ALTER TABLE `song` ADD COLUMN favouriteCount INTEGER");
-                } catch (Exception ignored) {
+                //noinspection ConstantConditions
+                if (oldVersion <= 8) {
+                    Dao<SongCollection, Long> songCollectionDao = getSongCollectionDao();
+                    try {
+                        songCollectionDao.executeRaw("ALTER TABLE `songCollection` ADD COLUMN needUpload BOOLEAN");
+                    } catch (Exception ignored) {
+                    }
                 }
-                Dao<Bible, Long> bibleDao = getBibleDao();
-                try {
-                    bibleDao.executeRaw("ALTER TABLE `bible` ADD COLUMN showAbbreviation INTEGER");
-                } catch (Exception ignored) {
-                }
-//                }
                 saveNewVersion();
             }
             onCreate(connectionSource);

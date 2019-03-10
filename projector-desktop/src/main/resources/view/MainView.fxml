@@ -38,7 +38,7 @@
                 </Tab>
                 <!-- Tab closable="false" text="Schedule"> <content> <fx:include fx:id="schedule"
                         source="Schedule.fxml" /> </content> </Tab -->
-                <Tab closable="false" text="%Settings">
+                <Tab fx:id="settingsTab" closable="false" text="%Settings">
                     <fx:include fx:id="settings" source="Settings.fxml"/>
                 </Tab>
             </TabPane>

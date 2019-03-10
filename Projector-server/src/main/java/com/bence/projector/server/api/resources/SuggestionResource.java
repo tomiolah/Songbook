@@ -6,6 +6,7 @@ import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.SuggestionService;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
+import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -117,7 +118,7 @@ public class SuggestionResource {
             }
             helper.getMimeMessage().setContent("<div>\n" +
                     "    <h3>Új javaslat: " + title + "</h3>\n" +
-                    "    <a href=\"https://projector-songbook.herokuapp.com/#/admin/suggestion/" + suggestion.getId() + "\">Link</a>\n" +
+                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/admin/suggestion/" + suggestion.getId() + "\">Link</a>\n" +
                     "  <h3>Email </h3><h4>" + createdByEmail + "</h4>" +
                     "  <h3>" + description + "</h3>" +
                     "</div>", "text/html;charset=utf-8");
@@ -139,6 +140,7 @@ public class SuggestionResource {
         if (createdByEmail == null) {
             createdByEmail = "";
         }
+        data.put("baseUrl", AppProperties.getInstance().baseUrl());
         data.put("title", title);
         data.put("id", suggestion.getId());
         data.put("email", createdByEmail);

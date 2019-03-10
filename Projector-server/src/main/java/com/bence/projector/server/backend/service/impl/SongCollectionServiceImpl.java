@@ -1,11 +1,13 @@
 package com.bence.projector.server.backend.service.impl;
 
 import com.bence.projector.server.backend.model.SongCollection;
+import com.bence.projector.server.backend.model.SongCollectionElement;
 import com.bence.projector.server.backend.repository.SongCollectionRepository;
 import com.bence.projector.server.backend.service.SongCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -22,5 +24,35 @@ public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> i
     @Override
     public List<SongCollection> findAllByLanguage_IdAndAndModifiedDateGreaterThan(String language_id, Date lastModifiedDate) {
         return songCollectionRepository.findAllByLanguage_IdAndAndModifiedDateGreaterThan(language_id, lastModifiedDate);
+    }
+
+    @Override
+    public boolean matches(SongCollection songCollection, SongCollection songCollection2) {
+        if (!songCollection.getName().equals(songCollection2.getName())) {
+            return false;
+        }
+        List<SongCollectionElement> songCollectionElements = songCollection.getSongCollectionElements();
+        List<SongCollectionElement> songCollectionElements2 = songCollection2.getSongCollectionElements();
+        if (songCollectionElements.size() != songCollectionElements2.size()) {
+            return false;
+        }
+        for (int i = 0; i < songCollectionElements.size(); ++i) {
+            if (!songCollectionElements.get(i).matches(songCollectionElements2.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public List<SongCollection> findAll() {
+        ArrayList<SongCollection> songCollections = new ArrayList<>();
+        List<SongCollection> all = songCollectionRepository.findAll();
+        for (SongCollection songCollection : all) {
+            if (!songCollection.isDeleted()) {
+                songCollections.add(songCollection);
+            }
+        }
+        return songCollections;
     }
 }

@@ -148,6 +148,7 @@ public class BibleController {
     private Settings settings = Settings.getInstance();
     private Font verseFont;
     private Date lastUpdateSelected;
+    private boolean initialized = false;
 
     private static String strip(String s) {
         try {
@@ -200,7 +201,11 @@ public class BibleController {
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
-    public void initialize() {
+    void lazyInitialize() {
+        if (initialized) {
+            return;
+        }
+        initialized = true;
         try {
             // double x = System.currentTimeMillis();
             // System.out.println("Ido4: " + (System.currentTimeMillis() - x));
@@ -886,7 +891,9 @@ public class BibleController {
 
     private void setAbbreviationButtonVisibility() {
         abbreviationToggleButton.setManaged(settings.getBibleShortName());
-        abbreviationToggleButton.setSelected(bible.isShowAbbreviation());
+        if (bible != null) {
+            abbreviationToggleButton.setSelected(bible.isShowAbbreviation());
+        }
     }
 
     private void initializeDecreaseIncreaseButtons() {

@@ -13,6 +13,9 @@ public class SongCollection extends BaseEntity {
     private String name;
     @DBRef
     private Language language;
+    private String originalId;
+    private Boolean deleted;
+    private Boolean uploaded;
 
     public List<SongCollectionElement> getSongCollectionElements() {
         if (songCollectionElements == null) {
@@ -55,5 +58,29 @@ public class SongCollection extends BaseEntity {
 
     public void setLanguage(Language language) {
         this.language = language;
+    }
+
+    public String getOriginalId() {
+        return originalId;
+    }
+
+    public void setOriginalId(String originalId) {
+        this.originalId = originalId;
+    }
+
+    public boolean isDeleted() {
+        return deleted == null ? false : deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
+
+    public boolean isUploaded() {
+        return uploaded == null ? false : uploaded;
+    }
+
+    public void setUploaded(boolean uploaded) {
+        this.uploaded = uploaded;
     }
 }

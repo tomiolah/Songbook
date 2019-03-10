@@ -4,6 +4,7 @@ import com.bence.projector.server.api.siteMap.XmlUrl;
 import com.bence.projector.server.api.siteMap.XmlUrlSet;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.service.SongService;
+import com.bence.projector.server.utils.AppProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +33,6 @@ public class SiteMapController {
     }
 
     private void create(XmlUrlSet xmlUrlSet, String uuid, Date date) {
-        xmlUrlSet.addUrl(new XmlUrl("https://projector-songbook.herokuapp.com/song/" + uuid, date));
+        xmlUrlSet.addUrl(new XmlUrl(AppProperties.getInstance().baseUrl() + "/song/" + uuid, date));
     }
 }

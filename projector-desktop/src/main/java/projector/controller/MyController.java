@@ -66,6 +66,8 @@ public class MyController {
     private Tab bibleTab;
     @FXML
     private Tab recentTab;
+    @FXML
+    private Tab settingsTab;
     private Main main;
 
     public void setPrimaryStage(Stage primaryStage) {
@@ -130,11 +132,16 @@ public class MyController {
         tabPane.getSelectionModel().select(recentTab);
         tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.equals(songsTab)) {
+                songController.lazyInitialize();
                 songController.initializeSongs();
             } else if (newValue.equals(bibleSearchTab)) {
+                bibleSearchController.lazyInitialize();
                 bibleSearchController.initializeBibles();
             } else if (newValue.equals(bibleTab)) {
+                bibleController.lazyInitialize();
                 bibleController.initializeBibles();
+            } else if (newValue.equals(settingsTab)) {
+                settingsController.lazyInitialize();
             }
         });
         tabPane.focusedProperty().addListener((observable, oldValue, newValue) -> {

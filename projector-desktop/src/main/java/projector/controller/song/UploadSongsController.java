@@ -9,11 +9,14 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.util.Callback;
 import projector.api.SongApiBean;
+import projector.api.SongCollectionApiBean;
 import projector.application.Settings;
 import projector.model.Language;
 import projector.model.Song;
+import projector.model.SongCollection;
 import projector.service.LanguageService;
 import projector.service.ServiceManager;
+import projector.service.SongCollectionService;
 import projector.service.SongService;
 
 import java.util.ArrayList;
@@ -85,6 +88,32 @@ public class UploadSongsController {
                 thread.start();
             });
         }
+        Thread thread = new Thread(() -> {
+            SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
+            List<SongCollection> songCollections = songCollectionService.findAll();
+            List<SongCollection> publishingSongCollections = new ArrayList<>();
+            for (SongCollection songCollection : songCollections) {
+                if (songCollection.isNeedUpload()) {
+                    publishingSongCollections.add(songCollection);
+                }
+            }
+            if (publishingSongCollections.size() < 1) {
+                return;
+            }
+            SongCollectionApiBean songCollectionApiBean = new SongCollectionApiBean();
+            for (SongCollection songCollection : publishingSongCollections) {
+                SongCollection uploadedSongCollection = songCollectionApiBean.uploadSongCollection(songCollection);
+                if (uploadedSongCollection != null) {
+                    String uuid = songCollection.getUuid();
+                    if (uuid == null || uuid.trim().isEmpty()) {
+                        songCollection.setUuid(uploadedSongCollection.getUuid());
+                    }
+                    songCollection.setNeedUpload(false);
+                    songCollectionService.update(songCollection);
+                }
+            }
+        });
+        thread.start();
     }
 
     private void noInternetMessage() {
