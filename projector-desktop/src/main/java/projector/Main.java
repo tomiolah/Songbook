@@ -21,6 +21,7 @@ import projector.application.Updater;
 import projector.controller.MyController;
 import projector.controller.ProjectionScreenController;
 
+import java.net.URL;
 import java.util.Date;
 import java.util.ListIterator;
 
@@ -37,6 +38,7 @@ public class Main extends Application {
     private Scene primaryScene;
     private Stage canvasStage;
     private ObservableList<Screen> screen;
+    private Settings settings;
 
     public static void main(String[] args) {
         launch(args);
@@ -47,15 +49,15 @@ public class Main extends Application {
         Date date = new Date();
         this.primaryStage = primaryStage;
         primaryScene = null;
+        settings = Settings.getInstance();
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(getClass().getResource("/view/MainView.fxml"));
             loader.setResources(Settings.getInstance().getResourceBundle());
             Pane root = loader.load();
             myController = loader.getController();
-            Settings settings = Settings.getInstance();
             primaryScene = new Scene(root, settings.getMainWidth(), settings.getMainHeight());
-            primaryScene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+            primaryScene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
             primaryStage.setMinHeight(600);
             primaryScene.setOnKeyPressed(event -> {
                 KeyCode keyCode = event.getCode();
@@ -126,6 +128,13 @@ public class Main extends Application {
         primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
         myController.setProjectionScreenController(projectionScreenController);
         myController.setMain(this);
+        myController.getSettingsController().addOnSaveListener(() -> {
+            primaryScene.getStylesheets().clear();
+            URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+            String url = resource.toExternalForm();
+            setUserAgentStylesheet(url);
+            primaryScene.getStylesheets().add(url);
+        });
         projectionScreenController.setText("<color=\"0xffffff0c\">.</color>", ProjectionType.REFERENCE);
         projectionScreenController.setBlank(false);
         Updater.getInstance().checkForUpdate();
@@ -284,7 +293,7 @@ public class Main extends Application {
                 myController.onKeyPressed(event);
             });
         }
-        scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+        scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
     }
 
     public void hideProjectionScreen() {

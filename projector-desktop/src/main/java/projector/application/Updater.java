@@ -30,6 +30,7 @@ public class Updater {
     private static Updater instance;
     @SuppressWarnings("FieldCanBeLocal")
     private final int projectorVersionNumber = 8;
+    private final Settings settings = Settings.getInstance();
 
     private Updater() {
     }
@@ -51,12 +52,12 @@ public class Updater {
                     if (projectorVersionsAfterNr != null && projectorVersionsAfterNr.size() > 0) {
                         FXMLLoader loader = new FXMLLoader();
                         loader.setLocation(Main.class.getResource("/view/UpdateAvailable.fxml"));
-                        loader.setResources(Settings.getInstance().getResourceBundle());
+                        loader.setResources(settings.getResourceBundle());
                         Pane root = loader.load();
                         UpdateController updateController = loader.getController();
                         updateController.setProjectorVersions(projectorVersionsAfterNr);
                         Scene scene = new Scene(root);
-                        scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                        scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
                         Platform.runLater(() -> {
                             Stage stage = new Stage();
                             stage.setTitle("Update available");

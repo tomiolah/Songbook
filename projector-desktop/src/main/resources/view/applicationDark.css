@@ -1,0 +1,221 @@
+/* JavaFX CSS - Leave this comment until you have at least create one rule which uses -fx-Property */
+.uj {
+    -fx-background-color: radial-gradient(focus-angle 0.0deg, focus-distance 0.0%, center 50.0% 50.0%, radius 100.0%, rgb(255, 255, 255) 0.0, rgb(128, 153, 255) 100.0);
+    -fx-text-fill: red;
+}
+
+/*.list-view .list-cell{
+	-fx-alignment: center;
+	-fx-text-fill: red;
+	-fx-cursor: hand;
+	-fx-wrap-text: true;
+}*/
+#fancytext {
+    -fx-fill: linear-gradient(from 0% 0% to 100% 200%, repeat, aqua 0%, red 50%);
+    -fx-stroke: black;
+    -fx-stroke-width: 1;
+}
+
+/*
+
+.list-cell:even { *//* <=== changed to even *//*
+    -fx-background-color: white;
+}
+
+.list-cell:filled:hover {
+    -fx-background-color: #0093ff;
+    -fx-text-fill: white;
+}*/
+
+.list-cell:filled:selected:focused {
+    -fx-background-color: #50a3e0;
+    -fx-text-fill: white;
+}
+
+.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
+    -fx-background-color: -fx-selection-bar;
+    -fx-table-cell-border-color: derive(-fx-selection-bar, 20%);
+}
+
+/* Selected when control is not focused */
+.list-cell:filled:selected {
+    -fx-background-color: -fx-selection-bar-non-focused;
+    -fx-table-cell-border-color: derive(-fx-selection-bar-non-focused, 20%);
+}
+
+.verseList:filled:focused {
+    -fx-background-color: rgb(128, 128, 255);
+    -fx-text-fill: white;
+}
+
+.verseList-filled-selected {
+    -fx-background-color: rgb(0, 0, 128);
+    -fx-text-fill: white;
+    -fx-font-size: 14pt;
+}
+
+#found {
+    -fx-background-color: rgb(0, 0, 128);
+    -fx-text-fill: white;
+}
+
+
+.root {
+    /***************************************************************************
+     *                                                                         *
+     * The main color palette from which the rest of the colors are derived.   *
+     *                                                                         *
+     **************************************************************************/
+
+    /* A light grey that is the base color for objects.  Instead of using
+     * -fx-base directly, the sections in this file will typically use -fx-color.
+     */
+    -fx-base: #ececec;
+    -fx-base: -primaryTextColor; /* from http://www.besweb.com */
+    -fx-base: #303030;
+    
+    -black_overlay: #003602;
+    -accent_material_dark: #009906;
+    -background: #4b594b;
+    -white: #FFFFFF;
+    -black: #000000;
+
+    -primaryColor: #1b5e20;
+    -primaryLightColor: #1b5e20;
+    -primaryDarkColor: #eb14350e;
+    -secondaryColor: #102a00;
+    -secondaryLightColor: #283593;
+    -secondaryDarkColor: #014530;
+    -primaryTextColor: #fffde7;
+    -secondaryTextColor: #e0f7fa;
+    -backgroundC: #000000;
+    -foregroundC: #FFFFFF;
+}
+
+/* 
+.button,
+.combo-box,
+.color-picker,
+.increment-arrow-button,
+.decrement-arrow-button {
+    -fx-text-fill: #ffffff;
+    -fx-color-label: #ffffff;
+    -fx-background-color: -primaryTextColor;
+    -fx-font-family: Raleway, sans-serif;
+    -fx-font-weight: Bold;
+}
+
+.label {
+    -fx-font-family: Raleway, sans-serif;
+}
+
+.button:hover,
+.combo-box:hover,
+.color-picker:hover,
+.increment-arrow-button:hover,
+.decrement-arrow-button:hover {
+    -fx-background-color: #223f62;
+} */
+
+.tab,
+.tab-down-button,
+.control-buttons-tab,
+.tab-header-background{
+    -fx-background-color: -black_overlay;
+}
+.tab:focused {
+    -fx-text-fill: -primaryTextColor;
+    -fx-color-label: -primaryTextColor;
+    -fx-background-color: #f00;
+}
+
+.tab:hover,
+.tab:hover .tab-label {
+    -fx-text-fill: #ffffff;
+    -fx-color-label: #ffffff;
+    -fx-background-color: -secondaryDarkColor;
+}
+
+.tab:selected,
+.tab:selected .tab-label {
+    -fx-text-fill: -primaryTextColor;
+    -fx-color-label: -primaryTextColor;
+    -fx-background-color: -primaryLightColor;
+}
+
+
+.tab-header-background{
+    -fx-border-color: -backgroundC;
+    -fx-border-width: 2px 0px 2px 0px;
+}
+
+.tab-pane:top *.tab-header-area {
+    -fx-background-insets: 0, 0 0 1 0;
+    -fx-padding: 0.125em 0.0em 0.0em 0.0em; /* overridden as 5 2 0 0 */
+}
+
+.toggle-button {
+    /* -fx-graphic: url('../icons/monitor.png'); */
+    -fx-graphic-size:16px 16px; 
+    -fx-color-rect-width: 4;
+    -fx-color-rect-height: 3;
+    -fx-graphic-vpos: top;
+    /* -fx-scale-x: 0.3;
+    -fx-scale-y: 0.3; */
+    /* -fx-background-image: url('../icons/monitor.png');
+    -fx-background-size: 19px 19px;
+    -fx-background-repeat: no-repeat;
+    -fx-background-position: center; */
+}
+
+/* 
+.button > .increment-arrow,
+.combo-box > .increment-arrow,
+.color-picker > .increment-arrow,
+.button > .decrement-arrow,
+.combo-box > .decrement-arrow,
+.color-picker > .decrement-arrow,
+.spinner > .increment-arrow,
+.spinner > .decrement-arrow {
+    -fx-background-color: #fff;
+}
+
+.arrow {
+    -fx-background-color: #ffffff;
+}
+
+.color-picker .color-picker-label .text {
+    -fx-fill: #fff;
+}
+
+.table-view .column-header{
+    -fx-background-color: #f3f3f3;
+    -fx-border-color: #ebebeb;
+    -fx-border-width: 0px 1px 0px 1px;
+}
+
+.table-column .text {
+    -fx-fill: #575757;
+}
+.column-header .text {
+    -fx-fill: -primaryTextColor;
+}
+
+.table-row-cell:selected .text {
+    -fx-fill: #fff;
+}
+
+.table-column .arrow {
+    -fx-background-color: -primaryTextColor;
+}
+
+.filler
+ {
+    -fx-background-color: #fefefe;
+}
+
+.column-header-background {
+    -fx-background-color: #fefefe;
+    -fx-border-color: #e8e8e8;
+    -fx-border-width: 2px 0px 2px 0px;
+} */

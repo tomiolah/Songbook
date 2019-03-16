@@ -52,6 +52,7 @@ import java.util.ResourceBundle;
 public class NewSongController {
 
     private static final Logger LOG = LoggerFactory.getLogger(NewSongController.class);
+    private final Settings settings = Settings.getInstance();
     @FXML
     private CheckBox uploadCheckBox;
     @FXML
@@ -117,7 +118,7 @@ public class NewSongController {
             String selected = text.substring(selection.getStart(), selection.getEnd());
             selected = selected.replaceAll("<color=\"0x.{0,9}>", "");
             selected = selected.replaceAll("</color>", "");
-            String right = text.substring(selection.getEnd(), text.length());
+            String right = text.substring(selection.getEnd());
             lastFocusedVerseTextArea.setText(left + "<color=\"" + value.toString() + "\">" + selected + "</color>" + right);
         });
         LanguageService languageService = ServiceManager.getLanguageService();
@@ -171,7 +172,7 @@ public class NewSongController {
                     String s = i.trim();
                     if (s.startsWith(SongVerse.CHORUS + "\n")) {
                         songVerse.setChorus(true);
-                        s = s.substring(SongVerse.CHORUS.length() + 1, s.length());
+                        s = s.substring(SongVerse.CHORUS.length() + 1);
                     }
                     songVerse.setText(s);
                     addNewSongVerse(songVerse);
@@ -314,7 +315,7 @@ public class NewSongController {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(Main.class.getResource("/view/song/Verse.fxml"));
-            loader.setResources(Settings.getInstance().getResourceBundle());
+            loader.setResources(settings.getResourceBundle());
             Pane root = loader.load();
             VerseController verseController = loader.getController();
             verseController.setSongVerse(songVerse);
@@ -359,11 +360,11 @@ public class NewSongController {
             try {
                 FXMLLoader loader = new FXMLLoader();
                 loader.setLocation(Main.class.getResource("/view/Login.fxml"));
-                loader.setResources(Settings.getInstance().getResourceBundle());
+                loader.setResources(settings.getResourceBundle());
                 Pane root = loader.load();
                 LoginController loginController = loader.getController();
                 Scene scene = new Scene(root);
-                scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
                 Stage stage = new Stage();
                 stage.setScene(scene);
                 stage.show();
@@ -385,7 +386,7 @@ public class NewSongController {
                         }
                     } catch (ApiException e) {
                         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                        final ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
+                        final ResourceBundle resourceBundle = settings.getResourceBundle();
                         alert.setTitle("Error");
                         alert.setHeaderText(resourceBundle.getString(e.getMessage()));
                         alert.showAndWait();

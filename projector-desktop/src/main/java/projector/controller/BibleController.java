@@ -1122,7 +1122,7 @@ public class BibleController {
             controller.setLeftBible(bible);
             controller.setOtherBible(otherBible);
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle("Indices");
@@ -1542,7 +1542,7 @@ public class BibleController {
             Pane root = loader.load();
             DownloadBiblesController controller = loader.getController();
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download bibles"));
@@ -1562,7 +1562,7 @@ public class BibleController {
             Pane root = loader.load();
             ParallelBiblesController controller = loader.getController();
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Parallel"));

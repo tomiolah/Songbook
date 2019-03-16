@@ -287,4 +287,8 @@ public class MyController {
             }
         };
     }
+
+    public SettingsController getSettingsController() {
+        return settingsController;
+    }
 }

@@ -27,6 +27,7 @@ import java.util.ResourceBundle;
 
 public class DownloadLanguagesController {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadLanguagesController.class);
+    private final Settings settings = Settings.getInstance();
     @FXML
     private Label label;
     @FXML
@@ -73,10 +74,10 @@ public class DownloadLanguagesController {
                 languageService.create(languages);
                 FXMLLoader loader = new FXMLLoader();
                 loader.setLocation(Main.class.getResource("/view/song/DownloadSongs.fxml"));
-                loader.setResources(Settings.getInstance().getResourceBundle());
+                loader.setResources(settings.getResourceBundle());
                 Pane root = loader.load();
                 Scene scene = new Scene(root);
-                scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
                 Stage stage = new Stage();
                 stage.setScene(scene);
                 stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download songs"));

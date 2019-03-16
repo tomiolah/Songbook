@@ -41,6 +41,8 @@ import java.util.Objects;
 
 public class SettingsController {
     @FXML
+    private ComboBox<String> appearanceComboBox;
+    @FXML
     private ToggleButton allowRemoteButton;
     @FXML
     private CheckBox bibleShortNameCheckBox;
@@ -167,6 +169,14 @@ public class SettingsController {
         initializeNetworkButtons();
         progressLineThicknessSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, settings.getProgressLineThickness()));
         bibleShortNameCheckBox.setSelected(settings.getBibleShortName());
+        switch (settings.getSceneStyleFile()) {
+            case "application.css":
+                appearanceComboBox.getSelectionModel().select(0);
+                break;
+            case "applicationDark.css":
+                appearanceComboBox.getSelectionModel().select(1);
+                break;
+        }
     }
 
     private void initializeNetworkButtons() {
@@ -279,6 +289,14 @@ public class SettingsController {
         }
         settings.setProgressLineThickness(value);
         settings.setBibleShortName(bibleShortNameCheckBox.isSelected());
+        switch (appearanceComboBox.getValue()) {
+            case "Light":
+                settings.setSceneStyleFile("application.css");
+                break;
+            case "Dark":
+                settings.setSceneStyleFile("applicationDark.css");
+                break;
+        }
         settings.save();
         projectionScreenController.setBackGroundColor(backgroundColorPicker.getValue());
         if (listeners != null) {
@@ -351,7 +369,7 @@ public class SettingsController {
         this.songController = songController;
     }
 
-    void addOnSaveListener(Listener listener) {
+    public void addOnSaveListener(Listener listener) {
         if (listeners == null) {
             listeners = new ArrayList<>();
         }
