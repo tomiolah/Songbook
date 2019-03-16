@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<project name="Ant-Test" default="jar" basedir=".">
+    <target name="jar">
+        <jar id="files" jarfile="../../../../all.jar">
+            <zipfileset src="project-jfx.jar"
+                        includes="**/*.java **/*.class bundles/** icons/**  view/** icon.png *.properties"/>
+            <zipfileset src="lib/converter-gson-2.3.0.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/gson-2.8.2.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/h2-1.4.193.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/log4j-api-2.9.0.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/log4j-core-2.9.0.jar"
+                        includes="**/*.java **/*.class META-INF/maven/** META-INF/org/** META-INF/services/** META-INF/DEPENDENCIES META-INF/LICENSE META-INF/NOTICE"/>
+            <zipfileset src="lib/log4j-slf4j-impl-2.9.0.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/logging-interceptor-3.8.0.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/okhttp-3.8.0.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/okio-1.13.0.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/ormlite-core-4.48.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/ormlite-jdbc-4.48.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/retrofit-2.3.0.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/projector-common.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/slf4j-api-1.7.25.jar" includes="**/*.java **/*.class"/>
+            <manifest>
+                <attribute name="Main-Class" value="projector.Main"/>
+            </manifest>
+        </jar>
+    </target>
+
+</project>

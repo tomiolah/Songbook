@@ -271,7 +271,7 @@ public class ProjectionScreenController {
 
                 doubleProjectionScreenController = loader2.getController();
                 Scene scene2 = new Scene(root2, 400, 300);
-                scene2.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                scene2.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> doubleProjectionScreenController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> doubleProjectionScreenController.repaint());
@@ -352,7 +352,7 @@ public class ProjectionScreenController {
                     size = (int) settings.getPreviewWidth();
                 }
                 Scene scene2 = new Scene(root2, size, (double) size * height / width);
-                scene2.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                scene2.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());

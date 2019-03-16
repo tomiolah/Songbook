@@ -2,12 +2,18 @@ package projector.controller;
 
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,11 +25,17 @@ import projector.network.TCPClient;
 import projector.network.TCPServer;
 import projector.remote.RemoteServer;
 
+import java.awt.*;
+import java.io.IOException;
 import java.util.ResourceBundle;
 
 public class MyController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MyController.class);
+    @FXML
+    private MenuBar menuBar;
+    @FXML
+    private Menu settingsMenu;
     @FXML
     private ToggleButton showProjectionScreenToggleButton;
     @FXML
@@ -32,6 +44,7 @@ public class MyController {
     private BibleController bibleController;
     @FXML
     private BibleSearchController bibleSearchController;
+
     @FXML
     private SongController songController;
     @FXML
@@ -41,7 +54,6 @@ public class MyController {
     @SuppressWarnings("FieldCanBeLocal")
     @FXML
     private ScheduleController scheduleController;
-    @FXML
     private SettingsController settingsController;
     @FXML
     private Button previewButton;
@@ -66,9 +78,8 @@ public class MyController {
     private Tab bibleTab;
     @FXML
     private Tab recentTab;
-    @FXML
-    private Tab settingsTab;
     private Main main;
+    private Stage settingsStage;
 
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
@@ -98,6 +109,7 @@ public class MyController {
 
     public void initialize() {
         settings = Settings.getInstance();
+        initializeSettingsController();
         bibleSearchController.setBibleController(bibleController);
         bibleSearchController.setMainController(this);
         bibleController.setMainController(this);
@@ -140,8 +152,6 @@ public class MyController {
             } else if (newValue.equals(bibleTab)) {
                 bibleController.lazyInitialize();
                 bibleController.initializeBibles();
-            } else if (newValue.equals(settingsTab)) {
-                settingsController.lazyInitialize();
             }
         });
         tabPane.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -158,6 +168,31 @@ public class MyController {
 //                projectionScreenController.getStage().setOpacity(newValue.doubleValue());
 //            }
 //        });
+    }
+
+    private void initializeSettingsController() {
+        ResourceBundle resourceBundle = settings.getResourceBundle();
+        String title = resourceBundle.getString("Settings");
+        Label menuLabel = new Label(title);
+        menuLabel.setOnMouseClicked(event -> onSettingsMenu());
+        settingsMenu.setText("");
+        settingsMenu.setGraphic(menuLabel);
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("/view/Settings.fxml"));
+        loader.setResources(resourceBundle);
+        try {
+            Pane root = loader.load();
+            GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
+            int height = gd.getDisplayMode().getHeight();
+            Scene scene = new Scene(root, 850, height - 100);
+            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+            settingsStage = new Stage();
+            settingsStage.setScene(scene);
+            settingsStage.setTitle(title);
+            settingsController = loader.getController();
+            settingsController.setStage(settingsStage);
+        } catch (IOException ignored) {
+        }
     }
 
     public void setBlank() {
@@ -286,5 +321,23 @@ public class MyController {
                 LOG.error(e.getMessage(), e);
             }
         };
+    }
+
+    public SettingsController getSettingsController() {
+        return settingsController;
+    }
+
+    public void onSettingsMenu() {
+        settingsController.lazyInitialize();
+        settingsStage.show();
+        settingsStage.toFront();
+    }
+
+    public BibleController getBibleController() {
+        return bibleController;
+    }
+
+    public SongController getSongController() {
+        return songController;
     }
 }

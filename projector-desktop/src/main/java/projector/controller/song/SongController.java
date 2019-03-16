@@ -1075,7 +1075,7 @@ public class SongController {
                     Pane root = loader.load();
                     DownloadLanguagesController downloadLanguagesController = loader.getController();
                     Scene scene = new Scene(root);
-                    scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                    scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
                     Stage stage = new Stage();
                     stage.setScene(scene);
                     stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download languages"));
@@ -1154,7 +1154,7 @@ public class SongController {
                     loader.setResources(Settings.getInstance().getResourceBundle());
                     Pane root = loader.load();
                     Scene scene = new Scene(root);
-                    scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                    scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
                     Stage stage = new Stage();
                     stage.setScene(scene);
                     stage.setTitle(Settings.getInstance().getResourceBundle().getString("Upload songs"));
@@ -1645,7 +1645,7 @@ public class SongController {
                         newSongController.setSelectedSong(listView.getSelectionModel().getSelectedItem());
                         newSongController.setTitleTextFieldText(selectedSong.getTitle());
                         Scene scene = new Scene(root);
-                        scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                        scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
                         Stage stage = new Stage();
                         stage.setScene(scene);
                         stage.setTitle(Settings.getInstance().getResourceBundle().getString("Song Edit"));
@@ -1659,7 +1659,7 @@ public class SongController {
                         newSongController.setPreviewProjectionScreenController(previewProjectionScreenController);
                         Scene scene2 = new Scene(root2, 400, 300);
                         scene2.getStylesheets()
-                                .add(getClass().getResource("/view/application.css").toExternalForm());
+                                .add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
                         scene2.widthProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                         scene2.heightProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                         Stage stage2 = new Stage();
@@ -1693,7 +1693,7 @@ public class SongController {
                         addToCollectionController.setSongController(songController);
                         addToCollectionController.setSelectedSong(selectedSong);
                         Scene scene = new Scene(root);
-                        scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                        scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
                         Stage stage = new Stage();
                         stage.setScene(scene);
                         stage.setTitle(Settings.getInstance().getResourceBundle().getString("Add to collection"));
@@ -1785,7 +1785,7 @@ public class SongController {
                         newSongCollectionController.setEditing(true, songCollectionListView.getSelectionModel().getSelectedItem());
                         newSongCollectionController.setSongs(songs);
                         Scene scene = new Scene(root);
-                        scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+                        scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
                         Stage stage = new Stage();
                         stage.setScene(scene);
                         stage.setTitle(Settings.getInstance().getResourceBundle().getString("SongBook Edit"));
@@ -1928,7 +1928,7 @@ public class SongController {
             NewSongController newSongController = loader.getController();
             newSongController.setSongController(songController);
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Song Edit"));
@@ -1941,7 +1941,7 @@ public class SongController {
             previewProjectionScreenController = loader2.getController();
             newSongController.setPreviewProjectionScreenController(previewProjectionScreenController);
             Scene scene2 = new Scene(root2, 400, 300);
-            scene2.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+            scene2.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
 
             scene2.widthProperty().addListener((observable, oldValue, newValue) -> {
                 try {
@@ -1981,7 +1981,7 @@ public class SongController {
             NewSongCollectionController newSongCollectionController = loader.getController();
             newSongCollectionController.setSongs(songs);
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/application.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("New song book"));
@@ -2305,5 +2305,14 @@ public class SongController {
             };
         }
         return songReadRemoteListener;
+    }
+
+    public void onKeyEvent(KeyEvent event) {
+        KeyCode keyCode = event.getCode();
+        if (event.isControlDown()) {
+            if (keyCode == KeyCode.S) {
+                searchTextField.requestFocus();
+            }
+        }
     }
 }

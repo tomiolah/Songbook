@@ -77,6 +77,7 @@ public class Settings {
     private boolean bibleShortName = false;
     private boolean checkLanguages = false;
     private boolean allowRemote = false;
+    private String sceneStyleFile = "application.css";
 
     protected Settings() {
         load();
@@ -125,12 +126,12 @@ public class Settings {
         return backgroundImage;
     }
 
-    public synchronized void setBackgroundImage(BackgroundImage backgroundImage) {
-        this.backgroundImage = backgroundImage;
-    }
-
     public synchronized boolean isBackgroundImage() {
         return isBackgroundImage;
+    }
+
+    public synchronized void setBackgroundImage(BackgroundImage backgroundImage) {
+        this.backgroundImage = backgroundImage;
     }
 
     public synchronized void setBackgroundImage(boolean isBackgroundImage) {
@@ -338,6 +339,8 @@ public class Settings {
             bw.write(checkLanguages + System.lineSeparator());
             bw.write("allowRemote" + System.lineSeparator());
             bw.write(allowRemote + System.lineSeparator());
+            bw.write("sceneStyleFile" + System.lineSeparator());
+            bw.write(sceneStyleFile + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -446,7 +449,7 @@ public class Settings {
             br.readLine();
             breakAfter = Integer.parseInt(br.readLine());
             br.readLine();
-            breakLines = Boolean.parseBoolean(br.readLine());
+            breakLines = parseBoolean(br.readLine());
             br.readLine();
             String uuid = br.readLine();
             if (uuid == null || uuid.isEmpty()) {
@@ -455,11 +458,16 @@ public class Settings {
                 songSelectedLanguage = ServiceManager.getLanguageService().findByUuid(uuid);
             }
             br.readLine();
-            bibleShortName = Boolean.parseBoolean(br.readLine());
+            bibleShortName = parseBoolean(br.readLine());
             br.readLine();
-            checkLanguages = Boolean.parseBoolean(br.readLine());
+            checkLanguages = parseBoolean(br.readLine());
             br.readLine();
-            allowRemote = Boolean.parseBoolean(br.readLine());
+            allowRemote = parseBoolean(br.readLine());
+            br.readLine();
+            String sceneStyleFile = br.readLine();
+            if (sceneStyleFile != null) {
+                this.sceneStyleFile = sceneStyleFile;
+            }
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -741,5 +749,13 @@ public class Settings {
 
     public void setAllowRemote(boolean allowRemote) {
         this.allowRemote = allowRemote;
+    }
+
+    public String getSceneStyleFile() {
+        return sceneStyleFile;
+    }
+
+    public void setSceneStyleFile(String sceneStyleFile) {
+        this.sceneStyleFile = sceneStyleFile;
     }
 }

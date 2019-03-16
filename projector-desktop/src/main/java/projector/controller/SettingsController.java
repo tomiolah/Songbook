@@ -25,6 +25,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import projector.application.Settings;
 import projector.application.Updater;
 import projector.controller.song.SongController;
@@ -40,6 +41,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class SettingsController {
+    @FXML
+    private ComboBox<String> appearanceComboBox;
     @FXML
     private ToggleButton allowRemoteButton;
     @FXML
@@ -108,6 +111,7 @@ public class SettingsController {
 
     private List<Listener> listeners;
     private boolean initialized = false;
+    private Stage stage;
 
     synchronized void lazyInitialize() {
         if (initialized) {
@@ -167,6 +171,14 @@ public class SettingsController {
         initializeNetworkButtons();
         progressLineThicknessSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, settings.getProgressLineThickness()));
         bibleShortNameCheckBox.setSelected(settings.getBibleShortName());
+        switch (settings.getSceneStyleFile()) {
+            case "application.css":
+                appearanceComboBox.getSelectionModel().select(0);
+                break;
+            case "applicationDark.css":
+                appearanceComboBox.getSelectionModel().select(1);
+                break;
+        }
     }
 
     private void initializeNetworkButtons() {
@@ -279,6 +291,14 @@ public class SettingsController {
         }
         settings.setProgressLineThickness(value);
         settings.setBibleShortName(bibleShortNameCheckBox.isSelected());
+        switch (appearanceComboBox.getValue()) {
+            case "Light":
+                settings.setSceneStyleFile("application.css");
+                break;
+            case "Dark":
+                settings.setSceneStyleFile("applicationDark.css");
+                break;
+        }
         settings.save();
         projectionScreenController.setBackGroundColor(backgroundColorPicker.getValue());
         if (listeners != null) {
@@ -286,6 +306,7 @@ public class SettingsController {
                 listener.onSave();
             }
         }
+        stage.hide();
     }
 
     public synchronized void setSettings(Settings settings) {
@@ -351,7 +372,7 @@ public class SettingsController {
         this.songController = songController;
     }
 
-    void addOnSaveListener(Listener listener) {
+    public void addOnSaveListener(Listener listener) {
         if (listeners == null) {
             listeners = new ArrayList<>();
         }
@@ -363,6 +384,14 @@ public class SettingsController {
         if (settings.isAllowRemote()) {
             RemoteServer.startRemoteServer(projectionScreenController, songController);
         }
+    }
+
+    public Stage getStage() {
+        return stage;
+    }
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
     }
 
     public interface Listener {
