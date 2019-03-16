@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
@@ -32,6 +33,8 @@ public class MyController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MyController.class);
     @FXML
+    private MenuBar menuBar;
+    @FXML
     private Menu settingsMenu;
     @FXML
     private ToggleButton showProjectionScreenToggleButton;
@@ -41,6 +44,7 @@ public class MyController {
     private BibleController bibleController;
     @FXML
     private BibleSearchController bibleSearchController;
+
     @FXML
     private SongController songController;
     @FXML
@@ -327,5 +331,13 @@ public class MyController {
         settingsController.lazyInitialize();
         settingsStage.show();
         settingsStage.toFront();
+    }
+
+    public BibleController getBibleController() {
+        return bibleController;
+    }
+
+    public SongController getSongController() {
+        return songController;
     }
 }

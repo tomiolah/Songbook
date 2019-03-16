@@ -149,6 +149,7 @@ public class BibleController {
     private Font verseFont;
     private Date lastUpdateSelected;
     private boolean initialized = false;
+    private boolean wasSelectionChange;
 
     private static String strip(String s) {
         try {
@@ -524,6 +525,7 @@ public class BibleController {
             });
             verseListViewSelectionModel.selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
                 try {
+                    wasSelectionChange = true;
                     selectedVerse = newValue.intValue();
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
@@ -578,7 +580,7 @@ public class BibleController {
                             verseTextField.setText(event.getCharacter());
                             verseTextField.requestFocus();
                             event.consume();
-                        } else if (keyCode.isLetterKey()) {
+                        } else if (keyCode.isLetterKey() && !event.isControlDown()) {
                             searchTextField.setText(event.getCharacter());
                             searchTextField.requestFocus();
                             event.consume();
@@ -1346,9 +1348,10 @@ public class BibleController {
 
     void setSelecting(boolean isSelecting) {
         try {
-            if (this.isSelecting && !isSelecting && verseListView.isFocused()) {
+            if (this.isSelecting && !isSelecting && verseListView.isFocused() && wasSelectionChange) {
                 verseSelected();
             }
+            wasSelectionChange = false;
             this.isSelecting = isSelecting;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -1592,5 +1595,23 @@ public class BibleController {
 
     void setSettingsController(SettingsController settingsController) {
         settingsController.addOnSaveListener(this::setAbbreviationButtonVisibility);
+    }
+
+    public void onKeyEvent(KeyEvent event) {
+        KeyCode keyCode = event.getCode();
+        if (event.isControlDown()) {
+            if (keyCode == KeyCode.B) {
+                bookTextField.requestFocus();
+            }
+            if (keyCode == KeyCode.I) {
+                verseTextField.requestFocus();
+            }
+            if (keyCode == KeyCode.P) {
+                partTextField.requestFocus();
+            }
+            if (keyCode == KeyCode.R) {
+                sendProjectionScreenText.fire();
+            }
+        }
     }
 }

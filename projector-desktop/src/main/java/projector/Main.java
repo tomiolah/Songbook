@@ -18,8 +18,10 @@ import javafx.stage.Stage;
 import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.application.Updater;
+import projector.controller.BibleController;
 import projector.controller.MyController;
 import projector.controller.ProjectionScreenController;
+import projector.controller.song.SongController;
 
 import java.net.URL;
 import java.util.Date;
@@ -56,7 +58,16 @@ public class Main extends Application {
             loader.setResources(Settings.getInstance().getResourceBundle());
             Pane root = loader.load();
             myController = loader.getController();
+            BibleController bibleController = myController.getBibleController();
+            SongController songController = myController.getSongController();
             primaryScene = new Scene(root, settings.getMainWidth(), settings.getMainHeight());
+            primaryScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
+                if (event.isAltDown()) {
+                    event.consume();
+                }
+                bibleController.onKeyEvent(event);
+                songController.onKeyEvent(event);
+            });
             primaryScene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
             primaryStage.setMinHeight(600);
             primaryScene.setOnKeyPressed(event -> {
@@ -94,6 +105,9 @@ public class Main extends Application {
                 }
                 if (keyCode == KeyCode.F5) {
                     myController.previewCanvas();
+                }
+                if (event.isAltDown()) {
+                    event.consume();
                 }
             });
             primaryScene.setOnKeyReleased(event -> {

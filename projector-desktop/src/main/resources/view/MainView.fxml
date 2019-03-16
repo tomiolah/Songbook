@@ -20,7 +20,7 @@
     </top>
     <center>
         <AnchorPane>
-            <MenuBar useSystemMenuBar="true" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+            <MenuBar fx:id="menuBar" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                      AnchorPane.topAnchor="0.0" prefHeight="34">
                 <Menu fx:id="settingsMenu" mnemonicParsing="false" text="%Settings" onAction="#onSettingsMenu"
                       onShowing="#onSettingsMenu">

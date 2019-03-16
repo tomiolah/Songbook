@@ -2306,4 +2306,13 @@ public class SongController {
         }
         return songReadRemoteListener;
     }
+
+    public void onKeyEvent(KeyEvent event) {
+        KeyCode keyCode = event.getCode();
+        if (event.isControlDown()) {
+            if (keyCode == KeyCode.S) {
+                searchTextField.requestFocus();
+            }
+        }
+    }
 }
