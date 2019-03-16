@@ -25,6 +25,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.Stage;
 import projector.application.Settings;
 import projector.application.Updater;
 import projector.controller.song.SongController;
@@ -110,6 +111,7 @@ public class SettingsController {
 
     private List<Listener> listeners;
     private boolean initialized = false;
+    private Stage stage;
 
     synchronized void lazyInitialize() {
         if (initialized) {
@@ -304,6 +306,7 @@ public class SettingsController {
                 listener.onSave();
             }
         }
+        stage.hide();
     }
 
     public synchronized void setSettings(Settings settings) {
@@ -381,6 +384,14 @@ public class SettingsController {
         if (settings.isAllowRemote()) {
             RemoteServer.startRemoteServer(projectionScreenController, songController);
         }
+    }
+
+    public Stage getStage() {
+        return stage;
+    }
+
+    public void setStage(Stage stage) {
+        this.stage = stage;
     }
 
     public interface Listener {

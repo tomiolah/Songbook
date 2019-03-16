@@ -132,7 +132,7 @@ public class Main extends Application {
             primaryScene.getStylesheets().clear();
             URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
             String url = resource.toExternalForm();
-            setUserAgentStylesheet(url);
+            setUserAgentStylesheet(null);
             primaryScene.getStylesheets().add(url);
         });
         projectionScreenController.setText("<color=\"0xffffff0c\">.</color>", ProjectionType.REFERENCE);

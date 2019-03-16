@@ -20,7 +20,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import java.lang.String?>
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mainBorderPain" prefHeight="1500.0" prefWidth="700.0"
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:id="mainBorderPain" prefHeight="1500.0" prefWidth="850.0"
             xmlns="http://javafx.com/javafx/8.0.171" fx:controller="projector.controller.SettingsController">
     <center>
         <ScrollPane fx:id="scrollPane" prefHeight="55.0" prefWidth="50.0" BorderPane.alignment="CENTER">
@@ -91,11 +91,6 @@
                         <Label text="%Search with accents" GridPane.rowIndex="5"/>
                         <CheckBox fx:id="accentsCheckBox" mnemonicParsing="false" prefHeight="23.0" prefWidth="13.0"
                                   GridPane.columnIndex="1" GridPane.rowIndex="5"/>
-                        <Button mnemonicParsing="false" onAction="#onSaveButtonAction" text="%Save">
-                            <GridPane.margin>
-                                <Insets/>
-                            </GridPane.margin>
-                        </Button>
                         <CheckBox fx:id="referenceItalicCheckBox" mnemonicParsing="false" text="%Reference Italic"
                                   GridPane.rowIndex="15"/>
                         <CheckBox fx:id="bibleShortNameCheckBox" mnemonicParsing="false" text="%Show bible short name"
@@ -182,4 +177,12 @@
             </BorderPane>
         </ScrollPane>
     </center>
+    <bottom>
+        <HBox alignment="TOP_RIGHT">
+            <Button mnemonicParsing="false" onAction="#onSaveButtonAction" text="%Save"/>
+            <padding>
+                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>
+            </padding>
+        </HBox>
+    </bottom>
 </BorderPane>
