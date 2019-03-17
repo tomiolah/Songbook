@@ -1074,6 +1074,7 @@ public class BibleController {
 
     void initializeBibles() {
         try {
+            lazyInitialize();
             BibleService bibleService = ServiceManager.getBibleService();
             List<Bible> bibles = bibleService.findAll();
             bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
