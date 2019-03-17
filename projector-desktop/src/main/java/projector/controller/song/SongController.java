@@ -675,6 +675,7 @@ public class SongController {
             importButton.setOnAction(event -> importButtonOnAction());
             initializeShowVersionsButton();
             initializeDragListeners();
+            initializeSongs();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

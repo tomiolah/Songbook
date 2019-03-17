@@ -123,6 +123,7 @@ export class NewSongComponent implements OnInit {
       'youtubeUrl': [this.youtubeUrl, [
         Validators.maxLength(52),
       ]],
+      'verseOrder': [this.song.verseOrder, []],
     });
     this.verseControls = [];
     this.addNewVerse();

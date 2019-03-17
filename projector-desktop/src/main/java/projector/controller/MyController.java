@@ -145,7 +145,6 @@ public class MyController {
         tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.equals(songsTab)) {
                 songController.lazyInitialize();
-                songController.initializeSongs();
             } else if (newValue.equals(bibleSearchTab)) {
                 bibleSearchController.lazyInitialize();
                 bibleSearchController.initializeBibles();
