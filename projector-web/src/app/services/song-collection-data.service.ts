@@ -14,6 +14,6 @@ export class SongCollectionDataService {
   }
 
   putInCollection(songCollection: SongCollection, songCollectionElement: SongCollectionElement) {
-    return this.api.put(SongCollectionElement, 'api/songCollection/' + songCollection.uuid + '/songCollectionElement', songCollectionElement);
+    return this.api.put(SongCollectionElement, 'admin/api/songCollection/' + songCollection.uuid + '/songCollectionElement', songCollectionElement);
   }
 }

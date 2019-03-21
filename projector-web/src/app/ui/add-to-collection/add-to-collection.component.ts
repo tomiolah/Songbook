@@ -3,7 +3,8 @@ import {Song} from "../../services/song-service.service";
 import {SongCollectionDataService} from "../../services/song-collection-data.service";
 import {SongCollection, SongCollectionElement} from "../../models/songCollection";
 import {FormBuilder, FormGroup, Validators} from "@angular/forms";
-import {MAT_DIALOG_DATA, MatDialogRef} from "@angular/material";
+import {MAT_DIALOG_DATA, MatDialogRef, MatDialog} from "@angular/material";
+import { AuthenticateComponent } from '../authenticate/authenticate.component';
 
 @Component({
   selector: 'app-add-to-collection',
@@ -16,12 +17,14 @@ export class AddToCollectionComponent implements OnInit {
   song: Song;
   songCollections: SongCollection[];
   selectedSongCollection: SongCollection;
+  songCollectionElement: SongCollectionElement;
 
   constructor(
     public dialogRef: MatDialogRef<AddToCollectionComponent>,
     @Inject(MAT_DIALOG_DATA) public data: any,
     private fb: FormBuilder,
     private songCollectionDataService: SongCollectionDataService,
+    private dialog: MatDialog,
   ) {
   }
 
@@ -50,10 +53,37 @@ export class AddToCollectionComponent implements OnInit {
 
   onSubmit() {
     const formValue = this.form.value;
-    let songCollectionElement: SongCollectionElement = new SongCollectionElement();
-    songCollectionElement.ordinalNumber = formValue.ordinalNumber;
-    songCollectionElement.songUuid = this.song.uuid;
-    this.songCollectionDataService.putInCollection(this.selectedSongCollection, songCollectionElement).subscribe();
-    this.dialogRef.close('ok');
+    this.songCollectionElement = new SongCollectionElement();
+    this.songCollectionElement.ordinalNumber = formValue.ordinalNumber;
+    this.songCollectionElement.songUuid = this.song.uuid;
+    this.updateSongCollectionElement();
+  }
+
+  private updateSongCollectionElement() {
+    this.songCollectionDataService.putInCollection(this.selectedSongCollection, this.songCollectionElement).subscribe(() => {
+      this.dialogRef.close('ok');
+    }, (err) => {
+      if (err.status === 405) {
+        this.openAuthenticateDialog();
+      }
+      else {
+        console.log(err);
+      }
+    });
+  }
+
+  private openAuthenticateDialog() {
+    let user = JSON.parse(localStorage.getItem('currentUser'));
+    const dialogRef = this.dialog.open(AuthenticateComponent, {
+      data: {
+        email: user.email
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'ok') {
+        this.updateSongCollectionElement();
+      }
+    });
   }
 }
