@@ -138,8 +138,8 @@ export class SongService {
     return this.api.getAll(Song, 'api/songs/upload');
   }
 
-  mergeVersionGroup(songId1, songId2) {
-    return this.api.post('admin/api/songVersionGroup/' + songId1 + '/' + songId2);
+  mergeVersionGroup(songId1, songId2, user) {
+    return this.api.post(user + '/api/songVersionGroup/' + songId1 + '/' + songId2);
   }
 
   getSongsByVersionGroup(id) {
