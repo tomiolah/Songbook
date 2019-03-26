@@ -269,7 +269,8 @@ public class SongResource {
         data.put("baseUrl", AppProperties.getInstance().baseUrl());
         data.put("title", song.getTitle());
         data.put("songUuid", song.getId());
-        data.put("email", song.getCreatedByEmail());
+        String createdByEmail = song.getCreatedByEmail();
+        data.put("email", createdByEmail == null ? "" : createdByEmail);
 
         return data;
     }

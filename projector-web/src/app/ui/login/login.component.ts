@@ -100,9 +100,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             let redirect = this.authService.redirectUrl;
             if (!redirect) {
               if (this.authService.user != null) {
-                if (this.authService.user.role.startsWith('ROLE_ADMIN')) {
-                  redirect = '/songs';
-                }
+                redirect = '/songs';
               } else {
                 redirect = '/';
               }

@@ -4,14 +4,19 @@ import com.bence.projector.common.dto.SongLinkDTO;
 import com.bence.projector.server.api.assembler.SongLinkAssembler;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongLink;
+import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.SongLinkService;
+import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
+import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
 import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -28,6 +33,8 @@ import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.StringWriter;
+import java.security.Principal;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,15 +49,19 @@ public class SongLinkResource {
     private final FreemarkerConfiguration freemarkerConfiguration;
     private final JavaMailSender sender;
     private final SongRepository songRepository;
+    private final UserService userService;
+    private final SongService songService;
 
     @Autowired
-    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, FreemarkerConfiguration freemarkerConfiguration, @Qualifier("javaMailSender") JavaMailSender sender, SongRepository songRepository) {
+    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, FreemarkerConfiguration freemarkerConfiguration, @Qualifier("javaMailSender") JavaMailSender sender, SongRepository songRepository, UserService userService, SongService songService) {
         this.statisticsService = statisticsService;
         this.songLinkService = songLinkService;
         this.songLinkAssembler = songLinkAssembler;
         this.freemarkerConfiguration = freemarkerConfiguration;
         this.sender = sender;
         this.songRepository = songRepository;
+        this.userService = userService;
+        this.songService = songService;
     }
 
     @RequestMapping(value = "admin/api/songLinks", method = RequestMethod.GET)
@@ -82,6 +93,43 @@ public class SongLinkResource {
             thread.start();
         }
         return songLinkAssembler.createDto(model);
+    }
+
+    @RequestMapping(value = "user/api/songVersionGroup/{songId1}/{songId2}", method = RequestMethod.POST)
+    public ResponseEntity<Object> userSongLink(@PathVariable("songId1") String songId1, @PathVariable("songId2") String songId2, HttpServletRequest httpServletRequest, Principal principal) {
+        if (songId1.equals(songId2)) {
+            return new ResponseEntity<>("Same song", HttpStatus.CONFLICT);
+        }
+        Song song1 = songService.findOne(songId1);
+        Song song2 = songService.findOne(songId2);
+        if (song1 == null || song2 == null) {
+            return new ResponseEntity<>("Null", HttpStatus.NO_CONTENT);
+        }
+        saveStatistics(httpServletRequest, statisticsService);
+        User user = null;
+        if (principal != null) {
+            String email = principal.getName();
+            user = userService.findByEmail(email);
+        }
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        SongLink model = new SongLink();
+        model.setApplied(false);
+        model.setCreatedDate(new Date());
+        model.setSongId1(songId1);
+        model.setSongId2(songId2);
+        model.setCreatedByEmail(user.getEmail());
+        SongLink songLink = songLinkService.save(model);
+        Thread thread = new Thread(() -> {
+            try {
+                sendEmail(songLink);
+            } catch (MessagingException e) {
+                e.printStackTrace();
+            }
+        });
+        thread.start();
+        return new ResponseEntity<>(songLinkAssembler.createDto(model), HttpStatus.ACCEPTED);
     }
 
     private void sendEmail(SongLink songLink)
