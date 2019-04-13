@@ -19,14 +19,14 @@
           <div class="form-group">
             <mat-icon class="material-icon">person_outline</mat-icon>
             <label for="sureName">Sure name</label>
-            <input type="tel" id="sureName" class="form-control" formControlName="sureName" required>
+            <input type="text" id="sureName" class="form-control" formControlName="sureName" required>
             <div *ngIf="formErrors.sureName" class="alert alert-danger">{{formErrors.sureName}}</div>
           </div>
 
           <div class="form-group">
             <mat-icon class="material-icon">person_outline</mat-icon>
             <label for="firstName">First name</label>
-            <input type="tel" id="firstName" class="form-control" formControlName="firstName" required>
+            <input type="text" id="firstName" class="form-control" formControlName="firstName" required>
             <div *ngIf="formErrors.firstName" class="alert alert-danger">{{formErrors.firstName}}</div>
           </div>
 

