@@ -14,6 +14,7 @@ import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
+import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
 import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
@@ -32,13 +33,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.StringWriter;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -59,11 +58,10 @@ public class SongResource {
     private final StatisticsService statisticsService;
     private final UserService userService;
     private final JavaMailSender sender;
-    private final FreemarkerConfiguration freemarkerConfiguration;
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, @Qualifier("javaMailSender") JavaMailSender sender, FreemarkerConfiguration freemarkerConfiguration) {
+    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, @Qualifier("javaMailSender") JavaMailSender sender) {
         this.songRepository = songRepository;
         this.songService = songService;
         this.songAssembler = songAssembler;
@@ -71,7 +69,6 @@ public class SongResource {
         this.statisticsService = statisticsService;
         this.userService = userService;
         this.sender = sender;
-        this.freemarkerConfiguration = freemarkerConfiguration;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs")
@@ -241,15 +238,8 @@ public class SongResource {
     private void sendEmail(Song song)
             throws MessagingException, MailSendException {
         final String freemarkerName = FreemarkerConfiguration.NEW_SONG + ".ftl";
-        FreeMarkerConfigurer freemarkerConfigurer = freemarkerConfiguration.freemarkerConfig();
-        freemarker.template.Configuration config = freemarkerConfigurer.getConfiguration();
+        freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
         config.setDefaultEncoding("UTF-8");
-        try {
-            config.setDirectoryForTemplateLoading(new File(freemarkerConfiguration.findParent(freemarkerName)));
-        } catch (Exception e) {
-            e.printStackTrace();
-            config.setClassForTemplateLoading(this.getClass(), "/");
-        }
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setTo(new InternetAddress("bakobence@yahoo.com"));

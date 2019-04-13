@@ -7,8 +7,10 @@ import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.service.ServiceException;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
+import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
 import com.bence.projector.server.utils.AppProperties;
+import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.slf4j.Logger;
@@ -24,13 +26,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.Principal;
@@ -48,16 +48,14 @@ public class UserResource {
     private final UserRegisterAssembler userRegisterAssembler;
     private final UserAssembler userAssembler;
     private final JavaMailSender sender;
-    private final FreemarkerConfiguration freemarkerConfiguration;
     private final StatisticsService statisticsService;
 
     @Autowired
-    public UserResource(UserService userService, UserRegisterAssembler userRegisterAssembler, UserAssembler userAssembler, JavaMailSender sender, FreemarkerConfiguration freemarkerConfiguration, StatisticsService statisticsService) {
+    public UserResource(UserService userService, UserRegisterAssembler userRegisterAssembler, UserAssembler userAssembler, JavaMailSender sender, StatisticsService statisticsService) {
         this.userService = userService;
         this.userRegisterAssembler = userRegisterAssembler;
         this.userAssembler = userAssembler;
         this.sender = sender;
-        this.freemarkerConfiguration = freemarkerConfiguration;
         this.statisticsService = statisticsService;
     }
 
@@ -93,8 +91,10 @@ public class UserResource {
             logger.info("Got email: " + user.getEmail());
             sendEmailFreemarker(user);
             logger.info("Mail sent!");
+            sendNewUserEmail(user);
         } catch (MessagingException | TemplateException | IOException | MailSendException e) {
             logger.error(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -105,10 +105,8 @@ public class UserResource {
             language = "en";
         }
         final String freemarkerName = FreemarkerConfiguration.FREEMARKER_NAME_REGISTRATION + language + ".html";
-        FreeMarkerConfigurer freemarkerConfigurer = freemarkerConfiguration.freemarkerConfig();
-        freemarker.template.Configuration config = freemarkerConfigurer.getConfiguration();
+        Configuration config = ConfigurationUtil.getConfiguration();
         config.setDefaultEncoding("UTF-8");
-        config.setDirectoryForTemplateLoading(new File(freemarkerConfiguration.findParent(freemarkerName)));
         Template template = config.getTemplate(freemarkerName);
 
         StringWriter writer = new StringWriter();
@@ -129,7 +127,31 @@ public class UserResource {
         }
         helper.getMimeMessage().setContent(writer.toString(), "text/html;charset=utf-8");
         sender.send(message);
-        helper.setTo("bakobence@yahoo.com");
+    }
+
+    private void sendNewUserEmail(User user)
+            throws MessagingException, IOException, TemplateException, MailSendException {
+        final String freemarkerName = "newUser.html";
+        Configuration config = ConfigurationUtil.getConfiguration();
+        config.setDefaultEncoding("UTF-8");
+        Template template = config.getTemplate(freemarkerName);
+
+        StringWriter writer = new StringWriter();
+
+        Map<String, Object> data = new HashMap<>();
+        data.put("email", user.getEmail());
+        data.put("sureName", user.getSureName());
+        data.put("firstName", user.getFirstName());
+        template.process(data, writer);
+
+        MimeMessage message = sender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        helper.setTo(new InternetAddress("bakobence@yahoo.com"));
+        InternetAddress from = new InternetAddress("noreply@songpraise.com");
+        from.setPersonal("SongPraise");
+        helper.setFrom(from);
+        helper.setSubject("New user");
+        helper.getMimeMessage().setContent(writer.toString(), "text/html;charset=utf-8");
         sender.send(message);
     }
 
@@ -155,6 +177,7 @@ public class UserResource {
                 if (user.getActivationCode().equals(activationCode)) {
                     user.setActivated(true);
                     user.setActivationCode(null);
+                    userService.save(user);
                     return new ResponseEntity<>(HttpStatus.ACCEPTED);
                 } else {
                     return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
