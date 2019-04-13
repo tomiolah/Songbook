@@ -40,6 +40,7 @@ import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.StringWriter;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -205,10 +206,19 @@ public class SongResource {
         return songAssembler.createDto(song);
     }
 
-    @RequestMapping(method = RequestMethod.POST, value = "/api/song")
-    public ResponseEntity<Object> createSong(@RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
+    @RequestMapping(method = RequestMethod.POST, value = "/user/api/song")
+    public ResponseEntity<Object> createSong(@RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest, Principal principal) {
         saveStatistics(httpServletRequest, statisticsService);
+        User user = userService.findByEmail(principal.getName());
+        if (user == null || user.isBanned()) {
+            return new ResponseEntity<>("Could not create", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         final Song song = songAssembler.createModel(songDTO);
+        song.setCreatedByEmail(user.getEmail());
+        if (!user.isActivated()) {
+            song.setDeleted(true);
+            song.setUploaded(true);
+        }
         final Date date = new Date();
         song.setCreatedDate(date);
         song.setModifiedDate(date);

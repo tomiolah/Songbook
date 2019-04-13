@@ -26,4 +26,8 @@ public class AppProperties {
     public String baseUrl() {
         return (String) properties.get("baseUrl");
     }
+
+    public String shortBaseUrl() {
+        return (String) properties.get("shortBaseUrl");
+    }
 }
