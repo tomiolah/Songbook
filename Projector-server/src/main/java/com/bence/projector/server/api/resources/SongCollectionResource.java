@@ -7,6 +7,7 @@ import com.bence.projector.server.backend.model.SongCollection;
 import com.bence.projector.server.backend.model.SongCollectionElement;
 import com.bence.projector.server.backend.service.SongCollectionService;
 import com.bence.projector.server.backend.service.StatisticsService;
+import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
 import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
@@ -21,13 +22,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.StringWriter;
 import java.util.Date;
 import java.util.HashMap;
@@ -42,15 +41,13 @@ public class SongCollectionResource {
     private final SongCollectionService songCollectionService;
     private final SongCollectionAssembler songCollectionAssembler;
     private final StatisticsService statisticsService;
-    private final FreemarkerConfiguration freemarkerConfiguration;
     private final JavaMailSender sender;
 
     @Autowired
-    public SongCollectionResource(SongCollectionService songCollectionService, SongCollectionAssembler songCollectionAssembler, StatisticsService statisticsService, FreemarkerConfiguration freemarkerConfiguration, JavaMailSender sender) {
+    public SongCollectionResource(SongCollectionService songCollectionService, SongCollectionAssembler songCollectionAssembler, StatisticsService statisticsService, JavaMailSender sender) {
         this.songCollectionService = songCollectionService;
         this.songCollectionAssembler = songCollectionAssembler;
         this.statisticsService = statisticsService;
-        this.freemarkerConfiguration = freemarkerConfiguration;
         this.sender = sender;
     }
 
@@ -138,15 +135,8 @@ public class SongCollectionResource {
     private void sendEmail(SongCollection song)
             throws MessagingException, MailSendException {
         final String freemarkerName = FreemarkerConfiguration.COLLECTION_UPDATE + ".ftl";
-        FreeMarkerConfigurer freemarkerConfigurer = freemarkerConfiguration.freemarkerConfig();
-        freemarker.template.Configuration config = freemarkerConfigurer.getConfiguration();
+        freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
         config.setDefaultEncoding("UTF-8");
-        try {
-            config.setDirectoryForTemplateLoading(new File(freemarkerConfiguration.findParent(freemarkerName)));
-        } catch (Exception e) {
-            e.printStackTrace();
-            config.setClassForTemplateLoading(this.getClass(), "/");
-        }
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setTo(new InternetAddress("bakobence@yahoo.com"));

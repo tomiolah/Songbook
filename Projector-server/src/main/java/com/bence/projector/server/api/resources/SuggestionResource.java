@@ -5,6 +5,7 @@ import com.bence.projector.server.api.assembler.SuggestionAssembler;
 import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.SuggestionService;
+import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
 import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
@@ -18,13 +19,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.StringWriter;
 import java.util.HashMap;
 import java.util.List;
@@ -40,8 +39,6 @@ public class SuggestionResource {
     private SuggestionService suggestionService;
     @Autowired
     private SuggestionAssembler suggestionAssembler;
-    @Autowired
-    private FreemarkerConfiguration freemarkerConfiguration;
     @Qualifier("javaMailSender")
     @Autowired
     private JavaMailSender sender;
@@ -80,15 +77,8 @@ public class SuggestionResource {
     private void sendEmail(Suggestion suggestion)
             throws MessagingException, MailSendException {
         final String freemarkerName = FreemarkerConfiguration.NEW_SUGGESTION + ".ftl";
-        FreeMarkerConfigurer freemarkerConfigurer = freemarkerConfiguration.freemarkerConfig();
-        freemarker.template.Configuration config = freemarkerConfigurer.getConfiguration();
+        freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
         config.setDefaultEncoding("UTF-8");
-        try {
-            config.setDirectoryForTemplateLoading(new File(freemarkerConfiguration.findParent(freemarkerName)));
-        } catch (Exception e) {
-            e.printStackTrace();
-            config.setClassForTemplateLoading(this.getClass(), "/");
-        }
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setTo(new InternetAddress("bakobence@yahoo.com"));

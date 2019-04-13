@@ -10,6 +10,7 @@ import com.bence.projector.server.backend.service.SongLinkService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
+import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
 import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
@@ -25,13 +26,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 import javax.mail.MessagingException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.io.File;
 import java.io.StringWriter;
 import java.security.Principal;
 import java.util.Date;
@@ -46,18 +45,16 @@ public class SongLinkResource {
     private final StatisticsService statisticsService;
     private final SongLinkService songLinkService;
     private final SongLinkAssembler songLinkAssembler;
-    private final FreemarkerConfiguration freemarkerConfiguration;
     private final JavaMailSender sender;
     private final SongRepository songRepository;
     private final UserService userService;
     private final SongService songService;
 
     @Autowired
-    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, FreemarkerConfiguration freemarkerConfiguration, @Qualifier("javaMailSender") JavaMailSender sender, SongRepository songRepository, UserService userService, SongService songService) {
+    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, @Qualifier("javaMailSender") JavaMailSender sender, SongRepository songRepository, UserService userService, SongService songService) {
         this.statisticsService = statisticsService;
         this.songLinkService = songLinkService;
         this.songLinkAssembler = songLinkAssembler;
-        this.freemarkerConfiguration = freemarkerConfiguration;
         this.sender = sender;
         this.songRepository = songRepository;
         this.userService = userService;
@@ -135,15 +132,8 @@ public class SongLinkResource {
     private void sendEmail(SongLink songLink)
             throws MessagingException, MailSendException {
         final String freemarkerName = FreemarkerConfiguration.NEW_SONG_LINK + ".ftl";
-        FreeMarkerConfigurer freemarkerConfigurer = freemarkerConfiguration.freemarkerConfig();
-        freemarker.template.Configuration config = freemarkerConfigurer.getConfiguration();
+        freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
         config.setDefaultEncoding("UTF-8");
-        try {
-            config.setDirectoryForTemplateLoading(new File(freemarkerConfiguration.findParent(freemarkerName)));
-        } catch (Exception e) {
-            e.printStackTrace();
-            config.setClassForTemplateLoading(this.getClass(), "/");
-        }
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setTo(new InternetAddress("bakobence@yahoo.com"));
