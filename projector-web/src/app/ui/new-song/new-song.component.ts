@@ -4,7 +4,7 @@ import {Song, SongService, SongVerseDTO} from '../../services/song-service.servi
 import {Router} from '@angular/router';
 import {Language} from "../../models/language";
 import {LanguageDataService} from "../../services/language-data.service";
-import {MatDialog, MatIconRegistry} from "@angular/material";
+import {MatDialog, MatIconRegistry, MatSnackBar} from "@angular/material";
 import {NewLanguageComponent} from "../new-language/new-language.component";
 import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
 import { AuthenticateComponent } from '../authenticate/authenticate.component';
@@ -90,6 +90,7 @@ export class NewSongComponent implements OnInit {
               private titleService: Title,
               private dialog: MatDialog,
               iconRegistry: MatIconRegistry,
+              private snackBar: MatSnackBar,
               public sanitizer: DomSanitizer) {
     iconRegistry.addSvgIcon(
       'magic_tool',
@@ -215,8 +216,10 @@ export class NewSongComponent implements OnInit {
         if (err.message === 'Unexpected token < in JSON at position 0') {
           this.openAuthenticateDialog();
         } else {
-          // TODO show toast
           console.log(err);
+          this.snackBar.open(err._body, 'Close', {
+            duration: 5000
+          })
         }
       }
     );
