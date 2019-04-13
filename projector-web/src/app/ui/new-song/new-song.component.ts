@@ -7,6 +7,7 @@ import {LanguageDataService} from "../../services/language-data.service";
 import {MatDialog, MatIconRegistry} from "@angular/material";
 import {NewLanguageComponent} from "../new-language/new-language.component";
 import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
+import { AuthenticateComponent } from '../authenticate/authenticate.component';
 
 export function replace(formValue: any, key) {
   const value = formValue[key];
@@ -211,9 +212,29 @@ export class NewSongComponent implements OnInit {
         this.router.navigate(['/song/' + song.uuid]);
       },
       (err) => {
-        console.log(err);
+        if (err.message === 'Unexpected token < in JSON at position 0') {
+          this.openAuthenticateDialog();
+        } else {
+          // TODO show toast
+          console.log(err);
+        }
       }
     );
+  }
+
+  private openAuthenticateDialog() {
+    let user = JSON.parse(localStorage.getItem('currentUser'));
+    const dialogRef = this.dialog.open(AuthenticateComponent, {
+      data: {
+        email: user.email
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result === 'ok') {
+        this.insertNewSong();
+      }
+    });
   }
 
   openNewLanguageDialog(): void {

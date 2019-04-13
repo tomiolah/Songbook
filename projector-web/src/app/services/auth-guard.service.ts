@@ -1,4 +1,4 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 import {
   ActivatedRouteSnapshot,
   CanActivate,
@@ -8,7 +8,7 @@ import {
   Router,
   RouterStateSnapshot
 } from '@angular/router';
-import {AuthService} from './auth.service';
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
@@ -41,7 +41,7 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
           return true;
         }
       } else if (url.startsWith('/user')) {
-        if (this.authService.user != null && this.authService.user.role === 'ROLE_USER') {
+        if (this.authService.user != null && (this.authService.user.role === 'ROLE_USER' || this.authService.user.role === 'ROLE_ADMIN')) {
           return true;
         }
       } else {

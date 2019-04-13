@@ -1,21 +1,34 @@
 <div class="original">
   <nav mat-tab-nav-bar>
 
-    <ng-container class="container" *ngIf="!auth.isLoggedIn || auth.user.role !== 'ROLE_ADMIN'">
+    <ng-container class="container" *ngIf="!auth.isLoggedIn">
       <a mat-tab-link *ngFor="let tab of menuTabs" [routerLink]="tab.link" routerLinkActive
          #rla="routerLinkActive" [active]="rla.isActive">
         <mat-icon>{{tab.icon}}</mat-icon>
         <span>{{tab.title}}</span>
       </a>
     </ng-container>
-    <ng-container class="container" *ngIf="auth.isLoggedIn && auth.user.role === 'ROLE_ADMIN'">
+    <div *ngIf="auth.isLoggedIn">
+    <ng-container class="container" *ngIf="auth.user.role === 'ROLE_ADMIN'">
       <a mat-tab-link *ngFor="let tab of adminMenuTabs" [routerLink]="tab.link" routerLinkActive
          #rla="routerLinkActive" [active]="rla.isActive">
         <mat-icon>{{tab.icon}}</mat-icon>
         <span>{{tab.title}}</span>
       </a>
     </ng-container>
-
+    <ng-container class="container" *ngIf="auth.user.role === 'ROLE_USER'">
+      <a mat-tab-link *ngFor="let tab of userMenuTabs" [routerLink]="tab.link" routerLinkActive
+         #rla="routerLinkActive" [active]="rla.isActive">
+        <mat-icon>{{tab.icon}}</mat-icon>
+        <span>{{tab.title}}</span>
+      </a>
+    </ng-container>
+    
+    <a mat-tab-link (click)="auth.logout()" routerLink="/login" id="logout">
+      <mat-icon class="material-icon">power_settings_new</mat-icon>
+      {{'Logout'}}
+    </a>
+  </div>
   </nav>
   <router-outlet></router-outlet>
   <div class="foot"></div>

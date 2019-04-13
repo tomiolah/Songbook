@@ -68,6 +68,8 @@ import {AuthenticateComponent} from "./ui/authenticate/authenticate.component";
 import {OpenInAppComponent} from './ui/open-in-app/open-in-app.component';
 import {AddToCollectionComponent} from './ui/add-to-collection/add-to-collection.component';
 import {SongCollectionDataService} from "./services/song-collection-data.service";
+import { UserRegisterComponent } from './ui/user-register/user-register.component';
+import { ActivationComponent } from './ui/activation/activation.component';
 
 @NgModule({
   exports: [
@@ -128,6 +130,8 @@ export class PlunkerMaterialModule {
     AuthenticateComponent,
     OpenInAppComponent,
     AddToCollectionComponent,
+    UserRegisterComponent,
+    ActivationComponent,
   ],
   imports: [
     BrowserModule,
