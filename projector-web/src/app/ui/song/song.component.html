@@ -108,7 +108,7 @@
       Add to collection
     </button>
   </div>
-  <div *ngIf="auth.isLoggedIn && auth.user.role === 'ROLE_USER'">
+  <div *ngIf="auth.isLoggedIn && (auth.user.role === 'ROLE_USER' || auth.user.role === 'ROLE_ADMIN')">
     <button mat-button (click)="markForVersionGroup()">
       {{markText}}
     </button>

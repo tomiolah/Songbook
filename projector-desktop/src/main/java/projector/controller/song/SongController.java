@@ -109,7 +109,11 @@ public class SongController {
     private static final double minOpacity = 0.4;
     private final SongService songService;
     private final Settings settings = Settings.getInstance();
-    private final String link = "https://projector-songbook.herokuapp.com/song/";
+    private final String BASE_URL = "localhost";
+    private final String link = "http://" + BASE_URL + "/song/";
+    private final String link2 = "https://" + BASE_URL + "/song/";
+    private final String link3 = "http://www." + BASE_URL + "/song/";
+    private final String link4 = "http://www." + BASE_URL + "/song/";
     private final String prefix = "id:";
     @FXML
     private BorderPane rightBorderPane;
@@ -740,7 +744,11 @@ public class SongController {
         Dragboard dragboard = dragEvent.getDragboard();
         String url = dragboard.getUrl();
         if (url != null) {
-            return songService.findByUuid(url.replace(link, ""));
+            String uuid = url.replace(link, "");
+            uuid = uuid.replace(link2, "");
+            uuid = uuid.replace(link3, "");
+            uuid = uuid.replace(link4, "");
+            return songService.findByUuid(uuid);
         }
         String string = dragboard.getString();
         if (string != null && string.startsWith(prefix)) {
