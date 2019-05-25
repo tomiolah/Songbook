@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -32,10 +33,13 @@ import static com.bence.songbook.network.TCPClient.PORT;
 
 public class ConnectToSharedActivity extends AppCompatActivity {
 
+    private static int timeout = 3400;
+    private Button tryAgainButton;
+
     private static boolean isOpenAddress(String ip) {
         try {
             Socket socket = new Socket();
-            socket.connect(new InetSocketAddress(ip, PORT), 2000);
+            socket.connect(new InetSocketAddress(ip, PORT), timeout);
             socket.close();
             return true;
         } catch (Exception ex) {
@@ -54,7 +58,11 @@ public class ConnectToSharedActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
+        tryAgainButton = findViewById(R.id.tryAgainButton);
+        searchAndLoadIps();
+    }
 
+    private void searchAndLoadIps() {
         final List<String> openIps = new ArrayList<>();
         findShared(openIps);
 
@@ -74,9 +82,11 @@ public class ConnectToSharedActivity extends AppCompatActivity {
             }
 
         });
+        TextView textView = findViewById(R.id.textView);
         if (openIps.size() == 0) {
-            TextView textView = findViewById(R.id.textView);
             textView.setText(R.string.no_connections);
+        } else {
+            textView.setText(R.string.select_one_below);
         }
     }
 
@@ -145,6 +155,13 @@ public class ConnectToSharedActivity extends AppCompatActivity {
             finish();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void onTryAgainClick(View view) {
+        tryAgainButton.setEnabled(false);
+        timeout += 1000;
+        searchAndLoadIps();
+        tryAgainButton.setEnabled(true);
     }
 
     @SuppressWarnings("ConstantConditions")
