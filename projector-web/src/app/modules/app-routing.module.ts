@@ -9,6 +9,8 @@ import {StatisticsListComponent} from '../ui/statistics-list/statistics-list.com
 import {SongComponent} from '../ui/song/song.component';
 import {SuggestionListComponent} from "../ui/suggestion-list/suggestion-list.component";
 import {SuggestionComponent} from "../ui/suggestion/suggestion.component";
+import { UserRegisterComponent } from '../ui/user-register/user-register.component';
+import { ActivationComponent } from '../ui/activation/activation.component';
 
 export const appRoutes: Routes = [
   {
@@ -32,6 +34,8 @@ export const appRoutes: Routes = [
   {path: 'admin/suggestions', component: SuggestionListComponent},
   {path: 'songs', component: SongListComponent},
   {path: '', redirectTo: 'songs', pathMatch: 'full'},
+  {path: 'registration', component: UserRegisterComponent},
+  {path: 'activation/:code', component: ActivationComponent},
   {path: '**', component: NotFoundComponent}
 ];
 

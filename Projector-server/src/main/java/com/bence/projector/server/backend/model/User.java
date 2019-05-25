@@ -11,6 +11,11 @@ public class User extends BaseEntity {
     private String token;
     private Date expiryDate;
     private String preferredLanguage;
+    private Boolean activated;
+    private String sureName;
+    private String firstName;
+    private String activationCode;
+    private Boolean banned;
 
     public User() {
         super();
@@ -79,5 +84,49 @@ public class User extends BaseEntity {
 
     public void setPreferredLanguage(String preferredLanguage) {
         this.preferredLanguage = preferredLanguage;
+    }
+
+    public Boolean getActivated() {
+        return activated;
+    }
+
+    public boolean isActivated() {
+        return activated == null ? false : activated;
+    }
+
+    public void setActivated(Boolean activated) {
+        this.activated = activated;
+    }
+
+    public String getSureName() {
+        return sureName;
+    }
+
+    public void setSureName(String sureName) {
+        this.sureName = sureName;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getActivationCode() {
+        return activationCode;
+    }
+
+    public void setActivationCode(String activationCode) {
+        this.activationCode = activationCode;
+    }
+
+    public Boolean isBanned() {
+        return banned != null && banned;
+    }
+
+    public void setBanned(Boolean banned) {
+        this.banned = banned;
     }
 }

@@ -102,7 +102,7 @@ export class SongService {
   }
 
   createSong(song: Song) {
-    return this.api.create(Song, 'api/song', song);
+    return this.api.create(Song, 'user/api/song', song);
   }
 
   getAllSongTitlesAfterModifiedDate(modifiedDate: number, selectedLanguage: any) {

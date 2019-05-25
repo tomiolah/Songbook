@@ -3,7 +3,7 @@
     <br>
     <mat-card>
       <mat-card-content>
-        <h1>{{'LOGIN'}}</h1>
+        <h1>{{'Login'}}</h1>
         <form (ngSubmit)="onSubmit()" [formGroup]="loginForm">
 
           <div class="form-group">
@@ -21,6 +21,11 @@
           <button type="submit" class="btn btn-success" [disabled]="!loginForm.valid">{{'Submit'}}
           </button>
         </form>
+      </mat-card-content>
+    </mat-card>
+    <mat-card>
+      <mat-card-content>
+        <a href="/#/registration">{{'Create account'}}</a>
       </mat-card-content>
     </mat-card>
   </div>

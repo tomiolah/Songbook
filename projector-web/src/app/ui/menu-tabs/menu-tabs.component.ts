@@ -1,5 +1,5 @@
-import {Component, OnInit} from '@angular/core';
-import {AuthService} from "../../services/auth.service";
+import { Component, OnInit } from '@angular/core';
+import { AuthService } from "../../services/auth.service";
 
 @Component({
   selector: 'app-menu-tabs',
@@ -9,16 +9,20 @@ import {AuthService} from "../../services/auth.service";
 export class MenuTabsComponent implements OnInit {
 
   menuTabs = [
-    {link: '/songs', icon: 'menu', title: 'Songs'},
-    {link: '/addNewSong', icon: 'add_box', title: 'Add song'},
+    { link: '/songs', icon: 'menu', title: 'Songs' },
+    { link: '/login', icon: 'person', title: 'Login' },
   ];
   adminMenuTabs = [
-    {link: '/songs', icon: 'menu', title: 'Songs'},
-    {link: '/addNewSong', icon: 'add_box', title: 'Add song'},
-    {link: '/admin/suggestions', icon: 'announcement', title: 'Suggestions'},
+    { link: '/songs', icon: 'menu', title: 'Songs' },
+    { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
+    { link: '/admin/suggestions', icon: 'announcement', title: 'Suggestions' },
+  ];
+  userMenuTabs = [
+    { link: '/songs', icon: 'menu', title: 'Songs' },
+    { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
   ];
 
-  constructor(public auth: AuthService,) {
+  constructor(public auth: AuthService, ) {
   }
 
   ngOnInit() {
