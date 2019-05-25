@@ -38,7 +38,7 @@ public class IndicesForBibleController {
         otherListViewSelectionModel = otherListView.getSelectionModel();
     }
 
-    void setLeftBible(Bible bible) {
+    public void setLeftBible(Bible bible) {
         this.bible = bible;
         bookListView.getItems().addAll(bible.getBooks());
         MultipleSelectionModel<Book> bookSelectionModel = bookListView.getSelectionModel();
@@ -99,7 +99,7 @@ public class IndicesForBibleController {
         });
     }
 
-    void setOtherBible(Bible otherBible) {
+    public void setOtherBible(Bible otherBible) {
         this.otherBible = otherBible;
         verseHashMap = new HashMap<>();
         fillVerseMap();

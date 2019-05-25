@@ -260,6 +260,9 @@ public class Song extends BaseEntity {
         int score = 0;
         score += getViews();
         score += getFavouriteCount() * 2;
+        if (createdDate == null || modifiedDate == null) {
+            return score;
+        }
         long l = Song.getCurrentDate() - createdDate.getTime();
         if (l < 2592000000L) {
             score += 14 * ((1 - (double) l / 2592000000L));
