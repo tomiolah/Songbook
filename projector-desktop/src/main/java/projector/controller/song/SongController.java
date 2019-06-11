@@ -115,6 +115,7 @@ public class SongController {
     private final String link3 = "http://www." + BASE_URL + "/song/";
     private final String link4 = "http://www." + BASE_URL + "/song/";
     private final String prefix = "id:";
+    private final SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
     @FXML
     private BorderPane rightBorderPane;
     @FXML
@@ -1853,7 +1854,6 @@ public class SongController {
             selectedSongCollection = allSongCollections;
             items.add(allSongCollections);
             songCollectionListView.getSelectionModel().selectFirst();
-            SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
             try {
                 Date date = new Date();
                 List<SongCollection> songCollections = songCollectionService.findAll();
@@ -1871,7 +1871,9 @@ public class SongController {
                 if (songSelectedLanguage != null) {
                     Long id = songSelectedLanguage.getId();
                     for (SongCollection songCollection : songCollections) {
-                        if (songCollection.getLanguage().getId().equals(id)) {
+                        checkSongCollectionLanguage(songCollection);
+                        Language language = songCollection.getLanguage();
+                        if (language != null && language.getId().equals(id)) {
                             items.add(songCollection);
                         }
                     }
@@ -1884,6 +1886,20 @@ public class SongController {
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void checkSongCollectionLanguage(SongCollection songCollection) {
+        Language language = songCollection.getLanguage();
+        if (language == null) {
+            for (Song song : songCollection.getSongs()) {
+                if (song.getLanguage() != null) {
+                    language = song.getLanguage();
+                    songCollection.setLanguage(language);
+                    songCollectionService.create(songCollection);
+                    break;
+                }
+            }
         }
     }
 

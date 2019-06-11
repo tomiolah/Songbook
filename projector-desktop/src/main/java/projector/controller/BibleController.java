@@ -36,6 +36,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.Main;
@@ -263,6 +264,28 @@ public class BibleController {
                     }
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
+                }
+            });
+            bibleListView.setCellFactory(new Callback<ListView<Bible>, ListCell<Bible>>() {
+                @Override
+                public ListCell<Bible> call(ListView<Bible> bibleListView) {
+
+                    return new ListCell<Bible>() {
+                        @Override
+                        protected void updateItem(Bible bible, boolean empty) {
+                            try {
+                                super.updateItem(bible, empty);
+                                if (bible != null && !empty) {
+                                    setText(bible.getShortName());
+                                    setUnderline(bible.getParallelNumber() != 0);
+                                } else {
+                                    setText(null);
+                                }
+                            } catch (Exception e) {
+                                LOG.error(e.getMessage(), e);
+                            }
+                        }
+                    };
                 }
             });
             verseListViewSelectionModel.setSelectionMode(SelectionMode.MULTIPLE);
