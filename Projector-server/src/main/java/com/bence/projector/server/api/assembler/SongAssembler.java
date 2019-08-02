@@ -44,6 +44,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         songDTO.setVersionGroup(song.getVersionGroup());
         songDTO.setYoutubeUrl(song.getYoutubeUrl());
         songDTO.setVerseOrder(song.getVerseOrder());
+        songDTO.setAuthor(song.getAuthor());
         return songDTO;
     }
 
@@ -86,6 +87,11 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             song.setVerseOrder(songDTO.getVerseOrder().toUpperCase());
         } else {
             song.setVerseOrder(null);
+        }
+        if (songDTO.getAuthor() != null && !songDTO.getAuthor().isEmpty()) {
+            song.setAuthor(songDTO.getAuthor());
+        } else {
+            song.setAuthor(null);
         }
         return song;
     }

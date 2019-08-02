@@ -126,6 +126,7 @@ export class NewSongComponent implements OnInit {
         Validators.maxLength(52),
       ]],
       'verseOrder': [this.song.verseOrder, []],
+      'author': [this.song.author, []],
     });
     this.verseControls = [];
     this.addNewVerse();
@@ -171,6 +172,7 @@ export class NewSongComponent implements OnInit {
     this.song.title = formValue.title;
     this.song.songVerseDTOS = [];
     this.song.verseOrder = formValue.verseOrder;
+    this.song.author = formValue.author;
     this.song.languageDTO = this.selectedLanguage;
     let i = 0;
     for (const key in formValue) {

@@ -11,6 +11,7 @@ public class SongVerseAssembler implements GeneralAssembler<SongVerse, SongVerse
         SongVerseDTO songVerseDTO = new SongVerseDTO();
         songVerseDTO.setText(songVerse.getText());
         songVerseDTO.setChorus(songVerse.isChorus());
+        songVerseDTO.setType(songVerse.getType());
         return songVerseDTO;
     }
 
@@ -23,6 +24,7 @@ public class SongVerseAssembler implements GeneralAssembler<SongVerse, SongVerse
     public SongVerse updateModel(SongVerse songVerse, SongVerseDTO songVerseDTO) {
         songVerse.setText(songVerseDTO.getText());
         songVerse.setChorus(songVerseDTO.isChorus());
+        songVerse.setType(songVerseDTO.getType());
         return songVerse;
     }
 }

@@ -73,6 +73,10 @@
                 <mat-icon class="material-icon">error</mat-icon>
                 {{formErrors.verseOrder}}
               </mat-error>
+              <mat-form-field class="example-full-width">
+                <mat-label>Author</mat-label>
+                <input type="text" id="author" formControlName="author" matInput>
+              </mat-form-field>
             </div>
             <div *ngIf="editorType==='raw'">
               <mat-form-field class="example-full-width">

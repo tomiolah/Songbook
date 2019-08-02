@@ -26,6 +26,7 @@ public class Song extends BaseEntity {
     private String versionGroup;
     private String youtubeUrl;
     private String verseOrder;
+    private String author;
 
     public Song() {
     }
@@ -182,4 +183,13 @@ public class Song extends BaseEntity {
     public void setVerseOrder(String verseOrder) {
         this.verseOrder = verseOrder;
     }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
 }

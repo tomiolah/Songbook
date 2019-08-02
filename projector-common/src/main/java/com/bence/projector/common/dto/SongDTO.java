@@ -19,6 +19,7 @@ public class SongDTO extends BaseDTO {
     private String youtubeUrl;
     private Long favourites;
     private String verseOrder;
+    private String author;
 
     public SongDTO() {
     }
@@ -133,5 +134,13 @@ public class SongDTO extends BaseDTO {
 
     public void setVerseOrder(String verseOrder) {
         this.verseOrder = verseOrder;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
     }
 }

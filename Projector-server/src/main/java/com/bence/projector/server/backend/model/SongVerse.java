@@ -3,6 +3,7 @@ package com.bence.projector.server.backend.model;
 public class SongVerse extends BaseEntity {
     private String text;
     private boolean isChorus;
+    private String type;
 
     public SongVerse() {
     }
@@ -10,6 +11,7 @@ public class SongVerse extends BaseEntity {
     public SongVerse(SongVerse songVerse) {
         this.text = songVerse.text;
         this.isChorus = songVerse.isChorus;
+        this.type = songVerse.type;
     }
 
     public static SongVerse[] cloneList(SongVerse[] songVerses) {
@@ -38,5 +40,13 @@ public class SongVerse extends BaseEntity {
 
     public boolean matches(SongVerse songVerse) {
         return text.equals(songVerse.text) && isChorus == songVerse.isChorus;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

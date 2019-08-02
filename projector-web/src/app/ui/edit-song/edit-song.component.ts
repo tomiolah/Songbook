@@ -89,6 +89,7 @@ export class EditSongComponent implements OnInit {
         Validators.maxLength(52),
       ]],
       'verseOrder': [this.song.verseOrder, []],
+      'author': [this.song.author, []],
     });
     this.verseControls = [];
     this.addVerses();
@@ -133,6 +134,7 @@ export class EditSongComponent implements OnInit {
     const formValue = this.form.value;
     this.song.title = formValue.title;
     this.song.verseOrder = formValue.verseOrder;
+    this.song.author = formValue.author;
     this.song.songVerseDTOS = [];
     this.song.languageDTO = this.selectedLanguage;
     let i = 0;
