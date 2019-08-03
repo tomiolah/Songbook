@@ -34,7 +34,11 @@ public class SongVerseAssembler implements GeneralAssembler<SongVerse, SongVerse
                         songVerseDTO.setType(SectionType.PRE_CHORUS.getValue());
                     } else if (s.startsWith("B")) {
                         songVerseDTO.setType(SectionType.BRIDGE.getValue());
+                    } else {
+                        songVerseDTO.setType(SectionType.VERSE.getValue());
                     }
+                } else {
+                    songVerseDTO.setType(SectionType.VERSE.getValue());
                 }
             }
         }

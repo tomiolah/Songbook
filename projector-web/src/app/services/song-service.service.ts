@@ -61,6 +61,7 @@ export class Song extends BaseModel {
   youtubeUrl;
   verseOrder: string;
   author: string;
+  verseOrderList: number[];
 
   constructor(values: Object = {}) {
     super(values);

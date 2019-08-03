@@ -27,6 +27,7 @@ public class Song extends BaseEntity {
     private String youtubeUrl;
     private String verseOrder;
     private String author;
+    private List<Short> verseOrderList;
 
     public Song() {
     }
@@ -192,4 +193,11 @@ public class Song extends BaseEntity {
         this.author = author;
     }
 
+    public void setVerseOrderList(List<Short> verseOrderList) {
+        this.verseOrderList = verseOrderList;
+    }
+
+    public List<Short> getVerseOrderList() {
+        return verseOrderList;
+    }
 }

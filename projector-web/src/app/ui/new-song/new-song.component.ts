@@ -8,6 +8,7 @@ import {MatDialog, MatIconRegistry, MatSnackBar} from "@angular/material";
 import {NewLanguageComponent} from "../new-language/new-language.component";
 import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
 import { AuthenticateComponent } from '../authenticate/authenticate.component';
+import { CdkDragDrop, moveItemInArray, copyArrayItem } from '@angular/cdk/drag-drop';
 
 export function replace(formValue: any, key) {
   const value = formValue[key];
@@ -86,6 +87,21 @@ export class NewSongComponent implements OnInit {
     name: string;
     type: SectionType;
   }[];
+  usedSectionTypes: {
+    name: string;
+    type: SectionType;
+    text: string;
+    verse: SongVerseUI;
+    index: number;
+  }[];
+  sectionOrder: {
+    name: string;
+    type: SectionType;
+    text: string;
+    verse: SongVerseUI;
+    index: number;
+  }[];
+  customSectionOrder = false;
 
   constructor(private fb: FormBuilder,
               private songService: SongService,
@@ -110,24 +126,103 @@ export class NewSongComponent implements OnInit {
       { name: 'Bridge', type: SectionType.Bridge},
       { name: 'Coda', type: SectionType.Coda},
     ];
+    this.usedSectionTypes = [];
+    this.sectionOrder = [];
   }
 
   ngOnInit() {
     this.titleService.setTitle('New song');
     this.createForm();
     this.loadLanguage(false);
+    this.calculateUsedSectionTypes();
   }
 
   ngAfterViewChecked(): void {
     this._changeDetectionRef.detectChanges();
   }
 
+  drop(event: CdkDragDrop<string[]>) {
+    if (event.previousContainer === event.container) {
+      moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
+    } else {
+      copyArrayItem(event.previousContainer.data,
+        event.container.data,
+        event.previousIndex,
+        event.currentIndex);
+    }
+    this.customSectionOrder = true;
+  }
+
   changeMe(chip, verse: SongVerseUI) {
     let vm = this;
+    let editSongComponent = this;
     setTimeout(function () {
       verse.type = chip.type;
       vm._changeDetectionRef.detectChanges();
-    }, 10);
+      editSongComponent.calculateUsedSectionTypes();
+    }, 10)
+  }
+
+  calculateUsedSectionTypes() {
+    let i = 0;
+    this.usedSectionTypes = [];
+    for (const verse of this.verses) {
+      let aChip = this.sectionTypes[0];
+      for (const sectionType of this.sectionTypes) {
+        if (sectionType.type == verse.type) {
+          aChip = sectionType;
+          break;
+        }
+      }
+      const usedSection = {
+        name: this.getSectionName(aChip, verse, i),
+        type: verse.type,
+        text: this.form.value['verse' + i],
+        verse: verse,
+        index: i
+      };
+      this.usedSectionTypes.push(usedSection);
+      ++i;
+    }
+    this.calculateOrder();
+  }
+
+  setCustomSectionOrder(x: boolean) {
+    this.customSectionOrder = x;
+    this.calculateOrder();
+  }
+
+  calculateOrder() {
+    if (this.customSectionOrder) {
+      for (const sectionIndex of this.song.verseOrderList) {
+        for (const usedSection of this.usedSectionTypes) {
+          if (usedSection.index == sectionIndex) {
+            this.sectionOrder.push(usedSection);
+            break;
+          }
+        }
+      }
+    } else {
+      this.sectionOrder = [];
+      let chorus = null;
+      let delta = 1;
+      for (const usedSection of this.usedSectionTypes) {
+        if (usedSection.type == SectionType.Chorus) {
+          chorus = usedSection;
+          delta = 0;
+        } else {
+          if (chorus != null && delta > 0) {
+            this.sectionOrder.push(chorus);
+          }
+          ++delta;
+        }
+        this.sectionOrder.push(usedSection);
+      }
+      const type = this.sectionOrder[this.sectionOrder.length - 1].type;
+      if (chorus != null && type != SectionType.Chorus && type != SectionType.Coda && delta > 0) {
+        this.sectionOrder.push(chorus);
+      }
+    }
   }
 
   getSectionName(chip, verse: SongVerseUI, k: number) {
@@ -164,6 +259,7 @@ export class NewSongComponent implements OnInit {
 
   createForm() {
     this.song = new Song();
+    this.song.verseOrderList = [];
     this.form = this.fb.group({
       'title': [this.song.title, [
         Validators.required,
@@ -189,6 +285,7 @@ export class NewSongComponent implements OnInit {
     this.verses.push(section);
     this.verseControls.push(control);
     this.form.addControl('verse' + (this.verses.length - 1), control);
+    this.calculateUsedSectionTypes();
   }
 
   onValueChanged() {
@@ -218,9 +315,9 @@ export class NewSongComponent implements OnInit {
   onSubmit() {
     const formValue = this.form.value;
     this.song.title = formValue.title;
-    this.song.songVerseDTOS = [];
-    this.song.verseOrder = formValue.verseOrder;
+    this.song.verseOrder = null;
     this.song.author = formValue.author;
+    this.song.songVerseDTOS = [];
     this.song.languageDTO = this.selectedLanguage;
     let i = 0;
     for (const key in formValue) {
@@ -235,6 +332,7 @@ export class NewSongComponent implements OnInit {
       }
     }
     this.similar = [];
+    this.setVerseOrderListFromSectionOrder();
     this.songService.getSimilarByPost(this.song).subscribe((songs) => {
       this.similar = songs;
       if (songs.length > 0) {
@@ -289,6 +387,13 @@ export class NewSongComponent implements OnInit {
         this.insertNewSong();
       }
     });
+  }
+
+  private setVerseOrderListFromSectionOrder() {
+    this.song.verseOrderList = [];
+    for (const section of this.sectionOrder) {
+      this.song.verseOrderList.push(section.index);
+    }
   }
 
   openNewLanguageDialog(): void {
@@ -364,6 +469,7 @@ export class NewSongComponent implements OnInit {
         this.verses.push(songVerse);
         ++i;
       }
+      this.calculateUsedSectionTypes();
     }
   }
 

@@ -12,7 +12,7 @@ import { MatSnackBar } from '@angular/material';
 })
 export class UserRegisterComponent implements OnInit {
 
-  @ViewChild('email') emailElement: ElementRef;
+  @ViewChild('email', { static: false }) emailElement: ElementRef;
 
   userForm: FormGroup;
   submitted = false;
