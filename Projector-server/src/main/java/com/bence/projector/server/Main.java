@@ -1,7 +1,5 @@
 package com.bence.projector.server;
 
-import com.bence.projector.server.backend.model.Song;
-import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.utils.CreateAdmin;
 import org.springframework.boot.CommandLineRunner;
@@ -17,8 +15,7 @@ public class Main {
     }
 
     @Bean
-    public CommandLineRunner demo(UserService userService, SongService songService) {
-        Song one = songService.findOne("5d3f1c38470c2837a4b12419");
+    public CommandLineRunner demo(UserService userService) {
         return (String... args) -> CreateAdmin.registerAdmin(userService);
     }
 }
