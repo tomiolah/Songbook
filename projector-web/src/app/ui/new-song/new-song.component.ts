@@ -140,6 +140,14 @@ export class NewSongComponent implements OnInit {
   ngAfterViewChecked(): void {
     this._changeDetectionRef.detectChanges();
   }
+  
+  noReturnPredicate() {
+    return false;
+  }
+
+  removeSectionOrder(i: number) {
+    this.sectionOrder.splice(i, 1);
+  }
 
   drop(event: CdkDragDrop<string[]>) {
     if (event.previousContainer === event.container) {

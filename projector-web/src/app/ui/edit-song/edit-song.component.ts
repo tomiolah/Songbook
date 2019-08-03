@@ -94,6 +94,14 @@ export class EditSongComponent implements OnInit {
     this._changeDetectionRef.detectChanges();
   }
 
+  noReturnPredicate() {
+    return false;
+  }
+
+  removeSectionOrder(i: number) {
+    this.sectionOrder.splice(i, 1);
+  }
+
   drop(event: CdkDragDrop<string[]>) {
     if (event.previousContainer === event.container) {
       moveItemInArray(event.container.data, event.previousIndex, event.currentIndex);
