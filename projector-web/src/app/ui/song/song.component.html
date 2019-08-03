@@ -44,6 +44,10 @@
         <td>Favourites:&nbsp;</td>
         <td>{{song.favourites}}</td>
       </tr>
+      <tr *ngIf="song.author">
+        <td>Author:&nbsp;</td>
+        <td>{{song.author}}</td>
+      </tr>
     </table>
     <br>
     <div *ngIf="song.originalId!==undefined">

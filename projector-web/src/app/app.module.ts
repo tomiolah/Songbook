@@ -34,6 +34,16 @@ import {
   MatToolbarModule,
   MatTooltipModule
 } from '@angular/material';
+import {A11yModule} from '@angular/cdk/a11y';
+import {DragDropModule} from '@angular/cdk/drag-drop';
+import {PortalModule} from '@angular/cdk/portal';
+import {ScrollingModule} from '@angular/cdk/scrolling';
+import {CdkStepperModule} from '@angular/cdk/stepper';
+import {CdkTreeModule} from '@angular/cdk/tree';
+import {MatBadgeModule} from '@angular/material/badge';
+import {MatBottomSheetModule} from '@angular/material/bottom-sheet';
+import {MatDividerModule} from '@angular/material/divider';
+import {MatTreeModule} from '@angular/material/tree';
 
 import {AppComponent} from './app.component';
 import {SongListComponent} from './ui/song-list/song-list.component';
@@ -105,6 +115,16 @@ import { ActivationComponent } from './ui/activation/activation.component';
     MatTabsModule,
     MatToolbarModule,
     MatTooltipModule,
+    A11yModule,
+    CdkStepperModule,
+    CdkTreeModule,
+    DragDropModule,
+    MatBadgeModule,
+    MatBottomSheetModule,
+    MatDividerModule,
+    MatTreeModule,
+    PortalModule,
+    ScrollingModule,
   ]
 })
 export class PlunkerMaterialModule {
@@ -144,6 +164,7 @@ export class PlunkerMaterialModule {
     FormsModule,
     ReactiveFormsModule,
     AppRoutingModule,
+    MatNativeDateModule,
   ],
   entryComponents: [
     NewLanguageComponent,

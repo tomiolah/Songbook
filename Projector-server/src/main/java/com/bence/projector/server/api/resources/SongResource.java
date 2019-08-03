@@ -59,6 +59,7 @@ public class SongResource {
     private final UserService userService;
     private final JavaMailSender sender;
     private PasswordEncoder passwordEncoder;
+    private List<Song> allByUploadedTrueAndDeletedTrue;
 
     @Autowired
     public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, @Qualifier("javaMailSender") JavaMailSender sender) {
@@ -312,8 +313,15 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs/upload")
     public ResponseEntity<Object> uploadedSongs(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final List<Song> all = songService.findAllByUploadedTrueAndDeletedTrue();
+        final List<Song> all = getAllByUploadedTrueAndDeletedTrue();
         return new ResponseEntity<>(songTitleAssembler.createDtoList(all), HttpStatus.ACCEPTED);
+    }
+
+    private List<Song> getAllByUploadedTrueAndDeletedTrue() {
+        if (allByUploadedTrueAndDeletedTrue == null) {
+            allByUploadedTrueAndDeletedTrue = songService.findAllByUploadedTrueAndDeletedTrue();
+        }
+        return allByUploadedTrueAndDeletedTrue;
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/admin/api/song/{songId}")
