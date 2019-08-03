@@ -31,8 +31,7 @@
 }
 
 textarea, input {
-  font-family: 'Calibri', sans-serif;
-  font-size: 15pt;
+  font: 400 13pt Roboto,RobotoDraft,Helvetica,Arial,sans-serif;
 }
 
 textarea.mat-autosize {

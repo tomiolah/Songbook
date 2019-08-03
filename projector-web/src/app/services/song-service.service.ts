@@ -13,13 +13,27 @@ export class ColorLine {
   texts: ColorText[];
 }
 
+export enum SectionType {
+  Intro, Verse, Pre_chorus, Chorus, Bridge, Coda
+}
+
 export class SongVerseDTO {
   lines: string[];
   colorLines: ColorLine[];
   text = '';
-  chorus: boolean;
+  chorus: boolean; //TODO we need to keep to adapt older versions
+  type: SectionType;
 
   constructor(values: Object = {}) {
+    Object.assign(this, values);
+  }
+}
+
+export class SongVerseUI extends SongVerseDTO {
+  selected: boolean;
+
+  constructor(values: Object = {}) {
+    super(values);
     Object.assign(this, values);
   }
 }
