@@ -4,7 +4,7 @@ public class SongVerseDTO {
 
     private String text;
     private Boolean chorus = false;
-    private String type;
+    private int type;
 
     public String getText() {
         return text;
@@ -22,11 +22,11 @@ public class SongVerseDTO {
         this.chorus = chorus;
     }
 
-    public String getType() {
+    public int getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(int type) {
         this.type = type;
     }
 }

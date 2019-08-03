@@ -47,24 +47,26 @@
               <h4>Verses:</h4>
               <!--suppress JSUnusedLocalSymbols -->
               <div *ngFor="let verse of verses; let i = index;">
-                <button type="button" mat-icon-button (click)="setChorus(i)">
-                  <mat-icon [style.color]="isChorus(i)">group</mat-icon>
-                  Chorus
-                </button>
+                <mat-chip-list [multiple]="true">
+                  <mat-chip *ngFor="let chip of sectionTypes; let j=index" selected="{{sectionTypes[j].type == verse.type}}"
+                    (click)="changeMe(sectionTypes[j], verse)" color="primary" [value]="getSectionName(chip, verse, i)" [selectable]="true">
+                    {{getSectionName(chip, verse, i)}}
+                  </mat-chip>
+                </mat-chip-list>
                 <mat-form-field class="example-full-width">
-                  <textarea matInput matTextareaAutosize placeholder="Verse {{i+1}}." [matAutosizeMinRows]="2"
+                  <textarea matInput matTextareaAutosize placeholder="Section {{i+1}}." [matAutosizeMinRows]="2"
                             [matAutosizeMaxRows]="15"
                             formControlName="verse{{i}}"
                             maxlength="1000"></textarea>
                 </mat-form-field>
               </div>
-              <br>
-              <button type="button" mat-icon-button (click)="addNewVerse()" matTooltip="Add a new verse">
+              <button type="button" mat-icon-button (click)="addNewVerse()" matTooltip="Add a new section">
                 <mat-icon>add</mat-icon>
               </button>
               <button type="button" mat-icon-button (click)="refactor()">
                 <mat-icon svgIcon="magic_tool">magic_tool</mat-icon>
               </button>
+              <br>
               <mat-form-field class="example-full-width">
                 <mat-label>Verse order</mat-label>
                 <input type="text" id="verseOrder" formControlName="verseOrder" matInput placeholder="V1x2 V1">

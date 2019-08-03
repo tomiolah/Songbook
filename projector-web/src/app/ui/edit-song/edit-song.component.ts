@@ -229,18 +229,6 @@ export class EditSongComponent implements OnInit {
     return language.englishName + " | " + language.nativeName;
   }
 
-  setChorus(verseNumber) {
-    this.verses[verseNumber].chorus = !this.verses[verseNumber].chorus;
-  }
-
-  isChorus(i) {
-    if (this.verses[i].chorus) {
-      return 'green';
-    } else {
-      return 'rgb(216, 205, 205)';
-    }
-  }
-
   editorTypeChange() {
     if (this.editorType === 'raw') {
       const formValue = this.form.value;

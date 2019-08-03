@@ -1,6 +1,6 @@
-import {ChangeDetectionStrategy, Component, OnInit} from '@angular/core';
+import {ChangeDetectionStrategy, Component, OnInit, ChangeDetectorRef} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from '@angular/forms';
-import {Song, SongService, SongVerseDTO} from '../../services/song-service.service';
+import {Song, SongService, SongVerseDTO, SongVerseUI, SectionType} from '../../services/song-service.service';
 import {Router} from '@angular/router';
 import {Language} from "../../models/language";
 import {LanguageDataService} from "../../services/language-data.service";
@@ -69,7 +69,7 @@ export class NewSongComponent implements OnInit {
     },
     'verseOrder': {}
   };
-  verses: SongVerseDTO[];
+  verses: SongVerseUI[];
   verseControls: FormControl[];
   languages: Language[];
   selectedLanguage;
@@ -82,6 +82,10 @@ export class NewSongComponent implements OnInit {
   public youtubeUrl = '';
   public safeUrl: SafeResourceUrl = null;
   private songTextFormControl: FormControl;
+  sectionTypes: {
+    name: string;
+    type: SectionType;
+  }[];
 
   constructor(private fb: FormBuilder,
               private songService: SongService,
@@ -91,18 +95,60 @@ export class NewSongComponent implements OnInit {
               private dialog: MatDialog,
               iconRegistry: MatIconRegistry,
               private snackBar: MatSnackBar,
-              public sanitizer: DomSanitizer) {
+              public sanitizer: DomSanitizer,
+              private _changeDetectionRef : ChangeDetectorRef) {
     iconRegistry.addSvgIcon(
       'magic_tool',
       sanitizer.bypassSecurityTrustResourceUrl('assets/icons/magic_tool-icon.svg'));
     this.verses = [];
     this.languages = [];
+    this.sectionTypes = [
+      { name: 'Intro', type: SectionType.Intro},
+      { name: 'Verse', type: SectionType.Verse},
+      { name: 'Pre-Chorus', type: SectionType.Pre_chorus},
+      { name: 'Chorus', type: SectionType.Chorus},
+      { name: 'Bridge', type: SectionType.Bridge},
+      { name: 'Coda', type: SectionType.Coda},
+    ];
   }
 
   ngOnInit() {
     this.titleService.setTitle('New song');
     this.createForm();
     this.loadLanguage(false);
+  }
+
+  ngAfterViewChecked(): void {
+    this._changeDetectionRef.detectChanges();
+  }
+
+  changeMe(chip, verse: SongVerseUI) {
+    let vm = this;
+    setTimeout(function () {
+      verse.type = chip.type;
+      vm._changeDetectionRef.detectChanges();
+    }, 10);
+  }
+
+  getSectionName(chip, verse: SongVerseUI, k: number) {
+    if (chip.type == verse.type) {
+      let count = 1;
+      for (let i = 0; i < k; ++i) {
+        if (this.verses[i].type == chip.type) {
+          ++count;
+        }
+      }
+      let allCount = 0;
+      for (const aVerse of this.verses) {
+        if (aVerse.type == verse.type) {
+          ++allCount;
+        }
+      }
+      if (allCount > 1) {
+        return chip.name + ' ' + count;
+      }
+    }
+    return chip.name;
   }
 
   loadLanguage(selectLast: boolean) {
@@ -138,7 +184,9 @@ export class NewSongComponent implements OnInit {
 
   addNewVerse() {
     const control = new FormControl('');
-    this.verses.push(new SongVerseDTO());
+    let section = new SongVerseUI();
+    section.type = SectionType.Verse;
+    this.verses.push(section);
     this.verseControls.push(control);
     this.form.addControl('verse' + (this.verses.length - 1), control);
   }
@@ -181,6 +229,7 @@ export class NewSongComponent implements OnInit {
         const songVerseDTO = new SongVerseDTO();
         songVerseDTO.text = value;
         songVerseDTO.chorus = this.verses[i].chorus;
+        songVerseDTO.type = this.verses[i].type
         this.song.songVerseDTOS.push(songVerseDTO);
         i = i + 1;
       }
@@ -259,18 +308,6 @@ export class NewSongComponent implements OnInit {
     return language.englishName + " | " + language.nativeName;
   }
 
-  setChorus(verseNumber) {
-    this.verses[verseNumber].chorus = !this.verses[verseNumber].chorus;
-  }
-
-  isChorus(i) {
-    if (this.verses[i].chorus) {
-      return 'green';
-    } else {
-      return 'rgb(216, 205, 205)';
-    }
-  }
-
   editorTypeChange() {
     if (this.editorType === 'raw') {
       const formValue = this.form.value;
@@ -282,8 +319,14 @@ export class NewSongComponent implements OnInit {
           if (text.length > 0) {
             text = text + "\n\n";
           }
-          if (this.verses[i].chorus) {
-            text = text + "[Chorus]\n";
+          const type = this.verses[i].type;
+          if (type != SectionType.Verse) {
+            for (const sectionType of this.sectionTypes) {
+              if (type == sectionType.type) {
+                text = text + "[" + sectionType.name + "]\n";
+                break;
+              }
+            }
           }
           text = text + value;
           i = i + 1;
@@ -303,20 +346,22 @@ export class NewSongComponent implements OnInit {
       this.verseControls.splice(0, this.verseControls.length);
       i = 0;
       for (const verseI of this.songTextFormControl.value.split("\n\n")) {
-        const songVerseDTO = new SongVerseDTO();
-        songVerseDTO.chorus = false;
-        const chorusString = "[Chorus]\n";
+        const songVerse = new SongVerseUI();
+        songVerse.type = SectionType.Verse;
         let verse = verseI;
-        if (verse.startsWith(chorusString)) {
-          songVerseDTO.chorus = true;
-          verse = verseI.substring(chorusString.length, verseI.length);
+        for (const sectionType of this.sectionTypes) {
+          const sectionString = "[" + sectionType.name + "]\n";
+          if (verse.startsWith(sectionString)) {
+            songVerse.type = sectionType.type;
+            verse = verseI.substring(sectionString.length, verseI.length);
+          }
         }
         const control = new FormControl(verse);
         control.setValue(verse);
         this.verseControls.push(control);
         this.form.addControl('verse' + i, control);
         control.patchValue(verse);
-        this.verses.push(songVerseDTO);
+        this.verses.push(songVerse);
         ++i;
       }
     }

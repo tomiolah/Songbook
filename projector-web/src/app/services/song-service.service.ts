@@ -21,11 +21,14 @@ export class SongVerseDTO {
   lines: string[];
   colorLines: ColorLine[];
   text = '';
-  chorus: boolean; //TODO we need to keep to adapt older versions
   type: SectionType;
 
   constructor(values: Object = {}) {
     Object.assign(this, values);
+  }
+
+  chorus(): boolean {
+    return this.type == SectionType.Chorus;
   }
 }
 

@@ -4,6 +4,7 @@ public class SongVerse extends BaseEntity {
     private String text;
     private boolean isChorus;
     private String type;
+    private SectionType sectionType;
 
     public SongVerse() {
     }
@@ -12,6 +13,7 @@ public class SongVerse extends BaseEntity {
         this.text = songVerse.text;
         this.isChorus = songVerse.isChorus;
         this.type = songVerse.type;
+        this.sectionType = songVerse.sectionType;
     }
 
     public static SongVerse[] cloneList(SongVerse[] songVerses) {
@@ -31,11 +33,10 @@ public class SongVerse extends BaseEntity {
     }
 
     public boolean isChorus() {
+        if (sectionType != null && sectionType == SectionType.CHORUS) {
+            return true;
+        }
         return isChorus;
-    }
-
-    public void setChorus(boolean chorus) {
-        isChorus = chorus;
     }
 
     public boolean matches(SongVerse songVerse) {
@@ -46,7 +47,11 @@ public class SongVerse extends BaseEntity {
         return type;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public SectionType getSectionType() {
+        return sectionType;
+    }
+
+    public void setSectionType(SectionType sectionType) {
+        this.sectionType = sectionType;
     }
 }
