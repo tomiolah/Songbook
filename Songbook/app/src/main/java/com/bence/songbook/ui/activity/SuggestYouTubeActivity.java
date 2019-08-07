@@ -83,10 +83,8 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
                                         e.printStackTrace();
                                     }
                                 }
-                                if (youtubePlayer != null) {
-                                    youtubePlayer.cueVideo(youtubeId);
-                                    youtubePlayer.play();
-                                }
+                                youtubePlayer.cueVideo(youtubeId);
+                                youtubePlayer.play();
                             }
                         });
                         thread.start();
@@ -229,7 +227,10 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         });
         youtubePlayer = player;
         if (!wasRestored) {
-            player.cueVideo(song.getYoutubeUrl());
+            try {
+                player.cueVideo(song.getYoutubeUrl());
+            } catch (Exception ignored) {
+            }
         }
     }
 

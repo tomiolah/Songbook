@@ -50,7 +50,15 @@ public class SongListElementAdapter extends ArrayAdapter<SongListElement> {
         if (item == null) {
             return view;
         }
+        TextView titleTextView = view.findViewById(R.id.titleTextView);
         final Song song = item.getSong();
+        if (song == null) {
+            try {
+                titleTextView.setText(context.getString(R.string.unexpected_error));
+            } catch (Exception ignored) {
+            }
+            return view;
+        }
         final LinearLayout row = view.findViewById(R.id.lytPattern);
 
         TextView ordinalNumberTextView = view.findViewById(R.id.ordinalNumberTextView);
@@ -65,7 +73,6 @@ public class SongListElementAdapter extends ArrayAdapter<SongListElement> {
         } else {
             ordinalNumberTextView.setText("");
         }
-        TextView titleTextView = view.findViewById(R.id.titleTextView);
         titleTextView.setText(song.getTitle());
         ImageView imageView = view.findViewById(R.id.starImageView);
         imageView.setVisibility(song.isFavourite() ? View.VISIBLE : View.INVISIBLE);

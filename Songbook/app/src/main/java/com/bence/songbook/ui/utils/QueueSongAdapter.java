@@ -63,6 +63,9 @@ public class QueueSongAdapter extends ArrayAdapter<QueueSong> {
             return view;
         }
         final Song song = item.getSong();
+        if (song == null) {
+            return view;
+        }
         final LinearLayout row = view.findViewById(R.id.lytPattern);
 
         TextView ordinalNumberTextView = view.findViewById(R.id.ordinalNumberTextView);
