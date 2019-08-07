@@ -342,7 +342,11 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                 } else {
                     verseIndex = 0;
                 }
-                setText(verseList.get(verseIndex).getText());
+                try {
+                    setText(verseList.get(verseIndex).getText());
+                } catch (IndexOutOfBoundsException e) {
+                    verseIndex = 0;
+                }
                 lastDatePressedAtEnd = null;
                 return;
             }

@@ -152,7 +152,9 @@ public abstract class AbstractFullscreenActivity extends AppCompatActivity {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        scaleGestureDetector.onTouchEvent(event);
+        if (scaleGestureDetector != null) {
+            scaleGestureDetector.onTouchEvent(event);
+        }
         return true;
     }
 
