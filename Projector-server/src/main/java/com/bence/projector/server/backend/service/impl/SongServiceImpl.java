@@ -20,6 +20,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import static com.bence.projector.server.utils.StringUtils.longestCommonSubString;
+
 @Service
 public class SongServiceImpl extends BaseServiceImpl<Song> implements SongService {
     private final SongRepository songRepository;
@@ -123,7 +125,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             }
             double x = count;
             x /= size;
-            if (x > 0.5) {
+            if (x > 0.5 || count > 12) {
+                boolean wasSimilar = false;
                 int highestCommonStringInt = StringUtils.highestCommonStringInt(text, secondText);
                 x = highestCommonStringInt;
                 x = x / text.length();
@@ -141,6 +144,13 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
                             }
                         }
                         similar.add(i, databaseSong);
+                        wasSimilar = true;
+                    }
+                }
+                if (!wasSimilar) {
+                    if (count > 24 || count / size > 0.8 || longestCommonSubString(text, secondText) > 50) {
+                        databaseSong.setPercentage(0);
+                        similar.add(databaseSong);
                     }
                 }
             }
@@ -150,7 +160,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     private Collection<Song> getSongs() {
         if (songsHashMap == null) {
-            songsHashMap = new HashMap<>(6000);
+            songsHashMap = new HashMap<>(16221);
             for (Song song : songRepository.findAll()) {
                 putInMap(song);
             }
@@ -239,20 +249,29 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private String getText(Song song) {
         ArrayList<SongVerse> verseList = new ArrayList<>(song.getVerses().size());
         final List<SongVerse> verses = song.getVerses();
-        SongVerse chorus = null;
         int size = verses.size();
-        for (int i = 0; i < size; ++i) {
-            SongVerse songVerse = verses.get(i);
-            verseList.add(songVerse);
-            if (songVerse.isChorus()) {
-                chorus = songVerse;
-            } else if (chorus != null) {
-                if (i + 1 < size) {
-                    if (!verses.get(i + 1).isChorus()) {
+        List<Short> verseOrderList = song.getVerseOrderList();
+        if (verseOrderList == null) {
+            SongVerse chorus = null;
+            for (int i = 0; i < size; ++i) {
+                SongVerse songVerse = verses.get(i);
+                verseList.add(songVerse);
+                if (songVerse.isChorus()) {
+                    chorus = songVerse;
+                } else if (chorus != null) {
+                    if (i + 1 < size) {
+                        if (!verses.get(i + 1).isChorus()) {
+                            verseList.add(chorus);
+                        }
+                    } else {
                         verseList.add(chorus);
                     }
-                } else {
-                    verseList.add(chorus);
+                }
+            }
+        } else {
+            for (Short i : verseOrderList) {
+                if (i < verses.size()) {
+                    verseList.add(verses.get(i));
                 }
             }
         }
