@@ -125,7 +125,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             }
             double x = count;
             x /= size;
-            if (x > 0.5 || count > 12) {
+            if (x > 0.5) {
                 boolean wasSimilar = false;
                 int highestCommonStringInt = StringUtils.highestCommonStringInt(text, secondText);
                 x = highestCommonStringInt;
@@ -148,7 +148,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
                     }
                 }
                 if (!wasSimilar) {
-                    if (count > 24 || count / size > 0.8 || longestCommonSubString(text, secondText) > 50) {
+                    if (longestCommonSubString(text, secondText) > 50) {
                         databaseSong.setPercentage(0);
                         similar.add(databaseSong);
                     }

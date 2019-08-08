@@ -189,8 +189,10 @@ export class CompareSongsComponent implements OnChanges {
     song.songVerseDTOS = verseList;
     let text = '';
     for (let songVerse of song.songVerseDTOS) {
-      for (let line of songVerse.lines) {
-        text += line;
+      if (songVerse.lines != undefined) {
+        for (let line of songVerse.lines) {
+          text += line;
+        }
       }
     }
     return text;
