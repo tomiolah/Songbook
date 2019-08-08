@@ -103,7 +103,7 @@ export class CompareSongsComponent implements OnChanges {
     }
   }
 
-  private static createColorLines(song, commonStrings: string[]) {
+  private static createColorLines(song: Song, commonStrings: string[]) {
     let k = 0;
     let tmpText = '';
     let color = true;
@@ -168,7 +168,7 @@ export class CompareSongsComponent implements OnChanges {
           if (songVerse.chorus) {
             chorus = new SongVerseDTO();
             Object.assign(chorus, songVerse);
-          } else if (chorus.chorus !== null && chorus.chorus) {
+          } else if (chorus.text.length > 0 && chorus.chorus) {
             if (i + 1 < size) {
               if (!verses[i + 1].chorus) {
                 verseList.push(chorus);
