@@ -1,5 +1,5 @@
-import {Component, Input, OnChanges, SimpleChanges} from '@angular/core';
-import {ColorLine, ColorText, Song, SongVerseDTO} from "../../services/song-service.service";
+import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { ColorLine, ColorText, Song, SongVerseDTO } from "../../services/song-service.service";
 
 @Component({
   selector: 'app-compare-songs',
@@ -155,32 +155,40 @@ export class CompareSongsComponent implements OnChanges {
   }
 
   private static getText(song: Song, repeatChorus: boolean) {
-    let verseList: SongVerseDTO[];
-    verseList = [];
+    let verseList: SongVerseDTO[] = [];
     let verses = song.songVerseDTOS;
-    let chorus = new SongVerseDTO();
+    song.songVerseDTOS = [];
     let size = verses.length;
-    for (let i = 0; i < size; ++i) {
-      let songVerse = verses[i];
-      verseList.push(songVerse);
-      if (repeatChorus) {
-        if (songVerse.chorus) {
-          chorus = new SongVerseDTO();
-          Object.assign(chorus, songVerse);
-        } else if (chorus.chorus !== null && chorus.chorus) {
-          if (i + 1 < size) {
-            if (!verses[i + 1].chorus) {
+    if (song.verseOrderList == undefined) {
+      let chorus = new SongVerseDTO();
+      for (let i = 0; i < size; ++i) {
+        let songVerse = verses[i];
+        verseList.push(songVerse);
+        if (repeatChorus) {
+          if (songVerse.chorus) {
+            chorus = new SongVerseDTO();
+            Object.assign(chorus, songVerse);
+          } else if (chorus.chorus !== null && chorus.chorus) {
+            if (i + 1 < size) {
+              if (!verses[i + 1].chorus) {
+                verseList.push(chorus);
+              }
+            } else {
               verseList.push(chorus);
             }
-          } else {
-            verseList.push(chorus);
           }
+        }
+      }
+    } else {
+      for (const i of song.verseOrderList) {
+        if (i < size) {
+          verseList.push(verses[i]);
         }
       }
     }
     song.songVerseDTOS = verseList;
     let text = '';
-    for (let songVerse of verseList) {
+    for (let songVerse of song.songVerseDTOS) {
       for (let line of songVerse.lines) {
         text += line;
       }
@@ -192,7 +200,7 @@ export class CompareSongsComponent implements OnChanges {
     this.calculateDifferences(this.repeatChorus);
   }
 
-// noinspection JSMethodCanBeStatic
+  // noinspection JSMethodCanBeStatic
   getColor(colorText: ColorText) {
     return colorText.color ? '#000000' : '#ff0c00';
   }
