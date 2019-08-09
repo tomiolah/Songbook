@@ -180,9 +180,19 @@ export class CompareSongsComponent implements OnChanges {
         }
       }
     } else {
+      for (const verse of verses) {
+        verse.was = false;
+      }
       for (const i of song.verseOrderList) {
         if (i < size) {
-          verseList.push(verses[i]);
+          if (!verses[i].was) {
+            verseList.push(verses[i]);
+            verses[i].was = true;
+          } else {
+            let verse = new SongVerseDTO();
+            Object.assign(verse, verses[i]);
+            verseList.push(verse);
+          }
         }
       }
     }

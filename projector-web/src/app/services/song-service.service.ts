@@ -22,6 +22,7 @@ export class SongVerseDTO {
   colorLines: ColorLine[];
   text = '';
   type: SectionType;
+  was: boolean;
 
   constructor(values: Object = {}) {
     Object.assign(this, values);
