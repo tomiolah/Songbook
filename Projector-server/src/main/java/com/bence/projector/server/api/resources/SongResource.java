@@ -59,7 +59,6 @@ public class SongResource {
     private final UserService userService;
     private final JavaMailSender sender;
     private PasswordEncoder passwordEncoder;
-    private List<Song> allByUploadedTrueAndDeletedTrue;
 
     @Autowired
     public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, @Qualifier("javaMailSender") JavaMailSender sender) {
@@ -154,7 +153,7 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/song")
     public SongDTO getSongByTitle(@RequestParam String title, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final List<Song> songs = songService.findAll();
+        final List<Song> songs = songService.findAllSongsLazy();
         for (Song song : songs) {
             if (song.getTitle().equals(title)) {
                 return songAssembler.createDto(song);
@@ -287,7 +286,7 @@ public class SongResource {
         if (savedSong != null) {
             Thread thread = new Thread(() -> {
                 try {
-                    List<Song> songs = songRepository.findAll();
+                    List<Song> songs = songService.findAllSongsLazy();
                     boolean deleted = false;
                     for (Song song1 : songs) {
                         if (!savedSong.getId().equals(song.getId()) && songService.matches(savedSong, song1)) {
@@ -313,15 +312,8 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs/upload")
     public ResponseEntity<Object> uploadedSongs(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final List<Song> all = getAllByUploadedTrueAndDeletedTrue();
+        final List<Song> all = songService.findAllByUploadedTrueAndDeletedTrue();
         return new ResponseEntity<>(songTitleAssembler.createDtoList(all), HttpStatus.ACCEPTED);
-    }
-
-    private List<Song> getAllByUploadedTrueAndDeletedTrue() {
-        if (allByUploadedTrueAndDeletedTrue == null) {
-            allByUploadedTrueAndDeletedTrue = songService.findAllByUploadedTrueAndDeletedTrue();
-        }
-        return allByUploadedTrueAndDeletedTrue;
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/admin/api/song/{songId}")
