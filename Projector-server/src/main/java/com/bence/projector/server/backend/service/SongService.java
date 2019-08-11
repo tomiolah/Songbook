@@ -30,4 +30,8 @@ public interface SongService extends BaseService<Song> {
     List<Song> findAllByLanguageContainingViews(String languageId);
 
     List<Song> findAllByLanguageContainingFavourites(String languageId);
+
+    List<Song> findAllSongsLazy();
+
+    void delete(String id);
 }

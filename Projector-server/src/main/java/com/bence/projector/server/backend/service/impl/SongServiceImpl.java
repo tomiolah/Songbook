@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
@@ -38,7 +39,12 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     @Override
     public List<Song> findAllAfterModifiedDate(Date lastModifiedDate) {
         final List<Song> songs = new ArrayList<>();
-        List<Song> allByModifiedDateGreaterThan = songRepository.findAllByModifiedDateGreaterThan(lastModifiedDate);
+        List<Song> allByModifiedDateGreaterThan;
+        if (lastModifiedDate.getTime() < 1000) {
+            allByModifiedDateGreaterThan = findAllSongsLazy();
+        } else {
+            allByModifiedDateGreaterThan = songRepository.findAllByModifiedDateGreaterThan(lastModifiedDate);
+        }
         addAfterModifiedDateSongs(lastModifiedDate, allByModifiedDateGreaterThan, songs);
         return songs;
     }
@@ -88,7 +94,26 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public List<Song> findAllByUploadedTrueAndDeletedTrue() {
-        return songRepository.findAllByUploadedTrueAndDeletedTrue();
+        List<Song> allByUploadedTrueAndDeletedTrue = new LinkedList<>();
+        for (Song song : getSongs()) {
+            if (song.isUploaded() && song.isDeleted()) {
+                allByUploadedTrueAndDeletedTrue.add(song);
+            }
+        }
+        return allByUploadedTrueAndDeletedTrue;
+    }
+
+    @Override
+    public void delete(String id) {
+        super.delete(id);
+        songsHashMap.remove(id);
+    }
+
+    @Override
+    public void delete(List<String> ids) {
+        for (String id : ids) {
+            delete(id);
+        }
     }
 
     @Override
@@ -381,6 +406,14 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             songs.add(song);
         }
         return songs;
+    }
+
+    @Override
+    public List<Song> findAllSongsLazy() {
+        Collection<Song> songs = getSongs();
+        List<Song> songList = new ArrayList<>(songs.size());
+        songList.addAll(songs);
+        return songList;
     }
 
     @Override
