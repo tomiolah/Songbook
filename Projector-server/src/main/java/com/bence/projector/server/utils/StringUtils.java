@@ -73,4 +73,36 @@ public class StringUtils {
         }
         return result;
     }
+
+    public static String format(String s) {
+        String newValue = s.trim();
+        newValue = newValue.replaceAll("([ \\t])([.?!,':])", "$2");
+        newValue = newValue.replaceAll("([.?!,:])([^ “\".?!,:)])", "$1 $2");
+        newValue = newValue.replaceAll(": /", " :/");
+        newValue = newValue.replaceAll("/ :", "/: ");
+        newValue = newValue.replaceAll(" {2}", " ");
+        newValue = newValue.replaceAll("\\. \\. \\.", "…");
+        newValue = newValue.replaceAll("\\.\\.\\.", "…");
+        newValue = newValue.replaceAll("\\.([^ \"])", ". $1");
+        newValue = newValue.replaceAll(" \\)", ")");
+        newValue = newValue.replaceAll("\\( ", "(");
+        newValue = newValue.replaceAll("\\. \"", ".\"");
+        newValue = newValue.replaceAll("! \"", "!\"");
+        newValue = newValue.replaceAll("\r\n", "\n");
+        newValue = newValue.replaceAll("\n\n", "\n");
+        newValue = newValue.replaceAll(" \t", " ");
+        newValue = newValue.replaceAll("\t ", " ");
+        newValue = newValue.replaceAll(" \n", "\n");
+        newValue = newValue.replaceAll("\n ", "\n");
+        newValue = newValue.replaceAll("\t\n", "\n");
+        newValue = newValue.replaceAll("Ş", "Ș");
+        newValue = newValue.replaceAll("ş", "ș");
+        newValue = newValue.replaceAll("Ţ", "Ț");
+        newValue = newValue.replaceAll("ţ", "ț");
+        newValue = newValue.replaceAll("ã", "ă");
+        newValue = newValue.replaceAll("õ", "ő");
+        newValue = newValue.replaceAll("Õ", "Ő");
+        newValue = newValue.replaceAll("û", "ű");
+        return newValue;
+    }
 }

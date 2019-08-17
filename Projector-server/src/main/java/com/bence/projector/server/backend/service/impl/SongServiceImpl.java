@@ -27,13 +27,50 @@ import static com.bence.projector.server.utils.StringUtils.longestCommonSubStrin
 public class SongServiceImpl extends BaseServiceImpl<Song> implements SongService {
     private final SongRepository songRepository;
     private final LanguageRepository languageRepository;
+    private final String wordsSplit = "[.,;?_\"'\\n!:/|\\\\ ]";
     private HashMap<String, Song> songsHashMap;
     private long lastModifiedDateTime = 0;
+    private HashMap<String, HashMap<String, Boolean>> wordsHashMapByLanguage;
 
     @Autowired
     public SongServiceImpl(SongRepository songRepository, LanguageRepository languageRepository) {
         this.songRepository = songRepository;
         this.languageRepository = languageRepository;
+    }
+
+    @Override
+    public boolean isLanguageIsGood(Song song, Language language) {
+        HashMap<String, Boolean> wordsHashMap = getWordsHashMap(language);
+        String text = getText(song);
+        String[] split = text.split(wordsSplit);
+        int count = 0;
+        for (String s : split) {
+            if (wordsHashMap.containsKey(s)) {
+                ++count;
+            }
+        }
+        int totalWordCount = split.length;
+        double x = count;
+        x /= totalWordCount;
+        return x > 0.7;
+    }
+
+    private HashMap<String, Boolean> getWordsHashMap(Language language) {
+        HashMap<String, HashMap<String, Boolean>> wordsHashMapByLanguage = getWordsHashMapByLanguage();
+        HashMap<String, Boolean> wordsHashMap = wordsHashMapByLanguage.get(language.getId());
+        if (wordsHashMap == null) {
+            wordsHashMap = new HashMap<>();
+            List<Song> allByLanguage = findAllByLanguage(language.getId());
+            for (Song song : allByLanguage) {
+                String text = getText(song);
+                String[] split = text.split(wordsSplit);
+                for (String s : split) {
+                    wordsHashMap.put(s, true);
+                }
+            }
+            wordsHashMapByLanguage.put(language.getId(), wordsHashMap);
+        }
+        return wordsHashMap;
     }
 
     @Override
@@ -104,9 +141,16 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
+    public List<Song> findAllSimilar(Song song) {
+        return findAllSimilar(song, false);
+    }
+
+    @Override
     public void delete(String id) {
         super.delete(id);
-        songsHashMap.remove(id);
+        if (songsHashMap != null) {
+            songsHashMap.remove(id);
+        }
     }
 
     @Override
@@ -117,12 +161,12 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
-    public List<Song> findAllSimilar(Song song) {
+    public List<Song> findAllSimilar(Song song, boolean checkDeleted) {
         Collection<Song> all = getSongs();
         List<Song> similar = new ArrayList<>();
         String text = getText(song);
         String songId = song.getId();
-        String regex = "[.,;?_\"'\\n!:/|\\\\ ]";
+        String regex = wordsSplit;
         String[] split = text.split(regex);
         int wordsLength = split.length;
         HashMap<String, Boolean> wordHashMap = new HashMap<>(wordsLength);
@@ -133,7 +177,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         HashMap<String, Boolean> hashMap = new HashMap<>(size);
         for (Song databaseSong : all) {
             //noinspection PointlessNullCheck
-            if ((songId != null && databaseSong.getId().equals(songId)) || databaseSong.isDeleted()) {
+            if ((songId != null && databaseSong.getId().equals(songId)) || (databaseSong.isDeleted() && !checkDeleted)) {
                 continue;
             }
             String secondText = getText(databaseSong);
@@ -368,7 +412,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     public void removeSongFromLanguage(Song song, Language oldLanguage) {
         Song songToRemove = null;
         for (Song song1 : oldLanguage.getSongs()) {
-            if (song1.getId().equals(song.getId())) {
+            if (song1 != null && song1.getId().equals(song.getId())) {
                 songToRemove = song1;
                 break;
             }
@@ -422,5 +466,12 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             save(song);
         }
         return songs;
+    }
+
+    private HashMap<String, HashMap<String, Boolean>> getWordsHashMapByLanguage() {
+        if (wordsHashMapByLanguage == null) {
+            wordsHashMapByLanguage = new HashMap<>();
+        }
+        return wordsHashMapByLanguage;
     }
 }
