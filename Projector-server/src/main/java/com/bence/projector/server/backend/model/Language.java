@@ -41,6 +41,18 @@ public class Language extends BaseEntity {
         if (songs == null) {
             songs = new ArrayList<>();
         }
+        List<Integer> removingIndexList = new ArrayList<>();
+        int i = 0;
+        for (Song song : songs) {
+            if (song == null) {
+                removingIndexList.add(i);
+            }
+            ++i;
+        }
+        for (i = removingIndexList.size() - 1; i >= 0; --i) {
+            int index = removingIndexList.get(i);
+            songs.remove(index);
+        }
         return songs;
     }
 
