@@ -12,6 +12,8 @@ public class Language extends BaseEntity {
     private List<Song> songs;
     private long songsCount;
 
+    private double percentage;
+
     public Language() {
     }
 
@@ -93,5 +95,13 @@ public class Language extends BaseEntity {
 
     public void setSongsCount(long songsCount) {
         this.songsCount = songsCount;
+    }
+
+    public double getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(double percentage) {
+        this.percentage = percentage;
     }
 }

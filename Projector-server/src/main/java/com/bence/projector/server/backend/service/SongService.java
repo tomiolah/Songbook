@@ -37,5 +37,9 @@ public interface SongService extends BaseService<Song> {
 
     boolean isLanguageIsGood(Song song, Language language);
 
+    Language bestLanguage(Song song, List<Language> languages);
+
     List<Song> findAllSimilar(Song song, boolean checkDeleted);
+
+    void enrollSongInMap(Song song);
 }

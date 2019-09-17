@@ -40,6 +40,11 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public boolean isLanguageIsGood(Song song, Language language) {
+        double x = getLanguagePercentage(song, language);
+        return x > 0.7;
+    }
+
+    private double getLanguagePercentage(Song song, Language language) {
         HashMap<String, Boolean> wordsHashMap = getWordsHashMap(language);
         String text = getText(song);
         String[] split = text.split(wordsSplit);
@@ -52,7 +57,18 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         int totalWordCount = split.length;
         double x = count;
         x /= totalWordCount;
-        return x > 0.7;
+        return x;
+    }
+
+    @Override
+    public Language bestLanguage(Song song, List<Language> languages) {
+        List<Language> localLanguages = new ArrayList<>(languages.size());
+        for (Language language : languages) {
+            language.setPercentage(getLanguagePercentage(song, language));
+            localLanguages.add(language);
+        }
+        localLanguages.sort((o1, o2) -> Double.compare(o2.getPercentage(), o1.getPercentage()));
+        return localLanguages.get(0);
     }
 
     private HashMap<String, Boolean> getWordsHashMap(Language language) {
@@ -227,6 +243,20 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return similar;
     }
 
+    @Override
+    public void enrollSongInMap(Song song) {
+        Language language = song.getLanguage();
+        if (language == null) {
+            return;
+        }
+        HashMap<String, Boolean> wordsHashMap = getWordsHashMap(language);
+        String text = getText(song);
+        String[] split = text.split(wordsSplit);
+        for (String s : split) {
+            wordsHashMap.put(s, true);
+        }
+    }
+
     private Collection<Song> getSongs() {
         if (songsHashMap == null) {
             songsHashMap = new HashMap<>(16221);
@@ -398,6 +428,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             for (Song song1 : language.getSongs()) {
                 if (song1.getId().equals(song.getId())) {
                     was = true;
+                    break;
                 }
             }
             if (!was) {
