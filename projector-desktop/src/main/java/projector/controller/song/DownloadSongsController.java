@@ -39,6 +39,7 @@ import java.util.ResourceBundle;
 
 public class DownloadSongsController {
     public static final Logger LOG = LoggerFactory.getLogger(DownloadSongsController.class);
+    private final ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
     private SongVerseService songVerseService = ServiceManager.getSongVerseService();
     @FXML
     private GridPane conflictGridPane;
@@ -113,6 +114,7 @@ public class DownloadSongsController {
             remainingLanguages = getSelectedLanguageSize();
             for (Language language : languages) {
                 if (language.isSelected()) {
+                    Platform.runLater(() -> downloadingLabel.setText(resourceBundle.getString("Downloading") + ": " + language.getNativeName()));
                     final SongApiBean songApiBean = new SongApiBean();
                     List<SongViewsDTO> songViewsDTOS = songApiBean.getSongViewsByLanguage(language);
                     if (songViewsDTOS != null) {
@@ -128,8 +130,8 @@ public class DownloadSongsController {
                         noInternetMessage();
                         return;
                     } else {
-                        downloadingLabel.setVisible(false);
                         if (songApiSongs.size() > 0) {
+                            Platform.runLater(() -> downloadingLabel.setText(resourceBundle.getString("Saving") + ": " + language.getNativeName()));
                             HashMap<String, Song> stringSongHashMap = new HashMap<>(songs.size());
                             for (Song song : songs) {
                                 if (song.getUuid() == null) {
@@ -210,8 +212,8 @@ public class DownloadSongsController {
                         for (Song song : newSongList) {
                             newSongListView.getItems().add(song);
                         }
-                        showConflictSong();
                         --remainingLanguages;
+                        showConflictSong();
                     });
                 }
             }
@@ -266,7 +268,6 @@ public class DownloadSongsController {
     }
 
     private void noInternetMessage() {
-        final ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
         final String no_internet_connection = resourceBundle.getString("No internet connection");
         final String try_again_later = resourceBundle.getString("Try again later");
         Platform.runLater(() -> downloadingLabel.setText(no_internet_connection + "! " + try_again_later + "!"));
@@ -316,7 +317,6 @@ public class DownloadSongsController {
     private void showCompletedMessage() {
         if (remainingLanguages == 0) {
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            final ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
             alert.setTitle(resourceBundle.getString("Completed"));
             alert.setHeaderText(resourceBundle.getString("Close the window to finish!"));
             alert.showAndWait();
