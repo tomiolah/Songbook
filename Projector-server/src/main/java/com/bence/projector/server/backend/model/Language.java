@@ -12,6 +12,8 @@ public class Language extends BaseEntity {
     private List<Song> songs;
     private long songsCount;
 
+    private double percentage;
+
     public Language() {
     }
 
@@ -40,6 +42,18 @@ public class Language extends BaseEntity {
     public List<Song> getSongs() {
         if (songs == null) {
             songs = new ArrayList<>();
+        }
+        List<Integer> removingIndexList = new ArrayList<>();
+        int i = 0;
+        for (Song song : songs) {
+            if (song == null) {
+                removingIndexList.add(i);
+            }
+            ++i;
+        }
+        for (i = removingIndexList.size() - 1; i >= 0; --i) {
+            int index = removingIndexList.get(i);
+            songs.remove(index);
         }
         return songs;
     }
@@ -81,5 +95,13 @@ public class Language extends BaseEntity {
 
     public void setSongsCount(long songsCount) {
         this.songsCount = songsCount;
+    }
+
+    public double getPercentage() {
+        return percentage;
+    }
+
+    public void setPercentage(double percentage) {
+        this.percentage = percentage;
     }
 }

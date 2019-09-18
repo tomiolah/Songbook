@@ -15,6 +15,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import org.jnativehook.GlobalScreen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.Main;
@@ -24,6 +25,7 @@ import projector.controller.song.SongController;
 import projector.network.TCPClient;
 import projector.network.TCPServer;
 import projector.remote.RemoteServer;
+import projector.utils.GlobalKeyListenerExample;
 
 import java.awt.*;
 import java.io.IOException;
@@ -104,6 +106,19 @@ public class MyController {
         primaryStage.requestFocus();
         if (settings.isAllowRemote()) {
             RemoteServer.startRemoteServer(projectionScreenController, songController);
+        }
+        //initializeGlobalKeyListener(projectionScreenController);
+    }
+
+    private void initializeGlobalKeyListener(ProjectionScreenController projectionScreenController) {
+        try {
+            GlobalScreen.registerNativeHook();
+            GlobalKeyListenerExample nativeKeyListener = new GlobalKeyListenerExample();
+            nativeKeyListener.setProjectionScreenController(projectionScreenController);
+            GlobalScreen.addNativeKeyListener(nativeKeyListener);
+        } catch (Exception ex) {
+            System.err.println("There was a problem registering the native hook.");
+            System.err.println(ex.getMessage());
         }
     }
 

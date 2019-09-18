@@ -33,8 +33,13 @@ public class SongCollectionRepositoryImpl extends AbstractBaseRepository<SongCol
         List<SongCollection> songCollections = new ArrayList<>();
         Long uuid = language.getId();
         for (SongCollection songCollection : allSongCollections) {
-            if (songCollection.getLanguage().getId().equals(uuid)) {
-                songCollections.add(songCollection);
+            try {
+                if (songCollection.getLanguage().getId().equals(uuid)) {
+                    songCollections.add(songCollection);
+                }
+            } catch (NullPointerException e) {
+                LOG.error(e.getMessage(), e);
+                LOG.debug(songCollection.getName());
             }
         }
         return songCollections;

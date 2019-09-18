@@ -4,7 +4,7 @@ public class SongVerse extends BaseEntity {
     private String text;
     private boolean isChorus;
     private String type;
-    private SectionType sectionType;
+    private SectionType sectionType = SectionType.VERSE;
 
     public SongVerse() {
     }
