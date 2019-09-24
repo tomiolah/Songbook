@@ -277,7 +277,11 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     private void checkLastModifiedDate(Song song) {
-        long time = song.getModifiedDate().getTime();
+        Date modifiedDate = song.getModifiedDate();
+        if (modifiedDate == null) {
+            return;
+        }
+        long time = modifiedDate.getTime();
         if (time > lastModifiedDateTime) {
             lastModifiedDateTime = time;
         }
