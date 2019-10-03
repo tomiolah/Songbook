@@ -7,29 +7,10 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import projector.model.Bible;
-import projector.model.BibleVerse;
-import projector.model.Book;
-import projector.model.Chapter;
-import projector.model.Information;
-import projector.model.Language;
-import projector.model.Song;
-import projector.model.SongBook;
-import projector.model.SongBookSong;
-import projector.model.SongCollection;
-import projector.model.SongCollectionElement;
-import projector.model.SongVerse;
-import projector.model.VerseIndex;
+import projector.model.*;
 import projector.repository.RepositoryException;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.SQLException;
 
@@ -37,7 +18,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 9;
+    private final int DATABASE_VERSION = 10;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
     private ConnectionSource connectionSource;
@@ -91,11 +72,18 @@ public class DatabaseHelper {
                     } catch (Exception ignored) {
                     }
                 }
-                //noinspection ConstantConditions
                 if (oldVersion <= 8) {
                     Dao<SongCollection, Long> songCollectionDao = getSongCollectionDao();
                     try {
                         songCollectionDao.executeRaw("ALTER TABLE `songCollection` ADD COLUMN needUpload BOOLEAN");
+                    } catch (Exception ignored) {
+                    }
+                }
+                //noinspection ConstantConditions
+                if (oldVersion <= 9) {
+                    Dao<SongCollection, Long> songCollectionDao = getSongCollectionDao();
+                    try {
+                        songCollectionDao.executeRaw("ALTER TABLE `song` ADD COLUMN author VARCHAR(50)");
                     } catch (Exception ignored) {
                     }
                 }
