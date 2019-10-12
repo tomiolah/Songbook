@@ -73,12 +73,12 @@ export class AuthenticateComponent implements OnInit {
   onSubmit() {
     this.authService.login(this.loginForm.value.email, this.loginForm.value.password).subscribe(
       () => {
-        this.authService.getUser().subscribe(
+        this.authService.getUserFromServer().subscribe(
           (resp) => {
+            const user = new User(resp);
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            this.authService.setUser(user);
             this.authService.isLoggedIn = true;
-            this.authService.user = new User();
-            this.authService.user = Object.assign(resp);
-            localStorage.setItem('currentUser', JSON.stringify(this.authService.user));
             this.dialogRef.close('ok');
           },
           () => {
@@ -90,7 +90,7 @@ export class AuthenticateComponent implements OnInit {
       },
       () => {
         this.authService.isLoggedIn = false;
-        this.authService.user = null;
+        this.authService.setUser(null);
         this.snackBar.open('Something wrong', undefined, {
           duration: 3000
         });

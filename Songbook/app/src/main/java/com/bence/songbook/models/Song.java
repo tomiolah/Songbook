@@ -46,6 +46,8 @@ public class Song extends BaseEntity {
     private long views;
     @DatabaseField
     private String verseOrder;
+    @DatabaseField
+    private long favourites;
 
     public Song() {
     }
@@ -257,6 +259,7 @@ public class Song extends BaseEntity {
         int score = 0;
         score += getAccessedTimes() * 3;
         score += getViews();
+        score += getFavourites();
         if (getYoutubeUrl() != null) {
             score += 10;
         }
@@ -281,5 +284,13 @@ public class Song extends BaseEntity {
 
     public void setVerseOrder(String verseOrder) {
         this.verseOrder = verseOrder;
+    }
+
+    public long getFavourites() {
+        return favourites;
+    }
+
+    public void setFavourites(long favourites) {
+        this.favourites = favourites;
     }
 }

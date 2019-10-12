@@ -16,7 +16,7 @@ public class UserRegisterAssembler implements GeneralAssembler<User, UserRegiste
         userRegisterDTO.setUuid(user.getId());
         userRegisterDTO.setId(user.getId());
         userRegisterDTO.setEmail(user.getEmail());
-        userRegisterDTO.setSureName(user.getSureName());
+        userRegisterDTO.setSurname(user.getSurname());
         userRegisterDTO.setFirstName(user.getFirstName());
         userRegisterDTO.setPhone(user.getPhone());
         userRegisterDTO.setPassword(user.getPassword());
@@ -34,7 +34,7 @@ public class UserRegisterAssembler implements GeneralAssembler<User, UserRegiste
     public User updateModel(User user, UserRegisterDTO userRegisterDTO) {
         if (user != null) {
             user.setEmail(userRegisterDTO.getEmail());
-            user.setSureName(userRegisterDTO.getSureName());
+            user.setSurname(userRegisterDTO.getSurname());
             user.setFirstName(userRegisterDTO.getFirstName());
             user.setPhone(userRegisterDTO.getPhone());
             user.setPassword(userRegisterDTO.getPassword());
