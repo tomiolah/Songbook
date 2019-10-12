@@ -213,7 +213,7 @@ export class SongComponent implements OnInit, OnDestroy {
       this.markedVersionGroup = null;
       return;
     }
-    const user = this.auth.user.role === 'ROLE_ADMIN' ? 'admin' : 'user';
+    const user = this.auth.getUser().isAdmin() ? 'admin' : 'user';
     this.songService.mergeVersionGroup(this.song.uuid, this.markedVersionGroup, user).subscribe(
       (res) => {
         if (res.status === 202) {

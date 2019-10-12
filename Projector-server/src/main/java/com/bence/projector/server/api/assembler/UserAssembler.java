@@ -17,7 +17,10 @@ public class UserAssembler implements GeneralAssembler<User, UserDTO> {
         userDTO.setUuid(user.getId());
         userDTO.setEmail(user.getEmail());
         userDTO.setPreferredLanguage(user.getPreferredLanguage());
-        userDTO.setRole(user.getRole() == null ? null : user.getRole().toString());
+        userDTO.setRole(user.getRole().getValue());
+        userDTO.setSurname(user.getSurname());
+        userDTO.setFirstName(user.getFirstName());
+        userDTO.setActivated(user.isActivated());
         return userDTO;
     }
 
@@ -35,7 +38,9 @@ public class UserAssembler implements GeneralAssembler<User, UserDTO> {
         if (user != null) {
             user.setEmail(userDTO.getEmail());
             user.setPreferredLanguage(userDTO.getPreferredLanguage());
-            user.setRole(userDTO.getRole() == null ? null : Role.valueOf(userDTO.getRole()));
+            user.setRole(Role.getInstance(userDTO.getRole()));
+            user.setSurname(userDTO.getSurname());
+            user.setFirstName(userDTO.getFirstName());
         }
         return user;
     }

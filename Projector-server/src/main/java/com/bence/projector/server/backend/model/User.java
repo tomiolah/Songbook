@@ -12,10 +12,12 @@ public class User extends BaseEntity {
     private Date expiryDate;
     private String preferredLanguage;
     private Boolean activated;
-    private String sureName;
+    private String surname;
     private String firstName;
     private String activationCode;
     private Boolean banned;
+    private Date modifiedDate;
+    private Date createdDate;
 
     public User() {
         super();
@@ -98,12 +100,12 @@ public class User extends BaseEntity {
         this.activated = activated;
     }
 
-    public String getSureName() {
-        return sureName;
+    public String getSurname() {
+        return surname;
     }
 
-    public void setSureName(String sureName) {
-        this.sureName = sureName;
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
     public String getFirstName() {
@@ -128,5 +130,21 @@ public class User extends BaseEntity {
 
     public void setBanned(Boolean banned) {
         this.banned = banned;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public Date getCreatedDate() {
+        return createdDate;
     }
 }

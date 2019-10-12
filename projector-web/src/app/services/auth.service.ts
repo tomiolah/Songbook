@@ -11,7 +11,7 @@ import {User} from '../models/user';
 export class AuthService {
 
   isLoggedIn = false;
-  user: User;
+  private FUser: User;
 
   // store the URL so we can redirect after logging in
   redirectUrl: string;
@@ -29,6 +29,15 @@ export class AuthService {
       .map(res => res);
   }
 
+  getUser(): User {
+    return this.FUser;
+  }
+
+  setUser(user: User) {
+    this.FUser = user;
+    this.isLoggedIn = !!this.FUser;
+  }
+
   logout(): void {
     this.http.get('/logout')
       .map(res => res).subscribe();
@@ -36,13 +45,12 @@ export class AuthService {
     localStorage.removeItem('currentUser');
   }
 
-  getUser() {
+  getUserFromServer() {
     return this.http.get('/api/username')
       .map(res => res.json());
   }
 
   getUserFromLocalStorage() {
-    this.user = JSON.parse(localStorage.getItem('currentUser'));
-    this.isLoggedIn = !!this.user;
+    this.setUser(new User(JSON.parse(localStorage.getItem('currentUser'))));
   }
 }

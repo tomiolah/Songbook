@@ -1,16 +1,16 @@
-import {Component, OnInit} from '@angular/core';
-import {Song, SongService} from '../../services/song-service.service';
-import {FormControl} from '@angular/forms';
-import {Observable} from 'rxjs/Observable';
+import { Component, OnInit } from '@angular/core';
+import { Song, SongService } from '../../services/song-service.service';
+import { FormControl } from '@angular/forms';
+import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/startWith';
 import 'rxjs/add/operator/map';
-import {PageEvent} from '@angular/material/paginator';
-import {ActivatedRoute, Params, Router} from '@angular/router';
-import {AuthService} from "../../services/auth.service";
-import {Language} from "../../models/language";
-import {LanguageDataService} from "../../services/language-data.service";
-import {Subscription} from "rxjs/Subscription";
-import {Title} from "@angular/platform-browser";
+import { PageEvent } from '@angular/material/paginator';
+import { ActivatedRoute, Params, Router } from '@angular/router';
+import { AuthService } from "../../services/auth.service";
+import { Language } from "../../models/language";
+import { LanguageDataService } from "../../services/language-data.service";
+import { Subscription } from "rxjs/Subscription";
+import { Title } from "@angular/platform-browser";
 
 @Component({
   selector: 'app-song-list',
@@ -36,11 +36,11 @@ export class SongListComponent implements OnInit {
   private _subscription: Subscription;
 
   constructor(private songService: SongService,
-              private router: Router,
-              private languageDataService: LanguageDataService,
-              private titleService: Title,
-              private activatedRoute: ActivatedRoute,
-              public auth: AuthService) {
+    private router: Router,
+    private languageDataService: LanguageDataService,
+    private titleService: Title,
+    private activatedRoute: ActivatedRoute,
+    public auth: AuthService) {
     this.songControl = new FormControl();
     this.songTitles = [];
     this.paginatedSongs = [];
@@ -99,9 +99,9 @@ export class SongListComponent implements OnInit {
       }
       this.pageE.pageIndex = pageIndex;
       const end = (pageIndex + 1) * this.pageE.pageSize;
-        this.paginatedSongs = filteredSongsList.slice(start, end);
-        this.filteredSongsList = filteredSongsList;
-      }
+      this.paginatedSongs = filteredSongsList.slice(start, end);
+      this.filteredSongsList = filteredSongsList;
+    }
     );
     this.loadLanguage();
   }
@@ -172,7 +172,7 @@ export class SongListComponent implements OnInit {
     filter = this.stripAccents(filter);
     return this.songTitles.filter(song => {
       return this.stripAccents(song.title).indexOf(filter) >= 0;
-      }
+    }
     );
   }
 
@@ -285,7 +285,7 @@ export class SongListComponent implements OnInit {
     const params: Params = Object.assign({}, this.activatedRoute.snapshot.queryParams);
     params['search'] = this.songControl.value;
     params['language'] = this.selectedLanguage.uuid;
-    this.router.navigate(['.'], {queryParams: params});
+    this.router.navigate(['.'], { queryParams: params });
   }
 
   private sortAndUpdate() {
@@ -423,6 +423,10 @@ export class SongListComponent implements OnInit {
     this.songTitles.sort((song1, song2) => {
       return this.compare(song2.modifiedDate, song1.modifiedDate);
     });
+  }
+  
+  hasRoleForSongReview() {
+    return false;
   }
 }
 
