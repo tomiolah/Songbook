@@ -81,9 +81,9 @@ public class DatabaseHelper {
                 }
                 //noinspection ConstantConditions
                 if (oldVersion <= 9) {
-                    Dao<SongCollection, Long> songCollectionDao = getSongCollectionDao();
+                    Dao<Song, Long> songDao = getSongDao();
                     try {
-                        songCollectionDao.executeRaw("ALTER TABLE `song` ADD COLUMN author VARCHAR(50)");
+                        songDao.executeRaw("ALTER TABLE `song` ADD COLUMN author VARCHAR(100)");
                     } catch (Exception ignored) {
                     }
                 }

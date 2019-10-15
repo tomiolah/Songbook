@@ -13,30 +13,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
-import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.ContextMenu;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.MultipleSelectionModel;
-import javafx.scene.control.SelectionMode;
-import javafx.scene.control.SingleSelectionModel;
-import javafx.scene.control.Slider;
-import javafx.scene.control.SplitPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
 import javafx.scene.effect.BlendMode;
-import javafx.scene.input.ClipboardContent;
-import javafx.scene.input.DragEvent;
-import javafx.scene.input.Dragboard;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.input.TransferMode;
+import javafx.scene.input.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
@@ -59,17 +38,8 @@ import projector.controller.ProjectionTextChangeListener;
 import projector.controller.RecentController;
 import projector.controller.eventHandler.NextButtonEventHandler;
 import projector.controller.language.DownloadLanguagesController;
-import projector.controller.song.util.ContainsResult;
-import projector.controller.song.util.LastSearching;
-import projector.controller.song.util.OrderMethod;
-import projector.controller.song.util.ScheduleSong;
-import projector.controller.song.util.SearchedSong;
-import projector.controller.song.util.SongTextFlow;
-import projector.model.Language;
-import projector.model.Song;
-import projector.model.SongCollection;
-import projector.model.SongCollectionElement;
-import projector.model.SongVerse;
+import projector.controller.song.util.*;
+import projector.model.*;
 import projector.remote.SongReadRemoteListener;
 import projector.remote.SongRemoteListener;
 import projector.service.ServiceException;
@@ -78,28 +48,10 @@ import projector.service.SongCollectionService;
 import projector.service.SongService;
 import projector.utils.scene.text.MyTextFlow;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static projector.utils.StringUtils.stripAccents;
 
@@ -162,6 +114,8 @@ public class SongController {
     private ToggleButton progressLineToggleButton;
     @FXML
     private CheckBox aspectRatioCheckBox;
+    @FXML
+    private TextField authorTextField;
     private ProjectionScreenController projectionScreenController;
     private ProjectionScreenController previewProjectionScreenController;
     private RecentController recentController;
@@ -450,6 +404,7 @@ public class SongController {
                         if (songRemoteListener != null) {
                             songRemoteListener.onSongVerseListViewChanged(songListViewItems);
                         }
+                        settingTheAuthor(selectedSong);
                     }
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
@@ -684,6 +639,11 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void settingTheAuthor(Song selectedSong) {
+        String authorName = selectedSong.getAuthor();
+        authorTextField.setText(authorName);
     }
 
     private void initializeDragListeners() {
