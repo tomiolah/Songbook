@@ -115,4 +115,5 @@
     <string name="probably_sign_in_not_works_on_your_device">Probabil logarea nu funcționează pe dispozitivul dvs.</string>
     <string name="change_view">Schimbă privirea</string>
     <string name="relevance">Relevanţă</string>
+    <string name="unexpected_error">Unexpected error</string>
 </resources>

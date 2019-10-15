@@ -153,7 +153,7 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/song")
     public SongDTO getSongByTitle(@RequestParam String title, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final List<Song> songs = songService.findAll();
+        final List<Song> songs = songService.findAllSongsLazy();
         for (Song song : songs) {
             if (song.getTitle().equals(title)) {
                 return songAssembler.createDto(song);
@@ -286,7 +286,7 @@ public class SongResource {
         if (savedSong != null) {
             Thread thread = new Thread(() -> {
                 try {
-                    List<Song> songs = songRepository.findAll();
+                    List<Song> songs = songService.findAllSongsLazy();
                     boolean deleted = false;
                     for (Song song1 : songs) {
                         if (!savedSong.getId().equals(song.getId()) && songService.matches(savedSong, song1)) {

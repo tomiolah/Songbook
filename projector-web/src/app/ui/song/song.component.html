@@ -33,7 +33,7 @@
     </button>
   </div>
 
-  <div *ngIf="auth.isLoggedIn && auth.user.role === 'ROLE_ADMIN'">
+  <div *ngIf="auth.isLoggedIn && auth.getUser() != undefined && auth.getUser().isAdmin()">
     <br>
     <table>
       <tr *ngIf="song.views>0">
@@ -43,6 +43,10 @@
       <tr *ngIf="song.favourites>0">
         <td>Favourites:&nbsp;</td>
         <td>{{song.favourites}}</td>
+      </tr>
+      <tr *ngIf="song.author">
+        <td>Author:&nbsp;</td>
+        <td>{{song.author}}</td>
       </tr>
     </table>
     <br>
@@ -108,7 +112,7 @@
       Add to collection
     </button>
   </div>
-  <div *ngIf="auth.isLoggedIn && (auth.user.role === 'ROLE_USER' || auth.user.role === 'ROLE_ADMIN')">
+  <div *ngIf="auth.isLoggedIn && (auth.getUser().isUser() || auth.getUser().isAdmin())">
     <button mat-button (click)="markForVersionGroup()">
       {{markText}}
     </button>

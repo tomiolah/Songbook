@@ -9,6 +9,8 @@ import {
   RouterStateSnapshot
 } from '@angular/router';
 import { AuthService } from './auth.service';
+import { Role } from '../models/role';
+import { User } from '../models/user';
 
 @Injectable()
 export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
@@ -37,11 +39,13 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
   checkLogin(url: string): boolean {
     if (this.authService.isLoggedIn) {
       if (url.startsWith('/admin')) {
-        if (this.authService.user != null && this.authService.user.role === 'ROLE_ADMIN') {
+        const user = this.authService.getUser();
+        if (user != null && user.isAdmin()) {
           return true;
         }
       } else if (url.startsWith('/user')) {
-        if (this.authService.user != null && (this.authService.user.role === 'ROLE_USER' || this.authService.user.role === 'ROLE_ADMIN')) {
+        const user = this.authService.getUser();
+        if (user != null && user.isUser()) {
           return true;
         }
       } else {
@@ -56,7 +60,6 @@ export class AuthGuard implements CanActivate, CanActivateChild, CanLoad {
   }
 
   getUserFromLocalStorage() {
-    this.authService.user = JSON.parse(localStorage.getItem('currentUser'));
-    this.authService.isLoggedIn = !!this.authService.user;
+    this.authService.setUser(new User(JSON.parse(localStorage.getItem('currentUser'))));
   }
 }

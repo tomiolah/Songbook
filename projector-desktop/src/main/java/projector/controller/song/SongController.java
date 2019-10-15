@@ -845,7 +845,7 @@ public class SongController {
                 tmp.append(c);
             }
         }
-        return s.toString();
+        return s.append(tmp.toString()).toString();
     }
 
     private void initializeSortComboBox() {

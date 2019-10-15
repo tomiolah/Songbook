@@ -12,19 +12,19 @@ import { MatSnackBar } from '@angular/material';
 })
 export class UserRegisterComponent implements OnInit {
 
-  @ViewChild('email') emailElement: ElementRef;
+  @ViewChild('email', { static: false }) emailElement: ElementRef;
 
   userForm: FormGroup;
   submitted = false;
   model = new User();
   reEnteredPassword = '';
   firstName = '';
-  sureName = '';
+  surname = '';
   updating: boolean;
 
   formErrors = {
     'email': '',
-    'sureName': '',
+    'surname': '',
     'firstName': '',
     'password': '',
     'reEnteredPassword': ''
@@ -35,7 +35,7 @@ export class UserRegisterComponent implements OnInit {
       'required': 'Required',
       'pattern': 'Incorrect email'
     },
-    'sureName': {
+    'surname': {
       'required': 'Required'
     },
     'firstName': {
@@ -63,7 +63,7 @@ export class UserRegisterComponent implements OnInit {
   onSubmit() {
     this.submitted = true;
     this.model.email = this.userForm.value.email;
-    this.model.sureName = this.userForm.value.sureName;
+    this.model.surname = this.userForm.value.surname;
     this.model.firstName = this.userForm.value.firstName;
     this.model.password = this.userForm.value.password;
     this.userDataService.addUser(this.model, 'en').subscribe(
@@ -93,7 +93,7 @@ export class UserRegisterComponent implements OnInit {
       'firstName': [this.firstName, [
         Validators.required
       ]],
-      'sureName': [this.sureName, [
+      'surname': [this.surname, [
         Validators.required
       ]],
       'password': [this.model.password, [

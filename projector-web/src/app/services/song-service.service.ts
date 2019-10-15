@@ -13,13 +13,31 @@ export class ColorLine {
   texts: ColorText[];
 }
 
+export enum SectionType {
+  Intro, Verse, Pre_chorus, Chorus, Bridge, Coda
+}
+
 export class SongVerseDTO {
   lines: string[];
   colorLines: ColorLine[];
   text = '';
-  chorus: boolean;
+  type: SectionType;
+  was: boolean;
 
   constructor(values: Object = {}) {
+    Object.assign(this, values);
+  }
+
+  chorus(): boolean {
+    return this.type == SectionType.Chorus;
+  }
+}
+
+export class SongVerseUI extends SongVerseDTO {
+  selected: boolean;
+
+  constructor(values: Object = {}) {
+    super(values);
     Object.assign(this, values);
   }
 }
@@ -43,6 +61,8 @@ export class Song extends BaseModel {
   favourites = 0;
   youtubeUrl;
   verseOrder: string;
+  author: string;
+  verseOrderList: number[];
 
   constructor(values: Object = {}) {
     super(values);

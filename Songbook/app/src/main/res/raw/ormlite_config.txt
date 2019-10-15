@@ -160,6 +160,9 @@ fieldName=youtubeUrl
 fieldName=views
 # --field-end--
 # --field-start--
+fieldName=favourites
+# --field-end--
+# --field-start--
 fieldName=verseOrder
 # --field-end--
 # --field-start--

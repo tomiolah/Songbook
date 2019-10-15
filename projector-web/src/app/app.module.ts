@@ -1,5 +1,5 @@
-import {BrowserModule, Title} from '@angular/platform-browser';
-import {NgModule} from '@angular/core';
+import { BrowserModule, Title } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
 
 import {
   MatAutocompleteModule,
@@ -34,42 +34,54 @@ import {
   MatToolbarModule,
   MatTooltipModule
 } from '@angular/material';
+import { A11yModule } from '@angular/cdk/a11y';
+import { DragDropModule } from '@angular/cdk/drag-drop';
+import { PortalModule } from '@angular/cdk/portal';
+import { ScrollingModule } from '@angular/cdk/scrolling';
+import { CdkStepperModule } from '@angular/cdk/stepper';
+import { CdkTreeModule } from '@angular/cdk/tree';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatTreeModule } from '@angular/material/tree';
 
-import {AppComponent} from './app.component';
-import {SongListComponent} from './ui/song-list/song-list.component';
-import {SongService} from './services/song-service.service';
-import {ApiService} from './services/api.service';
-import {HttpModule} from '@angular/http';
-import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {CdkTableModule} from '@angular/cdk/table';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
-import {MenuTabsComponent} from './ui/menu-tabs/menu-tabs.component';
-import {NotFoundComponent} from './ui/not-found/not-found.component';
-import {AppRoutingModule} from './modules/app-routing.module';
-import {NewSongComponent} from './ui/new-song/new-song.component';
-import {UserDataService} from './services/user-data.service';
-import {LoginComponent} from './ui/login/login.component';
-import {AuthService} from './services/auth.service';
-import {AuthGuard} from './services/auth-guard.service';
-import {StatisticsListComponent} from './ui/statistics-list/statistics-list.component';
-import {StatisticsDataService} from './services/statistics-data.service';
-import {SongComponent} from './ui/song/song.component';
-import {EditSongComponent} from './ui/edit-song/edit-song.component';
-import {LanguageDataService} from "./services/language-data.service";
-import {NewLanguageComponent} from "./ui/new-language/new-language.component";
-import {CompareSongsComponent} from './ui/compare-songs/compare-songs.component';
-import {SuggestionComponent} from './ui/suggestion/suggestion.component';
-import {SuggestionDataService} from "./services/suggestion-data.service";
-import {SuggestionListComponent} from "./ui/suggestion-list/suggestion-list.component";
-import {DownloadAppComponent} from './ui/download-app/download-app.component';
-import {ShareComponent} from './ui/share/share.component';
-import {HttpClientModule} from "@angular/common/http";
-import {AuthenticateComponent} from "./ui/authenticate/authenticate.component";
-import {OpenInAppComponent} from './ui/open-in-app/open-in-app.component';
-import {AddToCollectionComponent} from './ui/add-to-collection/add-to-collection.component';
-import {SongCollectionDataService} from "./services/song-collection-data.service";
+import { AppComponent } from './app.component';
+import { SongListComponent } from './ui/song-list/song-list.component';
+import { SongService } from './services/song-service.service';
+import { ApiService } from './services/api.service';
+import { HttpModule } from '@angular/http';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { CdkTableModule } from '@angular/cdk/table';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MenuTabsComponent } from './ui/menu-tabs/menu-tabs.component';
+import { NotFoundComponent } from './ui/not-found/not-found.component';
+import { AppRoutingModule } from './modules/app-routing.module';
+import { NewSongComponent } from './ui/new-song/new-song.component';
+import { UserDataService } from './services/user-data.service';
+import { LoginComponent } from './ui/login/login.component';
+import { AuthService } from './services/auth.service';
+import { AuthGuard } from './services/auth-guard.service';
+import { StatisticsListComponent } from './ui/statistics-list/statistics-list.component';
+import { StatisticsDataService } from './services/statistics-data.service';
+import { SongComponent } from './ui/song/song.component';
+import { EditSongComponent } from './ui/edit-song/edit-song.component';
+import { LanguageDataService } from "./services/language-data.service";
+import { NewLanguageComponent } from "./ui/new-language/new-language.component";
+import { CompareSongsComponent } from './ui/compare-songs/compare-songs.component';
+import { SuggestionComponent } from './ui/suggestion/suggestion.component';
+import { SuggestionDataService } from "./services/suggestion-data.service";
+import { SuggestionListComponent } from "./ui/suggestion-list/suggestion-list.component";
+import { DownloadAppComponent } from './ui/download-app/download-app.component';
+import { ShareComponent } from './ui/share/share.component';
+import { HttpClientModule } from "@angular/common/http";
+import { AuthenticateComponent } from "./ui/authenticate/authenticate.component";
+import { OpenInAppComponent } from './ui/open-in-app/open-in-app.component';
+import { AddToCollectionComponent } from './ui/add-to-collection/add-to-collection.component';
+import { SongCollectionDataService } from "./services/song-collection-data.service";
 import { UserRegisterComponent } from './ui/user-register/user-register.component';
 import { ActivationComponent } from './ui/activation/activation.component';
+import { UsersComponent } from './ui/users/users.component';
+import { UserComponent } from './ui/user/user.component';
 
 @NgModule({
   exports: [
@@ -105,6 +117,16 @@ import { ActivationComponent } from './ui/activation/activation.component';
     MatTabsModule,
     MatToolbarModule,
     MatTooltipModule,
+    A11yModule,
+    CdkStepperModule,
+    CdkTreeModule,
+    DragDropModule,
+    MatBadgeModule,
+    MatBottomSheetModule,
+    MatDividerModule,
+    MatTreeModule,
+    PortalModule,
+    ScrollingModule,
   ]
 })
 export class PlunkerMaterialModule {
@@ -132,6 +154,8 @@ export class PlunkerMaterialModule {
     AddToCollectionComponent,
     UserRegisterComponent,
     ActivationComponent,
+    UsersComponent,
+    UserComponent,
   ],
   imports: [
     BrowserModule,
@@ -144,6 +168,7 @@ export class PlunkerMaterialModule {
     FormsModule,
     ReactiveFormsModule,
     AppRoutingModule,
+    MatNativeDateModule,
   ],
   entryComponents: [
     NewLanguageComponent,

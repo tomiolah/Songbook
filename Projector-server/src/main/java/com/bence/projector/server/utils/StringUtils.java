@@ -53,4 +53,56 @@ public class StringUtils {
         return t[i][j];
     }
 
+    public static int longestCommonSubString(String a, String b) {
+        char[] X = a.toCharArray();
+        char[] Y = b.toCharArray();
+        int m = a.length();
+        int n = b.length();
+        int[][] LCStuff = new int[m + 1][n + 1];
+        int result = 0;
+        for (int i = 0; i <= m; i++) {
+            for (int j = 0; j <= n; j++) {
+                if (i == 0 || j == 0)
+                    LCStuff[i][j] = 0;
+                else if (X[i - 1] == Y[j - 1]) {
+                    LCStuff[i][j] = LCStuff[i - 1][j - 1] + 1;
+                    result = Integer.max(result, LCStuff[i][j]);
+                } else
+                    LCStuff[i][j] = 0;
+            }
+        }
+        return result;
+    }
+
+    public static String format(String s) {
+        String newValue = s.trim();
+        newValue = newValue.replaceAll("([ \\t])([.?!,':])", "$2");
+        newValue = newValue.replaceAll("([.?!,:])([^ “\".?!,:)])", "$1 $2");
+        newValue = newValue.replaceAll(": /", " :/");
+        newValue = newValue.replaceAll("/ :", "/: ");
+        newValue = newValue.replaceAll(" {2}", " ");
+        newValue = newValue.replaceAll("\\. \\. \\.", "…");
+        newValue = newValue.replaceAll("\\.\\.\\.", "…");
+        newValue = newValue.replaceAll("\\.([^ \"])", ". $1");
+        newValue = newValue.replaceAll(" \\)", ")");
+        newValue = newValue.replaceAll("\\( ", "(");
+        newValue = newValue.replaceAll("\\. \"", ".\"");
+        newValue = newValue.replaceAll("! \"", "!\"");
+        newValue = newValue.replaceAll("\r\n", "\n");
+        newValue = newValue.replaceAll("\n\n", "\n");
+        newValue = newValue.replaceAll(" \t", " ");
+        newValue = newValue.replaceAll("\t ", " ");
+        newValue = newValue.replaceAll(" \n", "\n");
+        newValue = newValue.replaceAll("\n ", "\n");
+        newValue = newValue.replaceAll("\t\n", "\n");
+        newValue = newValue.replaceAll("Ş", "Ș");
+        newValue = newValue.replaceAll("ş", "ș");
+        newValue = newValue.replaceAll("Ţ", "Ț");
+        newValue = newValue.replaceAll("ţ", "ț");
+        newValue = newValue.replaceAll("ã", "ă");
+        newValue = newValue.replaceAll("õ", "ő");
+        newValue = newValue.replaceAll("Õ", "Ő");
+        newValue = newValue.replaceAll("û", "ű");
+        return newValue;
+    }
 }
