@@ -46,6 +46,7 @@ export class Song extends BaseModel {
 
   static PUBLIC = "PUBLIC";
   static UPLOADED = "UPLOADED";
+  static REVIEWER = "REVIEWER";
   private static currentDate = new Date().getTime();
   originalId: string;
   title = '';

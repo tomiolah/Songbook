@@ -8,13 +8,16 @@ import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.data.mongodb.core.query.Criteria.where;
 
 @Service
 public class LanguageServiceImpl extends BaseServiceImpl<Language> implements LanguageService {
     private final MongoTemplate mongoTemplate;
+    private final Map<String, Language> languageMap = new HashMap<>();
 
     @Autowired
     public LanguageServiceImpl(MongoTemplate mongoTemplate) {
@@ -37,5 +40,15 @@ public class LanguageServiceImpl extends BaseServiceImpl<Language> implements La
             language.setSongsCount(countSongsById(language.getId()));
         }
         languages.sort((o1, o2) -> Long.compare(o2.getSongsCount(), o1.getSongsCount()));
+    }
+
+    @Override
+    public Language findOne(String id) {
+        if (languageMap.containsKey(id)) {
+            return languageMap.get(id);
+        }
+        Language language = super.findOne(id);
+        languageMap.put(id, language);
+        return language;
     }
 }

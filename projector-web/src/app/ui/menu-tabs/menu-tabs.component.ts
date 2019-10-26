@@ -23,6 +23,10 @@ export class MenuTabsComponent implements OnInit {
     { link: '/songs', icon: 'menu', title: 'Songs' },
     { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
   ];
+  reviewerMenuTabs = [
+    { link: '/songs', icon: 'menu', title: 'Songs' },
+    { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
+  ];
 
   constructor(public auth: AuthService, ) {
   }
@@ -37,13 +41,16 @@ export class MenuTabsComponent implements OnInit {
 
   isAdmin(): Boolean {
     const user: User = this.auth.getUser();
-    let user2 = new User();
-    user2 = Object.assign(user);
-    return this.isLoggedInUser() && user2.isAdmin();
+    return this.isLoggedInUser() && user.isAdmin();
   }
 
   isUser(): Boolean {
     const user: User = this.auth.getUser();
     return this.isLoggedInUser() && user.isUser();
+  }
+
+  isReviewer(): Boolean {
+    const user: User = this.auth.getUser();
+    return this.isLoggedInUser() && user.isReviewer();
   }
 }

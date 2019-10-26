@@ -37,7 +37,32 @@
                     </mat-option>
                 </mat-select>
             </mat-form-field>
-            <button *ngIf="originalUser.role != user.role" mat-button color="accent" (click)="onApplyRoleButtonClick()">Apply</button>
+            <button *ngIf="originalUser.role != user.role" mat-button color="accent"
+                (click)="onApplyRoleButtonClick()">Apply</button>
+            <div *ngIf="originalUser.isReviewer()">
+                <br>
+                {{'Select languages which songs to be able to review'}}
+                <br>
+                <mat-form-field class="example-full-width">
+                    <mat-chip-list #chipList class="example-full-width" aria-label="Languages">
+                        <mat-chip *ngFor="let language of user.reviewLanguages" [selectable]="false" [removable]="true">
+                            {{language.englishName}}
+                            <mat-icon matChipRemove style="margin-left: 0px; margin-right: 8px"
+                                (click)="removeLanguage(language)">cancel</mat-icon>
+                        </mat-chip>
+                        <mat-select *ngIf="(remainedLanguages.length > 0)" placeholder="Language"
+                            [(value)]="selectedLanguage">
+                            <br>
+                            <mat-option (click)="selectLanguage(language)" *ngFor="let language of remainedLanguages"
+                                [value]="language">
+                                {{ getLanguageString(language) }}
+                            </mat-option>
+                        </mat-select>
+                    </mat-chip-list>
+                </mat-form-field>
+                <button *ngIf="reviewLanguagesDiffers()" mat-button color="accent"
+                    (click)="onApplyReviewLanguagesButtonClick()">Apply</button>
+            </div>
         </mat-card-content>
     </mat-card>
 

@@ -8,6 +8,8 @@ import { DomSanitizer, SafeResourceUrl, Title } from "@angular/platform-browser"
 import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { MatDialog } from "@angular/material";
 import { Role, getAllRole } from '../../models/role';
+import { Language } from '../../models/language';
+import { LanguageDataService } from '../../services/language-data.service';
 
 
 @Component({
@@ -21,7 +23,10 @@ export class UserComponent implements OnInit, OnDestroy {
   user: User;
   public safeUrl: SafeResourceUrl = null;
   private sub: Subscription;
-  roles: Role[];
+  roles: Role[] = [];
+  selectedLanguage: Language;
+  remainedLanguages: Language[] = [];
+  allLanguages: Language[] = [];
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -29,10 +34,19 @@ export class UserComponent implements OnInit, OnDestroy {
     private titleService: Title,
     public auth: AuthService,
     public sanitizer: DomSanitizer,
+    private languageService: LanguageDataService,
     private dialog: MatDialog) {
     auth.getUserFromLocalStorage();
     this.user = new User();
     this.user.email = "Loading";
+    this.originalUser = new User(this.user);
+    languageService.getAll().subscribe(
+      (languages) => {
+        this.allLanguages = languages;
+        this.selectedLanguage = null;
+        this.setOriginalUser(this.user);
+      }
+    );
     this.getRoles();
   }
 
@@ -48,7 +62,7 @@ export class UserComponent implements OnInit, OnDestroy {
             if (user.isAdmin()) {
               this.roles.push(Role.ROLE_ADMIN);
             }
-            this.originalUser = new User(this.user);
+            this.setOriginalUser(this.user);
           },
           (err) => {
             if (err.message === 'Unexpected token < in JSON at position 0') {
@@ -57,6 +71,36 @@ export class UserComponent implements OnInit, OnDestroy {
           });
       }
     });
+  }
+
+  private getIndexFromLanguages(languages: Language[], language: Language): number {
+    for (let i = 0; i < languages.length; ++i) {
+      if (language.uuid = languages[i].uuid) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  private setOriginalUser(user: User) {
+    this.originalUser = new User(user);
+    this.originalUser.reviewLanguages = [];
+    this.remainedLanguages = this.allLanguages;
+    for (const language of user.reviewLanguages) {
+      this.originalUser.reviewLanguages.push(language);
+      const index = this.getIndexFromLanguages(this.remainedLanguages, language);
+      if (index > -1) {
+        this.remainedLanguages.splice(index, 1);
+      }
+    }
+  }
+
+  selectLanguage(language: Language) {
+    this.user.reviewLanguages.push(language);
+    const index = this.remainedLanguages.indexOf(language, 0);
+    if (index > -1) {
+      this.remainedLanguages.splice(index, 1);
+    }
   }
 
   private getRoles() {
@@ -94,18 +138,49 @@ export class UserComponent implements OnInit, OnDestroy {
   onApplyRoleButtonClick() {
     const updateUser = new User(this.originalUser);
     updateUser.role = this.user.role;
-    this.userService.update(updateUser).subscribe(
-      () => {
-        // noinspection JSIgnoredPromiseFromCall
-        this.originalUser = updateUser;
-      },
-      (err) => {
-        if (err.status === 405) {
-          this.openAuthenticateDialog();
-        } else {
-          console.log(err);
-        }
+    this.update(updateUser);
+  }
+
+  removeLanguage(language: Language) {
+    const index = this.user.reviewLanguages.indexOf(language, 0);
+    if (index > -1) {
+      this.user.reviewLanguages.splice(index, 1);
+      this.remainedLanguages.push(language);
+    }
+  }
+
+  reviewLanguagesDiffers() {
+    if (this.originalUser.reviewLanguages.length != this.user.reviewLanguages.length) {
+      return true;
+    }
+    for (let i = 0; i < this.originalUser.reviewLanguages.length; ++i) {
+      if (this.originalUser.reviewLanguages[i].uuid != this.user.reviewLanguages[i].uuid) {
+        return true;
       }
-    );
+    }
+    return false;
+  }
+
+  onApplyReviewLanguagesButtonClick() {
+    const updateUser = new User(this.originalUser);
+    updateUser.reviewLanguages = this.user.reviewLanguages;
+    this.update(updateUser);
+  }
+
+  private update(updateUser: User) {
+    this.userService.update(updateUser).subscribe(() => {
+      this.setOriginalUser(updateUser);
+    }, (err) => {
+      if (err.status === 405) {
+        this.openAuthenticateDialog();
+      }
+      else {
+        console.log(err);
+      }
+    });
+  }
+
+  getLanguageString(language: Language): string {
+    return language == undefined ? '' : language.printLanguage();
   }
 }

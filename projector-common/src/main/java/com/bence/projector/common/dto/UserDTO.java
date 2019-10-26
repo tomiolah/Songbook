@@ -1,6 +1,7 @@
 package com.bence.projector.common.dto;
 
 import java.util.Date;
+import java.util.List;
 
 public class UserDTO extends BaseDTO {
     private String email;
@@ -10,6 +11,7 @@ public class UserDTO extends BaseDTO {
     private String firstName;
     private boolean activated;
     private Date modifiedDate;
+    private List<LanguageDTO> reviewLanguages;
 
     public String getEmail() {
         return email;
@@ -61,5 +63,13 @@ public class UserDTO extends BaseDTO {
 
     public Date getModifiedDate() {
         return modifiedDate;
+    }
+
+    public List<LanguageDTO> getReviewLanguages() {
+        return reviewLanguages;
+    }
+
+    public void setReviewLanguages(List<LanguageDTO> reviewLanguages) {
+        this.reviewLanguages = reviewLanguages;
     }
 }

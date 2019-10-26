@@ -13,7 +13,7 @@
             {{'All'}}
           </mat-option>
           <mat-option (click)="selectLanguage(language)" *ngFor="let language of languages" [value]="language">
-            {{ printLanguage(language) }}
+            {{ language.printLanguage() }}
           </mat-option>
         </mat-select>
       </mat-form-field>

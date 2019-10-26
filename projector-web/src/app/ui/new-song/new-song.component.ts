@@ -413,14 +413,6 @@ export class NewSongComponent implements OnInit {
     });
   }
 
-  // noinspection JSMethodCanBeStatic
-  printLanguage(language: Language) {
-    if (language.englishName === language.nativeName) {
-      return language.englishName;
-    }
-    return language.englishName + " | " + language.nativeName;
-  }
-
   editorTypeChange() {
     if (this.editorType === 'raw') {
       const formValue = this.form.value;

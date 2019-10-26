@@ -11,6 +11,7 @@ import { Language } from "../../models/language";
 import { LanguageDataService } from "../../services/language-data.service";
 import { Subscription } from "rxjs/Subscription";
 import { Title } from "@angular/platform-browser";
+import { User } from '../../models/user';
 
 @Component({
   selector: 'app-song-list',
@@ -206,14 +207,6 @@ export class SongListComponent implements OnInit {
     this.loadSongs();
   }
 
-  // noinspection JSMethodCanBeStatic
-  printLanguage(language: Language) {
-    if (language.englishName === language.nativeName) {
-      return language.englishName;
-    }
-    return language.englishName + " | " + language.nativeName;
-  }
-
   selectLanguage(language: Language) {
     localStorage.setItem('selectedLanguage', JSON.stringify(this.selectedLanguage));
     if (this._subscription != undefined) {
@@ -327,6 +320,9 @@ export class SongListComponent implements OnInit {
           }
         );
         break;
+      case Song.REVIEWER:
+        this.selectLanguage(this.selectedLanguage);
+        break;
     }
     this.activatedRoute.queryParams.subscribe((queryParams) => {
       let search = queryParams['search'];
@@ -424,9 +420,10 @@ export class SongListComponent implements OnInit {
       return this.compare(song2.modifiedDate, song1.modifiedDate);
     });
   }
-  
+
   hasRoleForSongReview() {
-    return false;
+    const user: User = this.auth.getUser();
+    return this.auth.isLoggedIn && user.isReviewer();
   }
 }
 
