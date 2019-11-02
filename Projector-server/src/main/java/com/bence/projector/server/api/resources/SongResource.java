@@ -11,6 +11,7 @@ import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
+import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
@@ -58,10 +59,11 @@ public class SongResource {
     private final StatisticsService statisticsService;
     private final UserService userService;
     private final JavaMailSender sender;
+    private final LanguageService languageService;
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, @Qualifier("javaMailSender") JavaMailSender sender) {
+    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, @Qualifier("javaMailSender") JavaMailSender sender, LanguageService languageService) {
         this.songRepository = songRepository;
         this.songService = songService;
         this.songAssembler = songAssembler;
@@ -69,6 +71,7 @@ public class SongResource {
         this.statisticsService = statisticsService;
         this.userService = userService;
         this.sender = sender;
+        this.languageService = languageService;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs")
@@ -120,6 +123,14 @@ public class SongResource {
         saveStatistics(httpServletRequest, statisticsService);
         List<Song> songs = songService.findAllByLanguageAndModifiedDate(languageId, new Date(lastModifiedDate));
         return songTitleAssembler.createDtoList(songs);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/api/songTitlesInReview/language/{languageId}")
+    public ResponseEntity<Object> getAllSongTitlesInReview(HttpServletRequest httpServletRequest, @PathVariable("languageId") String languageId) {
+        saveStatistics(httpServletRequest, statisticsService);
+        Language language = languageService.findOne(languageId);
+        final List<Song> all = songService.findAllInReviewByLanguage(language);
+        return new ResponseEntity<>(songTitleAssembler.createDtoList(all), HttpStatus.ACCEPTED);
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/songViews/language/{language}")
@@ -177,6 +188,27 @@ public class SongResource {
         song.setModifiedDate(new Date());
         songService.save(song);
         return songAssembler.createDto(song);
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "/reviewer/api/song/delete/{songId}")
+    public ResponseEntity<Object> deleteSongByReviewer(Principal principal, @PathVariable final String songId, HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        if (principal != null) {
+            String email = principal.getName();
+            User user = userService.findByEmail(email);
+            if (user != null) {
+                final Song song = songService.findOne(songId);
+                if (!songInReviewLanguages(user, song)) {
+                    return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
+                }
+                song.setDeleted(true);
+                song.setModifiedDate(new Date());
+                song.setLastModifiedBy(user);
+                songService.save(song);
+                return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/admin/api/song/erase/{songId}")
@@ -317,9 +349,57 @@ public class SongResource {
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/admin/api/song/{songId}")
-    public ResponseEntity<Object> updateSongByAdmin(@PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Object> updateSongByAdmin(Principal principal, @PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        return updateSong(songId, songDTO);
+        if (principal != null) {
+            String email = principal.getName();
+            User user = userService.findByEmail(email);
+            if (user != null) {
+                return updateSong(songId, songDTO, user);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/reviewer/api/song/{songId}")
+    public ResponseEntity<Object> updateSongByReviewer(Principal principal, @PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        if (principal != null) {
+            String email = principal.getName();
+            User user = userService.findByEmail(email);
+            if (user != null) {
+                Song song = songService.findOne(songId);
+                if (song != null && songInReviewLanguages(user, song)) {
+                    Date modifiedDate = song.getModifiedDate();
+                    if (modifiedDate != null && modifiedDate.compareTo(songDTO.getModifiedDate()) != 0) {
+                        return new ResponseEntity<>("Already modified", HttpStatus.CONFLICT);
+                    }
+                    songDTO.setModifiedDate(new Date());
+                    Song backUpSong = new Song(song);
+                    backUpSong.setIsBackUp(true);
+                    songRepository.save(backUpSong);
+                    song.setBackUp(backUpSong);
+                    song.setLastModifiedBy(user);
+                    songAssembler.updateModel(song, songDTO);
+                    final Song savedSong = songService.save(song);
+                    if (savedSong != null) {
+                        return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
+                    }
+                }
+                return new ResponseEntity<>("Could not update", HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
+    }
+
+    private boolean songInReviewLanguages(User user, Song song) {
+        String id = song.getLanguage().getId();
+        for (Language language : user.getReviewLanguages()) {
+            if (language.getId().equals(id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/admin/removeDuplicates")
@@ -346,13 +426,13 @@ public class SongResource {
         final User user = userService.findByEmail(loginSongDTO.getUsername());
         if (user != null) {
             if (getPasswordEncoder().matches(loginSongDTO.getPassword(), user.getPassword())) {
-                return updateSong(songId, loginSongDTO.getSongDTO());
+                return updateSong(songId, loginSongDTO.getSongDTO(), user);
             }
         }
         return null;
     }
 
-    private ResponseEntity<Object> updateSong(String songId, SongDTO songDTO) {
+    private ResponseEntity<Object> updateSong(String songId, SongDTO songDTO, User user) {
         Song song = songService.findOne(songId);
         if (song != null) {
             Date modifiedDate = song.getModifiedDate();
@@ -364,6 +444,7 @@ public class SongResource {
         } else {
             song = songAssembler.createModel(songDTO);
         }
+        song.setLastModifiedBy(user);
         final Song savedSong = songService.save(song);
         if (savedSong != null) {
             return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);

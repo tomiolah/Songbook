@@ -207,8 +207,12 @@ export class SongListComponent implements OnInit {
     this.loadSongs();
   }
 
-  selectLanguage(language: Language) {
+  changeLanguage() {
     localStorage.setItem('selectedLanguage', JSON.stringify(this.selectedLanguage));
+    this.loadSongs();
+  }
+
+  selectLanguage(language: Language) {
     if (this._subscription != undefined) {
       this._subscription.unsubscribe();
     }
@@ -299,29 +303,26 @@ export class SongListComponent implements OnInit {
   private loadSongs() {
     switch (this.songsType) {
       case Song.PUBLIC:
-        this.selectLanguage(this.selectedLanguage);
+        this.loadPublicSongs();
         break;
       case Song.UPLOADED:
         this.songService.getAllUploadedSongTitles().subscribe(
           (songTitles) => {
-            this.songTitles = songTitles;
-            this.sortSongTitles();
-            this.songControl.updateValueAndValidity();
-            const pageEvent = new PageEvent();
-            pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
-            pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
-            if (pageEvent.pageSize == undefined) {
-              pageEvent.pageSize = 10;
-            }
-            if (pageEvent.pageIndex == undefined) {
-              pageEvent.pageIndex = 0;
-            }
-            this.pageEvent(pageEvent);
+            this.setSongTitles(songTitles);
           }
         );
         break;
       case Song.REVIEWER:
-        this.selectLanguage(this.selectedLanguage);
+        const user = this.auth.getUser();
+        if (user == undefined || (!this.hasRoleForSongReview() && !user.isAdmin()) || this.selectedLanguage == undefined) {
+          this.loadPublicSongs();
+          return;
+        }
+        this.songService.getAllInReviewSongsByLanguage(this.selectedLanguage).subscribe(
+          (songTitles) => {
+            this.setSongTitles(songTitles);
+          }
+        );
         break;
     }
     this.activatedRoute.queryParams.subscribe((queryParams) => {
@@ -339,6 +340,26 @@ export class SongListComponent implements OnInit {
       }
       this.songControl.patchValue(search);
     });
+  }
+
+  private loadPublicSongs() {
+    this.selectLanguage(this.selectedLanguage);
+  }
+
+  private setSongTitles(songTitles: Song[]) {
+    this.songTitles = songTitles;
+    this.sortSongTitles();
+    this.songControl.updateValueAndValidity();
+    const pageEvent = new PageEvent();
+    pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
+    pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
+    if (pageEvent.pageSize == undefined) {
+      pageEvent.pageSize = 10;
+    }
+    if (pageEvent.pageIndex == undefined) {
+      pageEvent.pageIndex = 0;
+    }
+    this.pageEvent(pageEvent);
   }
 
   private containsInLocalStorage(song, titlesLocalStorage = this.songTitlesLocalStorage) {
@@ -423,7 +444,7 @@ export class SongListComponent implements OnInit {
 
   hasRoleForSongReview() {
     const user: User = this.auth.getUser();
-    return this.auth.isLoggedIn && user.isReviewer();
+    return this.auth.isLoggedIn && user.hasReviewerRoleForLanguage(this.selectedLanguage);
   }
 }
 

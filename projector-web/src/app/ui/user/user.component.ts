@@ -75,7 +75,7 @@ export class UserComponent implements OnInit, OnDestroy {
 
   private getIndexFromLanguages(languages: Language[], language: Language): number {
     for (let i = 0; i < languages.length; ++i) {
-      if (language.uuid = languages[i].uuid) {
+      if (language.uuid == languages[i].uuid) {
         return i;
       }
     }
@@ -86,7 +86,7 @@ export class UserComponent implements OnInit, OnDestroy {
     this.originalUser = new User(user);
     this.originalUser.reviewLanguages = [];
     this.remainedLanguages = this.allLanguages;
-    for (const language of user.reviewLanguages) {
+    for (let language of user.reviewLanguages) {
       this.originalUser.reviewLanguages.push(language);
       const index = this.getIndexFromLanguages(this.remainedLanguages, language);
       if (index > -1) {

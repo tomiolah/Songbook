@@ -10,6 +10,7 @@ import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { replace } from "../new-song/new-song.component";
 import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { CdkDragDrop, moveItemInArray, copyArrayItem } from '@angular/cdk/drag-drop';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-edit-song',
@@ -66,6 +67,7 @@ export class EditSongComponent implements OnInit {
     private dialog: MatDialog,
     iconRegistry: MatIconRegistry,
     public sanitizer: DomSanitizer,
+    public auth: AuthService,
     private _changeDetectionRef: ChangeDetectorRef) {
     iconRegistry.addSvgIcon(
       'magic_tool',
@@ -427,7 +429,8 @@ export class EditSongComponent implements OnInit {
   }
 
   private updateSong() {
-    this.songService.updateSong(this.song).subscribe(
+    const role = this.auth.getUser().getRolePath(); 
+    this.songService.updateSong(role, this.song).subscribe(
       () => {
         // noinspection JSIgnoredPromiseFromCall
         this.router.navigate(['/songs']);

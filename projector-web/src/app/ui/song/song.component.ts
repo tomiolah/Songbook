@@ -1,14 +1,14 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
-import {Song, SongService} from '../../services/song-service.service';
-import {Subscription} from 'rxjs/Subscription';
-import {AuthService} from '../../services/auth.service';
-import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
-import {MatDialog, MatSnackBar} from "@angular/material";
-import {ShareComponent} from "../share/share.component";
-import {AuthenticateComponent} from "../authenticate/authenticate.component";
-import {OpenInAppComponent} from "../open-in-app/open-in-app.component";
-import {AddToCollectionComponent} from "../add-to-collection/add-to-collection.component";
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { Song, SongService } from '../../services/song-service.service';
+import { Subscription } from 'rxjs/Subscription';
+import { AuthService } from '../../services/auth.service';
+import { DomSanitizer, SafeResourceUrl, Title } from "@angular/platform-browser";
+import { MatDialog, MatSnackBar } from "@angular/material";
+import { ShareComponent } from "../share/share.component";
+import { AuthenticateComponent } from "../authenticate/authenticate.component";
+import { OpenInAppComponent } from "../open-in-app/open-in-app.component";
+import { AddToCollectionComponent } from "../add-to-collection/add-to-collection.component";
 
 @Component({
   selector: 'app-song',
@@ -32,12 +32,12 @@ export class SongComponent implements OnInit, OnDestroy {
   private sub: Subscription;
 
   constructor(private activatedRoute: ActivatedRoute,
-              private songService: SongService,
-              private dialog: MatDialog,
-              public auth: AuthService,
-              private titleService: Title,
-              private snackBar: MatSnackBar,
-              public sanitizer: DomSanitizer) {
+    private songService: SongService,
+    private dialog: MatDialog,
+    public auth: AuthService,
+    private titleService: Title,
+    private snackBar: MatSnackBar,
+    public sanitizer: DomSanitizer) {
     auth.getUserFromLocalStorage();
     this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
     if (this.markedVersionGroup == 'null') {
@@ -110,6 +110,10 @@ export class SongComponent implements OnInit, OnDestroy {
             this.showOpenInAppDialog();
           }
           this.loadVersionGroup();
+          const user = this.auth.getUser();
+          if (this.auth.isLoggedIn && user != undefined && (user.hasReviewerRoleForSong(this.song) || user.isAdmin())) {
+            this.showSimilar();
+          }
         });
       }
     });
@@ -136,7 +140,8 @@ export class SongComponent implements OnInit, OnDestroy {
   }
 
   deleteSong() {
-    this.songService.deleteById(this.song.uuid).subscribe(() => {
+    const role = this.auth.getUser().getRolePath(); 
+    this.songService.deleteById(role, this.song.uuid).subscribe(() => {
 
     });
   }
@@ -182,7 +187,8 @@ export class SongComponent implements OnInit, OnDestroy {
     updateSong.id = id;
     updateSong.modifiedDate = this.secondSong.modifiedDate;
     updateSong.deleted = false;
-    this.songService.updateSong(updateSong).subscribe(
+    const role = this.auth.getUser().getRolePath(); 
+    this.songService.updateSong(role, updateSong).subscribe(
       () => {
       },
       (err) => {

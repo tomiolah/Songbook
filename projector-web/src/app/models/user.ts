@@ -1,8 +1,9 @@
 import { BaseModel } from './base-model';
 import { Role } from './role';
+import { Language } from './language';
+import { Song } from '../services/song-service.service';
 
 export class User extends BaseModel {
-
   email = '';
   password = '';
   role = Role.ROLE_USER;
@@ -12,12 +13,18 @@ export class User extends BaseModel {
   activated = false;
   modifiedDate: number;
   createdDate: number;
+  reviewLanguages: Language[];
 
   nr: number;
 
   constructor(values: Object = {}) {
     super(values);
     Object.assign(this, values);
+    if (this.reviewLanguages != undefined) {
+      for (let i = 0; i < this.reviewLanguages.length; ++i) {
+        this.reviewLanguages[i] = new Language(this.reviewLanguages[i]);
+      }
+    }
   }
 
   getActivatedString() {
@@ -39,4 +46,37 @@ export class User extends BaseModel {
   isReviewer(): Boolean {
     return this.role == Role.ROLE_REVIEWER;
   }
+  
+  hasReviewerRoleForSong(song: Song): Boolean {
+    if (song == undefined) {
+      return false;
+    }
+    return this.hasReviewerRoleForLanguage(song.languageDTO);
+  }
+  
+  hasReviewerRoleForLanguage(language: Language): Boolean {
+    if (language == undefined || !this.isReviewer()) {
+      return false;
+    }
+    for (let aLanguage of this.reviewLanguages) {
+      if (aLanguage.uuid == language.uuid) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  getRolePath() {
+    if (this.isAdmin()) {
+      return 'admin';
+    }
+    if (this.isReviewer()) {
+      return 'reviewer';
+    }
+    if (this.isUser()) {
+      return 'user';
+    }
+    return '';
+  }
+
 }
