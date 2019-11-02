@@ -1,11 +1,11 @@
-import {Injectable} from '@angular/core';
+import { Injectable } from '@angular/core';
 import 'rxjs/add/observable/of';
 import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/delay';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/map';
-import {Headers, Http, RequestOptions} from '@angular/http';
-import {User} from '../models/user';
+import { Headers, Http, RequestOptions } from '@angular/http';
+import { User } from '../models/user';
 
 @Injectable()
 export class AuthService {
@@ -23,8 +23,8 @@ export class AuthService {
     const params = new URLSearchParams();
     params.append('username', username);
     params.append('password', password);
-    const headers = new Headers({'Content-Type': 'application/x-www-form-urlencoded'});
-    const options = new RequestOptions({headers: headers});
+    const headers = new Headers({ 'Content-Type': 'application/x-www-form-urlencoded' });
+    const options = new RequestOptions({ headers: headers });
     return this.http.post('/login', params.toString(), options)
       .map(res => res);
   }
@@ -35,7 +35,7 @@ export class AuthService {
 
   setUser(user: User) {
     this.FUser = user;
-    this.isLoggedIn = !!this.FUser;
+    this.isLoggedIn = this.FUser.email.length > 1;
   }
 
   logout(): void {
@@ -51,6 +51,10 @@ export class AuthService {
   }
 
   getUserFromLocalStorage() {
-    this.setUser(new User(JSON.parse(localStorage.getItem('currentUser'))));
+    const currentUser = localStorage.getItem('currentUser');
+    if (currentUser == undefined || currentUser == null) {
+      return;
+    }
+    this.setUser(new User(JSON.parse(currentUser)));
   }
 }

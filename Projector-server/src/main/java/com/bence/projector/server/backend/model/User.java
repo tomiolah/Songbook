@@ -1,6 +1,9 @@
 package com.bence.projector.server.backend.model;
 
+import org.springframework.data.mongodb.core.mapping.DBRef;
+
 import java.util.Date;
+import java.util.List;
 
 public class User extends BaseEntity {
 
@@ -18,6 +21,8 @@ public class User extends BaseEntity {
     private Boolean banned;
     private Date modifiedDate;
     private Date createdDate;
+    @DBRef(lazy = true)
+    private List<Language> reviewLanguages;
 
     public User() {
         super();
@@ -146,5 +151,13 @@ public class User extends BaseEntity {
 
     public Date getCreatedDate() {
         return createdDate;
+    }
+
+    public List<Language> getReviewLanguages() {
+        return reviewLanguages;
+    }
+
+    public void setReviewLanguages(List<Language> reviewLanguages) {
+        this.reviewLanguages = reviewLanguages;
     }
 }

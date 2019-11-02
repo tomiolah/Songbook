@@ -30,7 +30,7 @@ public class SongResourceSeo {
     @GetMapping("/song/{id}")
     public String song(Model model, @PathVariable("id") String id) {
         Song song = songService.findOne(id);
-        if (song == null || song.isDeleted()) {
+        if (song == null || song.isDeleted() || song.isBackUp()) {
             return "pageNotFound";
         }
         model.addAttribute("title", song.getTitle());

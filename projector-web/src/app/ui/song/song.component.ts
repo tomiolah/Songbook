@@ -1,14 +1,14 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
-import {Song, SongService} from '../../services/song-service.service';
-import {Subscription} from 'rxjs/Subscription';
-import {AuthService} from '../../services/auth.service';
-import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
-import {MatDialog, MatSnackBar} from "@angular/material";
-import {ShareComponent} from "../share/share.component";
-import {AuthenticateComponent} from "../authenticate/authenticate.component";
-import {OpenInAppComponent} from "../open-in-app/open-in-app.component";
-import {AddToCollectionComponent} from "../add-to-collection/add-to-collection.component";
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Song, SongService } from '../../services/song-service.service';
+import { Subscription } from 'rxjs/Subscription';
+import { AuthService } from '../../services/auth.service';
+import { DomSanitizer, SafeResourceUrl, Title } from "@angular/platform-browser";
+import { MatDialog, MatSnackBar } from "@angular/material";
+import { ShareComponent } from "../share/share.component";
+import { AuthenticateComponent } from "../authenticate/authenticate.component";
+import { OpenInAppComponent } from "../open-in-app/open-in-app.component";
+import { AddToCollectionComponent } from "../add-to-collection/add-to-collection.component";
 
 @Component({
   selector: 'app-song',
@@ -30,14 +30,17 @@ export class SongComponent implements OnInit, OnDestroy {
   public safeUrl: SafeResourceUrl = null;
   public isAndroid = false;
   private sub: Subscription;
+  eraseSongType = 1;
+  mergeVersionGroupType = 2;
 
   constructor(private activatedRoute: ActivatedRoute,
-              private songService: SongService,
-              private dialog: MatDialog,
-              public auth: AuthService,
-              private titleService: Title,
-              private snackBar: MatSnackBar,
-              public sanitizer: DomSanitizer) {
+    private songService: SongService,
+    private dialog: MatDialog,
+    public auth: AuthService,
+    private titleService: Title,
+    private snackBar: MatSnackBar,
+    private router: Router,
+    public sanitizer: DomSanitizer) {
     auth.getUserFromLocalStorage();
     this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
     if (this.markedVersionGroup == 'null') {
@@ -110,6 +113,10 @@ export class SongComponent implements OnInit, OnDestroy {
             this.showOpenInAppDialog();
           }
           this.loadVersionGroup();
+          const user = this.auth.getUser();
+          if (this.auth.isLoggedIn && user != undefined && (user.hasReviewerRoleForSong(this.song) || user.isAdmin())) {
+            this.showSimilar();
+          }
         });
       }
     });
@@ -136,14 +143,30 @@ export class SongComponent implements OnInit, OnDestroy {
   }
 
   deleteSong() {
-    this.songService.deleteById(this.song.uuid).subscribe(() => {
+    const role = this.auth.getUser().getRolePath();
+    this.songService.deleteById(role, this.song.uuid).subscribe(() => {
 
     });
   }
 
   eraseSong() {
-    this.songService.eraseById(this.song.uuid).subscribe(() => {
-    });
+    const role = this.auth.getUser().getRolePath();
+    this.songService.eraseById(role, this.song.uuid).subscribe(
+      () => {
+        // noinspection JSIgnoredPromiseFromCall
+        this.router.navigate(['/songs']);
+      },
+      (err) => {
+        if (err.message === 'Unexpected token < in JSON at position 0') {
+          this.openAuthenticateDialog(this.eraseSongType);
+        } else {
+          console.log(err);
+          this.snackBar.open(err._body, 'Close', {
+            duration: 5000
+          })
+        }
+      }
+    );
   }
 
   publishSong() {
@@ -182,7 +205,8 @@ export class SongComponent implements OnInit, OnDestroy {
     updateSong.id = id;
     updateSong.modifiedDate = this.secondSong.modifiedDate;
     updateSong.deleted = false;
-    this.songService.updateSong(updateSong).subscribe(
+    const role = this.auth.getUser().getRolePath();
+    this.songService.updateSong(role, updateSong).subscribe(
       () => {
       },
       (err) => {
@@ -220,12 +244,12 @@ export class SongComponent implements OnInit, OnDestroy {
           this.markedVersionGroup = null;
         } else {
           console.log(res);
-          this.openAuthenticateDialog();
+          this.openAuthenticateDialog(this.mergeVersionGroupType);
         }
       },
       (err) => {
         if (err.message === 'Unexpected token < in JSON at position 0') {
-          this.openAuthenticateDialog();
+          this.openAuthenticateDialog(this.mergeVersionGroupType);
         } else {
           console.log(err);
           this.snackBar.open(err._body, 'Close', {
@@ -300,7 +324,7 @@ export class SongComponent implements OnInit, OnDestroy {
     });
   }
 
-  private openAuthenticateDialog() {
+  private openAuthenticateDialog(type: number) {
     let user = JSON.parse(localStorage.getItem('currentUser'));
     const dialogRef = this.dialog.open(AuthenticateComponent, {
       data: {
@@ -310,7 +334,11 @@ export class SongComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result === 'ok') {
-        this.mergeVersionGroup();
+        if (type == this.mergeVersionGroupType) {
+          this.mergeVersionGroup();
+        } else if (type == this.eraseSongType) {
+          this.eraseSong();
+        }
       }
     });
   }

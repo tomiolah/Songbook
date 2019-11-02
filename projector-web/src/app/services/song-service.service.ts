@@ -46,6 +46,7 @@ export class Song extends BaseModel {
 
   static PUBLIC = "PUBLIC";
   static UPLOADED = "UPLOADED";
+  static REVIEWER = "REVIEWER";
   private static currentDate = new Date().getTime();
   originalId: string;
   title = '';
@@ -129,17 +130,21 @@ export class SongService {
     return this.api.getAll(Song, 'api/songTitlesAfterModifiedDate/' + modifiedDate + '/language/' + selectedLanguage);
   }
 
-  deleteById(songId) {
-    return this.api.deleteById('admin/api/song/delete/', songId);
+  getAllInReviewSongsByLanguage(selectedLanguage: Language) {
+    return this.api.getAll(Song, 'api/songTitlesInReview/language/' + selectedLanguage.uuid);
   }
 
-  eraseById(songId) {
-    return this.api.deleteById('admin/api/song/erase/', songId);
+  deleteById(role: string, songId) {
+    return this.api.deleteById(role + '/api/song/delete/', songId);
   }
 
-  updateSong(song: Song) {
+  eraseById(role: string, songId) {
+    return this.api.deleteById(role + '/api/song/erase/', songId);
+  }
+
+  updateSong(role: string, song: Song) {
     song.id = song.uuid;
-    return this.api.update(Song, 'admin/api/song/', song);
+    return this.api.update(Song, role + '/api/song/', song);
   }
 
   publishById(songId) {

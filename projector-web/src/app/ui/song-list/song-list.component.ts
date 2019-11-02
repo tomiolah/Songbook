@@ -11,6 +11,7 @@ import { Language } from "../../models/language";
 import { LanguageDataService } from "../../services/language-data.service";
 import { Subscription } from "rxjs/Subscription";
 import { Title } from "@angular/platform-browser";
+import { User } from '../../models/user';
 
 @Component({
   selector: 'app-song-list',
@@ -206,16 +207,12 @@ export class SongListComponent implements OnInit {
     this.loadSongs();
   }
 
-  // noinspection JSMethodCanBeStatic
-  printLanguage(language: Language) {
-    if (language.englishName === language.nativeName) {
-      return language.englishName;
-    }
-    return language.englishName + " | " + language.nativeName;
+  changeLanguage() {
+    localStorage.setItem('selectedLanguage', JSON.stringify(this.selectedLanguage));
+    this.loadSongs();
   }
 
   selectLanguage(language: Language) {
-    localStorage.setItem('selectedLanguage', JSON.stringify(this.selectedLanguage));
     if (this._subscription != undefined) {
       this._subscription.unsubscribe();
     }
@@ -306,24 +303,24 @@ export class SongListComponent implements OnInit {
   private loadSongs() {
     switch (this.songsType) {
       case Song.PUBLIC:
-        this.selectLanguage(this.selectedLanguage);
+        this.loadPublicSongs();
         break;
       case Song.UPLOADED:
         this.songService.getAllUploadedSongTitles().subscribe(
           (songTitles) => {
-            this.songTitles = songTitles;
-            this.sortSongTitles();
-            this.songControl.updateValueAndValidity();
-            const pageEvent = new PageEvent();
-            pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
-            pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
-            if (pageEvent.pageSize == undefined) {
-              pageEvent.pageSize = 10;
-            }
-            if (pageEvent.pageIndex == undefined) {
-              pageEvent.pageIndex = 0;
-            }
-            this.pageEvent(pageEvent);
+            this.setSongTitles(songTitles);
+          }
+        );
+        break;
+      case Song.REVIEWER:
+        const user = this.auth.getUser();
+        if (user == undefined || (!this.hasRoleForSongReview() && !user.isAdmin()) || this.selectedLanguage == undefined) {
+          this.loadPublicSongs();
+          return;
+        }
+        this.songService.getAllInReviewSongsByLanguage(this.selectedLanguage).subscribe(
+          (songTitles) => {
+            this.setSongTitles(songTitles);
           }
         );
         break;
@@ -343,6 +340,26 @@ export class SongListComponent implements OnInit {
       }
       this.songControl.patchValue(search);
     });
+  }
+
+  private loadPublicSongs() {
+    this.selectLanguage(this.selectedLanguage);
+  }
+
+  private setSongTitles(songTitles: Song[]) {
+    this.songTitles = songTitles;
+    this.sortSongTitles();
+    this.songControl.updateValueAndValidity();
+    const pageEvent = new PageEvent();
+    pageEvent.pageSize = JSON.parse(sessionStorage.getItem("pageSize"));
+    pageEvent.pageIndex = JSON.parse(sessionStorage.getItem("pageIndex"));
+    if (pageEvent.pageSize == undefined) {
+      pageEvent.pageSize = 10;
+    }
+    if (pageEvent.pageIndex == undefined) {
+      pageEvent.pageIndex = 0;
+    }
+    this.pageEvent(pageEvent);
   }
 
   private containsInLocalStorage(song, titlesLocalStorage = this.songTitlesLocalStorage) {
@@ -424,9 +441,10 @@ export class SongListComponent implements OnInit {
       return this.compare(song2.modifiedDate, song1.modifiedDate);
     });
   }
-  
+
   hasRoleForSongReview() {
-    return false;
+    const user: User = this.auth.getUser();
+    return this.auth.isLoggedIn && user.hasReviewerRoleForLanguage(this.selectedLanguage);
   }
 }
 

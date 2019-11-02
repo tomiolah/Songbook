@@ -1,6 +1,7 @@
 package com.bence.projector.server.backend.model;
 
 import org.springframework.data.annotation.Transient;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 
 import java.util.Date;
 import java.util.List;
@@ -28,8 +29,37 @@ public class Song extends BaseEntity {
     private String verseOrder;
     private String author;
     private List<Short> verseOrderList;
+    @DBRef
+    private User lastModifiedBy;
+    @DBRef
+    private Song backUp;
+    private Boolean isBackUp;
+    private Boolean reviewerErased;
 
     public Song() {
+    }
+
+    public Song(Song song) {
+        originalId = song.originalId;
+        title = song.title;
+        verses = song.verses;
+        createdDate = song.createdDate;
+        modifiedDate = song.modifiedDate;
+        language = song.language;
+        uploaded = song.uploaded;
+        views = song.views;
+        lastIncrementViewDate = song.lastIncrementViewDate;
+        favourites = song.favourites;
+        lastIncrementFavouritesDate = song.lastIncrementFavouritesDate;
+        createdByEmail = song.createdByEmail;
+        percentage = song.percentage;
+        versionGroup = song.versionGroup;
+        youtubeUrl = song.youtubeUrl;
+        verseOrder = song.verseOrder;
+        author = song.author;
+        verseOrderList = song.verseOrderList;
+        lastModifiedBy = song.lastModifiedBy;
+        backUp = song.backUp;
     }
 
     public String getTitle() {
@@ -65,7 +95,7 @@ public class Song extends BaseEntity {
     }
 
     public boolean isDeleted() {
-        return deleted;
+        return deleted || isBackUp() || isReviewerErased();
     }
 
     public void setDeleted(boolean deleted) {
@@ -193,11 +223,43 @@ public class Song extends BaseEntity {
         this.author = author;
     }
 
+    public List<Short> getVerseOrderList() {
+        return verseOrderList;
+    }
+
     public void setVerseOrderList(List<Short> verseOrderList) {
         this.verseOrderList = verseOrderList;
     }
 
-    public List<Short> getVerseOrderList() {
-        return verseOrderList;
+    public User getLastModifiedBy() {
+        return lastModifiedBy;
+    }
+
+    public void setLastModifiedBy(User lastModifiedBy) {
+        this.lastModifiedBy = lastModifiedBy;
+    }
+
+    public Song getBackUp() {
+        return backUp;
+    }
+
+    public void setIsBackUp(Boolean isBackUp) {
+        this.isBackUp = isBackUp;
+    }
+
+    public boolean isBackUp() {
+        return isBackUp != null && isBackUp;
+    }
+
+    public void setBackUp(Song backUp) {
+        this.backUp = backUp;
+    }
+
+    public boolean isReviewerErased() {
+        return reviewerErased != null && reviewerErased;
+    }
+
+    public void setReviewerErased(Boolean reviewerErased) {
+        this.reviewerErased = reviewerErased;
     }
 }

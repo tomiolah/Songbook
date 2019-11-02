@@ -42,4 +42,6 @@ public interface SongService extends BaseService<Song> {
     List<Song> findAllSimilar(Song song, boolean checkDeleted);
 
     void enrollSongInMap(Song song);
+
+    List<Song> findAllInReviewByLanguage(Language language);
 }

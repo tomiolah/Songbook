@@ -17,7 +17,7 @@
               <!--suppress HtmlUnknownAttribute -->
               <mat-select placeholder="Language" required [(value)]="selectedLanguage">
                 <mat-option *ngFor="let language of languages" [value]="language">
-                  {{ printLanguage(language) }}
+                  {{ language.printLanguage() }}
                 </mat-option>
                 <mat-option (click)="openNewLanguageDialog()">
                   {{'Add new language'}}

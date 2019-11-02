@@ -23,6 +23,13 @@
           <span>{{tab.title}}</span>
         </a>
       </ng-container>
+      <ng-container class="container" *ngIf="isReviewer()">
+        <a mat-tab-link *ngFor="let tab of reviewerMenuTabs" [routerLink]="tab.link" routerLinkActive
+          #rla="routerLinkActive" [active]="rla.isActive">
+          <mat-icon>{{tab.icon}}</mat-icon>
+          <span>{{tab.title}}</span>
+        </a>
+      </ng-container>
 
       <a mat-tab-link (click)="auth.logout()" routerLink="/login" id="logout">
         <mat-icon class="material-icon">power_settings_new</mat-icon>

@@ -13,11 +13,11 @@
         <div class="formLayout">
 
           <div class="example-container">
-            <mat-form-field class="example-full-width">
+            <mat-form-field *ngIf="auth.isLoggedIn && auth.getUser().isAdmin()" class="example-full-width">
               <!--suppress HtmlUnknownAttribute -->
               <mat-select placeholder="Language" required [(value)]="selectedLanguage">
                 <mat-option *ngFor="let language of languages" [value]="language">
-                  {{ printLanguage(language) }}
+                  {{ language.printLanguage() }}
                 </mat-option>
                 <mat-option (click)="openNewLanguageDialog()">
                   {{'Add new language'}}
