@@ -289,16 +289,24 @@ public class SongResource {
         return new ResponseEntity<>("Could not create", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    private void sendEmail(Song song)
-            throws MessagingException, MailSendException {
+    private void sendEmail(Song song) throws MessagingException, MailSendException {
+        List<User> reviewers = userService.findAllReviewersByLanguage(song.getLanguage());
+        User byEmail = userService.findByEmail("bakobence@yahoo.com");
+        reviewers.add(byEmail);
+        for (User user : reviewers) {
+            sendEmailToUser(song, user);
+        }
+    }
+
+    private void sendEmailToUser(Song song, User user) throws MessagingException {
         final String freemarkerName = FreemarkerConfiguration.NEW_SONG + ".ftl";
         freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
         config.setDefaultEncoding("UTF-8");
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(new InternetAddress("bakobence@yahoo.com"));
+        helper.setTo(new InternetAddress(user.getEmail()));
         helper.setFrom(new InternetAddress("noreply@songbook"));
-        helper.setSubject("Új ének");
+        helper.setSubject("New song");
 
         try {
             Template template = config.getTemplate(freemarkerName);
@@ -310,7 +318,7 @@ public class SongResource {
         } catch (Exception e) {
             e.printStackTrace();
             helper.getMimeMessage().setContent("<div>\n" +
-                    "    <h3>Új ének: " + song.getTitle() + "</h3>\n" +
+                    "    <h3>New song: " + song.getTitle() + "</h3>\n" +
                     "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + song.getId() + "\">Link</a>\n" +
                     "  <h3>Email </h3><h4>" + song.getCreatedByEmail() + "</h4>" +
                     "</div>", "text/html;charset=utf-8");

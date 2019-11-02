@@ -29,7 +29,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.csrf().disable().authorizeRequests().antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/reviewer/**").hasRole("REVIEWER")
-                .antMatchers("/user/**").hasAnyRole("USER", "ADMIN").and().formLogin().loginPage("/#/login")
+                .antMatchers("/user/**").hasAnyRole("USER", "ADMIN", "REVIEWER").and().formLogin().loginPage("/#/login")
                 .loginProcessingUrl("/login").defaultSuccessUrl("/#/register", true).permitAll();
     }
 
