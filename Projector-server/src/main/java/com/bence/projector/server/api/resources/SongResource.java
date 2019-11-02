@@ -225,6 +225,28 @@ public class SongResource {
         return songAssembler.createDto(song);
     }
 
+    @RequestMapping(method = RequestMethod.DELETE, value = "/reviewer/api/song/erase/{songId}")
+    public ResponseEntity<Object> eraseSongByReviewer(Principal principal, @PathVariable final String songId, HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        if (principal != null) {
+            String email = principal.getName();
+            User user = userService.findByEmail(email);
+            if (user != null) {
+                Song song = songService.findOne(songId);
+                if (song != null && songInReviewLanguages(user, song)) {
+                    song.setReviewerErased(true);
+                    song.setModifiedDate(new Date());
+                    song.setLastModifiedBy(user);
+                    final Song savedSong = songService.save(song);
+                    if (savedSong != null) {
+                        return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
+                    }
+                }
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
+    }
+
     @RequestMapping(method = RequestMethod.DELETE, value = "/admin/api/song/publish/{songId}")
     public SongDTO publishSong(@PathVariable final String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
@@ -445,6 +467,7 @@ public class SongResource {
             song = songAssembler.createModel(songDTO);
         }
         song.setLastModifiedBy(user);
+        song.setReviewerErased(null);
         final Song savedSong = songService.save(song);
         if (savedSong != null) {
             return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);

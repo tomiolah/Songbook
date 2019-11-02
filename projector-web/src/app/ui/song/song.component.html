@@ -78,6 +78,9 @@
       <button *ngIf="!song.deleted" mat-button (click)="deleteSong()">
         Delete
       </button>
+      <button *ngIf="song.deleted == auth.getUser().hasReviewerRoleForSong(song)" mat-button (click)="eraseSong()">
+        Erase
+      </button>
       <br>
       <button mat-button (click)="editSong()">
         Edit

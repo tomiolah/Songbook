@@ -138,8 +138,8 @@ export class SongService {
     return this.api.deleteById(role + '/api/song/delete/', songId);
   }
 
-  eraseById(songId) {
-    return this.api.deleteById('admin/api/song/erase/', songId);
+  eraseById(role: string, songId) {
+    return this.api.deleteById(role + '/api/song/erase/', songId);
   }
 
   updateSong(role: string, song: Song) {

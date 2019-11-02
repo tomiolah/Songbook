@@ -271,7 +271,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     public List<Song> findAllInReviewByLanguage(Language language) {
         List<Song> inReviewByLanguage = new LinkedList<>();
         for (Song song : getAllServiceSongs(language.getSongs())) {
-            if (song.isUploaded() && song.isDeleted()) {
+            if (song.isUploaded() && song.isDeleted() && !song.isReviewerErased()) {
                 inReviewByLanguage.add(song);
             }
         }

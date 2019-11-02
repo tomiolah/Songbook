@@ -34,6 +34,7 @@ public class Song extends BaseEntity {
     @DBRef
     private Song backUp;
     private Boolean isBackUp;
+    private Boolean reviewerErased;
 
     public Song() {
     }
@@ -94,7 +95,7 @@ public class Song extends BaseEntity {
     }
 
     public boolean isDeleted() {
-        return deleted || isBackUp();
+        return deleted || isBackUp() || isReviewerErased();
     }
 
     public void setDeleted(boolean deleted) {
@@ -241,9 +242,6 @@ public class Song extends BaseEntity {
     public Song getBackUp() {
         return backUp;
     }
-    public void setBackUp(Song backUp) {
-        this.backUp = backUp;
-    }
 
     public void setIsBackUp(Boolean isBackUp) {
         this.isBackUp = isBackUp;
@@ -251,5 +249,17 @@ public class Song extends BaseEntity {
 
     public boolean isBackUp() {
         return isBackUp != null && isBackUp;
+    }
+
+    public void setBackUp(Song backUp) {
+        this.backUp = backUp;
+    }
+
+    public boolean isReviewerErased() {
+        return reviewerErased != null && reviewerErased;
+    }
+
+    public void setReviewerErased(Boolean reviewerErased) {
+        this.reviewerErased = reviewerErased;
     }
 }
