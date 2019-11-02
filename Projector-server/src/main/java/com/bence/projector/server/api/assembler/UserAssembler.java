@@ -38,7 +38,11 @@ public class UserAssembler implements GeneralAssembler<User, UserDTO> {
         userDTO.setFirstName(user.getFirstName());
         userDTO.setActivated(user.isActivated());
         List<LanguageDTO> languageDTOS = languageAssembler.createDtoList(user.getReviewLanguages());
+        if (languageDTOS == null) {
+            languageDTOS = new ArrayList<>(0);
+        }
         userDTO.setReviewLanguages(languageDTOS);
+        userDTO.setModifiedDate(user.getModifiedDate());
         return userDTO;
     }
 

@@ -64,6 +64,9 @@ export class Song extends BaseModel {
   verseOrder: string;
   author: string;
   verseOrderList: number[];
+  createdByEmail: string;
+  backUpSongId: string;
+  lastModifiedByUserEmail: string;
 
   constructor(values: Object = {}) {
     super(values);

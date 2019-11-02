@@ -3,6 +3,7 @@ package com.bence.projector.server.api.assembler;
 import com.bence.projector.common.dto.SongDTO;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
+import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.service.LanguageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -86,6 +87,10 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             songDTO.setBackUpSongId(backUp.getId());
         } else {
             songDTO.setBackUpSongId(null);
+        }
+        User lastModifiedBy = song.getLastModifiedBy();
+        if (lastModifiedBy != null) {
+            songDTO.setLastModifiedByUserEmail(lastModifiedBy.getEmail());
         }
         return songDTO;
     }

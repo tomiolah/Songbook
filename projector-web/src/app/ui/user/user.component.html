@@ -50,8 +50,7 @@
                             <mat-icon matChipRemove style="margin-left: 0px; margin-right: 8px"
                                 (click)="removeLanguage(language)">cancel</mat-icon>
                         </mat-chip>
-                        <mat-select *ngIf="(remainedLanguages.length > 0)" placeholder="Language"
-                            [(value)]="selectedLanguage">
+                        <mat-select *ngIf="(remainedLanguages.length > 0)" placeholder="Language">
                             <br>
                             <mat-option (click)="selectLanguage(language)" *ngFor="let language of remainedLanguages"
                                 [value]="language">

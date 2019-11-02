@@ -72,4 +72,8 @@ public class UserDTO extends BaseDTO {
     public void setReviewLanguages(List<LanguageDTO> reviewLanguages) {
         this.reviewLanguages = reviewLanguages;
     }
+
+    public boolean isActivated() {
+        return activated;
+    }
 }

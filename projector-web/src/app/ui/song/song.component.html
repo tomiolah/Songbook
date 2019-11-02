@@ -32,21 +32,9 @@
   <div *ngIf="auth.isLoggedIn && auth.getUser() != undefined">
     <div *ngIf="auth.getUser().isAdmin()">
       <br>
-      <table>
-        <tr *ngIf="song.views>0">
-          <td>Views:&nbsp;</td>
-          <td>{{song.views}}</td>
-        </tr>
-        <tr *ngIf="song.favourites>0">
-          <td>Favourites:&nbsp;</td>
-          <td>{{song.favourites}}</td>
-        </tr>
-        <tr *ngIf="song.author">
-          <td>Author:&nbsp;</td>
-          <td>{{song.author}}</td>
-        </tr>
-      </table>
-      <br>
+      <div *ngIf="song.backUpSongId!==undefined">
+        <a href="/#/song/{{song.backUpSongId}}" target="_blank">{{'Open backup song'}}</a>
+      </div>
       <div *ngIf="song.originalId!==undefined">
         <h4>Uploaded modified song:</h4>
         <div *ngIf="secondSong!==null">
@@ -75,10 +63,42 @@
       </button>
     </div>
     <div *ngIf="auth.getUser().isAdmin() || auth.getUser().hasReviewerRoleForSong(song)">
+      <br>
+      <table>
+        <tr *ngIf="song.views>0">
+          <td>Views:&nbsp;</td>
+          <td>{{song.views}}</td>
+        </tr>
+        <tr *ngIf="song.favourites > 0 && auth.getUser().isAdmin()">
+          <td>Favourites:&nbsp;</td>
+          <td>{{song.favourites}}</td>
+        </tr>
+        <tr *ngIf="song.createdByEmail != undefined">
+          <td>Created by email:&nbsp;</td>
+          <td>{{song.createdByEmail}}</td>
+        </tr>
+        <tr *ngIf="song.author">
+          <td>Author:&nbsp;</td>
+          <td>{{song.author}}</td>
+        </tr>
+        <tr *ngIf="song.createdDate">
+          <td>Created date:&nbsp;</td>
+          <td>{{song.createdDate | date: 'yyyy/MM/dd hh:mm'}}</td>
+        </tr>
+        <tr *ngIf="song.modifiedDate">
+          <td>Modified date:&nbsp;</td>
+          <td>{{song.modifiedDate | date: 'yyyy/MM/dd hh:mm'}}</td>
+        </tr>
+        <tr *ngIf="song.lastModifiedByUserEmail && auth.getUser().isAdmin()">
+          <td>Last modified by user email:&nbsp;</td>
+          <td>{{song.lastModifiedByUserEmail}}</td>
+        </tr>
+      </table>
+      <br>
       <button *ngIf="!song.deleted" mat-button (click)="deleteSong()">
         Delete
       </button>
-      <button *ngIf="song.deleted == auth.getUser().hasReviewerRoleForSong(song)" mat-button (click)="eraseSong()">
+      <button *ngIf="song.deleted && auth.getUser().hasReviewerRoleForSong(song)" mat-button (click)="eraseSong()">
         Erase
       </button>
       <br>
@@ -100,7 +120,7 @@
             </mat-nav-list>
             <div *ngIf="secondSong!==null">
               <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
-              <button mat-button (click)="acceptChanges()">
+              <button *ngIf="auth.getUser().isAdmin()" mat-button (click)="acceptChanges()">
                 Put changes into similar!
               </button>
             </div>

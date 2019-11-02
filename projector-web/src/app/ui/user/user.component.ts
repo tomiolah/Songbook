@@ -24,7 +24,6 @@ export class UserComponent implements OnInit, OnDestroy {
   public safeUrl: SafeResourceUrl = null;
   private sub: Subscription;
   roles: Role[] = [];
-  selectedLanguage: Language;
   remainedLanguages: Language[] = [];
   allLanguages: Language[] = [];
 
@@ -43,7 +42,6 @@ export class UserComponent implements OnInit, OnDestroy {
     languageService.getAll().subscribe(
       (languages) => {
         this.allLanguages = languages;
-        this.selectedLanguage = null;
         this.setOriginalUser(this.user);
       }
     );
@@ -86,11 +84,13 @@ export class UserComponent implements OnInit, OnDestroy {
     this.originalUser = new User(user);
     this.originalUser.reviewLanguages = [];
     this.remainedLanguages = this.allLanguages;
-    for (let language of user.reviewLanguages) {
-      this.originalUser.reviewLanguages.push(language);
-      const index = this.getIndexFromLanguages(this.remainedLanguages, language);
-      if (index > -1) {
-        this.remainedLanguages.splice(index, 1);
+    if (user.reviewLanguages != undefined) {
+      for (let language of user.reviewLanguages) {
+        this.originalUser.reviewLanguages.push(language);
+        const index = this.getIndexFromLanguages(this.remainedLanguages, language);
+        if (index > -1) {
+          this.remainedLanguages.splice(index, 1);
+        }
       }
     }
   }
@@ -150,6 +150,12 @@ export class UserComponent implements OnInit, OnDestroy {
   }
 
   reviewLanguagesDiffers() {
+    if (this.originalUser.reviewLanguages == undefined && this.user.reviewLanguages != undefined) {
+      return true;
+    }
+    if (this.originalUser.reviewLanguages == undefined || this.user.reviewLanguages == undefined) {
+      return false;
+    }
     if (this.originalUser.reviewLanguages.length != this.user.reviewLanguages.length) {
       return true;
     }
