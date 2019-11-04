@@ -242,21 +242,19 @@ export class SongListComponent implements OnInit {
             }
             lang.songTitles = this.songTitles;
           } else {
+            let modifiedSongs = [];
             for (const song of songTitles) {
               if (song.deleted) {
                 this.removeSong(song, lang.songTitles);
-                const index = songTitles.indexOf(song, 0);
-                if (index > -1) {
-                  songTitles.splice(index, 1);
-                }
               } else {
                 const index = this.containsInLocalStorage(song, lang.songTitles);
                 if (index > -1) {
                   lang.songTitles.splice(index, 1);
                 }
+                modifiedSongs.push(song);
               }
             }
-            this.songTitles = lang.songTitles.concat(songTitles);
+            this.songTitles = lang.songTitles.concat(modifiedSongs);
             lang.songTitles = this.songTitles;
           }
           localStorage.setItem(this.languagesKey, JSON.stringify(languages));

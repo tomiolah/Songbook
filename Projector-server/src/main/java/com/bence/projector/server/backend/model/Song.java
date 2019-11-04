@@ -36,7 +36,10 @@ public class Song extends BaseEntity {
     private Song backUp;
     private Boolean isBackUp;
     private Boolean reviewerErased;
+    @Transient
     private List<Language> previousLanguages;
+    @Transient
+    private String beforeId;
 
     public Song() {
     }
@@ -275,4 +278,11 @@ public class Song extends BaseEntity {
         return previousLanguages;
     }
 
+    public void setBeforeId(String beforeId) {
+        this.beforeId = beforeId;
+    }
+
+    public String getBeforeId() {
+        return beforeId;
+    }
 }
