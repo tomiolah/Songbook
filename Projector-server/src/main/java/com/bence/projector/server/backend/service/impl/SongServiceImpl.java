@@ -414,9 +414,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     private void addSongs(List<Song> songs, Date lastModifiedDate, List<Song> returningSongs) {
+        long lastModifiedDateTime = lastModifiedDate.getTime();
         for (Song song : songs) {
             try {
-                if ((!song.isDeleted() || song.getCreatedDate().compareTo(lastModifiedDate) < 0) && song.getModifiedDate().getTime() > lastModifiedDate.getTime()) {
+                if ((!song.isDeleted() || song.getCreatedDate().compareTo(lastModifiedDate) < 0) && song.getModifiedDate().getTime() > lastModifiedDateTime) {
                     returningSongs.add(song);
                 }
             } catch (NullPointerException e) {
@@ -463,27 +464,23 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             throw new ServiceException("No language", HttpStatus.PRECONDITION_FAILED);
         }
         Language language = languageService.findOne(song.getLanguage().getId());
-        if (song.getId() != null) {
-            Song oneWithLanguage = findOne(song.getId());
-            Language oldLanguage = oneWithLanguage.getLanguage();
-            if (oldLanguage != null && !oldLanguage.equals(language)) {
-                removeSongFromLanguage(song, oldLanguage);
+        List<Language> previousLanguages = song.getPreviousLanguages();
+        for (Language previousLanguage : previousLanguages) {
+            removeSongFromLanguage(song, previousLanguage);
+        }
+        previousLanguages.clear();
+        boolean was = false;
+        for (Song song1 : language.getSongs()) {
+            if (song1.getId().equals(song.getId())) {
+                was = true;
+                break;
             }
+        }
+        if (!was) {
+            language.getSongs().add(song);
+            languageService.save(language);
         }
         songRepository.save(song);
-        if (languageService.findLanguageBySongsContaining(song) == null) {
-            boolean was = false;
-            for (Song song1 : language.getSongs()) {
-                if (song1.getId().equals(song.getId())) {
-                    was = true;
-                    break;
-                }
-            }
-            if (!was) {
-                language.getSongs().add(song);
-                languageService.save(language);
-            }
-        }
         return song;
     }
 
@@ -496,8 +493,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
                 break;
             }
         }
-        oldLanguage.getSongs().remove(songToRemove);
-        languageService.save(oldLanguage);
+        if (songToRemove != null) {
+            oldLanguage.getSongs().remove(songToRemove);
+            languageService.save(oldLanguage);
+        }
     }
 
     @Override
