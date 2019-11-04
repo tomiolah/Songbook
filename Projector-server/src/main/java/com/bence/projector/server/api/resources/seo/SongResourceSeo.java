@@ -105,7 +105,7 @@ public class SongResourceSeo {
         if (songs == null) {
             songs = songService.findAll();
             for (Song song : songs) {
-                song.setId("../song/" + song.getId());
+                song.setBeforeId("../song/");
             }
         }
         return songs;
