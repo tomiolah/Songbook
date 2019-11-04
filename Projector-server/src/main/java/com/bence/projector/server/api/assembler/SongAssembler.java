@@ -124,7 +124,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         final List<SongVerse> songVerses = songVerseAssembler.createModelList(songDTO.getSongVerseDTOS());
         song.setVerses(songVerses);
         song.setDeleted(songDTO.isDeleted());
-        if (!songDTO.isDeleted() && songDTO.getLanguageDTO() != null) {
+        if (songDTO.getLanguageDTO() != null) {
             song.setLanguage(languageService.findOne(songDTO.getLanguageDTO().getUuid()));
         }
         song.setCreatedByEmail(songDTO.getCreatedByEmail());

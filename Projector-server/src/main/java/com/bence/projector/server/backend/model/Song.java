@@ -3,6 +3,7 @@ package com.bence.projector.server.backend.model;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class Song extends BaseEntity {
     private Song backUp;
     private Boolean isBackUp;
     private Boolean reviewerErased;
+    private List<Language> previousLanguages;
 
     public Song() {
     }
@@ -107,6 +109,9 @@ public class Song extends BaseEntity {
     }
 
     public void setLanguage(Language language) {
+        if (this.language != null && (language == null || !this.language.getId().equals(language.getId()))) {
+            getPreviousLanguages().add(this.language);
+        }
         this.language = language;
     }
 
@@ -262,4 +267,12 @@ public class Song extends BaseEntity {
     public void setReviewerErased(Boolean reviewerErased) {
         this.reviewerErased = reviewerErased;
     }
+
+    public List<Language> getPreviousLanguages() {
+        if (previousLanguages == null) {
+            previousLanguages = new ArrayList<>();
+        }
+        return previousLanguages;
+    }
+
 }
