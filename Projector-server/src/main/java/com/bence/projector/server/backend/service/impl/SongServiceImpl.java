@@ -289,12 +289,12 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         HashMap<String, Song> songsHashMap = getSongsHashMap();
         if (songsHashMap.isEmpty()) {
             for (Song song : songRepository.findAll()) {
-                putInMapAndCheckLastModifedDate(song);
+                putInMapAndCheckLastModifiedDate(song);
             }
         } else {
             for (Song song : songRepository.findAllByModifiedDateGreaterThan(new Date(lastModifiedDateTime))) {
                 if (!songsHashMap.containsKey(song.getId())) {
-                    putInMapAndCheckLastModifedDate(song);
+                    putInMapAndCheckLastModifiedDate(song);
                 } else {
                     songsHashMap.replace(song.getId(), song);
                     checkLastModifiedDate(song);
@@ -315,7 +315,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         }
     }
 
-    private void putInMapAndCheckLastModifedDate(Song song) {
+    private void putInMapAndCheckLastModifiedDate(Song song) {
         getSongsHashMap().put(song.getId(), song);
         checkLastModifiedDate(song);
     }
@@ -476,11 +476,11 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
                 break;
             }
         }
+        songRepository.save(song);
         if (!was) {
             language.getSongs().add(song);
             languageService.save(language);
         }
-        songRepository.save(song);
         return song;
     }
 
