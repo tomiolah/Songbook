@@ -56,7 +56,7 @@ public class NewSongController {
     @FXML
     private CheckBox uploadCheckBox;
     @FXML
-    private ComboBox<Language> languageComboBox;
+    private ComboBox<Language> languageComboBoxForNewSong;
     @FXML
     private ToggleButton secondTextToggleButton;
     @FXML
@@ -123,7 +123,7 @@ public class NewSongController {
         });
         LanguageService languageService = ServiceManager.getLanguageService();
         languages = languageService.findAll();
-        languageComboBox.getItems().addAll(languages);
+        languageComboBoxForNewSong.getItems().addAll(languages);
         textAreas.getChildren().clear();
         verseControllers.clear();
     }
@@ -244,7 +244,7 @@ public class NewSongController {
     }
 
     private boolean saveSong() {
-        Language selectedLanguage = languageComboBox.getSelectionModel().getSelectedItem();
+        Language selectedLanguage = languageComboBoxForNewSong.getSelectionModel().getSelectedItem();
         if (selectedLanguage == null) {
             Alert alert = new Alert(AlertType.WARNING);
             alert.setTitle("Warning");
@@ -347,7 +347,7 @@ public class NewSongController {
         if (language != null) {
             for (Language language1 : languages) {
                 if (language1.getId().equals(language.getId())) {
-                    languageComboBox.getSelectionModel().select(language1);
+                    languageComboBoxForNewSong.getSelectionModel().select(language1);
                     break;
                 }
             }
