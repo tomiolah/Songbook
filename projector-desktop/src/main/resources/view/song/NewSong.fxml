@@ -28,7 +28,7 @@
                     </Label>
                 </left>
                 <center>
-                    <ComboBox fx:id="languageComboBox" prefHeight="31.0" BorderPane.alignment="CENTER">
+                    <ComboBox fx:id="languageComboBoxForNewSong" prefHeight="31.0" BorderPane.alignment="CENTER">
                         <BorderPane.margin>
                             <Insets top="4.0"/>
                         </BorderPane.margin>
