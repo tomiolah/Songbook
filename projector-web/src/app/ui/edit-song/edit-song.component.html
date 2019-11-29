@@ -48,6 +48,9 @@
                     color="primary" [value]="getSectionName(chip, verse, i)" [selectable]="true">
                     {{getSectionName(chip, verse, i)}}
                   </mat-chip>
+                  <button type="button" mat-icon-button (click)="removeSection(i)" matTooltip="Remove section">
+                    <mat-icon>clear</mat-icon>
+                  </button>
                 </mat-chip-list>
                 <mat-form-field class="example-full-width">
                   <textarea matInput matTextareaAutosize placeholder="Section {{i+1}}." [matAutosizeMinRows]="2"
@@ -64,7 +67,8 @@
               <br>
               <div cdkDropListGroup>
                 <mat-chip-list [multiple]="true" cdkDropList [cdkDropListData]="usedSectionTypes"
-                  cdkDropListSortingDisabled (cdkDropListDropped)="drop($event)" [cdkDropListEnterPredicate]="noReturnPredicate">>
+                  cdkDropListSortingDisabled (cdkDropListDropped)="drop($event)"
+                  [cdkDropListEnterPredicate]="noReturnPredicate">>
                   <mat-chip *ngFor="let chip of usedSectionTypes; let j=index" selected="true" color="primary"
                     matTooltip="{{chip.text}}" matTooltipPosition="above" [value]="chip.name" [selectable]="true"
                     cdkDrag>
@@ -83,7 +87,8 @@
                   <mat-chip class="sectionOrder" *ngFor="let chip of sectionOrder; let j=index" selected="true"
                     color="primary" matTooltip="{{chip.text}}" matTooltipPosition="right" [removable]="true"
                     [value]="chip.name" [selectable]="true" cdkDrag>
-                    <mat-icon matChipRemove style="margin-left: 0px; margin-right: 8px" (click)="removeSectionOrder(j)">cancel</mat-icon>
+                    <mat-icon matChipRemove style="margin-left: 0px; margin-right: 8px" (click)="removeSectionOrder(j)">
+                      cancel</mat-icon>
                     {{chip.name}}
                   </mat-chip>
                 </mat-chip-list>
