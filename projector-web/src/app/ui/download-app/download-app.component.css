@@ -1,5 +1,12 @@
-#badge {
-  width: 100%;
-  max-width: 20em;
+#badge, #appleBadge {
+  max-width: 100%;
   height: auto;
+}
+
+#badge {
+  width: 200px;
+}
+
+#appleBadge {
+  width: 170px;
 }

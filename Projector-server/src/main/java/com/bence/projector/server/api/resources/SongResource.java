@@ -292,7 +292,16 @@ public class SongResource {
     private void sendEmail(Song song) throws MessagingException, MailSendException {
         List<User> reviewers = userService.findAllReviewersByLanguage(song.getLanguage());
         User byEmail = userService.findByEmail("bakobence@yahoo.com");
-        reviewers.add(byEmail);
+        boolean was = false;
+        for (User user : reviewers) {
+            if (user.getEmail().equals(byEmail.getEmail())) {
+                was = true;
+                break;
+            }
+        }
+        if (!was) {
+            reviewers.add(byEmail);
+        }
         for (User user : reviewers) {
             sendEmailToUser(song, user);
         }

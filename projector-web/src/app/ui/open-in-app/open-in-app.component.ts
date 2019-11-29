@@ -1,5 +1,8 @@
-import {Component, OnInit} from '@angular/core';
-import {MatDialogRef} from "@angular/material";
+import { Component, OnInit } from '@angular/core';
+import { MatDialogRef } from "@angular/material";
+import { Inject } from '@angular/core';
+import { MAT_DIALOG_DATA } from "@angular/material";
+import { MobileOsTypeEnum } from '../../util/enums';
 
 @Component({
   selector: 'app-open-in-app',
@@ -8,7 +11,16 @@ import {MatDialogRef} from "@angular/material";
 })
 export class OpenInAppComponent implements OnInit {
 
+  public link = '';
+
   constructor(private dialogRef: MatDialogRef<OpenInAppComponent>) {
+    let mobileOsTypeString: string = localStorage.getItem("mobileOsType")
+    let mobileOsType = MobileOsTypeEnum[mobileOsTypeString];
+    if (mobileOsType == MobileOsTypeEnum.Android) {
+      this.link = 'https://play.google.com/store/apps/details?id=com.bence.songbook&launch=true';
+    } else if (mobileOsType == MobileOsTypeEnum.Ios) {
+      this.link = 'https://apps.apple.com/us/app/songbook-christian/id1489053683?mt=8';
+    }
   }
 
   ngOnInit() {
