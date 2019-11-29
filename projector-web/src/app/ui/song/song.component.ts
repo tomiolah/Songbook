@@ -9,6 +9,7 @@ import { ShareComponent } from "../share/share.component";
 import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { OpenInAppComponent } from "../open-in-app/open-in-app.component";
 import { AddToCollectionComponent } from "../add-to-collection/add-to-collection.component";
+import { MobileOsTypeEnum } from "../../util/enums";
 
 @Component({
   selector: 'app-song',
@@ -32,6 +33,7 @@ export class SongComponent implements OnInit, OnDestroy {
   private sub: Subscription;
   eraseSongType = 1;
   mergeVersionGroupType = 2;
+  public isIos = false;
 
   constructor(private activatedRoute: ActivatedRoute,
     private songService: SongService,
@@ -109,8 +111,11 @@ export class SongComponent implements OnInit, OnDestroy {
             });
           }
           this.isAndroid = /(android)/i.test(navigator.userAgent);
+          this.isIos = /iPad|iPhone|iPod/i.test(navigator.userAgent);
           if (this.isAndroid) {
-            this.showOpenInAppDialog();
+            this.showOpenInAppDialog(MobileOsTypeEnum.Android);
+          } else if (this.isIos) {
+            this.showOpenInAppDialog(MobileOsTypeEnum.Ios);
           }
           this.loadVersionGroup();
           const user = this.auth.getUser();
@@ -273,10 +278,11 @@ export class SongComponent implements OnInit, OnDestroy {
     });
   }
 
-  showOpenInAppDialog(): void {
+  showOpenInAppDialog(mobileOsType: MobileOsTypeEnum): void {
     if (localStorage.getItem("OpenInAppComponent_dontShow") != undefined) {
       return;
     }
+    localStorage.setItem("mobileOsType", MobileOsTypeEnum[mobileOsType]);
     const config = {
       data: {
         uuid: this.song.uuid,
