@@ -1,5 +1,6 @@
 package projector.controller;
 
+import javafx.application.Platform;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TabPane;
 import javafx.scene.text.TextFlow;
@@ -9,24 +10,25 @@ import org.junit.Test;
 import projector.BaseTest;
 
 import static org.loadui.testfx.GuiTest.find;
+import static projector.application.MainTest.createABible;
 
 public class BibleSearchControllerTest extends BaseTest {
 
+    private void openTab(int index) {
+        final TabPane tabPane = find("#tabPane");
+        Platform.runLater(() -> tabPane.getSelectionModel().select(index));
+        sleep(1000);
+    }
+
     @Before
     public void setUp() {
-        final TabPane tabPane = find("#tabPane");
-        tabPane.getSelectionModel().select(1);
+        createABible();
+        openTab(1);
     }
 
     @Test
     public void should_click_to_all() {
-        searchShouldFind("szeret");
-        searchShouldFind("anyasze");
-//        verifyThat("#searchListView", (ListView<TextFlow> searchListView) -> {
-//            String text = searchListView.getItems().get(0).getAccessibleText();
-//        return searchListView.getItems().size() > 0;
-//            return text.contains("a");
-//        });
+        searchShouldFind("verse");
     }
 
     private void searchShouldFind(String searchText) {
