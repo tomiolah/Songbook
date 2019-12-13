@@ -1,9 +1,13 @@
 package com.bence.projector.server.backend.model;
 
+import org.springframework.data.annotation.Transient;
+
 public class SongCollectionElement {
 
     private String ordinalNumber;
     private String songUuid;
+    @Transient
+    private Song song;
 
     public String getOrdinalNumber() {
         return ordinalNumber;
@@ -19,6 +23,9 @@ public class SongCollectionElement {
     }
 
     public String getSongUuid() {
+        if (songUuid == null && song != null) {
+            return song.getId();
+        }
         return songUuid;
     }
 
@@ -34,5 +41,9 @@ public class SongCollectionElement {
             return false;
         }
         return songUuid.equals(songCollectionElement.songUuid);
+    }
+
+    public void setSong(Song song) {
+        this.song = song;
     }
 }

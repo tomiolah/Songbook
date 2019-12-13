@@ -202,8 +202,15 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         int size = wordHashMap.keySet().size();
         HashMap<String, Boolean> hashMap = new HashMap<>(size);
         for (Song databaseSong : all) {
-            //noinspection PointlessNullCheck
-            if ((songId != null && databaseSong.getId().equals(songId)) || (databaseSong.isDeleted() && !checkDeleted)) {
+            try {
+                //noinspection PointlessNullCheck
+                if ((songId != null && databaseSong.getId().equals(songId)) || (databaseSong.isDeleted() && !checkDeleted)) {
+                    continue;
+                }
+            } catch (NullPointerException e) {
+                if (databaseSong != null) {
+                    System.out.println(databaseSong.getTitle());
+                }
                 continue;
             }
             String secondText = getText(databaseSong);
