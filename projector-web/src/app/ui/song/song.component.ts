@@ -10,6 +10,8 @@ import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { OpenInAppComponent } from "../open-in-app/open-in-app.component";
 import { AddToCollectionComponent } from "../add-to-collection/add-to-collection.component";
 import { MobileOsTypeEnum } from "../../util/enums";
+import { SongCollection, SongCollectionElement } from '../../models/songCollection';
+import { SongCollectionDataService } from '../../services/song-collection-data.service';
 
 @Component({
   selector: 'app-song',
@@ -33,7 +35,9 @@ export class SongComponent implements OnInit, OnDestroy {
   private sub: Subscription;
   eraseSongType = 1;
   mergeVersionGroupType = 2;
+  copyToSongCollectionType = 3;
   public isIos = false;
+  collections: SongCollection[] = [];
 
   constructor(private activatedRoute: ActivatedRoute,
     private songService: SongService,
@@ -42,6 +46,7 @@ export class SongComponent implements OnInit, OnDestroy {
     private titleService: Title,
     private snackBar: MatSnackBar,
     private router: Router,
+    private songCollectionService: SongCollectionDataService,
     public sanitizer: DomSanitizer) {
     auth.getUserFromLocalStorage();
     this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
@@ -122,6 +127,11 @@ export class SongComponent implements OnInit, OnDestroy {
           if (this.auth.isLoggedIn && user != undefined && (user.hasReviewerRoleForSong(this.song) || user.isAdmin())) {
             this.showSimilar();
           }
+          this.songCollectionService.getAllBySongId(songId).subscribe(
+            (songCollections) => {
+              this.collections = songCollections
+            }
+          );
         });
       }
     });
@@ -218,6 +228,34 @@ export class SongComponent implements OnInit, OnDestroy {
         console.log(err);
       }
     );
+  }
+
+  copySongCollectionElementsToSimilar() {
+    for (const collection of this.collections) {
+      for (const collectionElement of collection.songCollectionElements) {
+        let songCollectionElement = new SongCollectionElement();
+        songCollectionElement.ordinalNumber = collectionElement.ordinalNumber;
+        songCollectionElement.songUuid = this.secondSong.uuid;
+        this.updateSongCollectionElement(collection, songCollectionElement);
+      }
+    }
+  }
+
+  private updateSongCollectionElement(selectedSongCollection: SongCollection, songCollectionElement: SongCollectionElement) {
+    this.songCollectionService.putInCollection(selectedSongCollection, songCollectionElement).subscribe(() => {
+      this.snackBar.open(selectedSongCollection.name + " " + songCollectionElement.ordinalNumber + " copied.", 'Close', {
+        duration: 2000
+      })
+    }, (err) => {
+      if (err.status === 405) {
+        this.openAuthenticateDialog(this.copyToSongCollectionType);
+      } else {
+        this.snackBar.open(err._body, 'Close', {
+          duration: 2000
+        })
+        console.log(err);
+      }
+    });
   }
 
   markForVersionGroup() {
@@ -344,6 +382,8 @@ export class SongComponent implements OnInit, OnDestroy {
           this.mergeVersionGroup();
         } else if (type == this.eraseSongType) {
           this.eraseSong();
+        } else if (type == this.copyToSongCollectionType) {
+          this.copySongCollectionElementsToSimilar();
         }
       }
     });
