@@ -1,7 +1,20 @@
 <div class="container">
   <br>
   <mat-card>
-    <h3 class="title">{{song.title}}</h3>
+    <div class="title">
+      <h3 class="title">{{song.title}}
+      </h3>
+      <div
+        *ngIf="auth.isLoggedIn && auth.getUser() != undefined && (auth.getUser().isAdmin() || auth.getUser().hasReviewerRoleForSong(song))">
+        <div *ngIf="collections != undefined">
+          <div *ngFor="let collection of collections">
+            <p *ngFor="let collectionElement of collection.songCollectionElements">
+              {{collection.name + " " + collectionElement.ordinalNumber}}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
     <mat-card-content>
       <mat-card *ngFor="let songVerse of song.songVerseDTOS"
         [ngClass]="songVerse.chorus?['chorus','mat-elevation-z5']:'mat-elevation-z1'">
@@ -122,6 +135,10 @@
               <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
               <button *ngIf="auth.getUser().isAdmin()" mat-button (click)="acceptChanges()">
                 Put changes into similar!
+              </button>
+              <button *ngIf="auth.getUser().isAdmin() && collections != undefined && collections.length > 0" mat-button
+                (click)="copySongCollectionElementsToSimilar()">
+                Copy song collection elements to similar!
               </button>
             </div>
           </div>

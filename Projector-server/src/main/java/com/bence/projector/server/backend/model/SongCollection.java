@@ -17,6 +17,21 @@ public class SongCollection extends BaseEntity {
     private Boolean deleted;
     private Boolean uploaded;
 
+    public SongCollection() {
+    }
+
+    public SongCollection(SongCollection songCollection) {
+        super(songCollection);
+        this.createdDate = songCollection.createdDate;
+        this.modifiedDate = songCollection.modifiedDate;
+        this.name = songCollection.name;
+        this.language = songCollection.language;
+        this.originalId = songCollection.originalId;
+        this.deleted = songCollection.deleted;
+        this.uploaded = songCollection.uploaded;
+        this.songCollectionElements = songCollection.songCollectionElements;
+    }
+
     public List<SongCollectionElement> getSongCollectionElements() {
         if (songCollectionElements == null) {
             songCollectionElements = new ArrayList<>();

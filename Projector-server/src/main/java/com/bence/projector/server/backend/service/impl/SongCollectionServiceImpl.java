@@ -1,5 +1,6 @@
 package com.bence.projector.server.backend.service.impl;
 
+import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongCollection;
 import com.bence.projector.server.backend.model.SongCollectionElement;
 import com.bence.projector.server.backend.repository.SongCollectionRepository;
@@ -42,6 +43,11 @@ public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> i
             }
         }
         return true;
+    }
+
+    @Override
+    public List<SongCollection> findAllBySong(Song song) {
+        return songCollectionRepository.findAllBySongCollectionElements_SongUuid(song.getId());
     }
 
     @Override

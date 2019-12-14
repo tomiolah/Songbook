@@ -7,6 +7,7 @@ export class SongCollection extends BaseModel {
   uuid: '';
   languageUuid: '';
   name: '';
+  songCollectionElements: SongCollectionElement[];
 
   constructor(values: Object = {}) {
     super(values);
@@ -18,6 +19,7 @@ export class SongCollectionElement extends BaseModel {
 
   ordinalNumber: '';
   songUuid: '';
+  songCollection: SongCollection;
 
   constructor(values: Object = {}) {
     super(values);
