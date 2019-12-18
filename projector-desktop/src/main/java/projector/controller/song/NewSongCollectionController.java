@@ -111,7 +111,7 @@ public class NewSongCollectionController {
         notUsedRadioButton.setOnAction(event -> {
             allSongsListViewItems.clear();
             for (Song song : allSongs) {
-                if (!currentListViewItems.contains(song) && song.getSongCollection() == null) {
+                if (!currentListViewItems.contains(song) && song.getSongCollections().size() == 0) {
                     allSongsListViewItems.add(song);
                 }
             }
@@ -119,7 +119,7 @@ public class NewSongCollectionController {
         usedRadioButton.setOnAction(event -> {
             allSongsListViewItems.clear();
             for (Song song : allSongs) {
-                if (!currentListViewItems.contains(song) && song.getSongCollection() != null) {
+                if (!currentListViewItems.contains(song) && song.getSongCollections().size() == 0) {
                     allSongsListViewItems.add(song);
                 }
             }
@@ -159,7 +159,7 @@ public class NewSongCollectionController {
         this.songController = songController;
     }
 
-    public void setEditing(boolean editing, SongCollection selectedItem) {
+    void setEditing(boolean editing, SongCollection selectedItem) {
         this.editing = editing;
         oldSongCollection = selectedItem;
         songCollectionNameTextField.setText(oldSongCollection.getName());
