@@ -55,8 +55,8 @@ public class AddToCollectionController {
         songCollectionElement.setSongCollection(songCollection);
         ServiceManager.getSongCollectionElementService().create(songCollectionElement);
 
-        selectedSong.setSongCollection(songCollection);
-        selectedSong.setSongCollectionElement(songCollectionElement);
+        selectedSong.addToSongCollections(songCollection);
+        selectedSong.addToSongCollectionElements(songCollectionElement);
         songController.addSongCollections();
         stage.close();
     }
