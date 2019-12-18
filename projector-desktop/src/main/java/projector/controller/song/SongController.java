@@ -111,10 +111,10 @@ public class SongController {
     private final SongService songService;
     private final Settings settings = Settings.getInstance();
     private final String BASE_URL = "localhost";
-    private final String link = "http://" + BASE_URL + "/song/";
-    private final String link2 = "https://" + BASE_URL + "/song/";
-    private final String link3 = "http://www." + BASE_URL + "/song/";
-    private final String link4 = "http://www." + BASE_URL + "/song/";
+    private final String link = "http://" + BASE_URL;
+    private final String link2 = "https://" + BASE_URL;
+    private final String link3 = "http://www." + BASE_URL;
+    private final String link4 = "http://www." + BASE_URL;
     private final String prefix = "id:";
     private final SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
     @FXML
@@ -695,7 +695,7 @@ public class SongController {
                 s = prefix + song.getId();
                 content.putString(s);
             } else {
-                s = link + uuid;
+                s = link + "/song/" + uuid;
                 content.putUrl(s);
             }
             dragboard.setContent(content);
@@ -703,28 +703,30 @@ public class SongController {
         });
         listView.setOnDragDone(event -> rightBorderPane.setOpacity(1.0));
         scheduleListView.setOnDragEntered(dragEvent -> {
-            if (getSongFromDragBoard(dragEvent) != null) {
+            if (getSongsFromDragBoard(dragEvent) != null) {
                 scheduleListView.setBlendMode(BlendMode.DARKEN);
             }
         });
 
         scheduleListView.setOnDragExited(dragEvent -> {
-            if (getSongFromDragBoard(dragEvent) != null) {
+            if (getSongsFromDragBoard(dragEvent) != null) {
                 scheduleListView.setBlendMode(null);
             }
         });
 
         scheduleListView.setOnDragOver(dragEvent -> {
-            if (getSongFromDragBoard(dragEvent) != null) {
+            if (getSongsFromDragBoard(dragEvent) != null) {
                 dragEvent.acceptTransferModes(TransferMode.COPY, TransferMode.LINK);
             }
         });
 
         scheduleListView.setOnDragDropped(dragEvent -> {
-            Song songFromDragBoard = getSongFromDragBoard(dragEvent);
-            if (songFromDragBoard != null) {
-                setSongCollection(songFromDragBoard);
-                scheduleController.addSong(songFromDragBoard);
+            List<Song> songsFromDragBoard = getSongsFromDragBoard(dragEvent);
+            if (songsFromDragBoard != null) {
+                for (Song songFromDragBoard : songsFromDragBoard) {
+                    setSongCollection(songFromDragBoard);
+                    scheduleController.addSong(songFromDragBoard);
+                }
                 dragEvent.setDropCompleted(true);
             }
         });
@@ -740,21 +742,53 @@ public class SongController {
         }
     }
 
-    private Song getSongFromDragBoard(DragEvent dragEvent) {
+    private List<Song> getSongsFromDragBoard(DragEvent dragEvent) {
         Dragboard dragboard = dragEvent.getDragboard();
         String url = dragboard.getUrl();
         if (url != null) {
-            String uuid = url.replace(link, "");
-            uuid = uuid.replace(link2, "");
-            uuid = uuid.replace(link3, "");
-            uuid = uuid.replace(link4, "");
-            return songService.findByUuid(uuid);
+            ArrayList<Song> songs = new ArrayList<>();
+            String queuePrefix = "queue?ids=";
+            if (url.contains(queuePrefix)) {
+                String prefix = "/";
+                url = url.replace(link + prefix, "");
+                url = url.replace(link2 + prefix, "");
+                url = url.replace(link3 + prefix, "");
+                url = url.replace(link4 + prefix, "");
+                url = url.replaceFirst("queue\\?ids=", "");
+                String[] uuids = url.split(",");
+                for (String uuid : uuids) {
+                    addToSongByUuid(songs, uuid);
+                }
+            } else {
+                String songPrefix = "/song/";
+                url = url.replace(link + songPrefix, "");
+                url = url.replace(link2 + songPrefix, "");
+                url = url.replace(link3 + songPrefix, "");
+                url = url.replace(link4 + songPrefix, "");
+                addToSongByUuid(songs, url);
+            }
+            if (songs.size() == 0) {
+                return null;
+            }
+            return songs;
         }
         String string = dragboard.getString();
         if (string != null && string.startsWith(prefix)) {
-            return songService.findById(Long.parseLong(string.replace(prefix, "")));
+            Song byId = songService.findById(Long.parseLong(string.replace(prefix, "")));
+            ArrayList<Song> songs = new ArrayList<>();
+            if (byId != null) {
+                songs.add(byId);
+                return songs;
+            }
         }
         return null;
+    }
+
+    private void addToSongByUuid(ArrayList<Song> songs, String uuid) {
+        Song byUuid = songService.findByUuid(uuid);
+        if (byUuid != null) {
+            songs.add(byUuid);
+        }
     }
 
     private void initializeShowVersionsButton() {
