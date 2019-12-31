@@ -1468,14 +1468,16 @@ public class SongController {
             for (Song song : songs) {
                 boolean contains = false;
                 for (SongCollectionElement songCollectionElement : song.getSongCollectionElements()) {
-                    boolean containsInCollectionName = isContainsInCollectionName(collectionName, songCollectionElement) && !collectionName.isEmpty();
+                    boolean containsInCollectionName = isContainsInCollectionName(collectionName, songCollectionElement);
                     String number = songCollectionElement.getOrdinalNumber();
                     boolean equals = number.equals(ordinalNumber);
                     boolean contains2 = number.contains(ordinalNumber) || equals || ordinalNumberInt == songCollectionElement.getOrdinalNumberInt();
                     boolean b = remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText);
                     if (containsInCollectionName && contains2 && b) {
                         contains = true;
-                        wasInCollectionName = true;
+                        if (!collectionName.isEmpty()) {
+                            wasInCollectionName = true;
+                        }
                         if (equals) {
                             wasOrdinalNumber = true;
                             break;
