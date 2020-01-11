@@ -5,20 +5,28 @@ import javafx.geometry.Bounds;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import projector.BaseTest;
 import projector.controller.song.util.SearchedSong;
 import projector.model.Language;
+import projector.model.Song;
+import projector.model.SongVerse;
 import projector.service.LanguageService;
 import projector.service.ServiceManager;
+import projector.service.SongService;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.loadui.testfx.GuiTest.find;
 
 public class SongControllerTest extends BaseTest {
 
     private static final String test_songTitle = "Test song";
+    private final String il_iubesc_pe_el = "Il iubesc pe El";
 
     @Before
     public void setUp() {
@@ -37,6 +45,21 @@ public class SongControllerTest extends BaseTest {
         language.setNativeName("Just testing");
         language.setSelected(true);
         languageService.create(language);
+        createSong(language);
+    }
+
+    private void createSong(Language language) {
+        Song testSong = new Song();
+        testSong.setTitle(il_iubesc_pe_el);
+        List<SongVerse> testVerses = new ArrayList<>();
+        testSong.setVerses(testVerses);
+        SongVerse testSongVerse = new SongVerse();
+        testVerses.add(testSongVerse);
+        testSongVerse.setText("this is a song verse which I wrote");
+        testSong.setAuthor("Pinter Bela");
+        testSong.setLanguage(language);
+        SongService songService = ServiceManager.getSongService();
+        songService.create(testSong);
     }
 
     @Test
@@ -71,6 +94,13 @@ public class SongControllerTest extends BaseTest {
         Assert.assertTrue(was);
         editSong();
         deleteASong();
+    }
+
+    @Test
+    public void checkAuthorTextField() {
+        clickOn("#searchTextField").write(il_iubesc_pe_el);
+        TextField authorTextField = find("#authorTextField");
+        Assert.assertEquals("Pinter Bela", authorTextField.getText());
     }
 
     //	@Test
