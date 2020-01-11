@@ -36,7 +36,7 @@ public class QueueResourceSeo {
         for (String s : split) {
             Song song = songService.findOne(s);
             if (song != null) {
-                song.setId("song/" + song.getId());
+                song.setBeforeId("song/");
                 songs.add(song);
             }
         }
@@ -60,7 +60,7 @@ public class QueueResourceSeo {
         for (SongListElement element : songListElements) {
             Song song = songRepository.findOne(element.getSongUuid());
             if (song != null) {
-                song.setId("../song/" + song.getId());
+                song.setBeforeId("../song/");
                 songs.add(song);
             }
         }

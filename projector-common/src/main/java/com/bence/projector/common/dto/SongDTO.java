@@ -21,6 +21,8 @@ public class SongDTO extends BaseDTO {
     private String verseOrder;
     private String author;
     private List<Short> verseOrderList;
+    private String backUpSongId;
+    private String lastModifiedByUserEmail;
 
     public SongDTO() {
     }
@@ -151,5 +153,21 @@ public class SongDTO extends BaseDTO {
 
     public void setVerseOrderList(List<Short> verseOrderList) {
         this.verseOrderList = verseOrderList;
+    }
+
+    public String getBackUpSongId() {
+        return backUpSongId;
+    }
+
+    public void setBackUpSongId(String backUpSongId) {
+        this.backUpSongId = backUpSongId;
+    }
+
+    public void setLastModifiedByUserEmail(String lastModifiedByUserEmail) {
+        this.lastModifiedByUserEmail = lastModifiedByUserEmail;
+    }
+
+    public String getLastModifiedByUserEmail() {
+        return lastModifiedByUserEmail;
     }
 }

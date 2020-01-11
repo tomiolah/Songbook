@@ -46,8 +46,8 @@ public class Song extends BaseEntity {
     private boolean published = false;
     @DatabaseField(foreign = true, index = true)
     private Language language;
-    private transient SongCollection songCollection;
-    private transient SongCollectionElement songCollectionElement;
+    private transient List<SongCollection> songCollections;
+    private transient List<SongCollectionElement> songCollectionElements;
     @Expose
     @DatabaseField
     private String versionGroup;
@@ -178,20 +178,26 @@ public class Song extends BaseEntity {
         return stringBuilder.toString();
     }
 
-    public SongCollection getSongCollection() {
-        return songCollection;
+    public List<SongCollection> getSongCollections() {
+        if (songCollections == null) {
+            songCollections = new ArrayList<>();
+        }
+        return songCollections;
     }
 
-    public void setSongCollection(SongCollection songCollection) {
-        this.songCollection = songCollection;
+    public void setSongCollections(List<SongCollection> songCollections) {
+        this.songCollections = songCollections;
     }
 
-    public SongCollectionElement getSongCollectionElement() {
-        return songCollectionElement;
+    public void addToSongCollections(SongCollection songCollection) {
+        getSongCollections().add(songCollection);
     }
 
-    public void setSongCollectionElement(SongCollectionElement songCollectionElement) {
-        this.songCollectionElement = songCollectionElement;
+    public List<SongCollectionElement> getSongCollectionElements() {
+        if (songCollectionElements == null) {
+            songCollectionElements = new ArrayList<>();
+        }
+        return songCollectionElements;
     }
 
     public Language getLanguage() {
@@ -218,16 +224,8 @@ public class Song extends BaseEntity {
         this.serverModifiedDate = serverModifiedDate;
     }
 
-    @Override
-    public String toString() {
-        String text = this.title;
-        if (songCollection != null) {
-            text += " " + songCollection.getName();
-            if (songCollectionElement != null) {
-                text += " " + songCollectionElement.getOrdinalNumber();
-            }
-        }
-        return text;
+    public void setSongCollectionElements(List<SongCollectionElement> songCollectionElements) {
+        this.songCollectionElements = songCollectionElements;
     }
 
     public void stripTitle() {
@@ -282,5 +280,20 @@ public class Song extends BaseEntity {
 
     public void setAuthor(String author) {
         this.author = author;
+    }
+
+    public void addToSongCollectionElements(SongCollectionElement songCollectionElement) {
+        getSongCollectionElements().add(songCollectionElement);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder text = new StringBuilder(this.title);
+        for (SongCollectionElement songCollectionElement : getSongCollectionElements()) {
+            SongCollection songCollection = songCollectionElement.getSongCollection();
+            text.append(" ").append(songCollection.getName());
+            text.append(" ").append(songCollectionElement.getOrdinalNumber());
+        }
+        return text.toString();
     }
 }

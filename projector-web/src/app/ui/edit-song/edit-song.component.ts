@@ -10,6 +10,7 @@ import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { replace } from "../new-song/new-song.component";
 import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { CdkDragDrop, moveItemInArray, copyArrayItem } from '@angular/cdk/drag-drop';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-edit-song',
@@ -66,6 +67,7 @@ export class EditSongComponent implements OnInit {
     private dialog: MatDialog,
     iconRegistry: MatIconRegistry,
     public sanitizer: DomSanitizer,
+    public auth: AuthService,
     private _changeDetectionRef: ChangeDetectorRef) {
     iconRegistry.addSvgIcon(
       'magic_tool',
@@ -258,6 +260,47 @@ export class EditSongComponent implements OnInit {
     this.calculateUsedSectionTypes();
   }
 
+  removeSection(sectionIndex: number) {
+    const formValue = this.form.value;
+    let i = 0;
+    let song = new Song();
+    song.songVerseDTOS = [];
+    for (const key in formValue) {
+      if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
+        if (sectionIndex != i) {
+          const value = formValue[key];
+          const songVerseDTO = new SongVerseDTO();
+          songVerseDTO.text = value;
+          songVerseDTO.chorus = this.verses[i].chorus;
+          songVerseDTO.type = this.verses[i].type
+          song.songVerseDTOS.push(songVerseDTO);
+        }
+        i = i + 1;
+      }
+    }
+    for (const key in formValue) {
+      if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
+        this.form.removeControl(key);
+      }
+    }
+    this.verses.splice(0, this.verses.length);
+    this.verseControls.splice(0, this.verseControls.length);
+    i = 0;
+    for (const verseI of song.songVerseDTOS) {
+      const songVerse = new SongVerseUI();
+      songVerse.type = verseI.type;
+      let verse = verseI.text;
+      const control = new FormControl(verse);
+      control.setValue(verse);
+      this.verseControls.push(control);
+      this.form.addControl('verse' + i, control);
+      control.patchValue(verse);
+      this.verses.push(songVerse);
+      ++i;
+    }
+    this.calculateUsedSectionTypes();
+  }
+
   onValueChanged() {
     if (!this.form) {
       return;
@@ -330,14 +373,6 @@ export class EditSongComponent implements OnInit {
         this.loadLanguage(true);
       }
     });
-  }
-
-  // noinspection JSMethodCanBeStatic
-  printLanguage(language: Language) {
-    if (language.englishName === language.nativeName) {
-      return language.englishName;
-    }
-    return language.englishName + " | " + language.nativeName;
   }
 
   editorTypeChange() {
@@ -435,7 +470,8 @@ export class EditSongComponent implements OnInit {
   }
 
   private updateSong() {
-    this.songService.updateSong(this.song).subscribe(
+    const role = this.auth.getUser().getRolePath();
+    this.songService.updateSong(role, this.song).subscribe(
       () => {
         // noinspection JSIgnoredPromiseFromCall
         this.router.navigate(['/songs']);

@@ -1,5 +1,6 @@
 package com.bence.projector.server.backend.service.impl;
 
+import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Role;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.UserRepository;
@@ -8,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class UserServiceImpl extends BaseServiceImpl<User> implements UserService {
@@ -30,5 +34,29 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
             return this.save(user);
         }
         return null;
+    }
+
+    private boolean containsInList(Language language, List<Language> languages) {
+        if (language == null || languages == null) {
+            return false;
+        }
+        for (Language aLanguage : languages) {
+            if (aLanguage.getId().equals(language.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public List<User> findAllReviewersByLanguage(Language language) {
+        List<User> users = findAll();
+        List<User> reviewers = new ArrayList<>();
+        for (User user : users) {
+            if (user.getRole().equals(Role.ROLE_REVIEWER) && containsInList(language, user.getReviewLanguages())) {
+                reviewers.add(user);
+            }
+        }
+        return reviewers;
     }
 }

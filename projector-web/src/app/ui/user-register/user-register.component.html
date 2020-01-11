@@ -11,16 +11,16 @@
           <div class="form-group">
             <mat-icon class="material-icon">mail</mat-icon>
             <label for="email">E-mail</label>
-            <input #email matInput type="email" id="email" class="form-control" formControlName="email" required>
+            <input type="email" id="email" class="form-control" formControlName="email" required>
             <div *ngIf="formErrors.email" class="alert alert-danger">
               <mat-icon class="material-icon">error</mat-icon>{{formErrors.email}}</div>
           </div>
 
           <div class="form-group">
             <mat-icon class="material-icon">person_outline</mat-icon>
-            <label for="sureName">Name</label>
-            <input type="text" id="sureName" class="form-control" formControlName="sureName" required>
-            <div *ngIf="formErrors.sureName" class="alert alert-danger">{{formErrors.sureName}}</div>
+            <label for="surname">Name</label>
+            <input type="text" id="surname" class="form-control" formControlName="surname" required>
+            <div *ngIf="formErrors.surname" class="alert alert-danger">{{formErrors.surname}}</div>
           </div>
 
           <div class="form-group">

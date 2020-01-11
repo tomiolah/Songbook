@@ -3,7 +3,7 @@ package com.bence.projector.common.dto;
 public class UserRegisterDTO extends BaseDTO {
 
     private String email;
-    private String sureName;
+    private String surname;
     private String firstName;
     private String password;
     private String preferredLanguage;
@@ -17,12 +17,12 @@ public class UserRegisterDTO extends BaseDTO {
         this.email = email;
     }
 
-    public String getSureName() {
-        return sureName;
+    public String getSurname() {
+        return surname;
     }
 
-    public void setSureName(String sureName) {
-        this.sureName = sureName;
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
     public String getFirstName() {

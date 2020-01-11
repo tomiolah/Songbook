@@ -3,7 +3,8 @@ package com.bence.projector.server.api.assembler;
 import com.bence.projector.common.dto.SongDTO;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
-import com.bence.projector.server.backend.repository.LanguageRepository;
+import com.bence.projector.server.backend.model.User;
+import com.bence.projector.server.backend.service.LanguageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,13 +16,13 @@ import java.util.List;
 public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
     private final SongVerseAssembler songVerseAssembler;
     private final LanguageAssembler languageAssembler;
-    private final LanguageRepository languageRepository;
+    private final LanguageService languageService;
 
     @Autowired
-    public SongAssembler(SongVerseAssembler songVerseAssembler, LanguageAssembler languageAssembler, LanguageRepository languageRepository) {
+    public SongAssembler(SongVerseAssembler songVerseAssembler, LanguageAssembler languageAssembler, LanguageService languageService) {
         this.songVerseAssembler = songVerseAssembler;
         this.languageAssembler = languageAssembler;
-        this.languageRepository = languageRepository;
+        this.languageService = languageService;
     }
 
     @Override
@@ -81,6 +82,16 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             }
         }
         songDTO.setAuthor(song.getAuthor());
+        Song backUp = song.getBackUp();
+        if (backUp != null) {
+            songDTO.setBackUpSongId(backUp.getId());
+        } else {
+            songDTO.setBackUpSongId(null);
+        }
+        User lastModifiedBy = song.getLastModifiedBy();
+        if (lastModifiedBy != null) {
+            songDTO.setLastModifiedByUserEmail(lastModifiedBy.getEmail());
+        }
         return songDTO;
     }
 
@@ -113,8 +124,8 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         final List<SongVerse> songVerses = songVerseAssembler.createModelList(songDTO.getSongVerseDTOS());
         song.setVerses(songVerses);
         song.setDeleted(songDTO.isDeleted());
-        if (!songDTO.isDeleted() && songDTO.getLanguageDTO() != null) {
-            song.setLanguage(languageRepository.findOne(songDTO.getLanguageDTO().getUuid()));
+        if (songDTO.getLanguageDTO() != null) {
+            song.setLanguage(languageService.findOne(songDTO.getLanguageDTO().getUuid()));
         }
         song.setCreatedByEmail(songDTO.getCreatedByEmail());
         song.setVersionGroup(songDTO.getVersionGroup());

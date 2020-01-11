@@ -34,11 +34,15 @@ class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> implements
     @Override
     public boolean deleteAll(List<VerseIndex> models) throws RepositoryException {
         try {
-            for (VerseIndex model : models) {
-                delete(model);
-            }
+            TransactionManager.callInTransaction(DatabaseHelper.getInstance().getConnectionSource(),
+                    (Callable<Void>) () -> {
+                        for (VerseIndex verseIndex : models) {
+                            dao.executeRaw("Delete from VERSEINDEX where bibleVerse_id = " + verseIndex.getBibleVerse().getId());
+                        }
+                        return null;
+                    });
             return true;
-        } catch (RepositoryException e) {
+        } catch (RepositoryException | SQLException e) {
             final String msg = "Could not delete all " + simpleName + "s";
             LOG.error(msg);
             throw new RepositoryException(msg, e);
@@ -48,7 +52,7 @@ class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> implements
     @Override
     public boolean delete(VerseIndex verseIndex) throws RepositoryException {
         try {
-            dao.deleteById(verseIndex.getBibleVerse().getId());
+            dao.executeRaw("Delete from VERSEINDEX where bibleVerse_id = " + verseIndex.getBibleVerse().getId());
             return true;
         } catch (SQLException e) {
             String msg = "Could not delete " + simpleName;

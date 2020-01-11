@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextField?>
@@ -12,17 +13,21 @@
     <top>
         <BorderPane BorderPane.alignment="CENTER">
             <left>
-                <TextField fx:id="textField" BorderPane.alignment="CENTER">
-                    <BorderPane.margin>
-                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
-                    </BorderPane.margin>
-                </TextField>
+                <HBox alignment="CENTER" spacing="5.0" BorderPane.alignment="CENTER">
+                    <TextField fx:id="textField" BorderPane.alignment="CENTER">
+                        <BorderPane.margin>
+                            <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                        </BorderPane.margin>
+                    </TextField>
+                    <ComboBox fx:id="bibleComboBox"/>
+                </HBox>
             </left>
             <right>
                 <HBox alignment="CENTER" spacing="5.0" BorderPane.alignment="CENTER">
                     <Button onAction="#merge1N" mnemonicParsing="false" text="Merge 1:N"/>
                     <Button onAction="#task" mnemonicParsing="false" text="Some task"/>
                     <Button onAction="#merge" mnemonicParsing="false" text="Merge N:1"/>
+                    <Button onAction="#copyIndices" mnemonicParsing="false" text="Copy indices"/>
                     <Button onAction="#decreaseIndex" mnemonicParsing="false" text="Decrease Index"/>
                     <Button onAction="#increaseIndex" mnemonicParsing="false" text="Increase Index"/>
                     <Button onAction="#save" mnemonicParsing="false" text="Save bibles"/>

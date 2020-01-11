@@ -110,19 +110,13 @@ public class CompareSimilarSongsController {
                             y = StringUtils.highestCommonSubStringInt(text, secondText);
                             y = y / secondText.length();
                             if (y > 0.75) {
-                                SongCollection songCollection = song.getSongCollection();
-                                SongCollection songCollection2 = secondSong.getSongCollection();
-                                if (songCollection != null && songCollection2 != null) {
+                                List<SongCollection> songCollections1 = song.getSongCollections();
+                                List<SongCollection> songCollections2 = secondSong.getSongCollections();
+                                if (songCollections1 != null && songCollections2 != null && songCollections1.size() > 0 && songCollections2.size() > 0) {
                                     continue;
                                 }
                                 System.out.println("i = " + i);
                                 System.out.println(secondSong.getId() + "    " + song.getId());
-                                if (songCollection != null) {
-                                    System.out.println("songCollection = " + songCollection.getName());
-                                }
-                                if (songCollection2 != null) {
-                                    System.out.println("songCollection2 = " + songCollection2.getName());
-                                }
                                 if (x != 1.0) {
                                     System.out.println(x + " " + secondSong.getTitle() + "   " + song.getTitle());
                                 } else {
@@ -193,14 +187,13 @@ public class CompareSimilarSongsController {
     }
 
     private String getSongCollectionString(Song song, String text) {
-        SongCollection songCollection = song.getSongCollection();
-        if (songCollection != null) {
-            text += songCollection.getName() + " ";
-            SongCollectionElement songCollectionElement = song.getSongCollectionElement();
-            if (songCollectionElement != null) {
-                text += songCollectionElement.getOrdinalNumber() + "  ";
-            }
+        StringBuilder textBuilder = new StringBuilder(text);
+        for (SongCollectionElement songCollectionElement : song.getSongCollectionElements()) {
+            SongCollection songCollection = songCollectionElement.getSongCollection();
+            textBuilder.append(songCollection.getName()).append(" ");
+            textBuilder.append(songCollectionElement.getOrdinalNumber()).append("  ");
         }
+        text = textBuilder.toString();
         return text;
     }
 
