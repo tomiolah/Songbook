@@ -237,6 +237,8 @@ public class SongController {
         HashMap<String, Song> hashMap = new HashMap<>(songs.size());
         for (Song song : songs) {
             hashMap.put(song.getUuid(), song);
+            song.getSongCollections().clear();
+            song.getSongCollectionElements().clear();
         }
         setSongCollectionForSongsInHashMap(songCollections, hashMap);
     }
