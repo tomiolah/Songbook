@@ -12,11 +12,14 @@ export class AuthService {
 
   isLoggedIn = false;
   private FUser: User;
+  private NoUser: User;
 
   // store the URL so we can redirect after logging in
   redirectUrl: string;
 
   constructor(private http: Http) {
+    this.NoUser = new User();
+    this.NoUser.email = '';
   }
 
   login(username: string, password: string) {
@@ -53,6 +56,7 @@ export class AuthService {
   getUserFromLocalStorage() {
     const currentUser = localStorage.getItem('currentUser');
     if (currentUser == undefined || currentUser == null) {
+      this.setUser(this.NoUser);
       return;
     }
     this.setUser(new User(JSON.parse(currentUser)));
