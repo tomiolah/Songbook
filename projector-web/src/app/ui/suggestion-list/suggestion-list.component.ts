@@ -143,7 +143,13 @@ export class SuggestionListComponent implements OnInit {
     this.router.navigate(['/suggestion/', suggestion.uuid]);
   }
 
+  openAuthenticateDialogOpened = false;
+
   private openAuthenticateDialog() {
+    if (this.openAuthenticateDialogOpened) {
+      return;
+    }
+    this.openAuthenticateDialogOpened = true;
     let user = JSON.parse(localStorage.getItem('currentUser'));
     const dialogRef = this.dialog.open(AuthenticateComponent, {
       data: {
@@ -152,6 +158,7 @@ export class SuggestionListComponent implements OnInit {
     });
 
     dialogRef.afterClosed().subscribe((result) => {
+      this.openAuthenticateDialogOpened = false;
       if (result === 'ok') {
         this.ngOnInit();
       }

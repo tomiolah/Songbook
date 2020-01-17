@@ -405,6 +405,10 @@ public class SongResource {
 
     @RequestMapping(method = RequestMethod.PUT, value = "/reviewer/api/song/{songId}")
     public ResponseEntity<Object> updateSongByReviewer(Principal principal, @PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
+        return updateSongByUser(principal, songId, songDTO, httpServletRequest, false);
+    }
+
+    private ResponseEntity<Object> updateSongByUser(Principal principal, @PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest, boolean changeLanguage) {
         saveStatistics(httpServletRequest, statisticsService);
         if (principal != null) {
             String email = principal.getName();
@@ -412,6 +416,9 @@ public class SongResource {
             if (user != null) {
                 Song song = songService.findOne(songId);
                 if (song != null && songInReviewLanguages(user, song)) {
+                    if (!changeLanguage) {
+                        songDTO.setLanguageDTO(null);
+                    }
                     Date modifiedDate = song.getModifiedDate();
                     if (modifiedDate != null && modifiedDate.compareTo(songDTO.getModifiedDate()) != 0) {
                         return new ResponseEntity<>("Already modified", HttpStatus.CONFLICT);
@@ -432,6 +439,30 @@ public class SongResource {
             }
         }
         return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/reviewer/api/changeLanguageForSong/{songId}")
+    public ResponseEntity<Object> changeLanguageByReviewer(Principal principal, @PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
+        ResponseEntity<Object> responseEntity = updateSongByUser(principal, songId, songDTO, httpServletRequest, true);
+        if (responseEntity.getStatusCode().equals(HttpStatus.ACCEPTED)) {
+            Song song = songService.findOne(songId);
+            Thread thread = new Thread(() -> {
+                try {
+                    for (User user : userService.findAllReviewersByLanguage(song.getLanguage())) {
+                        sendEmailToUser(song, user);
+                    }
+                } catch (MessagingException e) {
+                    e.printStackTrace();
+                }
+            });
+            thread.start();
+        }
+        return responseEntity;
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/admin/api/changeLanguageForSong/{songId}")
+    public ResponseEntity<Object> changeLanguageByAdmin(Principal principal, @PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
+        return changeLanguageByReviewer(principal, songId, songDTO, httpServletRequest);
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/admin/removeDuplicates")

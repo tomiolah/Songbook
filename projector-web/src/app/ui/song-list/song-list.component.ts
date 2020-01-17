@@ -262,10 +262,24 @@ export class SongListComponent implements OnInit {
             }
             this.songTitles = lang.songTitles.concat(modifiedSongs);
             lang.songTitles = this.songTitles;
+            this.removeFromOtherLanguages(modifiedSongs, languages, lang);
           }
           localStorage.setItem(this.languagesKey, JSON.stringify(languages));
           this.sortAndUpdate();
         });
+      }
+    }
+  }
+
+  private removeFromOtherLanguages(modifiedSongs: any[], languages: Language[], lang: Language) {
+    for (const song of modifiedSongs) {
+      for (const language of languages) {
+        if (language != lang) {
+          const index = this.containsInLocalStorage(song, language.songTitles);
+          if (index > -1) {
+            language.songTitles.splice(index, 1);
+          }
+        }
       }
     }
   }

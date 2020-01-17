@@ -11,4 +11,6 @@ public interface UserService extends BaseService<User> {
     User registerUser(User user);
 
     List<User> findAllReviewersByLanguage(Language language);
+
+    List<User> findAllAdmins();
 }
