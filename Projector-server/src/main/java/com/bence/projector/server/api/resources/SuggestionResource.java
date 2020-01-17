@@ -6,11 +6,11 @@ import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.model.User;
-import com.bence.projector.server.backend.repository.UserRepository;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.SuggestionService;
+import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
 import com.bence.projector.server.utils.AppProperties;
@@ -56,7 +56,7 @@ public class SuggestionResource {
     @Autowired
     private JavaMailSender sender;
     @Autowired
-    private UserRepository userService;
+    private UserService userService;
     @Autowired
     private SongService songService;
 
@@ -123,14 +123,23 @@ public class SuggestionResource {
 
     private void sendEmail(Suggestion suggestion)
             throws MessagingException, MailSendException {
+        Song song = songService.findOne(suggestion.getSongId());
+        List<User> reviewers = userService.findAllReviewersByLanguage(song.getLanguage());
+        for (User user : reviewers) {
+            sendEmailToUser(suggestion, user);
+        }
+    }
+
+    private void sendEmailToUser(Suggestion suggestion, User user)
+            throws MessagingException, MailSendException {
         final String freemarkerName = FreemarkerConfiguration.NEW_SUGGESTION + ".ftl";
         freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
         config.setDefaultEncoding("UTF-8");
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(new InternetAddress("bakobence@yahoo.com"));
+        helper.setTo(new InternetAddress(user.getEmail()));
         helper.setFrom(new InternetAddress("noreply@songbook"));
-        helper.setSubject("Új javaslat");
+        helper.setSubject("New suggestion");
 
         try {
             Template template = config.getTemplate(freemarkerName);
@@ -154,8 +163,8 @@ public class SuggestionResource {
                 createdByEmail = "";
             }
             helper.getMimeMessage().setContent("<div>\n" +
-                    "    <h3>Új javaslat: " + title + "</h3>\n" +
-                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/admin/suggestion/" + suggestion.getId() + "\">Link</a>\n" +
+                    "    <h3>New suggestion: " + title + "</h3>\n" +
+                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/suggestion/" + suggestion.getId() + "\">Link</a>\n" +
                     "  <h3>Email </h3><h4>" + createdByEmail + "</h4>" +
                     "  <h3>" + description + "</h3>" +
                     "</div>", "text/html;charset=utf-8");

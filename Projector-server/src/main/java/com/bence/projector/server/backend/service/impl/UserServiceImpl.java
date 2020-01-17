@@ -57,6 +57,17 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
                 reviewers.add(user);
             }
         }
+        User byEmail = findByEmail("admin@email.com");
+        boolean was = false;
+        for (User user : reviewers) {
+            if (user.getEmail().equals(byEmail.getEmail())) {
+                was = true;
+                break;
+            }
+        }
+        if (!was) {
+            reviewers.add(byEmail);
+        }
         return reviewers;
     }
 }

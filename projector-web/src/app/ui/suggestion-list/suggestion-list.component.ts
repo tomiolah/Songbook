@@ -13,6 +13,7 @@ import { Language } from '../../models/language';
 import { LanguageDataService } from '../../services/language-data.service';
 import { SELECTED_LANGUGAGE } from '../../util/constants';
 import { SongListComponent } from '../song-list/song-list.component';
+import { User } from '../../models/user';
 
 export class SuggestionDatabase {
   dataChange: BehaviorSubject<Suggestion[]> = new BehaviorSubject<Suggestion[]>([]);
@@ -57,7 +58,7 @@ export class SuggestionDataSource extends DataSource<any> {
 export class SuggestionListComponent implements OnInit {
 
   suggestionList: Suggestion[] = [];
-  displayedColumns = ['Nr', 'createdDate', 'title', 'description', 'email', 'applied'];
+  displayedColumns = ['Nr', 'createdDate', 'title', 'description', 'email', 'youtubeUrl'];
   suggestionDatabase: any;
   dataSource: SuggestionDataSource | null;
   languages: Language[];
@@ -77,8 +78,23 @@ export class SuggestionListComponent implements OnInit {
     this.selectedLanguage = SongListComponent.getSelectedLanguageFromLocalStorage([]);
     this.languageDataService.getAll().subscribe(
       (languages) => {
-        this.languages = languages;
-        this.selectedLanguage = SongListComponent.getSelectedLanguageFromLocalStorage(languages);
+        const user: User = this.auth.getUser();
+        this.languages = [];
+        const selectedLanguageFromLocalStorage = SongListComponent.getSelectedLanguageFromLocalStorage(languages);
+        let was = false;
+        for (let language of languages) {
+          if (user.hasReviewerRoleForLanguage(language)) {
+            this.languages.push(language);
+            if (language.uuid == selectedLanguageFromLocalStorage.uuid) {
+              this.selectedLanguage = language;
+              was = true;
+            }
+          }
+        }
+        if (!was && this.languages.length > 0) {
+          this.selectedLanguage = this.languages[0];
+        }
+        this.loadSuggestions();
       });
     this.loadSuggestions();
   }

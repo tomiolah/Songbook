@@ -3,7 +3,7 @@
   <br>
   <mat-card>
     <mat-card-content style="overflow-x: auto">
-      <mat-card>
+      <mat-card *ngIf="languages.length > 1">
         <mat-card-content>
           <mat-select id="languageSelect" placeholder="Language" [(value)]="selectedLanguage">
             <mat-option *ngIf="auth.isLoggedIn && auth.getUser().isAdmin()" (click)="loadAllSuggestions()" value="{{'All'}}">
@@ -41,9 +41,9 @@
             <mat-header-cell *matHeaderCellDef class="example-header-cell">{{'Email'}}</mat-header-cell>
             <mat-cell *matCellDef="let row" class="example-cell">{{row.createdByEmail}}</mat-cell>
           </ng-container>
-          <ng-container matColumnDef="applied">
-            <mat-header-cell *matHeaderCellDef class="example-header-cell">{{'Applied'}}</mat-header-cell>
-            <mat-cell *matCellDef="let row" class="example-cell">{{row.applied}}</mat-cell>
+          <ng-container matColumnDef="youtubeUrl">
+            <mat-header-cell *matHeaderCellDef class="example-header-cell">{{'Youtube url'}}</mat-header-cell>
+            <mat-cell *matCellDef="let row" class="example-cell">{{row.youtubeUrl}}</mat-cell>
           </ng-container>
 
 

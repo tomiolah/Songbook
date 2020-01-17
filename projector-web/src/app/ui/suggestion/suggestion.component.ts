@@ -111,7 +111,8 @@ export class SuggestionComponent implements OnInit, OnDestroy {
   }
 
   onDoneButtonClick() {
-    this.suggestion.reviewed = true;
+    let suggestion = new Suggestion(this.suggestion);
+    suggestion.reviewed = true;
     const role = this.auth.getUser().getRolePath();
     this.suggestionService.update(role, this.suggestion).subscribe(
       () => {
