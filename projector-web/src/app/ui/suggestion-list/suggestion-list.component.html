@@ -3,6 +3,18 @@
   <br>
   <mat-card>
     <mat-card-content style="overflow-x: auto">
+      <mat-card>
+        <mat-card-content>
+          <mat-select id="languageSelect" placeholder="Language" [(value)]="selectedLanguage">
+            <mat-option *ngIf="auth.isLoggedIn && auth.getUser().isAdmin()" (click)="loadAllSuggestions()" value="{{'All'}}">
+              {{'All'}}
+            </mat-option>
+            <mat-option (click)="changeLanguage()" *ngFor="let language of languages" [value]="language">
+              {{ language.printLanguage() }}
+            </mat-option>
+          </mat-select>
+        </mat-card-content>
+      </mat-card>
       <div class="example-container mat-elevation-z8">
         <mat-table #table [dataSource]="dataSource" class="example-table">
 

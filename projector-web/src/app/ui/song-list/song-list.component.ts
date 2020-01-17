@@ -12,6 +12,7 @@ import { LanguageDataService } from "../../services/language-data.service";
 import { Subscription } from "rxjs/Subscription";
 import { Title } from "@angular/platform-browser";
 import { User } from '../../models/user';
+import { SELECTED_LANGUGAGE } from '../../util/constants';
 
 @Component({
   selector: 'app-song-list',
@@ -146,21 +147,26 @@ export class SongListComponent implements OnInit {
             localStorage.setItem(this.languagesKey, JSON.stringify(localStorageLanguages));
           }
         }
-        this.selectedLanguage = JSON.parse(localStorage.getItem('selectedLanguage'));
-        if (this.selectedLanguage == null) {
-          this.selectedLanguage = languages[0];
-          localStorage.setItem('selectedLanguage', JSON.stringify(this.selectedLanguage));
-        } else {
-          for (let language of languages) {
-            if (language.uuid == this.selectedLanguage.uuid) {
-              this.selectedLanguage = language;
-              break;
-            }
-          }
-        }
+        this.selectedLanguage = SongListComponent.getSelectedLanguageFromLocalStorage(languages);
         this.loadSongs();
       }
     );
+  }
+
+  static getSelectedLanguageFromLocalStorage(languages: Language[]) {
+    let selectedLanguage = JSON.parse(localStorage.getItem(SELECTED_LANGUGAGE));
+    if (selectedLanguage == null) {
+      selectedLanguage = languages[0];
+      localStorage.setItem(SELECTED_LANGUGAGE, JSON.stringify(selectedLanguage));
+    } else {
+      for (let language of languages) {
+        if (language.uuid == selectedLanguage.uuid) {
+          selectedLanguage = language;
+          break;
+        }
+      }
+    }
+    return selectedLanguage;
   }
 
   stripAccents(s) {

@@ -13,6 +13,9 @@ public class SuggestionDTO extends BaseDTO {
     private String createdByEmail;
     private String description;
     private String youtubeUrl;
+    private Boolean reviewed;
+    private Date modifiedDate;
+    private String lastModifiedByUserEmail;
 
     public SuggestionDTO() {
     }
@@ -79,5 +82,29 @@ public class SuggestionDTO extends BaseDTO {
 
     public void setYoutubeUrl(String youtubeUrl) {
         this.youtubeUrl = youtubeUrl;
+    }
+
+    public Boolean getReviewed() {
+        return reviewed;
+    }
+
+    public void setReviewed(Boolean reviewed) {
+        this.reviewed = reviewed;
+    }
+
+    public Date getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public String getLastModifiedByUserEmail() {
+        return lastModifiedByUserEmail;
+    }
+
+    public void setLastModifiedByUserEmail(String lastModifiedByUserEmail) {
+        this.lastModifiedByUserEmail = lastModifiedByUserEmail;
     }
 }

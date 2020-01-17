@@ -1,14 +1,18 @@
-import {Component, OnInit} from '@angular/core';
-import {BehaviorSubject} from 'rxjs/BehaviorSubject';
-import {Observable} from 'rxjs/Observable';
-import {DataSource} from '@angular/cdk/table';
-import {Router} from '@angular/router';
-import {SuggestionDataService} from '../../services/suggestion-data.service';
-import {Suggestion} from '../../models/suggestion';
-import {AuthenticateComponent} from "../authenticate/authenticate.component";
-import {MatDialog} from "@angular/material";
-import {AuthService} from "../../services/auth.service";
-import {Title} from "@angular/platform-browser";
+import { Component, OnInit } from '@angular/core';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Observable } from 'rxjs/Observable';
+import { DataSource } from '@angular/cdk/table';
+import { Router } from '@angular/router';
+import { SuggestionDataService } from '../../services/suggestion-data.service';
+import { Suggestion } from '../../models/suggestion';
+import { AuthenticateComponent } from "../authenticate/authenticate.component";
+import { MatDialog } from "@angular/material";
+import { AuthService } from "../../services/auth.service";
+import { Title } from "@angular/platform-browser";
+import { Language } from '../../models/language';
+import { LanguageDataService } from '../../services/language-data.service';
+import { SELECTED_LANGUGAGE } from '../../util/constants';
+import { SongListComponent } from '../song-list/song-list.component';
 
 export class SuggestionDatabase {
   dataChange: BehaviorSubject<Suggestion[]> = new BehaviorSubject<Suggestion[]>([]);
@@ -56,21 +60,58 @@ export class SuggestionListComponent implements OnInit {
   displayedColumns = ['Nr', 'createdDate', 'title', 'description', 'email', 'applied'];
   suggestionDatabase: any;
   dataSource: SuggestionDataSource | null;
+  languages: Language[];
+  selectedLanguage: Language;
 
   constructor(public router: Router,
-              private suggestionDataService: SuggestionDataService,
-              private titleService: Title,
-              private auth: AuthService,
-              private dialog: MatDialog) {
+    private suggestionDataService: SuggestionDataService,
+    private titleService: Title,
+    private auth: AuthService,
+    private languageDataService: LanguageDataService,
+    private dialog: MatDialog) {
+    this.languages = [];
   }
 
   ngOnInit() {
     this.titleService.setTitle('Suggestions');
+    this.selectedLanguage = SongListComponent.getSelectedLanguageFromLocalStorage([]);
+    this.languageDataService.getAll().subscribe(
+      (languages) => {
+        this.languages = languages;
+        this.selectedLanguage = SongListComponent.getSelectedLanguageFromLocalStorage(languages);
+      });
+    this.loadSuggestions();
+  }
+
+  private loadSuggestions() {
+    const role = this.auth.getUser().getRolePath();
+    this.suggestionDataService.getAllInReviewByLanguage(role, this.selectedLanguage).subscribe(
+      (suggestionList) => {
+        this.setSuggestionList(suggestionList);
+      },
+      (err) => {
+        if (err.message === 'Unexpected token < in JSON at position 0') {
+          this.openAuthenticateDialog();
+        }
+      }
+    );
+  }
+
+  private setSuggestionList(suggestionList: Suggestion[]) {
+    this.suggestionList = [];
+    for (let suggestion of suggestionList.reverse()) {
+      if (!suggestion.reviewed) {
+        this.suggestionList.push(suggestion);
+      }
+    }
+    this.suggestionDatabase = new SuggestionDatabase(this.suggestionList);
+    this.dataSource = new SuggestionDataSource(this.suggestionDatabase);
+  }
+
+  loadAllSuggestions() {
     this.suggestionDataService.getAll().subscribe(
       (suggestionList) => {
-        this.suggestionList = suggestionList.reverse();
-        this.suggestionDatabase = new SuggestionDatabase(this.suggestionList);
-        this.dataSource = new SuggestionDataSource(this.suggestionDatabase);
+        this.setSuggestionList(suggestionList);
       },
       (err) => {
         if (err.message === 'Unexpected token < in JSON at position 0') {
@@ -83,7 +124,7 @@ export class SuggestionListComponent implements OnInit {
   onClick(row) {
     const suggestion = this.suggestionList[row.nr - 1];
     // noinspection JSIgnoredPromiseFromCall
-    this.router.navigate(['/admin/suggestion/', suggestion.uuid]);
+    this.router.navigate(['/suggestion/', suggestion.uuid]);
   }
 
   private openAuthenticateDialog() {
@@ -99,5 +140,10 @@ export class SuggestionListComponent implements OnInit {
         this.ngOnInit();
       }
     });
+  }
+
+  changeLanguage() {
+    localStorage.setItem(SELECTED_LANGUGAGE, JSON.stringify(this.selectedLanguage));
+    this.loadSuggestions();
   }
 }

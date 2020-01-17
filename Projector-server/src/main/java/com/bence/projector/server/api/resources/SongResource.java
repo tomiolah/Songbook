@@ -8,6 +8,7 @@ import com.bence.projector.common.dto.SongViewsDTO;
 import com.bence.projector.server.api.assembler.SongAssembler;
 import com.bence.projector.server.api.assembler.SongTitleAssembler;
 import com.bence.projector.server.backend.model.Language;
+import com.bence.projector.server.backend.model.Role;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
@@ -72,6 +73,19 @@ public class SongResource {
         this.userService = userService;
         this.sender = sender;
         this.languageService = languageService;
+    }
+
+    static boolean songInReviewLanguages(User user, Song song) {
+        if (user.getRole().equals(Role.ROLE_ADMIN)) {
+            return true;
+        }
+        String id = song.getLanguage().getId();
+        for (Language language : user.getReviewLanguages()) {
+            if (language.getId().equals(id)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs")
@@ -431,16 +445,6 @@ public class SongResource {
         return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
     }
 
-    private boolean songInReviewLanguages(User user, Song song) {
-        String id = song.getLanguage().getId();
-        for (Language language : user.getReviewLanguages()) {
-            if (language.getId().equals(id)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @RequestMapping(method = RequestMethod.GET, value = "/admin/removeDuplicates")
     public void removeDuplicates(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
@@ -503,8 +507,11 @@ public class SongResource {
     public ResponseEntity<Object> similarSongs(@PathVariable("songId") String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         Song song = songService.findOne(songId);
-        final List<Song> similar = songService.findAllSimilar(song);
-        return new ResponseEntity<>(songAssembler.createDtoList(similar), HttpStatus.ACCEPTED);
+        if (song != null) {
+            final List<Song> similar = songService.findAllSimilar(song);
+            return new ResponseEntity<>(songAssembler.createDtoList(similar), HttpStatus.ACCEPTED);
+        }
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/api/songs/similar/song")

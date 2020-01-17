@@ -96,11 +96,11 @@
         </tr>
         <tr *ngIf="song.createdDate">
           <td>Created date:&nbsp;</td>
-          <td>{{song.createdDate | date: 'yyyy/MM/dd hh:mm'}}</td>
+          <td>{{song.createdDate | date: 'yyyy/MM/dd HH:mm'}}</td>
         </tr>
         <tr *ngIf="song.modifiedDate">
           <td>Modified date:&nbsp;</td>
-          <td>{{song.modifiedDate | date: 'yyyy/MM/dd hh:mm'}}</td>
+          <td>{{song.modifiedDate | date: 'yyyy/MM/dd HH:mm'}}</td>
         </tr>
         <tr *ngIf="song.lastModifiedByUserEmail && auth.getUser().isAdmin()">
           <td>Last modified by user email:&nbsp;</td>

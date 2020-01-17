@@ -6,11 +6,14 @@ export class Suggestion extends BaseModel {
   title: string;
   verses: SongVerseDTO[];
   createdDate: Date;
+  modifiedDate: Date;
   applied: boolean;
   createdByEmail: string;
   description: string;
   nr: number;
   youtubeUrl: string;
+  reviewed: boolean;
+  lastModifiedByUserEmail: string;
 
   constructor(values: Object = {}) {
     super(values);

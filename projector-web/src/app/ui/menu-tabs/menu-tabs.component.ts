@@ -16,7 +16,7 @@ export class MenuTabsComponent implements OnInit {
   adminMenuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },
     { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
-    { link: '/admin/suggestions', icon: 'announcement', title: 'Suggestions' },
+    { link: '/suggestions', icon: 'announcement', title: 'Suggestions' },
     { link: '/admin/users', icon: 'supervised_user_circle', title: 'Users' },
   ];
   userMenuTabs = [
@@ -26,6 +26,7 @@ export class MenuTabsComponent implements OnInit {
   reviewerMenuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },
     { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
+    { link: '/suggestions', icon: 'announcement', title: 'Suggestions' },
   ];
 
   constructor(public auth: AuthService, ) {
