@@ -28,7 +28,7 @@ export const appRoutes: Routes = [
     component: SongComponent
   },
   {
-    path: 'admin/suggestion/:suggestionId',
+    path: 'suggestion/:suggestionId',
     component: SuggestionComponent
   },
   {
@@ -41,7 +41,7 @@ export const appRoutes: Routes = [
   },
   { path: 'addNewSong', component: NewSongComponent },
   { path: 'admin/statistics', component: StatisticsListComponent },
-  { path: 'admin/suggestions', component: SuggestionListComponent },
+  { path: 'suggestions', component: SuggestionListComponent },
   { path: 'songs', component: SongListComponent },
   { path: '', redirectTo: 'songs', pathMatch: 'full' },
   { path: 'registration', component: UserRegisterComponent },

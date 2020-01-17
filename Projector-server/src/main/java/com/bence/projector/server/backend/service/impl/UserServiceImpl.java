@@ -57,6 +57,31 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
                 reviewers.add(user);
             }
         }
+        List<User> admins = findAllAdmins();
+        for (User admin : admins) {
+            boolean was = false;
+            for (User user : reviewers) {
+                if (user.getEmail().equals(admin.getEmail())) {
+                    was = true;
+                    break;
+                }
+            }
+            if (!was) {
+                reviewers.add(admin);
+            }
+        }
         return reviewers;
+    }
+
+    @Override
+    public List<User> findAllAdmins() {
+        List<User> users = findAll();
+        List<User> admins = new ArrayList<>();
+        for (User user : users) {
+            if (user.getRole().equals(Role.ROLE_ADMIN)) {
+                admins.add(user);
+            }
+        }
+        return admins;
     }
 }

@@ -385,39 +385,43 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @SuppressWarnings("Duplicates")
     private String getText(Song song) {
-        ArrayList<SongVerse> verseList = new ArrayList<>(song.getVerses().size());
-        final List<SongVerse> verses = song.getVerses();
-        int size = verses.size();
-        List<Short> verseOrderList = song.getVerseOrderList();
-        if (verseOrderList == null) {
-            SongVerse chorus = null;
-            for (int i = 0; i < size; ++i) {
-                SongVerse songVerse = verses.get(i);
-                verseList.add(songVerse);
-                if (songVerse.isChorus()) {
-                    chorus = songVerse;
-                } else if (chorus != null) {
-                    if (i + 1 < size) {
-                        if (!verses.get(i + 1).isChorus()) {
+        try {
+            ArrayList<SongVerse> verseList = new ArrayList<>(song.getVerses().size());
+            final List<SongVerse> verses = song.getVerses();
+            int size = verses.size();
+            List<Short> verseOrderList = song.getVerseOrderList();
+            if (verseOrderList == null) {
+                SongVerse chorus = null;
+                for (int i = 0; i < size; ++i) {
+                    SongVerse songVerse = verses.get(i);
+                    verseList.add(songVerse);
+                    if (songVerse.isChorus()) {
+                        chorus = songVerse;
+                    } else if (chorus != null) {
+                        if (i + 1 < size) {
+                            if (!verses.get(i + 1).isChorus()) {
+                                verseList.add(chorus);
+                            }
+                        } else {
                             verseList.add(chorus);
                         }
-                    } else {
-                        verseList.add(chorus);
+                    }
+                }
+            } else {
+                for (Short i : verseOrderList) {
+                    if (i < verses.size()) {
+                        verseList.add(verses.get(i));
                     }
                 }
             }
-        } else {
-            for (Short i : verseOrderList) {
-                if (i < verses.size()) {
-                    verseList.add(verses.get(i));
-                }
+            StringBuilder text = new StringBuilder();
+            for (SongVerse songVerse : verseList) {
+                text.append(songVerse.getText()).append(" ");
             }
+            return text.toString();
+        } catch (NullPointerException ignored) {
         }
-        StringBuilder text = new StringBuilder();
-        for (SongVerse songVerse : verseList) {
-            text.append(songVerse.getText()).append(" ");
-        }
-        return text.toString();
+        return "";
     }
 
     private void addSongs(List<Song> songs, Date lastModifiedDate, List<Song> returningSongs) {
@@ -441,6 +445,9 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             song = songsHashMap.get(id);
         } else {
             song = super.findOne(id);
+            if (song != null) {
+                getSongsHashMap().put(song.getId(), song);
+            }
         }
         if (song != null && song.getLanguage() == null) {
             Language languageBySongsContaining = languageService.findLanguageBySongsContaining(song);

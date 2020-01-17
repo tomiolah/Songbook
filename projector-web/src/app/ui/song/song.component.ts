@@ -77,6 +77,7 @@ export class SongComponent implements OnInit, OnDestroy {
     if (!song.deleted) {
       history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
     }
+    this.showSimilarOnStart();
   }
 
   // noinspection JSMethodCanBeStatic
@@ -123,10 +124,7 @@ export class SongComponent implements OnInit, OnDestroy {
             this.showOpenInAppDialog(MobileOsTypeEnum.Ios);
           }
           this.loadVersionGroup();
-          const user = this.auth.getUser();
-          if (this.auth.isLoggedIn && user != undefined && (user.hasReviewerRoleForSong(this.song) || user.isAdmin())) {
-            this.showSimilar();
-          }
+          this.showSimilarOnStart();
           this.songCollectionService.getAllBySongId(songId).subscribe(
             (songCollections) => {
               this.collections = songCollections
@@ -135,6 +133,13 @@ export class SongComponent implements OnInit, OnDestroy {
         });
       }
     });
+  }
+
+  showSimilarOnStart() {
+    const user = this.auth.getUser();
+    if (this.auth.isLoggedIn && user != undefined && (user.hasReviewerRoleForSong(this.song) || user.isAdmin())) {
+      this.showSimilar();
+    }
   }
 
   loadVersionGroup() {
@@ -172,7 +177,7 @@ export class SongComponent implements OnInit, OnDestroy {
         this.router.navigate(['/songs']);
       },
       (err) => {
-        if (err.message === 'Unexpected token < in JSON at position 0') {
+        if (err.statusText === 'Method Not Allowed') {
           this.openAuthenticateDialog(this.eraseSongType);
         } else {
           console.log(err);

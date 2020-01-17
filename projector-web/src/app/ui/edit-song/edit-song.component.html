@@ -9,11 +9,11 @@
         <mat-radio-button class="example-radio-button" [value]="'verse'">Verse editor</mat-radio-button>
         <mat-radio-button class="example-radio-button" [value]="'raw'">Raw editor</mat-radio-button>
       </mat-radio-group>
-      <form (ngSubmit)="onSubmit()" [formGroup]="form" class="example-form">
+      <form [formGroup]="form" class="example-form">
         <div class="formLayout">
 
           <div class="example-container">
-            <mat-form-field *ngIf="auth.isLoggedIn && auth.getUser().isAdmin()" class="example-full-width">
+            <mat-form-field *ngIf="auth.isLoggedIn" class="example-full-width">
               <!--suppress HtmlUnknownAttribute -->
               <mat-select placeholder="Language" required [(value)]="selectedLanguage">
                 <mat-option *ngFor="let language of languages" [value]="language">
@@ -24,6 +24,8 @@
                 </mat-option>
               </mat-select>
             </mat-form-field>
+            <button *ngIf="originalLanguage != selectedLanguage" mat-button color="accent"
+              (click)="onApplyLanguageButtonClick()">Apply</button>
             <mat-form-field class="example-full-width">
               <input type="text" id="youtubeUrl" formControlName="youtubeUrl" [value]="youtubeUrl" matInput
                 (change)="calculateUrlId()" placeholder="Youtube url">
@@ -112,7 +114,7 @@
           </div>
           <br>
           <br>
-          <button type="submit" class="btn btn-success" [disabled]="needToDisable()">Submit</button>
+          <button type="submit" (click)="onSubmit()" class="btn btn-success" [disabled]="needToDisable()">Submit</button>
         </div>
         <br>
       </form>

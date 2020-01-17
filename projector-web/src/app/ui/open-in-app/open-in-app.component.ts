@@ -1,7 +1,5 @@
 import { Component, OnInit } from '@angular/core';
 import { MatDialogRef } from "@angular/material";
-import { Inject } from '@angular/core';
-import { MAT_DIALOG_DATA } from "@angular/material";
 import { MobileOsTypeEnum } from '../../util/enums';
 
 @Component({

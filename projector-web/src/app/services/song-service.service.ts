@@ -173,4 +173,9 @@ export class SongService {
   getSongsByVersionGroup(id) {
     return this.api.getAll(Song, '/api/songs/versionGroup/' + id);
   }
+
+  changeLanguage(role: string, song: Song) {
+    song.id = song.uuid;
+    return this.api.update(Song, role + '/api/changeLanguageForSong/', song);
+  }
 }

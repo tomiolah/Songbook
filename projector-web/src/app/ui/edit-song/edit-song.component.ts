@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { Language } from "../../models/language";
 import { LanguageDataService } from "../../services/language-data.service";
 import { NewLanguageComponent } from "../new-language/new-language.component";
-import { MatDialog, MatIconRegistry } from "@angular/material";
+import { MatDialog, MatIconRegistry, MatSnackBar } from "@angular/material";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
 import { replace } from "../new-song/new-song.component";
 import { AuthenticateComponent } from "../authenticate/authenticate.component";
@@ -34,6 +34,7 @@ export class EditSongComponent implements OnInit {
   verseControls: FormControl[];
   languages = [];
   selectedLanguage;
+  originalLanguage;
   @Input()
   song: Song;
   editorType = 'verse';
@@ -63,6 +64,7 @@ export class EditSongComponent implements OnInit {
   constructor(private fb: FormBuilder,
     private songService: SongService,
     private router: Router,
+    private snackBar: MatSnackBar,
     private languageDataService: LanguageDataService,
     private dialog: MatDialog,
     iconRegistry: MatIconRegistry,
@@ -222,6 +224,29 @@ export class EditSongComponent implements OnInit {
               break;
             }
           }
+        }
+        this.originalLanguage = this.selectedLanguage;
+      }
+    );
+  }
+
+  onApplyLanguageButtonClick() {
+    let song = new Song(this.song);
+    song.languageDTO = this.selectedLanguage;
+    const role = this.auth.getUser().getRolePath();
+    this.songService.changeLanguage(role, song).subscribe(
+      () => {
+        // noinspection JSIgnoredPromiseFromCall
+        this.router.navigate(['/songs']);
+      },
+      (err) => {
+        if (err.status === 405) {
+          this.openAuthenticateDialog();
+        } else {
+          console.log(err);
+          this.snackBar.open(err._body, 'Close', {
+            duration: 5000
+          })
         }
       }
     );
