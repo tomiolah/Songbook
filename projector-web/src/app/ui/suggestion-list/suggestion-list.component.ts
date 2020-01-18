@@ -113,6 +113,16 @@ export class SuggestionListComponent implements OnInit {
     );
   }
 
+  private compare(a, b) {
+    if (a < b) {
+      return -1;
+    }
+    if (a > b) {
+      return 1;
+    }
+    return 0;
+  }
+
   private setSuggestionList(suggestionList: Suggestion[]) {
     this.suggestionList = [];
     for (let suggestion of suggestionList.reverse()) {
@@ -120,6 +130,9 @@ export class SuggestionListComponent implements OnInit {
         this.suggestionList.push(suggestion);
       }
     }
+    this.suggestionList.sort((suggestion1, suggestion2) => {
+      return this.compare(suggestion2.modifiedDate, suggestion1.modifiedDate);
+    });
     this.suggestionDatabase = new SuggestionDatabase(this.suggestionList);
     this.dataSource = new SuggestionDataSource(this.suggestionDatabase);
   }

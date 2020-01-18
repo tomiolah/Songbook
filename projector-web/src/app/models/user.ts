@@ -55,6 +55,9 @@ export class User extends BaseModel {
   }
   
   hasReviewerRoleForLanguage(language: Language): Boolean {
+    if (this.isAdmin()) {
+      return true;
+    }
     if (language == undefined || !this.isReviewer()) {
       return false;
     }
