@@ -1,5 +1,6 @@
 package com.bence.projector.server.api.resources;
 
+import com.bence.projector.common.dto.UserDTO;
 import com.bence.projector.common.dto.UserRegisterDTO;
 import com.bence.projector.server.api.assembler.UserAssembler;
 import com.bence.projector.server.api.assembler.UserRegisterAssembler;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -34,7 +36,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.security.Principal;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -72,6 +76,8 @@ public class UserResource {
             user = userRegisterAssembler.createModel(userRegisterDTO);
             user.setActivated(false);
             user.setActivationCode(UUID.randomUUID().toString());
+            user.setCreatedDate(new Date());
+            user.setModifiedDate(user.getCreatedDate());
             ResponseEntity<Object> responseEntity = new ResponseEntity<>(
                     userAssembler.createDto(userService.registerUser(user)), HttpStatus.ACCEPTED);
             User finalUser = user;
@@ -84,6 +90,40 @@ public class UserResource {
             }
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+    @RequestMapping(value = "admin/api/users", method = RequestMethod.GET)
+    public List<UserDTO> getUsers() {
+        List<User> all = userService.findAll();
+        return userAssembler.createDtoList(all);
+    }
+
+    @RequestMapping(value = "admin/api/user/{id}", method = RequestMethod.GET)
+    public UserDTO getUser(@PathVariable final String id, HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        User user = userService.findOne(id);
+        return userAssembler.createDto(user);
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/admin/api/user/{id}")
+    public ResponseEntity<Object> updateUser(@PathVariable final String id, @RequestBody final UserDTO userDTO, HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        User user = userService.findOne(id);
+        if (user != null) {
+            Date modifiedDate = user.getModifiedDate();
+            if (modifiedDate != null && modifiedDate.compareTo(userDTO.getModifiedDate()) != 0) {
+                return new ResponseEntity<>("Already modified", HttpStatus.CONFLICT);
+            }
+            userDTO.setModifiedDate(new Date());
+            userAssembler.updateModel(user, userDTO);
+            final User savedUser = userService.save(user);
+            if (savedUser != null) {
+                return new ResponseEntity<>(userAssembler.createDto(user), HttpStatus.ACCEPTED);
+            }
+        } else {
+            return new ResponseEntity<>("No user with this id", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>("Could not update", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private void sendActivationEmail(User user) {
@@ -140,7 +180,7 @@ public class UserResource {
 
         Map<String, Object> data = new HashMap<>();
         data.put("email", user.getEmail());
-        data.put("sureName", user.getSureName());
+        data.put("surname", user.getSurname());
         data.put("firstName", user.getFirstName());
         template.process(data, writer);
 

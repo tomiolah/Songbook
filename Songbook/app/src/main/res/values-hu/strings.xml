@@ -115,5 +115,6 @@
     <string name="probably_sign_in_not_works_on_your_device">Valószínűleg a bejelentkezés nem működik a készülékén.</string>
     <string name="change_view">Válts nézetet</string>
     <string name="relevance">Relevancia</string>
+    <string name="unexpected_error">Unexpected error</string>
     <string name="try_again">Próbáld újra</string>
 </resources>

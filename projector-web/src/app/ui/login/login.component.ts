@@ -91,21 +91,21 @@ export class LoginComponent implements OnInit, OnDestroy {
   onSubmit() {
     this.authService.login(this.loginForm.value.email, this.loginForm.value.password).subscribe(
       () => {
-        this.authService.getUser().subscribe(
+        this.authService.getUserFromServer().subscribe(
           (resp) => {
             this.authService.isLoggedIn = true;
-            this.authService.user = new User();
-            this.authService.user = Object.assign(resp);
-            localStorage.setItem('currentUser', JSON.stringify(this.authService.user));
+            const user = new User(resp);
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            this.authService.setUser(user);
             let redirect = this.authService.redirectUrl;
             if (!redirect) {
-              if (this.authService.user != null) {
+              if (user != null) {
                 redirect = '/songs';
               } else {
                 redirect = '/';
               }
             } else {
-              if (this.authService.user.role.startsWith('ROLE_ADMIN') && redirect.startsWith('/user')) {
+              if (user.isAdmin() && redirect.startsWith('/user')) {
                 redirect = '/songs';
               }
             }
@@ -119,8 +119,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             this.router.navigate([redirect], navigationExtras);
           },
           (err) => {
-            this.authService.isLoggedIn = false;
-            this.authService.user = null;
+            this.authService.setUser(null);
             if (err.status.toString().charAt(0) === '4') {
               // this.translate.get('serverResponse.EMAIL_OR_PASSW_INCORRECT').subscribe((resp: string) => {
               //   this.toastr.error(resp);
@@ -134,8 +133,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         );
       },
       () => {
-        this.authService.isLoggedIn = false;
-        this.authService.user = null;
+        this.authService.setUser(null);
         // this.translate.get('informationalMsg.NO_RESPONSE_FROM_SERVER').subscribe((res: string) => {
         //   this.toastr.error(res);
         // });

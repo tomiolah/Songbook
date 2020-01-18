@@ -1,6 +1,7 @@
 package projector.controller;
 
 import javafx.collections.ObservableList;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
@@ -10,6 +11,7 @@ import projector.model.Bible;
 import projector.model.BibleVerse;
 import projector.model.Book;
 import projector.model.Chapter;
+import projector.model.Language;
 import projector.model.VerseIndex;
 import projector.service.BibleService;
 import projector.service.ServiceManager;
@@ -25,22 +27,34 @@ public class IndicesForBibleController {
     public ListView<BibleVerse> otherListView;
     public ListView<Book> bookListView;
     public ListView<Chapter> chapterListView;
+    public ComboBox<Bible> bibleComboBox;
     private Bible otherBible;
     private HashMap<Long, List<BibleVerse>> verseHashMap;
     private Bible bible;
     private MultipleSelectionModel<BibleVerse> leftListViewSelectionModel;
     private MultipleSelectionModel<BibleVerse> otherListViewSelectionModel;
+    private Chapter chapter;
 
     public void initialize() {
         leftListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         otherListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         leftListViewSelectionModel = leftListView.getSelectionModel();
         otherListViewSelectionModel = otherListView.getSelectionModel();
+        List<Bible> bibles = ServiceManager.getBibleService().findAll();
+        bibleComboBox.getItems().addAll(bibles);
+        bibleComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            setLeftBible(newValue);
+            reloadListViews();
+        });
     }
 
-    void setLeftBible(Bible bible) {
+    public void setLeftBible(Bible bible) {
+        int bookSelectedIndex = bookListView.getSelectionModel().getSelectedIndex();
+        int chapterSelectedIndex = chapterListView.getSelectionModel().getSelectedIndex();
         this.bible = bible;
-        bookListView.getItems().addAll(bible.getBooks());
+        ObservableList<Book> bookListViewItems = bookListView.getItems();
+        bookListViewItems.clear();
+        bookListViewItems.addAll(bible.getBooks());
         MultipleSelectionModel<Book> bookSelectionModel = bookListView.getSelectionModel();
         MultipleSelectionModel<Chapter> chapterSelectionModel = chapterListView.getSelectionModel();
         bookSelectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -50,56 +64,72 @@ public class IndicesForBibleController {
                 items.addAll(newValue.getChapters());
             }
         });
-        bookSelectionModel.selectFirst();
-        chapterSelectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                ObservableList<BibleVerse> items = leftListView.getItems();
-                items.clear();
-                items.addAll(newValue.getVerses());
-                if (otherBible != null) {
-                    ObservableList<BibleVerse> items1 = otherListView.getItems();
-                    items1.clear();
-                    for (BibleVerse verse : newValue.getVerses()) {
-                        try {
-                            List<VerseIndex> verseIndices = verse.getVerseIndices();
-                            if (verseIndices != null && verseIndices.size() > 0) {
-                                List<BibleVerse> bibleVerses = new ArrayList<>();
-                                for (VerseIndex verseIndex : verseIndices) {
-                                    List<BibleVerse> c = verseHashMap.get(verseIndex.getIndexNumber());
-                                    if (c != null) {
-                                        bibleVerses.addAll(c);
-                                    }
-                                }
-                                if (bibleVerses.size() == 0) {
-                                    items1.add(new BibleVerse());
-                                } else if (bibleVerses.size() == 1) {
-                                    items1.add(bibleVerses.get(0));
-                                } else {
-                                    BibleVerse bibleVerse = bibleVerses.get(0);
-                                    BibleVerse verse1 = new BibleVerse();
-                                    verse1.setVerseIndices(bibleVerse.getVerseIndices());
-                                    verse1.setNumber(bibleVerse.getNumber());
-                                    verse1.setChapter(bibleVerse.getChapter());
-                                    StringBuilder text = new StringBuilder(bibleVerse.getText());
-                                    for (int i = 1; i < bibleVerses.size(); ++i) {
-                                        text.append("\n").append(bibleVerses.get(i).getText());
-                                    }
-                                    verse1.setText(text.toString());
-                                    items1.add(verse1);
-                                }
-                            } else {
-                                System.out.println();
-                            }
-                        } catch (IndexOutOfBoundsException | NullPointerException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }
-        });
+        if (bookSelectedIndex >= 0) {
+            bookSelectionModel.select(bookSelectedIndex);
+        } else {
+            bookSelectionModel.selectFirst();
+        }
+        if (chapterSelectedIndex >= 0) {
+            chapterSelectionModel.select(chapterSelectedIndex);
+        } else {
+            chapterSelectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> loadListViews(newValue));
+        }
     }
 
-    void setOtherBible(Bible otherBible) {
+    private void reloadListViews() {
+        loadListViews(chapter);
+    }
+
+    private void loadListViews(Chapter chapter) {
+        if (chapter == null) {
+            return;
+        }
+        this.chapter = chapter;
+        ObservableList<BibleVerse> items = leftListView.getItems();
+        items.clear();
+        items.addAll(chapter.getVerses());
+        if (otherBible != null) {
+            ObservableList<BibleVerse> items1 = otherListView.getItems();
+            items1.clear();
+            for (BibleVerse verse : chapter.getVerses()) {
+                try {
+                    List<VerseIndex> verseIndices = verse.getVerseIndices();
+                    if (verseIndices != null && verseIndices.size() > 0) {
+                        List<BibleVerse> bibleVerses = new ArrayList<>();
+                        for (VerseIndex verseIndex : verseIndices) {
+                            List<BibleVerse> c = verseHashMap.get(verseIndex.getIndexNumber());
+                            if (c != null) {
+                                bibleVerses.addAll(c);
+                            }
+                        }
+                        if (bibleVerses.size() == 0) {
+                            items1.add(new BibleVerse());
+                        } else if (bibleVerses.size() == 1) {
+                            items1.add(bibleVerses.get(0));
+                        } else {
+                            BibleVerse bibleVerse = bibleVerses.get(0);
+                            BibleVerse verse1 = new BibleVerse();
+                            verse1.setVerseIndices(bibleVerse.getVerseIndices());
+                            verse1.setNumber(bibleVerse.getNumber());
+                            verse1.setChapter(bibleVerse.getChapter());
+                            StringBuilder text = new StringBuilder(bibleVerse.getText());
+                            for (int i = 1; i < bibleVerses.size(); ++i) {
+                                text.append("\n").append(bibleVerses.get(i).getText());
+                            }
+                            verse1.setText(text.toString());
+                            items1.add(verse1);
+                        }
+                    } else {
+                        System.out.println();
+                    }
+                } catch (IndexOutOfBoundsException | NullPointerException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void setOtherBible(Bible otherBible) {
         this.otherBible = otherBible;
         verseHashMap = new HashMap<>();
         fillVerseMap();
@@ -145,25 +175,34 @@ public class IndicesForBibleController {
         }
         selectedItem.setVerseIndices(verseIndices);
         fillVerseMap();
+        reloadListViews();
     }
 
     public void decreaseIndex() {
         BibleVerse selectedItem = otherListViewSelectionModel.getSelectedItem();
-        Long indexNumber = selectedItem.getVerseIndices().get(0).getIndexNumber();
+        Long indexNumber = null;
+        if (selectedItem != null) {
+            indexNumber = selectedItem.getVerseIndices().get(0).getIndexNumber();
+        }
         changeIndex(indexNumber, -1000);
         fillVerseMap();
+        reloadListViews();
     }
 
     public void increaseIndex() {
         BibleVerse selectedItem = otherListViewSelectionModel.getSelectedItem();
-        Long indexNumber = selectedItem.getVerseIndices().get(0).getIndexNumber();
+        Long indexNumber = null;
+        if (selectedItem != null) {
+            indexNumber = selectedItem.getVerseIndices().get(0).getIndexNumber();
+        }
         changeIndex(indexNumber, 1000);
         fillVerseMap();
+        reloadListViews();
     }
 
     private void changeIndex(Long indexNumber, int shift) {
         for (Map.Entry<Long, List<BibleVerse>> next : verseHashMap.entrySet()) {
-            if (next.getKey() >= indexNumber) {
+            if (indexNumber == null || next.getKey() >= indexNumber) {
                 for (BibleVerse bibleVerse : next.getValue()) {
                     for (VerseIndex verseIndex : bibleVerse.getVerseIndices()) {
                         verseIndex.setIndexNumber(verseIndex.getIndexNumber() + shift);
@@ -176,7 +215,11 @@ public class IndicesForBibleController {
     public void save() {
         BibleService bibleService = ServiceManager.getBibleService();
 //        bibleService.delete(bible);
-        bibleService.delete(otherBible);
+        try {
+            bibleService.delete(otherBible);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 //        bibleService.create(bible);
         bibleService.create(otherBible);
     }
@@ -193,6 +236,8 @@ public class IndicesForBibleController {
             }
         }
         BibleApiBean bibleApiBean = new BibleApiBean();
+        List<Language> languages = ServiceManager.getLanguageService().findAll();
+        otherBible.setLanguage(languages.get(4));
         Bible uploadedBible = bibleApiBean.uploadBible(otherBible);
         System.out.println("accomplished");
     }
@@ -218,5 +263,22 @@ public class IndicesForBibleController {
         }
         selectedItem.setVerseIndices(verseIndices);
         fillVerseMap();
+        reloadListViews();
+    }
+
+    public void copyIndices() {
+        BibleVerse rightVerse = otherListViewSelectionModel.getSelectedItem();
+        BibleVerse leftVerse = leftListViewSelectionModel.getSelectedItem();
+        List<VerseIndex> rightVerseVerseIndices = rightVerse.getVerseIndices();
+        rightVerseVerseIndices.clear();
+        List<VerseIndex> leftVerseVerseIndices = leftVerse.getVerseIndices();
+        for (VerseIndex verseIndex : leftVerseVerseIndices) {
+            VerseIndex index = new VerseIndex();
+            index.setIndexNumber(verseIndex.getIndexNumber());
+            rightVerseVerseIndices.add(index);
+        }
+        rightVerse.setVerseIndices(rightVerseVerseIndices);
+        fillVerseMap();
+        reloadListViews();
     }
 }

@@ -3,6 +3,7 @@ package com.bence.projector.server.api.assembler;
 import com.bence.projector.common.dto.SuggestionDTO;
 import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.model.Suggestion;
+import com.bence.projector.server.backend.model.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,12 +28,18 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
         suggestionDTO.setUuid(suggestion.getId());
         suggestionDTO.setTitle(suggestion.getTitle());
         suggestionDTO.setCreatedDate(suggestion.getCreatedDate());
+        suggestionDTO.setModifiedDate(suggestion.getModifiedDate());
         suggestionDTO.setVerses(songVerseAssembler.createDtoList(suggestion.getVerses()));
         suggestionDTO.setCreatedByEmail(suggestion.getCreatedByEmail());
         suggestionDTO.setApplied(suggestion.getApplied());
         suggestionDTO.setDescription(suggestion.getDescription());
         suggestionDTO.setSongId(suggestion.getSongId());
         suggestionDTO.setYoutubeUrl(suggestion.getYoutubeUrl());
+        suggestionDTO.setReviewed(suggestion.getReviewed());
+        User lastModifiedBy = suggestion.getLastModifiedBy();
+        if (lastModifiedBy != null) {
+            suggestionDTO.setLastModifiedByUserEmail(lastModifiedBy.getEmail());
+        }
         return suggestionDTO;
     }
 
@@ -40,6 +47,7 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
     public Suggestion createModel(SuggestionDTO suggestionDTO) {
         final Suggestion suggestion = new Suggestion();
         suggestion.setCreatedDate(new Date());
+        suggestion.setModifiedDate(suggestion.getCreatedDate());
         return updateModel(suggestion, suggestionDTO);
     }
 
@@ -53,6 +61,7 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
         suggestion.setDescription(suggestionDTO.getDescription());
         suggestion.setSongId(suggestionDTO.getSongId());
         suggestion.setYoutubeUrl(suggestionDTO.getYoutubeUrl());
+        suggestion.setReviewed(suggestionDTO.getReviewed());
         return suggestion;
     }
 }

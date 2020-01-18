@@ -1,14 +1,17 @@
-import {Component, Input, OnDestroy, OnInit} from '@angular/core';
-import {ActivatedRoute} from '@angular/router';
-import {Song, SongService} from '../../services/song-service.service';
-import {Subscription} from 'rxjs/Subscription';
-import {AuthService} from '../../services/auth.service';
-import {DomSanitizer, SafeResourceUrl, Title} from "@angular/platform-browser";
-import {MatDialog, MatSnackBar} from "@angular/material";
-import {ShareComponent} from "../share/share.component";
-import {AuthenticateComponent} from "../authenticate/authenticate.component";
-import {OpenInAppComponent} from "../open-in-app/open-in-app.component";
-import {AddToCollectionComponent} from "../add-to-collection/add-to-collection.component";
+import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Song, SongService } from '../../services/song-service.service';
+import { Subscription } from 'rxjs/Subscription';
+import { AuthService } from '../../services/auth.service';
+import { DomSanitizer, SafeResourceUrl, Title } from "@angular/platform-browser";
+import { MatDialog, MatSnackBar } from "@angular/material";
+import { ShareComponent } from "../share/share.component";
+import { AuthenticateComponent } from "../authenticate/authenticate.component";
+import { OpenInAppComponent } from "../open-in-app/open-in-app.component";
+import { AddToCollectionComponent } from "../add-to-collection/add-to-collection.component";
+import { MobileOsTypeEnum } from "../../util/enums";
+import { SongCollection, SongCollectionElement } from '../../models/songCollection';
+import { SongCollectionDataService } from '../../services/song-collection-data.service';
 
 @Component({
   selector: 'app-song',
@@ -30,14 +33,21 @@ export class SongComponent implements OnInit, OnDestroy {
   public safeUrl: SafeResourceUrl = null;
   public isAndroid = false;
   private sub: Subscription;
+  eraseSongType = 1;
+  mergeVersionGroupType = 2;
+  copyToSongCollectionType = 3;
+  public isIos = false;
+  collections: SongCollection[] = [];
 
   constructor(private activatedRoute: ActivatedRoute,
-              private songService: SongService,
-              private dialog: MatDialog,
-              public auth: AuthService,
-              private titleService: Title,
-              private snackBar: MatSnackBar,
-              public sanitizer: DomSanitizer) {
+    private songService: SongService,
+    private dialog: MatDialog,
+    public auth: AuthService,
+    private titleService: Title,
+    private snackBar: MatSnackBar,
+    private router: Router,
+    private songCollectionService: SongCollectionDataService,
+    public sanitizer: DomSanitizer) {
     auth.getUserFromLocalStorage();
     this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
     if (this.markedVersionGroup == 'null') {
@@ -67,6 +77,7 @@ export class SongComponent implements OnInit, OnDestroy {
     if (!song.deleted) {
       history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
     }
+    this.showSimilarOnStart();
   }
 
   // noinspection JSMethodCanBeStatic
@@ -106,13 +117,29 @@ export class SongComponent implements OnInit, OnDestroy {
             });
           }
           this.isAndroid = /(android)/i.test(navigator.userAgent);
+          this.isIos = /iPad|iPhone|iPod/i.test(navigator.userAgent);
           if (this.isAndroid) {
-            this.showOpenInAppDialog();
+            this.showOpenInAppDialog(MobileOsTypeEnum.Android);
+          } else if (this.isIos) {
+            this.showOpenInAppDialog(MobileOsTypeEnum.Ios);
           }
           this.loadVersionGroup();
+          this.showSimilarOnStart();
+          this.songCollectionService.getAllBySongId(songId).subscribe(
+            (songCollections) => {
+              this.collections = songCollections
+            }
+          );
         });
       }
     });
+  }
+
+  showSimilarOnStart() {
+    const user = this.auth.getUser();
+    if (this.auth.isLoggedIn && user != undefined && (user.hasReviewerRoleForSong(this.song) || user.isAdmin())) {
+      this.showSimilar();
+    }
   }
 
   loadVersionGroup() {
@@ -136,14 +163,30 @@ export class SongComponent implements OnInit, OnDestroy {
   }
 
   deleteSong() {
-    this.songService.deleteById(this.song.uuid).subscribe(() => {
+    const role = this.auth.getUser().getRolePath();
+    this.songService.deleteById(role, this.song.uuid).subscribe(() => {
 
     });
   }
 
   eraseSong() {
-    this.songService.eraseById(this.song.uuid).subscribe(() => {
-    });
+    const role = this.auth.getUser().getRolePath();
+    this.songService.eraseById(role, this.song.uuid).subscribe(
+      () => {
+        // noinspection JSIgnoredPromiseFromCall
+        this.router.navigate(['/songs']);
+      },
+      (err) => {
+        if (err.statusText === 'Method Not Allowed') {
+          this.openAuthenticateDialog(this.eraseSongType);
+        } else {
+          console.log(err);
+          this.snackBar.open(err._body, 'Close', {
+            duration: 5000
+          })
+        }
+      }
+    );
   }
 
   publishSong() {
@@ -182,13 +225,42 @@ export class SongComponent implements OnInit, OnDestroy {
     updateSong.id = id;
     updateSong.modifiedDate = this.secondSong.modifiedDate;
     updateSong.deleted = false;
-    this.songService.updateSong(updateSong).subscribe(
+    const role = this.auth.getUser().getRolePath();
+    this.songService.updateSong(role, updateSong).subscribe(
       () => {
       },
       (err) => {
         console.log(err);
       }
     );
+  }
+
+  copySongCollectionElementsToSimilar() {
+    for (const collection of this.collections) {
+      for (const collectionElement of collection.songCollectionElements) {
+        let songCollectionElement = new SongCollectionElement();
+        songCollectionElement.ordinalNumber = collectionElement.ordinalNumber;
+        songCollectionElement.songUuid = this.secondSong.uuid;
+        this.updateSongCollectionElement(collection, songCollectionElement);
+      }
+    }
+  }
+
+  private updateSongCollectionElement(selectedSongCollection: SongCollection, songCollectionElement: SongCollectionElement) {
+    this.songCollectionService.putInCollection(selectedSongCollection, songCollectionElement).subscribe(() => {
+      this.snackBar.open(selectedSongCollection.name + " " + songCollectionElement.ordinalNumber + " copied.", 'Close', {
+        duration: 2000
+      })
+    }, (err) => {
+      if (err.status === 405) {
+        this.openAuthenticateDialog(this.copyToSongCollectionType);
+      } else {
+        this.snackBar.open(err._body, 'Close', {
+          duration: 2000
+        })
+        console.log(err);
+      }
+    });
   }
 
   markForVersionGroup() {
@@ -213,19 +285,19 @@ export class SongComponent implements OnInit, OnDestroy {
       this.markedVersionGroup = null;
       return;
     }
-    const user = this.auth.user.role === 'ROLE_ADMIN' ? 'admin' : 'user';
+    const user = this.auth.getUser().isAdmin() ? 'admin' : 'user';
     this.songService.mergeVersionGroup(this.song.uuid, this.markedVersionGroup, user).subscribe(
       (res) => {
         if (res.status === 202) {
           this.markedVersionGroup = null;
         } else {
           console.log(res);
-          this.openAuthenticateDialog();
+          this.openAuthenticateDialog(this.mergeVersionGroupType);
         }
       },
       (err) => {
         if (err.message === 'Unexpected token < in JSON at position 0') {
-          this.openAuthenticateDialog();
+          this.openAuthenticateDialog(this.mergeVersionGroupType);
         } else {
           console.log(err);
           this.snackBar.open(err._body, 'Close', {
@@ -249,10 +321,11 @@ export class SongComponent implements OnInit, OnDestroy {
     });
   }
 
-  showOpenInAppDialog(): void {
+  showOpenInAppDialog(mobileOsType: MobileOsTypeEnum): void {
     if (localStorage.getItem("OpenInAppComponent_dontShow") != undefined) {
       return;
     }
+    localStorage.setItem("mobileOsType", MobileOsTypeEnum[mobileOsType]);
     const config = {
       data: {
         uuid: this.song.uuid,
@@ -300,7 +373,7 @@ export class SongComponent implements OnInit, OnDestroy {
     });
   }
 
-  private openAuthenticateDialog() {
+  private openAuthenticateDialog(type: number) {
     let user = JSON.parse(localStorage.getItem('currentUser'));
     const dialogRef = this.dialog.open(AuthenticateComponent, {
       data: {
@@ -310,7 +383,13 @@ export class SongComponent implements OnInit, OnDestroy {
 
     dialogRef.afterClosed().subscribe((result) => {
       if (result === 'ok') {
-        this.mergeVersionGroup();
+        if (type == this.mergeVersionGroupType) {
+          this.mergeVersionGroup();
+        } else if (type == this.eraseSongType) {
+          this.eraseSong();
+        } else if (type == this.copyToSongCollectionType) {
+          this.copySongCollectionElementsToSimilar();
+        }
       }
     });
   }

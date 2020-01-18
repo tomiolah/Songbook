@@ -9,8 +9,6 @@ import java.util.List;
 public interface SongRepository extends MongoRepository<Song, String> {
     List<Song> findAllByModifiedDateGreaterThan(Date modifiedDate);
 
-    List<Song> findAllByUploadedTrueAndDeletedTrue();
-
     List<Song> findAllByVersionGroup(String versionGroup);
 
     List<Song> findAllByYoutubeUrlNotNull();

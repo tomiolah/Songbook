@@ -10,11 +10,15 @@ public class BaseEntity {
     private String id;
 
     public BaseEntity() {
-        this(null);
+        id = null;
     }
 
     public BaseEntity(final String id) {
         this.id = id;
+    }
+
+    public BaseEntity(BaseEntity baseEntity) {
+        this.id = baseEntity.id;
     }
 
     public String getId() {

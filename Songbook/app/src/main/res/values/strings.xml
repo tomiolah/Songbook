@@ -119,5 +119,6 @@
     <string name="probably_sign_in_not_works_on_your_device">Probably sign in not works on your device.</string>
     <string name="change_view">Change view</string>
     <string name="relevance">Relevance</string>
+    <string name="unexpected_error">Unexpected error</string>
     <string name="try_again">Try again</string>
 </resources>

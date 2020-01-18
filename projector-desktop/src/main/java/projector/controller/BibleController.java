@@ -36,19 +36,17 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.Main;
-import projector.api.BibleApiBean;
 import projector.application.ProjectionType;
 import projector.application.Reader;
 import projector.application.Settings;
 import projector.controller.eventHandler.NextButtonEventHandler;
 import projector.model.Bible;
 import projector.model.BibleVerse;
-import projector.model.Book;
 import projector.model.Chapter;
-import projector.model.Language;
 import projector.model.Reference;
 import projector.model.ReferenceBook;
 import projector.model.ReferenceChapter;
@@ -266,6 +264,28 @@ public class BibleController {
                     }
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
+                }
+            });
+            bibleListView.setCellFactory(new Callback<ListView<Bible>, ListCell<Bible>>() {
+                @Override
+                public ListCell<Bible> call(ListView<Bible> bibleListView) {
+
+                    return new ListCell<Bible>() {
+                        @Override
+                        protected void updateItem(Bible bible, boolean empty) {
+                            try {
+                                super.updateItem(bible, empty);
+                                if (bible != null && !empty) {
+                                    setText(bible.getShortName());
+                                    setUnderline(bible.getParallelNumber() != 0);
+                                } else {
+                                    setText(null);
+                                }
+                            } catch (Exception e) {
+                                LOG.error(e.getMessage(), e);
+                            }
+                        }
+                    };
                 }
             });
             verseListViewSelectionModel.setSelectionMode(SelectionMode.MULTIPLE);
@@ -1111,58 +1131,6 @@ public class BibleController {
 //                setIndicesForBible(otherBible);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    private void setIndicesForBible(Bible otherBible) {
-        try {
-            FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(Main.class.getResource("/view/IndicesForBibleView.fxml"));
-            loader.setResources(Settings.getInstance().getResourceBundle());
-            Pane root = loader.load();
-            IndicesForBibleController controller = loader.getController();
-            controller.setLeftBible(bible);
-            controller.setOtherBible(otherBible);
-            Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
-            Stage stage = new Stage();
-            stage.setScene(scene);
-            stage.setTitle("Indices");
-            stage.show();
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
-
-    @SuppressWarnings("unused")
-    private void uploadBible(Bible bible) {
-        BibleApiBean bibleApiBean = new BibleApiBean();
-        Bible uploadedBible = bibleApiBean.uploadBible(bible);
-        System.out.println("accomplished");
-    }
-
-    @SuppressWarnings("unused")
-    private void createIndices(Bible bible) {
-        bible.setName("Elberfelder 1905");
-        bible.setShortName("ELB");
-        List<Language> all = ServiceManager.getLanguageService().findAll();
-        bible.setLanguage(all.get(0));
-        int k = 1;
-        for (Book book : bible.getBooks()) {
-            short chapterNr = 1;
-            for (Chapter chapter : book.getChapters()) {
-                chapter.setNumber(chapterNr++);
-                short verseNr = 1;
-                for (BibleVerse bibleVerse : chapter.getVerses()) {
-                    bibleVerse.setNumber(verseNr++);
-                    ArrayList<VerseIndex> verseIndices = new ArrayList<>();
-                    VerseIndex verseIndex = new VerseIndex();
-                    verseIndex.setIndexNumber((long) (k++ * 1000));
-                    verseIndices.add(verseIndex);
-                    bibleVerse.setVerseIndices(verseIndices);
-                }
-            }
         }
     }
 
