@@ -114,7 +114,7 @@ export class SuggestionComponent implements OnInit, OnDestroy {
     let suggestion = new Suggestion(this.suggestion);
     suggestion.reviewed = true;
     const role = this.auth.getUser().getRolePath();
-    this.suggestionService.update(role, this.suggestion).subscribe(
+    this.suggestionService.update(role, suggestion).subscribe(
       () => {
         // noinspection JSIgnoredPromiseFromCall
         this.router.navigate(['/suggestions']);

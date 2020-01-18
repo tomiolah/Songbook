@@ -42,7 +42,12 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
         List<Suggestion> suggestions = new ArrayList<>(suggestionHashMap.size());
         for (Suggestion suggestion : getSuggestions()) {
             try {
-                Song song = songService.findOne(suggestion.getSongId());
+                String songId = suggestion.getSongId();
+                if (songId == null) {
+                    System.out.println("suggestion has null songId: " + suggestion.getId());
+                    continue;
+                }
+                Song song = songService.findOne(songId);
                 String id = song.getLanguage().getId();
                 if (id.equals(languageId)) {
                     suggestions.add(suggestion);
