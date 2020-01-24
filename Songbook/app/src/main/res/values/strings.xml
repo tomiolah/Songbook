@@ -121,4 +121,10 @@
     <string name="relevance">Relevance</string>
     <string name="unexpected_error">Unexpected error</string>
     <string name="try_again">Try again</string>
+    <string name="letter_intro">I</string>
+    <string name="letter_verse">V</string>
+    <string name="letter_pre_chorus">PC</string>
+    <string name="letter_chorus">C</string>
+    <string name="letter_bridge">B</string>
+    <string name="letter_coda">E</string>
 </resources>

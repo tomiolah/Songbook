@@ -1,4 +1,4 @@
-package com.bence.projector.server.backend.model;
+package com.bence.projector.common.model;
 
 import java.util.HashMap;
 import java.util.Map;
