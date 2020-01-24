@@ -122,4 +122,5 @@
     <string name="letter_chorus">C</string>
     <string name="letter_bridge">B</string>
     <string name="letter_coda">E</string>
+    <string name="letter_verse">V</string>
 </resources>

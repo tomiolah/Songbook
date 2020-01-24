@@ -118,8 +118,9 @@
     <string name="unexpected_error">Unexpected error</string>
     <string name="try_again">Próbáld újra</string>
     <string name="letter_intro">B</string>
-    <string name="letter_pre_chorus">PC</string>
-    <string name="letter_chorus">C</string>
-    <string name="letter_bridge">B</string>
+    <string name="letter_pre_chorus">ER</string>
+    <string name="letter_chorus">R</string>
+    <string name="letter_bridge">H</string>
     <string name="letter_coda">E</string>
+    <string name="letter_verse">V</string>
 </resources>

@@ -59,31 +59,26 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             }
             song = memory.getPassingSong();
             Intent intent = getIntent();
-            verseList = new ArrayList<>(song.getVerses().size());
+            List<SongVerse> songVersesByVerseOrder = song.getSongVersesByVerseOrder();
+            verseList = new ArrayList<>(songVersesByVerseOrder.size());
+            verseList.addAll(songVersesByVerseOrder);
             final List<SongVerse> verses = song.getVerses();
             SongVerse chorus = null;
             int size = verses.size();
             verseIndex = intent.getIntExtra("verseIndex", 0);
-            for (int i = 0; i < size; ++i) {
-                SongVerse songVerse = verses.get(i);
-                verseList.add(songVerse);
-                if (songVerse.isChorus()) {
-                    chorus = songVerse;
-                } else if (chorus != null) {
-                    if (i + 1 < size) {
-                        if (!verses.get(i + 1).isChorus()) {
-                            if (verseList.size() <= verseIndex) {
-                                ++verseIndex;
-                            }
-                            verseList.add(chorus);
-                        }
-                    } else {
-                        if (verseList.size() <= verseIndex) {
-                            ++verseIndex;
-                        }
-                        verseList.add(chorus);
-                    }
+            if (verseIndex < 0) {
+                verseIndex = 0;
+            }
+            if (verseIndex >= size) {
+                verseIndex = size - 1;
+            }
+            SongVerse selectedVerse = verses.get(verseIndex);
+            verseIndex = 0;
+            for (SongVerse verse : verseList) {
+                if (verse.equals(selectedVerse)) {
+                    break;
                 }
+                ++verseIndex;
             }
 
             mContentView = findViewById(R.id.fullscreen_content);
@@ -116,7 +111,8 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
 
                 @Override
                 public void performTouchLeftRight(MotionEvent event) {
-                    if (event.getX() < mContentView.getWidth() / 2) {
+                    int i = mContentView.getWidth() / 2;
+                    if (event.getX() < i) {
                         setPreviousVerse();
                     } else {
                         setNextVerse();
