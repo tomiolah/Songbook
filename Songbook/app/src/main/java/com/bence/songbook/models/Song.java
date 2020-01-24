@@ -50,6 +50,7 @@ public class Song extends BaseEntity {
     @DatabaseField
     private long favourites;
     private List<Short> verseOrderList;
+    private boolean newSong;
 
     public Song() {
     }
@@ -336,5 +337,13 @@ public class Song extends BaseEntity {
             songVerses.add(verses.get(index));
         }
         return songVerses;
+    }
+
+    public boolean isNotNewSong() {
+        return !newSong;
+    }
+
+    public void setNewSong(boolean newSong) {
+        this.newSong = newSong;
     }
 }

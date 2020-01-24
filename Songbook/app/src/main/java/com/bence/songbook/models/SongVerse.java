@@ -97,7 +97,7 @@ public class SongVerse extends BaseEntity implements Serializable {
         for (SongVerse verse : song.getVerses()) {
             if (verse.getSectionType() == getSectionType()) {
                 ++count;
-                if (verse.getId().equals(getId())) {
+                if (verse.equals(this)) {
                     break;
                 }
             }
@@ -131,6 +131,6 @@ public class SongVerse extends BaseEntity implements Serializable {
         if (id != null) {
             return id.equals(other.getId());
         }
-        return super.equals(other);
+        return text.equals(other.text);
     }
 }

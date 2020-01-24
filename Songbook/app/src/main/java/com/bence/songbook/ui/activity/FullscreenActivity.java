@@ -206,7 +206,11 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                 @Override
                 public void run() {
                     try {
-                        Song song = songRepository.findOne(FullscreenActivity.this.song.getId());
+                        Long id = FullscreenActivity.this.song.getId();
+                        if (id == null) {
+                            return;
+                        }
+                        Song song = songRepository.findOne(id);
                         Date date = new Date();
                         long endTime = date.getTime();
                         duration += endTime - startTime;

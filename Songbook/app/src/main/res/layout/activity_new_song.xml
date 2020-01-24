@@ -34,6 +34,6 @@
         android:tint="@color/primaryTextColor"
         app:backgroundTint="@color/primaryDarkColor"
         app:fabSize="auto"
-        app:srcCompat="@drawable/ic_done_black_24dp"/>
+        app:srcCompat="@drawable/ic_navigate_next_24dp" />
 
 </android.support.design.widget.CoordinatorLayout>
