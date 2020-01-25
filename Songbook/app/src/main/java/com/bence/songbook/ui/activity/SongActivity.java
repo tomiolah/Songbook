@@ -323,8 +323,25 @@ public class SongActivity extends AppCompatActivity {
             showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
         } else if (itemId == R.id.action_save_to_song_list) {
             saveToSongList();
+        } else if (itemId == R.id.action_delete) {
+            setSongAsDeleted();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setSongAsDeleted() {
+        song.setAsDeleted(!song.isAsDeleted());
+        SongRepository songRepository = new SongRepositoryImpl(this);
+        songRepository.save(song);
+        List<Song> songs = memory.getSongs();
+        if (song.isAsDeleted()) {
+            songs.remove(song);
+            setResult(MainActivity.SONG_DELETED);
+        } else {
+            songs.add(song);
+            setResult(MainActivity.SONG_UNDO_DELETION);
+        }
+        finish();
     }
 
     @SuppressLint("InflateParams")
@@ -497,6 +514,13 @@ public class SongActivity extends AppCompatActivity {
         menu.findItem(R.id.action_add_to_queue).setVisible(notNewSong);
         menu.findItem(R.id.action_save_to_song_list).setVisible(notNewSong);
         menu.findItem(R.id.action_suggest_edits).setVisible(notNewSong);
+        MenuItem deleteMenuItem = menu.findItem(R.id.action_delete);
+        deleteMenuItem.setVisible(notNewSong);
+        if (song.isAsDeleted()) {
+            deleteMenuItem.setTitle(getString(R.string.undo_deletion));
+        } else {
+            deleteMenuItem.setTitle(getString(R.string.delete_song));
+        }
     }
 
     private void syncFavouriteInGoogleDrive() {

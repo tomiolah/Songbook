@@ -189,6 +189,18 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
     }
 
     @Override
+    public List<Song> findAllExceptAsDeleted() {
+        List<Song> songs = findAll();
+        List<Song> songList = new ArrayList<>();
+        for (Song song : songs) {
+            if (!song.isAsDeleted()) {
+                songList.add(song);
+            }
+        }
+        return songList;
+    }
+
+    @Override
     public void delete(final Song song) {
         try {
             if (song != null) {

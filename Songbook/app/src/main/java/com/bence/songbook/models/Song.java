@@ -51,6 +51,8 @@ public class Song extends BaseEntity {
     private long favourites;
     private List<Short> verseOrderList;
     private boolean newSong;
+    @DatabaseField
+    private Boolean asDeleted;
 
     public Song() {
     }
@@ -345,5 +347,13 @@ public class Song extends BaseEntity {
 
     public void setNewSong(boolean newSong) {
         this.newSong = newSong;
+    }
+
+    public boolean isAsDeleted() {
+        return asDeleted != null && asDeleted;
+    }
+
+    public void setAsDeleted(boolean asDeleted) {
+        this.asDeleted = asDeleted;
     }
 }

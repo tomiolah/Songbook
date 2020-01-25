@@ -1,5 +1,5 @@
 #
-# generated on 2020/01/18 08:37:07
+# generated on 2020/01/25 03:22:18
 #
 # --table-start--
 dataClass=com.bence.songbook.models.AbstractModel
@@ -164,6 +164,9 @@ fieldName=verseOrder
 # --field-end--
 # --field-start--
 fieldName=favourites
+# --field-end--
+# --field-start--
+fieldName=asDeleted
 # --field-end--
 # --field-start--
 fieldName=id
