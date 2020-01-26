@@ -18,7 +18,6 @@ public class SongDTO extends BaseDTO {
     private String versionGroup;
     private String youtubeUrl;
     private Long favourites;
-    private String verseOrder;
     private String author;
     private List<Short> verseOrderList;
     private String backUpSongId;
@@ -132,11 +131,19 @@ public class SongDTO extends BaseDTO {
     }
 
     public String getVerseOrder() {
-        return verseOrder;
-    }
-
-    public void setVerseOrder(String verseOrder) {
-        this.verseOrder = verseOrder;
+        if (verseOrderList == null) {
+            return null;
+        }
+        StringBuilder verseOrder = new StringBuilder();
+        boolean first = true;
+        for (Short index : verseOrderList) {
+            if (!first) {
+                verseOrder.append(",");
+            }
+            verseOrder.append(index);
+            first = false;
+        }
+        return verseOrder.toString();
     }
 
     public String getAuthor() {
@@ -163,11 +170,11 @@ public class SongDTO extends BaseDTO {
         this.backUpSongId = backUpSongId;
     }
 
-    public void setLastModifiedByUserEmail(String lastModifiedByUserEmail) {
-        this.lastModifiedByUserEmail = lastModifiedByUserEmail;
-    }
-
     public String getLastModifiedByUserEmail() {
         return lastModifiedByUserEmail;
+    }
+
+    public void setLastModifiedByUserEmail(String lastModifiedByUserEmail) {
+        this.lastModifiedByUserEmail = lastModifiedByUserEmail;
     }
 }
