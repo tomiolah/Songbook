@@ -42,6 +42,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             song.setYoutubeUrl(songDTO.getYoutubeUrl());
             song.setViews(songDTO.getViews());
             song.setFavourites(songDTO.getFavourites());
+            song.setVerseOrder(songDTO.getVerseOrder());
         }
         return song;
     }

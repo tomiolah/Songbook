@@ -129,4 +129,7 @@
     <string name="letter_coda">E</string>
     <string name="delete_song">Delete song</string>
     <string name="undo_deletion">Undo deletion</string>
+    <string name="this_song_has_been_modified_please_update_your_songs_in_order_to_see_the_differences">This song has been modified, please update your songs in order to see the differences!</string>
+    <string name="not_now">Not now</string>
+    <string name="update_songs">Update songs</string>
 </resources>
