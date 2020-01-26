@@ -59,4 +59,15 @@
         app:backgroundTint="?attr/secondaryDarkColor"
         app:srcCompat="@drawable/ic_slideshow_black" />
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fabSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|start"
+        android:layout_margin="@dimen/fab_margin"
+        android:tint="@color/primaryTextColor"
+        app:backgroundTint="@color/primaryDarkColor"
+        app:fabSize="auto"
+        app:srcCompat="@drawable/ic_done_black_24dp" />
+
 </android.support.design.widget.CoordinatorLayout>

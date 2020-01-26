@@ -116,4 +116,13 @@
     <string name="change_view">Schimbă privirea</string>
     <string name="relevance">Relevanţă</string>
     <string name="unexpected_error">Unexpected error</string>
+    <string name="try_again">Încearcă din nou</string>
+    <string name="letter_intro">I</string>
+    <string name="letter_pre_chorus">PC</string>
+    <string name="letter_chorus">C</string>
+    <string name="letter_bridge">B</string>
+    <string name="letter_coda">E</string>
+    <string name="letter_verse">V</string>
+    <string name="delete_song">Ștergeți</string>
+    <string name="undo_deletion">Anulați ștergerea</string>
 </resources>

@@ -1,5 +1,5 @@
 #
-# generated on 2019/01/03 08:46:53
+# generated on 2020/01/25 03:22:18
 #
 # --table-start--
 dataClass=com.bence.songbook.models.AbstractModel
@@ -160,10 +160,13 @@ fieldName=youtubeUrl
 fieldName=views
 # --field-end--
 # --field-start--
+fieldName=verseOrder
+# --field-end--
+# --field-start--
 fieldName=favourites
 # --field-end--
 # --field-start--
-fieldName=verseOrder
+fieldName=asDeleted
 # --field-end--
 # --field-start--
 fieldName=id
@@ -320,6 +323,9 @@ fieldName=isChorus
 fieldName=song
 foreign=true
 indexName=songverse_song_idx
+# --field-end--
+# --field-start--
+fieldName=sectionTypeData
 # --field-end--
 # --field-start--
 fieldName=id

@@ -1,5 +1,6 @@
 package com.bence.songbook.models;
 
+import com.bence.projector.common.model.SectionType;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
@@ -48,6 +49,10 @@ public class Song extends BaseEntity {
     private String verseOrder;
     @DatabaseField
     private long favourites;
+    private List<Short> verseOrderList;
+    private boolean newSong;
+    @DatabaseField
+    private Boolean asDeleted;
 
     public Song() {
     }
@@ -223,16 +228,16 @@ public class Song extends BaseEntity {
         return favourite != null && favourite.isFavourite();
     }
 
+    public FavouriteSong getFavourite() {
+        return favourite;
+    }
+
     public void setFavourite(boolean favourite) {
         if (this.favourite == null) {
             this.favourite = new FavouriteSong();
             this.favourite.setSong(this);
         }
         this.favourite.setFavourite(favourite);
-    }
-
-    public FavouriteSong getFavourite() {
-        return favourite;
     }
 
     public void setFavourite(FavouriteSong favouriteSong) {
@@ -278,19 +283,77 @@ public class Song extends BaseEntity {
         return score;
     }
 
-    public String getVerseOrder() {
-        return verseOrder;
+    private List<Short> getVerseOrderList() {
+        if (verseOrderList == null) {
+            verseOrderList = new ArrayList<>();
+            if (verseOrder != null) {
+                String[] split = verseOrder.split(",");
+                for (String s : split) {
+                    verseOrderList.add(Short.parseShort(s));
+                }
+            }
+            if (verseOrderList.isEmpty()) {
+                short i = 0;
+                short chorusIndex = 0;
+                boolean wasChorus = false;
+                List<SongVerse> verses = getVerses();
+                int size = verses.size();
+                for (SongVerse verse : verses) {
+                    verseOrderList.add(i);
+                    if (wasChorus) {
+                        SectionType sectionType = verse.getSectionType();
+                        boolean nextNotChorus = i >= size - 1 || !verses.get(i + 1).isChorus();
+                        if (!sectionType.equals(SectionType.CHORUS) && !sectionType.equals(SectionType.CODA) && nextNotChorus) {
+                            verseOrderList.add(chorusIndex);
+                        }
+                    }
+                    if (verse.getSectionType().equals(SectionType.CHORUS)) {
+                        chorusIndex = i;
+                        wasChorus = true;
+                    }
+                    ++i;
+                }
+
+            }
+        }
+        return verseOrderList;
     }
 
     public void setVerseOrder(String verseOrder) {
         this.verseOrder = verseOrder;
     }
 
-    public long getFavourites() {
+    private long getFavourites() {
         return favourites;
     }
 
     public void setFavourites(long favourites) {
         this.favourites = favourites;
+    }
+
+    public List<SongVerse> getSongVersesByVerseOrder() {
+        List<Short> verseOrderList = getVerseOrderList();
+        List<SongVerse> songVerses = new ArrayList<>(verseOrderList.size());
+        List<SongVerse> verses = getVerses();
+        for (Short index : verseOrderList) {
+            songVerses.add(verses.get(index));
+        }
+        return songVerses;
+    }
+
+    public boolean isNotNewSong() {
+        return !newSong;
+    }
+
+    public void setNewSong(boolean newSong) {
+        this.newSong = newSong;
+    }
+
+    public boolean isAsDeleted() {
+        return asDeleted != null && asDeleted;
+    }
+
+    public void setAsDeleted(boolean asDeleted) {
+        this.asDeleted = asDeleted;
     }
 }

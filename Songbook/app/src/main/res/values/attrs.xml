@@ -17,6 +17,7 @@
     <attr name="secondaryDarkColor" format="reference"/>
     <attr name="primaryTextColor" format="reference"/>
     <attr name="secondaryTextColor" format="reference"/>
+    <attr name="secondaryDarkTextColor" format="reference" />
     <attr name="backgroundC" format="reference" />
     <attr name="foregroundC" format="reference" />
 </resources>

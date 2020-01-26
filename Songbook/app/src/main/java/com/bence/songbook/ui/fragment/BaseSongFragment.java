@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatDelegate;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -20,6 +22,7 @@ import android.widget.TextView;
 import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
+import com.bence.songbook.ui.adapter.SectionTypeAdapter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -89,6 +92,11 @@ public abstract class BaseSongFragment extends Fragment {
 
             }
         });
+        RecyclerView sectionTypeList = view.findViewById(R.id.sectionTypeList);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+        sectionTypeList.setLayoutManager(layoutManager);
+        SectionTypeAdapter sectionTypeAdapter = new SectionTypeAdapter(song.getSongVersesByVerseOrder(), getContext());
+        sectionTypeList.setAdapter(sectionTypeAdapter);
     }
 
     public Fragment setSong(Song song) {
@@ -145,6 +153,7 @@ public abstract class BaseSongFragment extends Fragment {
 
                 holder = new MyCustomAdapter.ViewHolder();
                 holder.textView = convertView.findViewById(R.id.textView);
+                holder.sectionTypeTextView = convertView.findViewById(R.id.sectionTypeTextView);
                 holder.chorusTextView = convertView.findViewById(R.id.chorusTextView);
                 convertView.setTag(holder);
             } else {
@@ -154,15 +163,19 @@ public abstract class BaseSongFragment extends Fragment {
             SongVerse songVerse = songVerses.get(position);
             setText(songVerse, holder.textView);
             if (!songVerse.isChorus()) {
+                holder.sectionTypeTextView.setText(songVerse.getSectionTypeStringWithCount(getContext()));
                 holder.chorusTextView.setVisibility(View.GONE);
+                holder.sectionTypeTextView.setVisibility(View.VISIBLE);
             } else {
                 holder.chorusTextView.setVisibility(View.VISIBLE);
+                holder.sectionTypeTextView.setVisibility(View.GONE);
             }
             return convertView;
         }
 
         private class ViewHolder {
             TextView textView;
+            TextView sectionTypeTextView;
             TextView chorusTextView;
         }
 

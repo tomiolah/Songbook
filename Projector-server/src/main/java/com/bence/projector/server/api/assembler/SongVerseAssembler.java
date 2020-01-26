@@ -1,7 +1,7 @@
 package com.bence.projector.server.api.assembler;
 
 import com.bence.projector.common.dto.SongVerseDTO;
-import com.bence.projector.server.backend.model.SectionType;
+import com.bence.projector.common.model.SectionType;
 import com.bence.projector.server.backend.model.SongVerse;
 import org.springframework.stereotype.Component;
 

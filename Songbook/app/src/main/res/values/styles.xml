@@ -27,6 +27,7 @@
         <item name="secondaryDarkColor">@color/secondaryDarkColor</item>
         <item name="primaryTextColor">@color/primaryTextColor</item>
         <item name="secondaryTextColor">@color/secondaryTextColor</item>
+        <item name="secondaryDarkTextColor">@color/secondaryDarkTextColor</item>
         <item name="backgroundC">@color/backgroundC</item>
         <item name="foregroundC">@color/foregroundC</item>
     </style>
@@ -41,6 +42,7 @@
         <item name="secondaryDarkColor">@color/secondaryDarkColor2</item>
         <item name="primaryTextColor">@color/primaryTextColor2</item>
         <item name="secondaryTextColor">@color/secondaryTextColor2</item>
+        <item name="secondaryDarkTextColor">@color/secondaryDarkTextColor2</item>
         <item name="backgroundC">@color/backgroundC2</item>
         <item name="foregroundC">@color/foregroundC2</item>
     </style>

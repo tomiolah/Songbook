@@ -1,6 +1,7 @@
 package com.bence.songbook.ui.activity;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -18,6 +19,7 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.bence.projector.common.model.SectionType;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SongApiBean;
@@ -35,8 +37,10 @@ import java.util.List;
 
 public class NewSongActivity extends AppCompatActivity {
     public static final String TAG = NewSongActivity.class.getSimpleName();
+    public static final int SAVE_RESULT_CODE = 14;
     private Spinner languageSpinner;
     private SharedPreferences sharedPreferences;
+    private Song song;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,10 +60,9 @@ public class NewSongActivity extends AppCompatActivity {
 
             public boolean onTouch(View v, MotionEvent event) {
                 v.getParent().requestDisallowInterceptTouchEvent(true);
-                switch (event.getAction() & MotionEvent.ACTION_MASK) {
-                    case MotionEvent.ACTION_UP:
-                        v.getParent().requestDisallowInterceptTouchEvent(false);
-                        return false;
+                if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
+                    v.getParent().requestDisallowInterceptTouchEvent(false);
+                    return false;
                 }
                 v.performClick();
                 editTextView.requestFocus();
@@ -161,7 +164,7 @@ public class NewSongActivity extends AppCompatActivity {
     }
 
     private void createSong(List<Language> languages) {
-        final Song song = new Song();
+        song = new Song();
         EditText titleEditText = findViewById(R.id.title);
         String title = titleEditText.getText().toString().replaceAll("(?:\\n| {2}|\\n | \\n)", " ").trim();
         if (title.isEmpty()) {
@@ -191,6 +194,7 @@ public class NewSongActivity extends AppCompatActivity {
         for (String verse : split) {
             SongVerse songVerse = new SongVerse();
             songVerse.setText(verse.trim());
+            songVerse.setSectionType(SectionType.VERSE);
             songVerses.add(songVerse);
         }
         song.setVerses(songVerses);
@@ -199,9 +203,19 @@ public class NewSongActivity extends AppCompatActivity {
         String email = emailEditText.getText().toString().trim();
         sharedPreferences.edit().putString("email", email).apply();
         song.setCreatedByEmail(email);
+
         song.setCreatedDate(new Date());
         song.setModifiedDate(new Date(123L)); // Means it's not uploaded yet
         song.setLanguage(languages.get(languageSpinner.getSelectedItemPosition()));
+
+        Intent intent = new Intent(this, SongActivity.class);
+        song.setNewSong(true);
+        Memory.getInstance().setPassingSong(song);
+        startActivityForResult(intent, SongActivity.NEW_SONG_REQUEST);
+    }
+
+    private void saveSong() {
+        song.setNewSong(false);
         final SongRepository songRepository = new SongRepositoryImpl(this);
         songRepository.save(song);
         Thread thread = new Thread(new Runnable() {
@@ -228,6 +242,16 @@ public class NewSongActivity extends AppCompatActivity {
         Memory.getInstance().getSongs().add(song);
         setResult(1);
         finish();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == SongActivity.NEW_SONG_REQUEST) {
+            if (resultCode == SAVE_RESULT_CODE) {
+                saveSong();
+            }
+        }
     }
 
     @Override
