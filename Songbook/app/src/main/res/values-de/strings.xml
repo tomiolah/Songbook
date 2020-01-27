@@ -125,4 +125,7 @@
     <string name="letter_verse">V</string>
     <string name="delete_song">Lied löschen</string>
     <string name="undo_deletion">Gelöschte zurücksetzen</string>
+    <string name="not_now">Nicht jetzt</string>
+    <string name="this_song_has_been_modified_please_update_your_songs_in_order_to_see_the_differences">Dieser Song wurde geändert, bitte aktualisieren Sie Ihre Songs, um die Unterschiede zu sehen!</string>
+    <string name="update_songs">Aktualisieren</string>
 </resources>

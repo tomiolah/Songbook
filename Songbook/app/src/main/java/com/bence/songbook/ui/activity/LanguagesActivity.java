@@ -22,6 +22,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.LanguageApiBean;
 import com.bence.songbook.models.Language;
@@ -75,10 +76,12 @@ public class LanguagesActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 List<Language> languageList = dataAdapter.languageList;
+                List<Language> languages = new ArrayList<>();
                 LanguageRepository languageRepository = new LanguageRepositoryImpl(getApplicationContext());
                 for (Language language : languageList) {
                     if (language.isSelected()) {
                         languageRepository.save(language);
+                        languages.add(language);
                     } else {
                         if (language.getId() != null) {
                             Language one = languageRepository.findOne(language.getId());
@@ -88,6 +91,7 @@ public class LanguagesActivity extends AppCompatActivity {
                         }
                     }
                 }
+                Memory.getInstance().setPassingLanguages(languages);
                 Intent intent = new Intent(languagesActivity, LoadActivity.class);
                 startActivityForResult(intent, 1);
             }

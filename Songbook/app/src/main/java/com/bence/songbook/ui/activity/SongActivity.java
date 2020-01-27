@@ -53,6 +53,7 @@ import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.SongService;
+import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
 import com.bence.songbook.ui.utils.PageAdapter;
 import com.bence.songbook.ui.utils.Preferences;
@@ -164,9 +165,11 @@ public class SongActivity extends AppCompatActivity {
                 String songUuid = songCollectionElement.getSongUuid();
                 if (hashMap.containsKey(songUuid)) {
                     Song song = hashMap.get(songUuid);
-                    song.setSongCollection(songCollection);
-                    song.setSongCollectionElement(songCollectionElement);
-                    songs.add(song);
+                    if (song != null) {
+                        song.setSongCollection(songCollection);
+                        song.setSongCollectionElement(songCollectionElement);
+                        songs.add(song);
+                    }
                     hashMap.remove(songUuid);
                 }
             }
@@ -240,9 +243,9 @@ public class SongActivity extends AppCompatActivity {
         setToolbarTitleAndSize();
         FloatingActionButton fabSave = findViewById(R.id.fabSave);
         if (song.isNotNewSong()) {
-            fabSave.setVisibility(View.GONE);
+            fabSave.hide();
         } else {
-            fabSave.setVisibility(View.VISIBLE);
+            fabSave.show();
             fabSave.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -407,6 +410,11 @@ public class SongActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == CheckSongForUpdate.UPDATE_SONGS_RESULT) {
+            setResult(resultCode);
+            finish();
+            return;
+        }
         switch (requestCode) {
             case 2:
                 if (resultCode == SuggestEditsChooseActivity.LINKING) {
