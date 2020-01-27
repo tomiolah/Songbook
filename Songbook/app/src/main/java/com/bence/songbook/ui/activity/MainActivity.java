@@ -723,7 +723,7 @@ public class MainActivity extends AppCompatActivity
                 // upload songs
                 List<Song> uploadingSongs = new ArrayList<>();
                 for (Song song : songs) {
-                    if (song.getModifiedDate().getTime() == 123L) {
+                    if (song.getModifiedDate().getTime() == 123L && !song.isAsDeleted()) {
                         uploadingSongs.add(song);
                     }
                 }

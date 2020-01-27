@@ -140,6 +140,9 @@ public class SuggestEditsChooseActivity extends AppCompatActivity {
         }
         songLinkDTO.setSongId1(songForLinking.getUuid());
         songLinkDTO.setSongId2(song.getUuid());
+        if (songLinkDTO.getSongId1().equals(songLinkDTO.getSongId2())) {
+            return;
+        }
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
