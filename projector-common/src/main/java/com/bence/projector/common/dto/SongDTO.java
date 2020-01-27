@@ -22,6 +22,7 @@ public class SongDTO extends BaseDTO {
     private List<Short> verseOrderList;
     private String backUpSongId;
     private String lastModifiedByUserEmail;
+    private String verseOrder;
 
     public SongDTO() {
     }
@@ -144,6 +145,10 @@ public class SongDTO extends BaseDTO {
             first = false;
         }
         return verseOrder.toString();
+    }
+
+    public void setVerseOrder(String verseOrder) {
+        this.verseOrder = verseOrder;
     }
 
     public String getAuthor() {

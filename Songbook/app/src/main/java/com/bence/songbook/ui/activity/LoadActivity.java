@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bence.songbook.Memory;
 import com.bence.songbook.ProgressMessage;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SongApiBean;
@@ -51,15 +52,12 @@ public class LoadActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_load);
-        LanguageRepository languageRepository = new LanguageRepositoryImpl(getApplicationContext());
         noInternetConnectionToast = Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_LONG);
         loadActivity = this;
-        List<Language> languages = languageRepository.findAll();
+        List<Language> languages = Memory.getInstance().getPassingLanguages();
         List<LanguageProgress> selectedLanguages = new ArrayList<>();
         for (Language language : languages) {
-            if (language.isSelected()) {
-                selectedLanguages.add(new LanguageProgress(language));
-            }
+            selectedLanguages.add(new LanguageProgress(language));
         }
         MyCustomAdapter dataAdapter = new MyCustomAdapter(this,
                 R.layout.content_language_download_progress, selectedLanguages);
@@ -215,7 +213,7 @@ public class LoadActivity extends AppCompatActivity {
             final SongApiBean songApiBean = new SongApiBean();
             List<Song> languageSongs = language.getSongs();
             sortSongs(languageSongs);
-            Long modifiedDate;
+            long modifiedDate;
             if (languageSongs.size() > 0) {
                 modifiedDate = languageSongs.get(0).getModifiedDate().getTime();
             } else {
@@ -263,6 +261,9 @@ public class LoadActivity extends AppCompatActivity {
             for (Song song : onlineModifiedSongs) {
                 if (songHashMap.containsKey(song.getUuid())) {
                     Song modifiedSong = songHashMap.get(song.getUuid());
+                    if (modifiedSong == null) {
+                        continue;
+                    }
                     copyLocallySetted(song, modifiedSong);
                     needToRemove.add(modifiedSong);
                     languageSongs.remove(modifiedSong);

@@ -1,19 +1,17 @@
 package com.bence.songbook.ui.activity;
 
-import android.annotation.SuppressLint;
+import android.arch.lifecycle.Lifecycle;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.drawable.BitmapDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -22,16 +20,16 @@ import android.widget.Toast;
 import com.bence.projector.common.dto.SongLinkDTO;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
-import com.bence.songbook.api.SongApiBean;
 import com.bence.songbook.api.SongLinkApiBean;
 import com.bence.songbook.models.Song;
+import com.bence.songbook.ui.utils.CheckSongForUpdate;
+import com.bence.songbook.ui.utils.CheckSongForUpdateListener;
 import com.bence.songbook.ui.utils.Preferences;
 
 public class SuggestEditsChooseActivity extends AppCompatActivity {
     public final static int LINKING = 2;
     private Memory memory = Memory.getInstance();
     private Song song;
-    private PopupWindow updateSongsPopupWindow;
     private LinearLayout updateSongsLayout;
 
     @Override
@@ -54,49 +52,38 @@ public class SuggestEditsChooseActivity extends AppCompatActivity {
             if (memory.getSongForLinking() != null) {
                 linkButton.setText(R.string.link_with_this_song);
             }
-            Thread thread = new Thread(new Runnable() {
+            LayoutInflater layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            CheckSongForUpdate checkSongForUpdate = CheckSongForUpdate.getInstance();
+            checkSongForUpdate.clearListeners();
+            checkSongForUpdate.addListener(new CheckSongForUpdateListener(layoutInflater) {
                 @Override
-                public void run() {
-                    SongApiBean songApiBean = new SongApiBean();
-                    Song newSong = songApiBean.getSong(song.getUuid());
-                    if (newSong != null && newSong.getModifiedDate().after(song.getModifiedDate())) {
-                        createUpdatePopupWindow();
-                    }
+                public void onSongHasBeenModified(final PopupWindow updatePopupWindow) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (SuggestEditsChooseActivity.this.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) {
+                                updatePopupWindow.showAtLocation(updateSongsLayout, Gravity.CENTER, 0, 0);
+                            }
+                        }
+                    });
                 }
-            });
-            thread.start();
+
+                @Override
+                public void onUpdateButtonClick() {
+                    setResult(CheckSongForUpdate.UPDATE_SONGS_RESULT);
+                    finish();
+                }
+            }, song);
         }
     }
 
-    private void createUpdatePopupWindow() {
-        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
-        if (inflater == null) {
-            return;
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == CheckSongForUpdate.UPDATE_SONGS_RESULT) {
+            setResult(resultCode);
+            finish();
         }
-        @SuppressLint("InflateParams") View customView = inflater.inflate(R.layout.content_update_songs, null);
-        updateSongsPopupWindow = new PopupWindow(
-                customView,
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-        if (Build.VERSION.SDK_INT >= 21) {
-            updateSongsPopupWindow.setElevation(5.0f);
-        }
-        Button cancelButton = customView.findViewById(R.id.cancelButton);
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                updateSongsPopupWindow.dismiss();
-            }
-        });
-        //noinspection deprecation
-        updateSongsPopupWindow.setBackgroundDrawable(new BitmapDrawable());
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                updateSongsPopupWindow.showAtLocation(updateSongsLayout, Gravity.CENTER, 0, 0);
-            }
-        });
     }
 
     @Override

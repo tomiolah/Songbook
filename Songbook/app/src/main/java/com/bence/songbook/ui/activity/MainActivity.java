@@ -82,6 +82,7 @@ import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.DynamicListView;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
 import com.bence.songbook.ui.utils.MainPageAdapter;
@@ -349,7 +350,7 @@ public class MainActivity extends AppCompatActivity
         songListView.setLayoutManager(layoutManager);
         songListView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
                 if (newState == SCROLL_STATE_IDLE) {
                     CenterLayoutManager manager = (CenterLayoutManager) songListView.getLayoutManager();
@@ -474,7 +475,7 @@ public class MainActivity extends AppCompatActivity
                 uploadViewsFavourites();
             } else {
                 Intent loadIntent = new Intent(this, LanguagesActivity.class);
-                startActivityForResult(loadIntent, 1);
+                startActivityForResult(loadIntent, DOWNLOAD_SONGS_REQUEST_CODE);
             }
         }
         Intent appLinkIntent = getIntent();
@@ -898,6 +899,10 @@ public class MainActivity extends AppCompatActivity
                     case SONG_UNDO_DELETION:
                         sortSongs(songs);
                         refreshSongs();
+                        break;
+                    case CheckSongForUpdate.UPDATE_SONGS_RESULT:
+                        Intent loadIntent = new Intent(this, LoadActivity.class);
+                        startActivityForResult(loadIntent, DOWNLOAD_SONGS_REQUEST_CODE);
                         break;
                 }
                 break;
