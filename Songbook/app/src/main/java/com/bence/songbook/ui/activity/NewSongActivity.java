@@ -33,7 +33,9 @@ import com.bence.songbook.ui.utils.Preferences;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class NewSongActivity extends AppCompatActivity {
     public static final String TAG = NewSongActivity.class.getSimpleName();
@@ -191,13 +193,25 @@ public class NewSongActivity extends AppCompatActivity {
         }
         String[] split = replaceAll.split("\n\n");
         List<SongVerse> songVerses = new ArrayList<>(split.length);
+        List<Short> verseOrderList = new ArrayList<>();
+        short index = 0;
+        Map<String, Short> versesMap = new HashMap<>();
         for (String verse : split) {
-            SongVerse songVerse = new SongVerse();
-            songVerse.setText(verse.trim());
-            songVerse.setSectionType(SectionType.VERSE);
-            songVerses.add(songVerse);
+            String verseText = verse.trim();
+            if (versesMap.containsKey(verseText)) {
+                Short anIndex = versesMap.get(verseText);
+                verseOrderList.add(anIndex);
+            } else {
+                SongVerse songVerse = new SongVerse();
+                songVerse.setText(verseText);
+                songVerse.setSectionType(SectionType.VERSE);
+                songVerses.add(songVerse);
+                versesMap.put(verseText, index);
+                verseOrderList.add(index++);
+            }
         }
         song.setVerses(songVerses);
+        song.setVerseOrderList(verseOrderList);
 
         EditText emailEditText = findViewById(R.id.email);
         String email = emailEditText.getText().toString().trim();

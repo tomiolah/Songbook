@@ -283,7 +283,7 @@ public class Song extends BaseEntity {
         return score;
     }
 
-    private List<Short> getVerseOrderList() {
+    public List<Short> getVerseOrderList() {
         if (verseOrderList == null) {
             verseOrderList = new ArrayList<>();
             if (verseOrder != null) {
@@ -319,8 +319,21 @@ public class Song extends BaseEntity {
         return verseOrderList;
     }
 
-    public void setVerseOrder(String verseOrder) {
-        this.verseOrder = verseOrder;
+    public void setVerseOrderList(List<Short> verseOrderList) {
+        this.verseOrderList = verseOrderList;
+        if (verseOrderList == null) {
+            return;
+        }
+        StringBuilder s = new StringBuilder();
+        boolean first = true;
+        for (Short index : verseOrderList) {
+            if (!first) {
+                s.append(",");
+            }
+            s.append(index);
+            first = false;
+        }
+        verseOrder = s.toString();
     }
 
     private long getFavourites() {

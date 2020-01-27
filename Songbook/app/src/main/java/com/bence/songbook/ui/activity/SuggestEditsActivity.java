@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.bence.projector.common.dto.SongVerseDTO;
 import com.bence.projector.common.dto.SuggestionDTO;
+import com.bence.projector.common.model.SectionType;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SuggestionApiBean;
@@ -100,7 +101,7 @@ public class SuggestEditsActivity extends AppCompatActivity {
 
     private String getText(Song song) {
         StringBuilder text = new StringBuilder();
-        for (SongVerse songVerse : song.getVerses()) {
+        for (SongVerse songVerse : song.getSongVersesByVerseOrder()) {
             if (text.length() > 0) {
                 text.append("\n\n");
             }
@@ -148,6 +149,7 @@ public class SuggestEditsActivity extends AppCompatActivity {
             for (String s : split) {
                 SongVerseDTO songVerseDTO = new SongVerseDTO();
                 songVerseDTO.setText(s);
+                songVerseDTO.setType(SectionType.VERSE.getValue());
                 songVerseDTOList.add(songVerseDTO);
             }
             if (songVerseDTOList.size() == 0 || (songVerseDTOList.size() == 1 && songVerseDTOList.get(0).getText().isEmpty())) {
