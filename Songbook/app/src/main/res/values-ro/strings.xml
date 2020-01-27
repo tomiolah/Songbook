@@ -125,4 +125,7 @@
     <string name="letter_verse">V</string>
     <string name="delete_song">Ștergeți</string>
     <string name="undo_deletion">Anulați ștergerea</string>
+    <string name="not_now">Nu acum</string>
+    <string name="this_song_has_been_modified_please_update_your_songs_in_order_to_see_the_differences">Acest cântec a fost modificat, vă rugăm să actualizați cântecele pentru a vedea diferențele!</string>
+    <string name="update_songs">Actualizare</string>
 </resources>
