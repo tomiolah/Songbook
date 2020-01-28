@@ -98,6 +98,13 @@ export class Song extends BaseModel {
   private static getCurrentDate() {
     return this.currentDate;
   }
+
+  public static getNewSongForUI() {
+    let song = new Song();
+    song.title = 'Loading';
+    song.songVerseDTOS = [];
+    return song;
+  }
 }
 
 @Injectable()

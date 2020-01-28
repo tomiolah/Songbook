@@ -43,7 +43,7 @@
   </div>
 
   <div *ngIf="suggestionSong!==undefined&&song!==undefined">
-    <app-compare-songs [song]="suggestionSong" [secondSong]="song"></app-compare-songs>
+    <app-compare-songs [song]="suggestionSong" [secondSong]="originalSongForCompare"></app-compare-songs>
   </div>
   <br>
   <mat-expansion-panel>
