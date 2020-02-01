@@ -3,6 +3,7 @@ package com.bence.projector.server.api.resources;
 import com.bence.projector.common.dto.SuggestionDTO;
 import com.bence.projector.server.api.assembler.SuggestionAssembler;
 import com.bence.projector.server.backend.model.Language;
+import com.bence.projector.server.backend.model.NotificationByLanguage;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.model.User;
@@ -126,7 +127,10 @@ public class SuggestionResource {
         Song song = songService.findOne(suggestion.getSongId());
         List<User> reviewers = userService.findAllReviewersByLanguage(song.getLanguage());
         for (User user : reviewers) {
-            sendEmailToUser(suggestion, user);
+            NotificationByLanguage notificationByLanguage = user.getUserProperties().getNotificationByLanguage(song.getLanguage());
+            if (notificationByLanguage != null && notificationByLanguage.isSuggestions()) {
+                sendEmailToUser(suggestion, user);
+            }
         }
     }
 

@@ -18,6 +18,7 @@ export class SuggestionComponent implements OnInit, OnDestroy {
 
   song: Song;
   suggestionSong: Song;
+  originalSongForCompare: Song;
   suggestion: Suggestion;
   public safeUrl: SafeResourceUrl = null;
   private sub: Subscription;
@@ -35,13 +36,12 @@ export class SuggestionComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.titleService.setTitle('Suggestion');
-    this.song = new Song();
-    this.song.title = 'Loading';
-    this.song.songVerseDTOS = [];
+    this.song = Song.getNewSongForUI();
     this.suggestion = new Suggestion();
     this.suggestion.title = "Loading";
     this.suggestionSong = new Song();
     this.suggestionSong.songVerseDTOS = [];
+    this.originalSongForCompare = Song.getNewSongForUI();
     this.sub = this.activatedRoute.params.subscribe(params => {
       if (params['suggestionId']) {
         const suggestionId = params['suggestionId'];
@@ -61,6 +61,7 @@ export class SuggestionComponent implements OnInit, OnDestroy {
             }
             this.songService.getSong(suggestion.songId).subscribe((song) => {
               this.song = song;
+              this.originalSongForCompare = new Song(song);
             });
           },
           (err) => {

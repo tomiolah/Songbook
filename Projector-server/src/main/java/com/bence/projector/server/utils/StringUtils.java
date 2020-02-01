@@ -31,12 +31,12 @@ public class StringUtils {
         }
         char c;
         int aLength = a.length();
-        if (aLength > N - 1) {
-            aLength = N - 1;
+        if (aLength >= N - 1) {
+            aLength = N - 2;
         }
         int bLength = b.length();
-        if (bLength > N - 1) {
-            bLength = N - 1;
+        if (bLength >= N - 1) {
+            bLength = N - 2;
         }
         for (i = 0; i < aLength; ++i) {
             c = a.charAt(i);

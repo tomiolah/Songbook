@@ -77,7 +77,6 @@ export class SongComponent implements OnInit, OnDestroy {
     if (!song.deleted) {
       history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
     }
-    this.showSimilarOnStart();
   }
 
   // noinspection JSMethodCanBeStatic

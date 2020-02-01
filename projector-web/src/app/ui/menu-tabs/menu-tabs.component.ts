@@ -18,6 +18,7 @@ export class MenuTabsComponent implements OnInit {
     { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
     { link: '/suggestions', icon: 'announcement', title: 'Suggestions' },
     { link: '/admin/users', icon: 'supervised_user_circle', title: 'Users' },
+    { link: '/user/notifications', icon: 'notifications', title: 'Notifications' },
   ];
   userMenuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },
@@ -27,6 +28,7 @@ export class MenuTabsComponent implements OnInit {
     { link: '/songs', icon: 'menu', title: 'Songs' },
     { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
     { link: '/suggestions', icon: 'announcement', title: 'Suggestions' },
+    { link: '/user/notifications', icon: 'notifications', title: 'Notifications' },
   ];
 
   constructor(public auth: AuthService, ) {

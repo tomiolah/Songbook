@@ -8,6 +8,7 @@ import com.bence.projector.common.dto.SongViewsDTO;
 import com.bence.projector.server.api.assembler.SongAssembler;
 import com.bence.projector.server.api.assembler.SongTitleAssembler;
 import com.bence.projector.server.backend.model.Language;
+import com.bence.projector.server.backend.model.NotificationByLanguage;
 import com.bence.projector.server.backend.model.Role;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.User;
@@ -311,6 +312,10 @@ public class SongResource {
     }
 
     private void sendEmailToUser(Song song, User user) throws MessagingException {
+        NotificationByLanguage notificationByLanguage = user.getUserProperties().getNotificationByLanguage(song.getLanguage());
+        if (notificationByLanguage == null || !notificationByLanguage.isNewSongs()) {
+            return;
+        }
         final String freemarkerName = FreemarkerConfiguration.NEW_SONG + ".ftl";
         freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
         config.setDefaultEncoding("UTF-8");
@@ -448,9 +453,7 @@ public class SongResource {
             Song song = songService.findOne(songId);
             Thread thread = new Thread(() -> {
                 try {
-                    for (User user : userService.findAllReviewersByLanguage(song.getLanguage())) {
-                        sendEmailToUser(song, user);
-                    }
+                    sendEmail(song);
                 } catch (MessagingException e) {
                     e.printStackTrace();
                 }
