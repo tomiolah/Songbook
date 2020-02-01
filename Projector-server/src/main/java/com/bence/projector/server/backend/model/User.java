@@ -2,6 +2,7 @@ package com.bence.projector.server.backend.model;
 
 import org.springframework.data.mongodb.core.mapping.DBRef;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -23,6 +24,7 @@ public class User extends BaseEntity {
     private Date createdDate;
     @DBRef(lazy = true)
     private List<Language> reviewLanguages;
+    private UserProperties userProperties;
 
     public User() {
         super();
@@ -145,19 +147,58 @@ public class User extends BaseEntity {
         this.modifiedDate = modifiedDate;
     }
 
-    public void setCreatedDate(Date createdDate) {
-        this.createdDate = createdDate;
-    }
-
     public Date getCreatedDate() {
         return createdDate;
     }
 
+    public void setCreatedDate(Date createdDate) {
+        this.createdDate = createdDate;
+    }
+
     public List<Language> getReviewLanguages() {
+        if (reviewLanguages == null) {
+            reviewLanguages = new ArrayList<>();
+        }
         return reviewLanguages;
     }
 
     public void setReviewLanguages(List<Language> reviewLanguages) {
         this.reviewLanguages = reviewLanguages;
+    }
+
+    public UserProperties getUserProperties() {
+        if (userProperties == null) {
+            userProperties = new UserProperties();
+            List<NotificationByLanguage> notifications = new ArrayList<>();
+            for (Language language : getReviewLanguages()) {
+                NotificationByLanguage notificationByLanguage = new NotificationByLanguage();
+                notificationByLanguage.setLanguage(language);
+                notificationByLanguage.setSuggestions(true);
+                notificationByLanguage.setNewSongs(true);
+                notifications.add(notificationByLanguage);
+            }
+            userProperties.setNotifications(notifications);
+        }
+        return userProperties;
+    }
+
+    public void setUserProperties(UserProperties userProperties) {
+        this.userProperties = userProperties;
+    }
+
+    public UserProperties getUserProperties(List<Language> languages) {
+        if (userProperties == null) {
+            userProperties = new UserProperties();
+            List<NotificationByLanguage> notifications = new ArrayList<>();
+            for (Language language : languages) {
+                NotificationByLanguage notificationByLanguage = new NotificationByLanguage();
+                notificationByLanguage.setLanguage(language);
+                notificationByLanguage.setSuggestions(true);
+                notificationByLanguage.setNewSongs(true);
+                notifications.add(notificationByLanguage);
+            }
+            userProperties.setNotifications(notifications);
+        }
+        return userProperties;
     }
 }

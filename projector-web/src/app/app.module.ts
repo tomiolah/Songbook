@@ -82,6 +82,8 @@ import { UserRegisterComponent } from './ui/user-register/user-register.componen
 import { ActivationComponent } from './ui/activation/activation.component';
 import { UsersComponent } from './ui/users/users.component';
 import { UserComponent } from './ui/user/user.component';
+import { NotificationSettingsComponent } from './ui/notification-settings/notification-settings.component';
+import { UserPropertiesDataService } from './services/user-properties-data.service';
 
 @NgModule({
   exports: [
@@ -156,6 +158,7 @@ export class PlunkerMaterialModule {
     ActivationComponent,
     UsersComponent,
     UserComponent,
+    NotificationSettingsComponent,
   ],
   imports: [
     BrowserModule,
@@ -187,6 +190,7 @@ export class PlunkerMaterialModule {
     SuggestionDataService,
     LanguageDataService,
     SongCollectionDataService,
+    UserPropertiesDataService,
     Title,
   ],
   bootstrap: [AppComponent]

@@ -17,6 +17,14 @@ export class ApiService {
     console.error(error);
     return Observable.throw(error);
   }
+  public getOne<T>(c: new (data) => T, api_url: string): Observable<T> {
+    return this.http
+      .get(api_url)
+      .map(response => {
+        return new c(response.json());
+      })
+      .catch(ApiService.handleError);
+  }
 
   public getAll<T>(c: new (data) => T, api_url: string): Observable<T[]> {
     return this.http
