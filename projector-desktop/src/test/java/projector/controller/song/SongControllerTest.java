@@ -27,6 +27,7 @@ public class SongControllerTest extends BaseTest {
 
     private static final String test_songTitle = "Test song";
     private final String il_iubesc_pe_el = "Il iubesc pe El";
+    private final String songAuthor = "Pinter Bela";
 
     @Before
     public void setUp() {
@@ -48,6 +49,7 @@ public class SongControllerTest extends BaseTest {
         createSong(language);
     }
 
+
     private void createSong(Language language) {
         Song testSong = new Song();
         testSong.setTitle(il_iubesc_pe_el);
@@ -56,7 +58,7 @@ public class SongControllerTest extends BaseTest {
         SongVerse testSongVerse = new SongVerse();
         testVerses.add(testSongVerse);
         testSongVerse.setText("this is a song verse which I wrote");
-        testSong.setAuthor("Pinter Bela");
+        testSong.setAuthor(songAuthor);
         testSong.setLanguage(language);
         SongService songService = ServiceManager.getSongService();
         songService.create(testSong);
@@ -100,7 +102,7 @@ public class SongControllerTest extends BaseTest {
     public void checkAuthorTextField() {
         clickOn("#searchTextField").write(il_iubesc_pe_el);
         TextField authorTextField = find("#authorTextField");
-        Assert.assertEquals("Pinter Bela", authorTextField.getText());
+        Assert.assertEquals(songAuthor, authorTextField.getText());
     }
 
     //	@Test
