@@ -34,3 +34,7 @@ Projector-server/src/main/resources/application.properties
 /data/
 settings.ini
 Projector-server/src/main/java/com/bence/projector/server/Import.java
+*.txt
+*.zip
+*.png
+*.json

@@ -123,8 +123,8 @@ public class SongCollection extends BaseEntity {
             for (SongCollectionElement songCollectionElement : getSongCollectionElements()) {
                 Song song = songService.findByUuid(songCollectionElement.getSongUuid());
                 if (song != null) {
-                    song.setSongCollection(this);
-                    song.setSongCollectionElement(songCollectionElement);
+                    song.addToSongCollections(this);
+                    song.addToSongCollectionElements(songCollectionElement);
                     songs.add(song);
                 }
             }

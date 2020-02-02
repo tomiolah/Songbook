@@ -1,6 +1,7 @@
 package com.bence.songbook.api.assembler;
 
 import com.bence.projector.common.dto.SongVerseDTO;
+import com.bence.projector.common.model.SectionType;
 import com.bence.songbook.models.SongVerse;
 
 import java.util.ArrayList;
@@ -30,6 +31,16 @@ public class SongVerseAssembler implements GeneralAssembler<SongVerse, SongVerse
         if (songVerse != null) {
             songVerse.setText(songVerseDTO.getText());
             songVerse.setChorus(songVerseDTO.isChorus());
+            Integer type = songVerseDTO.getType();
+            if (type != null) {
+                songVerse.setSectionType(SectionType.getInstance(type));
+            } else {
+                if (songVerseDTO.isChorus()) {
+                    songVerse.setSectionType(SectionType.CHORUS);
+                } else {
+                    songVerse.setSectionType(SectionType.VERSE);
+                }
+            }
         }
         return songVerse;
     }

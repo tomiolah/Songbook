@@ -13,6 +13,9 @@ public class Suggestion extends BaseEntity {
     private String createdByEmail;
     private String description;
     private String youtubeUrl;
+    private Boolean reviewed;
+    private Date modifiedDate;
+    private User lastModifiedBy;
 
     public Suggestion() {
     }
@@ -79,5 +82,32 @@ public class Suggestion extends BaseEntity {
 
     public void setYoutubeUrl(String youtubeUrl) {
         this.youtubeUrl = youtubeUrl;
+    }
+
+    public Boolean getReviewed() {
+        return reviewed;
+    }
+
+    public void setReviewed(Boolean reviewed) {
+        this.reviewed = reviewed;
+    }
+
+    public Date getModifiedDate() {
+        if (modifiedDate == null) {
+            modifiedDate = createdDate;
+        }
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public User getLastModifiedBy() {
+        return lastModifiedBy;
+    }
+
+    public void setLastModifiedBy(User lastModifiedBy) {
+        this.lastModifiedBy = lastModifiedBy;
     }
 }

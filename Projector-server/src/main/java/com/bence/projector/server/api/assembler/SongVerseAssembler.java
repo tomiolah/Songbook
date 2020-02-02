@@ -1,7 +1,7 @@
 package com.bence.projector.server.api.assembler;
 
 import com.bence.projector.common.dto.SongVerseDTO;
-import com.bence.projector.server.backend.model.SectionType;
+import com.bence.projector.common.model.SectionType;
 import com.bence.projector.server.backend.model.SongVerse;
 import org.springframework.stereotype.Component;
 
@@ -53,9 +53,15 @@ public class SongVerseAssembler implements GeneralAssembler<SongVerse, SongVerse
     @Override
     public SongVerse updateModel(SongVerse songVerse, SongVerseDTO songVerseDTO) {
         songVerse.setText(songVerseDTO.getText());
-        songVerse.setSectionType(SectionType.getInstance(songVerseDTO.getType()));
-        if (songVerseDTO.isChorus()) {
-            songVerse.setSectionType(SectionType.CHORUS);
+        Integer type = songVerseDTO.getType();
+        if (type != null) {
+            songVerse.setSectionType(SectionType.getInstance(type));
+        } else {
+            if (songVerseDTO.isChorus()) {
+                songVerse.setSectionType(SectionType.CHORUS);
+            } else {
+                songVerse.setSectionType(SectionType.VERSE);
+            }
         }
         return songVerse;
     }

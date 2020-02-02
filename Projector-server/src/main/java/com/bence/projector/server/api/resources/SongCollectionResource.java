@@ -3,9 +3,11 @@ package com.bence.projector.server.api.resources;
 import com.bence.projector.common.dto.SongCollectionDTO;
 import com.bence.projector.common.dto.SongCollectionElementDTO;
 import com.bence.projector.server.api.assembler.SongCollectionAssembler;
+import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongCollection;
 import com.bence.projector.server.backend.model.SongCollectionElement;
 import com.bence.projector.server.backend.service.SongCollectionService;
+import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
@@ -28,6 +30,7 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringWriter;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -42,19 +45,47 @@ public class SongCollectionResource {
     private final SongCollectionAssembler songCollectionAssembler;
     private final StatisticsService statisticsService;
     private final JavaMailSender sender;
+    private final SongService songService;
 
     @Autowired
-    public SongCollectionResource(SongCollectionService songCollectionService, SongCollectionAssembler songCollectionAssembler, StatisticsService statisticsService, JavaMailSender sender) {
+    public SongCollectionResource(SongCollectionService songCollectionService, SongCollectionAssembler songCollectionAssembler, StatisticsService statisticsService, JavaMailSender sender, SongService songService) {
         this.songCollectionService = songCollectionService;
         this.songCollectionAssembler = songCollectionAssembler;
         this.statisticsService = statisticsService;
         this.sender = sender;
+        this.songService = songService;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "api/songCollections")
     public List<SongCollectionDTO> findAll(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         final List<SongCollection> all = songCollectionService.findAll();
+        return songCollectionAssembler.createDtoList(all);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "api/songCollections/song/{id}")
+    public List<SongCollectionDTO> findAllBySong(@PathVariable("id") String songId, HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        Song song = songService.findOne(songId);
+        List<SongCollection> all;
+        if (song != null) {
+            all = songCollectionService.findAllBySong(song);
+            List<SongCollectionDTO> dtoList = new ArrayList<>(all.size());
+            for (SongCollection songCollection : all) {
+                SongCollection collection = new SongCollection(songCollection);
+                ArrayList<SongCollectionElement> songCollectionElements = new ArrayList<>();
+                for (SongCollectionElement collectionElement: songCollection.getSongCollectionElements()) {
+                    if (collectionElement.getSongUuid().equals(songId)) {
+                        songCollectionElements.add(collectionElement);
+                    }
+                }
+                collection.setSongCollectionElements(songCollectionElements);
+                dtoList.add(songCollectionAssembler.createDto(collection));
+            }
+            return dtoList;
+        } else {
+            all = new ArrayList<>();
+        }
         return songCollectionAssembler.createDtoList(all);
     }
 

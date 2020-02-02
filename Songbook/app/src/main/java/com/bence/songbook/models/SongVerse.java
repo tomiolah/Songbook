@@ -1,5 +1,9 @@
 package com.bence.songbook.models;
 
+import android.content.Context;
+
+import com.bence.projector.common.model.SectionType;
+import com.bence.songbook.R;
 import com.j256.ormlite.field.DatabaseField;
 
 import java.io.Serializable;
@@ -17,21 +21,11 @@ public class SongVerse extends BaseEntity implements Serializable {
     private boolean isChorus;
     @DatabaseField(foreign = true, index = true)
     private Song song;
+    @DatabaseField
+    private Integer sectionTypeData;
+    private SectionType sectionType;
 
     public SongVerse() {
-    }
-
-    public SongVerse(SongVerse songVerse) {
-        this.text = songVerse.text;
-        this.isChorus = songVerse.isChorus;
-    }
-
-    public static SongVerse[] cloneList(SongVerse[] songVerses) {
-        SongVerse[] clonedSongVerses = new SongVerse[songVerses.length];
-        for (int i = 0; i < songVerses.length; ++i) {
-            clonedSongVerses[i] = new SongVerse(songVerses[i]);
-        }
-        return clonedSongVerses;
     }
 
     public String getText() {
@@ -44,7 +38,7 @@ public class SongVerse extends BaseEntity implements Serializable {
     }
 
     public boolean isChorus() {
-        return isChorus;
+        return isChorus || sectionType == SectionType.CHORUS;
     }
 
     public void setChorus(boolean chorus) {
@@ -61,5 +55,82 @@ public class SongVerse extends BaseEntity implements Serializable {
 
     public String getStrippedText() {
         return strippedText;
+    }
+
+    SectionType getSectionType() {
+        if (sectionTypeData == null) {
+            sectionType = SectionType.VERSE;
+        } else {
+            sectionType = SectionType.getInstance(sectionTypeData);
+        }
+        if (isChorus) {
+            sectionType = SectionType.CHORUS;
+        }
+        return sectionType;
+    }
+
+    public void setSectionType(SectionType sectionType) {
+        this.sectionType = sectionType;
+        this.sectionTypeData = sectionType.getValue();
+    }
+
+    private String getSectionTypeString(Context context) {
+        switch (getSectionType()) {
+            case INTRO:
+                return context.getString(R.string.letter_intro);
+            case VERSE:
+                return context.getString(R.string.letter_verse);
+            case PRE_CHORUS:
+                return context.getString(R.string.letter_pre_chorus);
+            case CHORUS:
+                return context.getString(R.string.letter_chorus);
+            case BRIDGE:
+                return context.getString(R.string.letter_bridge);
+            case CODA:
+                return context.getString(R.string.letter_coda);
+        }
+        return "";
+    }
+
+    private int getSongVerseCountBySectionType() {
+        int count = 0;
+        for (SongVerse verse : song.getVerses()) {
+            if (verse.getSectionType() == getSectionType()) {
+                ++count;
+                if (verse.equals(this)) {
+                    break;
+                }
+            }
+        }
+        return count;
+    }
+
+    private boolean hasOtherSameTypeInSong() {
+        for (SongVerse verse : song.getVerses()) {
+            if (verse.getSectionType() == getSectionType() && !verse.equals(this)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getSectionTypeStringWithCount(Context context) {
+        String sectionTypeString = getSectionTypeString(context);
+        if (hasOtherSameTypeInSong()) {
+            sectionTypeString += getSongVerseCountBySectionType();
+        }
+        return sectionTypeString;
+    }
+
+    public boolean equals(SongVerse other) {
+        String uuid = getUuid();
+        if (uuid != null) {
+            return uuid.equals(other.getUuid());
+        }
+        Long id = getId();
+        if (id != null) {
+            return id.equals(other.getId());
+        }
+        return text.equals(other.text);
     }
 }

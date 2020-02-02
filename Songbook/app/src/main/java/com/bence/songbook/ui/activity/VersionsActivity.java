@@ -32,14 +32,17 @@ import java.util.List;
 public class VersionsActivity extends AppCompatActivity {
 
     public static Song getSongFromMemory(Song song) {
-        List<Song> songs = Memory.getInstance().getSongs();
-        if (songs == null) {
-            return song;
-        }
-        for (Song iSong : songs) {
-            if (iSong != null && iSong.getUuid().equals(song.getUuid())) {
-                return iSong;
+        try {
+            List<Song> songs = Memory.getInstance().getSongs();
+            if (songs == null) {
+                return song;
             }
+            for (Song iSong : songs) {
+                if (iSong != null && iSong.getUuid().equals(song.getUuid())) {
+                    return iSong;
+                }
+            }
+        } catch (NullPointerException ignored) {
         }
         return song;
     }

@@ -11,4 +11,6 @@ public interface SongCollectionRepository extends MongoRepository<SongCollection
     SongCollection findSongCollectionBySongCollectionElements_SongUuid(String songUuid);
 
     List<SongCollection> findAllByLanguage_IdAndAndModifiedDateGreaterThan(String language_id, Date modifiedDate);
+
+    List<SongCollection> findAllBySongCollectionElements_SongUuid(String songUuid);
 }

@@ -13,6 +13,7 @@ import { UserRegisterComponent } from '../ui/user-register/user-register.compone
 import { ActivationComponent } from '../ui/activation/activation.component';
 import { UsersComponent } from '../ui/users/users.component';
 import { UserComponent } from '../ui/user/user.component';
+import { NotificationSettingsComponent } from '../ui/notification-settings/notification-settings.component';
 
 export const appRoutes: Routes = [
   {
@@ -28,7 +29,7 @@ export const appRoutes: Routes = [
     component: SongComponent
   },
   {
-    path: 'admin/suggestion/:suggestionId',
+    path: 'suggestion/:suggestionId',
     component: SuggestionComponent
   },
   {
@@ -41,12 +42,13 @@ export const appRoutes: Routes = [
   },
   { path: 'addNewSong', component: NewSongComponent },
   { path: 'admin/statistics', component: StatisticsListComponent },
-  { path: 'admin/suggestions', component: SuggestionListComponent },
+  { path: 'suggestions', component: SuggestionListComponent },
   { path: 'songs', component: SongListComponent },
   { path: '', redirectTo: 'songs', pathMatch: 'full' },
   { path: 'registration', component: UserRegisterComponent },
   { path: 'activation/:code', component: ActivationComponent },
-  { path: '**', component: NotFoundComponent }
+  { path: 'user/notifications', component: NotificationSettingsComponent },
+  { path: '**', component: NotFoundComponent },
 ];
 
 @NgModule({

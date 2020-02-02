@@ -1,10 +1,23 @@
 <div class="container">
   <br>
   <mat-card>
-    <h3 class="title">{{song.title}}</h3>
+    <div class="title">
+      <h3 class="title">{{song.title}}
+      </h3>
+      <div
+        *ngIf="auth.isLoggedIn && auth.getUser() != undefined && (auth.getUser().isAdmin() || auth.getUser().hasReviewerRoleForSong(song))">
+        <div *ngIf="collections != undefined">
+          <div *ngFor="let collection of collections">
+            <p *ngFor="let collectionElement of collection.songCollectionElements">
+              {{collection.name + " " + collectionElement.ordinalNumber}}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
     <mat-card-content>
       <mat-card *ngFor="let songVerse of song.songVerseDTOS"
-                [ngClass]="songVerse.chorus?['chorus','mat-elevation-z5']:'mat-elevation-z1'">
+        [ngClass]="songVerse.chorus?['chorus','mat-elevation-z5']:'mat-elevation-z1'">
         <mat-card-content>
           <div *ngFor="let line of songVerse.lines">
             <h4 class="verse">{{line}}</h4>
@@ -14,12 +27,8 @@
       <div *ngIf="safeUrl!=null">
         <br>
         <mat-card>
-          <iframe
-              [class]="safeUrl!=null?'embeddedVideo':'hideEmbeddedVideo'"
-              scrolling="no"
-              [src]='safeUrl'
-              frameborder="0"
-              allowfullscreen></iframe>
+          <iframe [class]="safeUrl!=null?'embeddedVideo':'hideEmbeddedVideo'" scrolling="no" [src]='safeUrl'
+            frameborder="0" allowfullscreen></iframe>
         </mat-card>
       </div>
     </mat-card-content>
@@ -33,86 +42,117 @@
     </button>
   </div>
 
-  <div *ngIf="auth.isLoggedIn && auth.getUser() != undefined && auth.getUser().isAdmin()">
-    <br>
-    <table>
-      <tr *ngIf="song.views>0">
-        <td>Views:&nbsp;</td>
-        <td>{{song.views}}</td>
-      </tr>
-      <tr *ngIf="song.favourites>0">
-        <td>Favourites:&nbsp;</td>
-        <td>{{song.favourites}}</td>
-      </tr>
-      <tr *ngIf="song.author">
-        <td>Author:&nbsp;</td>
-        <td>{{song.author}}</td>
-      </tr>
-    </table>
-    <br>
-    <div *ngIf="song.originalId!==undefined">
-      <h4>Uploaded modified song:</h4>
-      <div *ngIf="secondSong!==null">
-        <a href="/#/song/{{song.originalId}}" target="_blank">{{'Open original song'}}</a>
-        <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
-        <button mat-button (click)="acceptChanges()">
-          Put changes into similar!
+  <div *ngIf="auth.isLoggedIn && auth.getUser() != undefined">
+    <div *ngIf="auth.getUser().isAdmin()">
+      <br>
+      <div *ngIf="song.backUpSongId!==undefined">
+        <a href="/#/song/{{song.backUpSongId}}" target="_blank">{{'Open backup song'}}</a>
+      </div>
+      <div *ngIf="song.originalId!==undefined">
+        <h4>Uploaded modified song:</h4>
+        <div *ngIf="secondSong!==null">
+          <a href="/#/song/{{song.originalId}}" target="_blank">{{'Open original song'}}</a>
+          <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
+          <button mat-button (click)="acceptChanges()">
+            Put changes into similar!
+          </button>
+        </div>
+      </div>
+      <div *ngIf="song.uploaded && song.deleted">
+        <button mat-button (click)="publishSong()">
+          Publish
+        </button>
+        <button mat-button (click)="eraseSong()">
+          Erase
         </button>
       </div>
-    </div>
-    <div *ngIf="song.uploaded && song.deleted">
-      <button mat-button (click)="publishSong()">
-        Publish
+      <div *ngIf="!song.uploaded">
+        <button *ngIf="song.deleted" mat-button (click)="publishSong()">
+          Remove deleted
+        </button>
+      </div>
+      <button mat-button (click)="addToCollectionSong()">
+        Add to collection
       </button>
-      <button mat-button (click)="eraseSong()">
+    </div>
+    <div *ngIf="auth.getUser().isAdmin() || auth.getUser().hasReviewerRoleForSong(song)">
+      <br>
+      <table>
+        <tr *ngIf="song.views>0">
+          <td>Views:&nbsp;</td>
+          <td>{{song.views}}</td>
+        </tr>
+        <tr *ngIf="song.favourites > 0 && auth.getUser().isAdmin()">
+          <td>Favourites:&nbsp;</td>
+          <td>{{song.favourites}}</td>
+        </tr>
+        <tr *ngIf="song.createdByEmail != undefined">
+          <td>Created by email:&nbsp;</td>
+          <td>{{song.createdByEmail}}</td>
+        </tr>
+        <tr *ngIf="song.author">
+          <td>Author:&nbsp;</td>
+          <td>{{song.author}}</td>
+        </tr>
+        <tr *ngIf="song.createdDate">
+          <td>Created date:&nbsp;</td>
+          <td>{{song.createdDate | date: 'yyyy/MM/dd HH:mm'}}</td>
+        </tr>
+        <tr *ngIf="song.modifiedDate">
+          <td>Modified date:&nbsp;</td>
+          <td>{{song.modifiedDate | date: 'yyyy/MM/dd HH:mm'}}</td>
+        </tr>
+        <tr *ngIf="song.lastModifiedByUserEmail && auth.getUser().isAdmin()">
+          <td>Last modified by user email:&nbsp;</td>
+          <td>{{song.lastModifiedByUserEmail}}</td>
+        </tr>
+      </table>
+      <br>
+      <button *ngIf="!song.deleted" mat-button (click)="deleteSong()">
+        Delete
+      </button>
+      <button *ngIf="song.deleted && auth.getUser().hasReviewerRoleForSong(song)" mat-button (click)="eraseSong()">
         Erase
       </button>
-    </div>
-    <div *ngIf="!song.uploaded">
-      <button *ngIf="song.deleted" mat-button (click)="publishSong()">
-        Remove deleted
+      <br>
+      <button mat-button (click)="editSong()">
+        Edit
       </button>
-    </div>
-    <button *ngIf="!song.deleted" mat-button (click)="deleteSong()">
-      Delete
-    </button>
-    <br>
-    <button mat-button (click)="editSong()">
-      Edit
-    </button>
-    <app-edit-song [song]="song" *ngIf="editing"></app-edit-song>
-    <div *ngIf="song.originalId===undefined">
-      <button mat-button (click)="showSimilar()">
-        Similarities
-      </button>
-      <div *ngIf="showSimilarities">
-        <div *ngIf="similar.length>0">
-          <mat-nav-list>
-            <mat-list-item *ngFor="let song of similar" (click)="selectSecondSong(song)">
-              <a>{{ song.title + " "}}</a>
-              <a href="/#/song/{{song.uuid}}" target="_blank">{{'. Open'}}</a>
-            </mat-list-item>
-          </mat-nav-list>
-          <div *ngIf="secondSong!==null">
-            <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
-            <button mat-button (click)="acceptChanges()">
-              Put changes into similar!
-            </button>
+      <app-edit-song [song]="song" *ngIf="editing"></app-edit-song>
+      <div *ngIf="song.originalId===undefined">
+        <button mat-button (click)="showSimilar()">
+          Similarities
+        </button>
+        <div *ngIf="showSimilarities">
+          <div *ngIf="similar.length>0">
+            <mat-nav-list>
+              <mat-list-item *ngFor="let song of similar" (click)="selectSecondSong(song)">
+                <a>{{ song.title + " "}}</a>
+                <a href="/#/song/{{song.uuid}}" target="_blank">{{'. Open'}}</a>
+              </mat-list-item>
+            </mat-nav-list>
+            <div *ngIf="secondSong!==null">
+              <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
+              <button *ngIf="auth.getUser().isAdmin()" mat-button (click)="acceptChanges()">
+                Put changes into similar!
+              </button>
+              <button *ngIf="auth.getUser().isAdmin() && collections != undefined && collections.length > 0" mat-button
+                (click)="copySongCollectionElementsToSimilar()">
+                Copy song collection elements to similar!
+              </button>
+            </div>
           </div>
-        </div>
-        <div *ngIf="similar.length<1&&receivedSimilar">
-          <h3>No similar</h3>
-        </div>
-        <div *ngIf="similar.length<1&&!receivedSimilar">
-          <h3>Getting similar</h3>
+          <div *ngIf="similar.length<1&&receivedSimilar">
+            <h3>No similar</h3>
+          </div>
+          <div *ngIf="similar.length<1&&!receivedSimilar">
+            <h3>Getting similar</h3>
+          </div>
         </div>
       </div>
     </div>
-    <button mat-button (click)="addToCollectionSong()">
-      Add to collection
-    </button>
   </div>
-  <div *ngIf="auth.isLoggedIn && (auth.getUser().isUser() || auth.getUser().isAdmin())">
+  <div *ngIf="auth.isLoggedIn && (auth.getUser().isUser() || auth.getUser().isAdmin() || auth.getUser().isReviewer())">
     <button mat-button (click)="markForVersionGroup()">
       {{markText}}
     </button>

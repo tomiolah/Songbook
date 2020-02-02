@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.bence.songbook.models.FavouriteSong;
+import com.bence.songbook.models.Language;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
@@ -34,6 +35,7 @@ public class Memory {
     private SongList passingSongList;
     private SongList editingSongList;
     private String lastSearchedInText;
+    private List<Language> passingLanguages;
 
     private Memory() {
 
@@ -194,6 +196,14 @@ public class Memory {
 
     public void setLastSearchedInText(String lastSearchedInText) {
         this.lastSearchedInText = lastSearchedInText;
+    }
+
+    public List<Language> getPassingLanguages() {
+        return passingLanguages;
+    }
+
+    public void setPassingLanguages(List<Language> passingLanguages) {
+        this.passingLanguages = passingLanguages;
     }
 
     public interface Listener {

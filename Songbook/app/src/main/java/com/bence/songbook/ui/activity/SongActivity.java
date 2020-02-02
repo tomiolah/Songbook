@@ -53,6 +53,7 @@ import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.SongService;
+import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
 import com.bence.songbook.ui.utils.PageAdapter;
 import com.bence.songbook.ui.utils.Preferences;
@@ -72,6 +73,7 @@ import static com.bence.songbook.ui.activity.VersionsActivity.getSongFromMemory;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 
 public class SongActivity extends AppCompatActivity {
+    public static final int NEW_SONG_REQUEST = 4;
     private static final String TAG = "SongActivity";
 
     static {
@@ -163,9 +165,11 @@ public class SongActivity extends AppCompatActivity {
                 String songUuid = songCollectionElement.getSongUuid();
                 if (hashMap.containsKey(songUuid)) {
                     Song song = hashMap.get(songUuid);
-                    song.setSongCollection(songCollection);
-                    song.setSongCollectionElement(songCollectionElement);
-                    songs.add(song);
+                    if (song != null) {
+                        song.setSongCollection(songCollection);
+                        song.setSongCollectionElement(songCollectionElement);
+                        songs.add(song);
+                    }
                     hashMap.remove(songUuid);
                 }
             }
@@ -237,6 +241,19 @@ public class SongActivity extends AppCompatActivity {
             }
         });
         setToolbarTitleAndSize();
+        FloatingActionButton fabSave = findViewById(R.id.fabSave);
+        if (song.isNotNewSong()) {
+            fabSave.hide();
+        } else {
+            fabSave.show();
+            fabSave.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    setResult(NewSongActivity.SAVE_RESULT_CODE);
+                    finish();
+                }
+            });
+        }
     }
 
     @Override
@@ -309,8 +326,25 @@ public class SongActivity extends AppCompatActivity {
             showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
         } else if (itemId == R.id.action_save_to_song_list) {
             saveToSongList();
+        } else if (itemId == R.id.action_delete) {
+            setSongAsDeleted();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void setSongAsDeleted() {
+        song.setAsDeleted(!song.isAsDeleted());
+        SongRepository songRepository = new SongRepositoryImpl(this);
+        songRepository.save(song);
+        List<Song> songs = memory.getSongs();
+        if (song.isAsDeleted()) {
+            songs.remove(song);
+            setResult(MainActivity.SONG_DELETED);
+        } else {
+            songs.add(song);
+            setResult(MainActivity.SONG_UNDO_DELETION);
+        }
+        finish();
     }
 
     @SuppressLint("InflateParams")
@@ -376,6 +410,11 @@ public class SongActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == CheckSongForUpdate.UPDATE_SONGS_RESULT) {
+            setResult(resultCode);
+            finish();
+            return;
+        }
         switch (requestCode) {
             case 2:
                 if (resultCode == SuggestEditsChooseActivity.LINKING) {
@@ -456,24 +495,40 @@ public class SongActivity extends AppCompatActivity {
         }
         favouriteMenuItem = menu.findItem(R.id.action_favourite);
         final SongActivity context = this;
-        if (song.isFavourite()) {
-            favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_star_black_24dp, null));
-        }
-        favouriteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                song.setFavourite(!song.isFavourite());
-                FavouriteSong favourite = song.getFavourite();
-                favourite.setModifiedDate(new Date());
-                favourite.setFavouritePublished(favourite.isFavouriteNotPublished());
-                FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
-                favouriteSongRepository.save(favourite);
-                favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
-                        R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
-                syncFavouriteInGoogleDrive();
-                return false;
+        boolean notNewSong = song.isNotNewSong();
+        if (notNewSong) {
+            if (song.isFavourite()) {
+                favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_star_black_24dp, null));
             }
-        });
+            favouriteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem item) {
+                    song.setFavourite(!song.isFavourite());
+                    FavouriteSong favourite = song.getFavourite();
+                    favourite.setModifiedDate(new Date());
+                    favourite.setFavouritePublished(favourite.isFavouriteNotPublished());
+                    FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
+                    favouriteSongRepository.save(favourite);
+                    favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
+                            R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
+                    syncFavouriteInGoogleDrive();
+                    return false;
+                }
+            });
+            favouriteMenuItem.setVisible(true);
+        } else {
+            favouriteMenuItem.setVisible(false);
+        }
+        menu.findItem(R.id.action_add_to_queue).setVisible(notNewSong);
+        menu.findItem(R.id.action_save_to_song_list).setVisible(notNewSong);
+        menu.findItem(R.id.action_suggest_edits).setVisible(notNewSong);
+        MenuItem deleteMenuItem = menu.findItem(R.id.action_delete);
+        deleteMenuItem.setVisible(notNewSong);
+        if (song.isAsDeleted()) {
+            deleteMenuItem.setTitle(getString(R.string.undo_deletion));
+        } else {
+            deleteMenuItem.setTitle(getString(R.string.delete_song));
+        }
     }
 
     private void syncFavouriteInGoogleDrive() {

@@ -1,5 +1,7 @@
 package com.bence.projector.server.backend.model;
 
+import com.bence.projector.common.model.SectionType;
+
 public class SongVerse extends BaseEntity {
     private String text;
     private boolean isChorus;

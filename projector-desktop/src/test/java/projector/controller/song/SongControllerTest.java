@@ -109,10 +109,4 @@ public class SongControllerTest extends BaseTest {
         doubleClickOn("#searchTextField").doubleClickOn("#searchTextField").write(test_songTitle);
         Assert.assertEquals(searchedSongListView.getItems().size(), 0);
     }
-
-    @Test
-    public void clickNewSongBookButton() {
-        clickOn("#newSongBookButton");
-        clickOn("#songBookTitleTextField");
-    }
 }

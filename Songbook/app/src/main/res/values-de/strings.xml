@@ -116,4 +116,16 @@
     <string name="change_view">Ansicht ändern</string>
     <string name="relevance">Relevanz</string>
     <string name="unexpected_error">Unexpected error</string>
+    <string name="try_again">Versuchen Sie es nochmal</string>
+    <string name="letter_intro">I</string>
+    <string name="letter_pre_chorus">PC</string>
+    <string name="letter_chorus">C</string>
+    <string name="letter_bridge">B</string>
+    <string name="letter_coda">E</string>
+    <string name="letter_verse">V</string>
+    <string name="delete_song">Lied löschen</string>
+    <string name="undo_deletion">Gelöschte zurücksetzen</string>
+    <string name="not_now">Nicht jetzt</string>
+    <string name="this_song_has_been_modified_please_update_your_songs_in_order_to_see_the_differences">Dieser Song wurde geändert, bitte aktualisieren Sie Ihre Songs, um die Unterschiede zu sehen!</string>
+    <string name="update_songs">Aktualisieren</string>
 </resources>

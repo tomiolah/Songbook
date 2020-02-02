@@ -1,7 +1,8 @@
-import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs/Observable';
-import {ApiService} from './api.service';
-import {Suggestion} from '../models/suggestion';
+import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs/Observable';
+import { ApiService } from './api.service';
+import { Suggestion } from '../models/suggestion';
+import { Language } from '../models/language';
 
 @Injectable()
 export class SuggestionDataService {
@@ -13,7 +14,16 @@ export class SuggestionDataService {
     return this.api.getAll(Suggestion, 'admin/api/suggestions');
   }
 
-  getSuggestion(suggestionId): Observable<Suggestion> {
-    return this.api.getById(Suggestion, 'admin/api/suggestion/', suggestionId);
+  getAllInReviewByLanguage(role: string, selectedLanguage: Language): Observable<Suggestion[]> {
+    return this.api.getAll(Suggestion, role + '/api/suggestions/language/' + selectedLanguage.uuid);
+  }
+
+  getSuggestion(role: string, suggestionId): Observable<Suggestion> {
+    return this.api.getById(Suggestion, role + '/api/suggestion/', suggestionId);
+  }
+
+  update(role: string, suggestion: Suggestion) {
+    suggestion.id = suggestion.uuid;
+    return this.api.update(Suggestion, role + '/api/suggestion/', suggestion);
   }
 }

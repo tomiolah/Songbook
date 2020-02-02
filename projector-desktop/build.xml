@@ -19,6 +19,7 @@
             <zipfileset src="lib/retrofit-2.3.0.jar" includes="**/*.java **/*.class"/>
             <zipfileset src="lib/projector-common.jar" includes="**/*.java **/*.class"/>
             <zipfileset src="lib/slf4j-api-1.7.25.jar" includes="**/*.java **/*.class"/>
+            <zipfileset src="lib/jnativehook-2.1.0.jar" includes="**/*.java **/*.class"/>
             <manifest>
                 <attribute name="Main-Class" value="projector.Main"/>
             </manifest>

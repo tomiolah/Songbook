@@ -82,6 +82,7 @@ import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.DynamicListView;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
 import com.bence.songbook.ui.utils.MainPageAdapter;
@@ -116,6 +117,9 @@ import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_COD
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    public static final int SONG_DELETED = 10;
+    public static final int SONG_REQUEST = 3;
+    public static final int SONG_UNDO_DELETION = 11;
     private final Memory memory = Memory.getInstance();
     private final int DOWNLOAD_SONGS_REQUEST_CODE = 1;
     private List<Song> songs;
@@ -346,7 +350,7 @@ public class MainActivity extends AppCompatActivity
         songListView.setLayoutManager(layoutManager);
         songListView.addOnScrollListener(new RecyclerView.OnScrollListener() {
             @Override
-            public void onScrollStateChanged(RecyclerView recyclerView, int newState) {
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
                 super.onScrollStateChanged(recyclerView, newState);
                 if (newState == SCROLL_STATE_IDLE) {
                     CenterLayoutManager manager = (CenterLayoutManager) songListView.getLayoutManager();
@@ -471,7 +475,7 @@ public class MainActivity extends AppCompatActivity
                 uploadViewsFavourites();
             } else {
                 Intent loadIntent = new Intent(this, LanguagesActivity.class);
-                startActivityForResult(loadIntent, 1);
+                startActivityForResult(loadIntent, DOWNLOAD_SONGS_REQUEST_CODE);
             }
         }
         Intent appLinkIntent = getIntent();
@@ -719,7 +723,7 @@ public class MainActivity extends AppCompatActivity
                 // upload songs
                 List<Song> uploadingSongs = new ArrayList<>();
                 for (Song song : songs) {
-                    if (song.getModifiedDate().getTime() == 123L) {
+                    if (song.getModifiedDate().getTime() == 123L && !song.isAsDeleted()) {
                         uploadingSongs.add(song);
                     }
                 }
@@ -845,7 +849,7 @@ public class MainActivity extends AppCompatActivity
         switch (requestCode) {
             case DOWNLOAD_SONGS_REQUEST_CODE:
                 if (resultCode >= 1) {
-                    songs = songRepository.findAll();
+                    songs = songRepository.findAllExceptAsDeleted();
                     memory.setSongs(songs);
                     List<QueueSong> queue = memory.getQueue();
                     if (queue == null) {
@@ -883,10 +887,23 @@ public class MainActivity extends AppCompatActivity
                     recreate();
                 }
                 break;
-            case 3:
-                if (resultCode == 1) {
-                    values.clear();
-                    values.addAll(memory.getValues());
+            case SONG_REQUEST:
+                switch (resultCode) {
+                    case 1:
+                        values.clear();
+                        values.addAll(memory.getValues());
+                        break;
+                    case SONG_DELETED:
+                        refreshSongs();
+                        break;
+                    case SONG_UNDO_DELETION:
+                        sortSongs(songs);
+                        refreshSongs();
+                        break;
+                    case CheckSongForUpdate.UPDATE_SONGS_RESULT:
+                        Intent loadIntent = new Intent(this, LoadActivity.class);
+                        startActivityForResult(loadIntent, DOWNLOAD_SONGS_REQUEST_CODE);
+                        break;
                 }
                 break;
             case 4:
@@ -926,6 +943,16 @@ public class MainActivity extends AppCompatActivity
             adapter.notifyDataSetChanged();
         }
         queueListView.invalidateViews();
+    }
+
+    private void refreshSongs() {
+        songs = memory.getSongs();
+        values.clear();
+        values.addAll(songs);
+        adapter.setSongList(values);
+        if (pageAdapter != null) {
+            pageAdapter.notifyDataSetChanged();
+        }
     }
 
     private void setShortNamesForSongCollections(List<SongCollection> songCollections) {
@@ -986,23 +1013,19 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
-                                           @NonNull String permissions[], @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case 1: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                                           @NonNull String[] permissions, @NonNull int[] grantResults) {
+        if (requestCode == 1) {// If request is cancelled, the result arrays are empty.
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
-                    // permission was granted, yay! Do the
-                    // contacts-related task you need to do.
-                    loadAll();
-                } else {
-                    Intent intent = new Intent(this, ExplanationActivity.class);
-                    startActivity(intent);
-                    // permission denied, boo! Disable the
-                    // functionality that depends on this permission.
-                }
-                break;
+                // permission was granted, yay! Do the
+                // contacts-related task you need to do.
+                loadAll();
+            } else {
+                Intent intent = new Intent(this, ExplanationActivity.class);
+                startActivity(intent);
+                // permission denied, boo! Disable the
+                // functionality that depends on this permission.
             }
             // other 'case' lines to check for other
             // permissions this app might request
@@ -1334,7 +1357,7 @@ public class MainActivity extends AppCompatActivity
         Intent intent = new Intent(this, SongActivity.class);
         memory.setPassingSong(song);
         intent.putExtra("verseIndex", 0);
-        startActivityForResult(intent, 3);
+        startActivityForResult(intent, SONG_REQUEST);
     }
 
     private void sortSongs(List<Song> all) {
@@ -1981,12 +2004,16 @@ public class MainActivity extends AppCompatActivity
         if (isOneLanguageSelected()) {
             for (Language language : languages) {
                 if (language.isSelected()) {
-                    songs.addAll(language.getSongs());
+                    for (Song song : language.getSongs()) {
+                        if (!song.isAsDeleted()) {
+                            songs.add(song);
+                        }
+                    }
                 }
             }
         }
         if (songs.size() == 0) {
-            songs = songRepository.findAll();
+            songs = songRepository.findAllExceptAsDeleted();
         }
     }
 

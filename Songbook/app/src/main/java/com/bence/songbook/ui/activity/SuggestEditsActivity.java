@@ -8,18 +8,25 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.bence.projector.common.dto.SongVerseDTO;
 import com.bence.projector.common.dto.SuggestionDTO;
+import com.bence.projector.common.model.SectionType;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SuggestionApiBean;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
+import com.bence.songbook.ui.utils.CheckSongForUpdate;
+import com.bence.songbook.ui.utils.CheckSongForUpdateListener;
 import com.bence.songbook.ui.utils.Preferences;
 
 import java.util.ArrayList;
@@ -69,11 +76,32 @@ public class SuggestEditsActivity extends AppCompatActivity {
             textEditText.setFocusable(false);
             textEditText.setCursorVisible(false);
         }
+        if (song.getUuid() != null && !song.getUuid().isEmpty()) {
+            LayoutInflater layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            CheckSongForUpdate.getInstance().addListener(new CheckSongForUpdateListener(layoutInflater) {
+                @Override
+                public void onSongHasBeenModified(final PopupWindow updatePopupWindow) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            LinearLayout updateSongsLayout = findViewById(R.id.updateSongsLayout);
+                            updatePopupWindow.showAtLocation(updateSongsLayout, Gravity.CENTER, 0, 0);
+                        }
+                    });
+                }
+
+                @Override
+                public void onUpdateButtonClick() {
+                    setResult(CheckSongForUpdate.UPDATE_SONGS_RESULT);
+                    finish();
+                }
+            }, song);
+        }
     }
 
     private String getText(Song song) {
         StringBuilder text = new StringBuilder();
-        for (SongVerse songVerse : song.getVerses()) {
+        for (SongVerse songVerse : song.getSongVersesByVerseOrder()) {
             if (text.length() > 0) {
                 text.append("\n\n");
             }
@@ -121,6 +149,7 @@ public class SuggestEditsActivity extends AppCompatActivity {
             for (String s : split) {
                 SongVerseDTO songVerseDTO = new SongVerseDTO();
                 songVerseDTO.setText(s);
+                songVerseDTO.setType(SectionType.VERSE.getValue());
                 songVerseDTOList.add(songVerseDTO);
             }
             if (songVerseDTOList.size() == 0 || (songVerseDTOList.size() == 1 && songVerseDTOList.get(0).getText().isEmpty())) {

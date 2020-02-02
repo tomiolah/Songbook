@@ -8,7 +8,7 @@ import com.bence.projector.server.backend.model.Bible;
 import com.bence.projector.server.backend.model.BibleVerse;
 import com.bence.projector.server.backend.model.Book;
 import com.bence.projector.server.backend.model.Chapter;
-import com.bence.projector.server.backend.repository.LanguageRepository;
+import com.bence.projector.server.backend.service.LanguageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,11 +18,11 @@ import java.util.Date;
 @Component
 public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
 
-    private final LanguageRepository languageRepository;
+    private final LanguageService languageService;
 
     @Autowired
-    public BibleAssembler(LanguageRepository languageRepository) {
-        this.languageRepository = languageRepository;
+    public BibleAssembler(LanguageService languageService) {
+        this.languageService = languageService;
     }
 
     @Override
@@ -104,7 +104,7 @@ public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
         bible.setName(bibleDTO.getName());
         bible.setShortName(bibleDTO.getShortName());
         if (bibleDTO.getLanguageUuid() != null) {
-            bible.setLanguage(languageRepository.findOne(bibleDTO.getLanguageUuid()));
+            bible.setLanguage(languageService.findOne(bibleDTO.getLanguageUuid()));
         }
         return bible;
     }

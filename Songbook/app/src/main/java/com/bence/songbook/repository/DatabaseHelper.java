@@ -27,7 +27,7 @@ import java.sql.SQLException;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final String TAG = DatabaseHelper.class.getSimpleName();
     private static final String DATABASE_NAME = "songbook.db";
-    private static final int DATABASE_VERSION = 17;
+    private static final int DATABASE_VERSION = 20;
 
     @SuppressLint("StaticFieldLeak")
     private static DatabaseHelper instance;
@@ -61,9 +61,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                          final ConnectionSource connectionSource) {
         try {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-            sharedPreferences.edit().putInt("songDataBaseVersion", 11).apply();
+            sharedPreferences.edit().putInt("songDataBaseVersion", 12).apply();
             TableUtils.createTableIfNotExists(connectionSource, Song.class);
-            sharedPreferences.edit().putInt("songVerseDataBaseVersion", 4).apply();
+            sharedPreferences.edit().putInt("songVerseDataBaseVersion", 5).apply();
             TableUtils.createTableIfNotExists(connectionSource, SongVerse.class);
             sharedPreferences.edit().putInt("languageDataBaseVersion", 4).apply();
             TableUtils.createTableIfNotExists(connectionSource, Language.class);
@@ -116,10 +116,16 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                     if (songDataBaseVersion < 11) {
                         getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN favourites INTEGER");
                     }
+                    if (songDataBaseVersion < 12) {
+                        getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN asDeleted BOOLEAN");
+                    }
                 }
                 int songVerseDataBaseVersion = sharedPreferences.getInt("songVerseDataBaseVersion", 0);
                 if (songVerseDataBaseVersion < 4) {
                     TableUtils.dropTable(connectionSource, SongVerse.class, true);
+                }
+                if (songVerseDataBaseVersion < 5) {
+                    getSongVerseDao().executeRaw("ALTER TABLE `songVerse` ADD COLUMN sectionTypeData INTEGER");
                 }
                 int languageDataBaseVersion = sharedPreferences.getInt("languageDataBaseVersion", 0);
                 if (languageDataBaseVersion < 4) {

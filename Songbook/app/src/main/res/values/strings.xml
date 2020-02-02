@@ -120,4 +120,16 @@
     <string name="change_view">Change view</string>
     <string name="relevance">Relevance</string>
     <string name="unexpected_error">Unexpected error</string>
+    <string name="try_again">Try again</string>
+    <string name="letter_intro">I</string>
+    <string name="letter_verse">V</string>
+    <string name="letter_pre_chorus">PC</string>
+    <string name="letter_chorus">C</string>
+    <string name="letter_bridge">B</string>
+    <string name="letter_coda">E</string>
+    <string name="delete_song">Delete song</string>
+    <string name="undo_deletion">Undo deletion</string>
+    <string name="this_song_has_been_modified_please_update_your_songs_in_order_to_see_the_differences">This song has been modified, please update your songs in order to see the differences!</string>
+    <string name="not_now">Not now</string>
+    <string name="update_songs">Update songs</string>
 </resources>

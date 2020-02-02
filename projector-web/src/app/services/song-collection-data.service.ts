@@ -13,6 +13,10 @@ export class SongCollectionDataService {
     return this.api.getAll(SongCollection, 'api/songCollections');
   }
 
+  getAllBySongId(songId: string): Observable<SongCollection[]> {
+    return this.api.getAll(SongCollection, 'api/songCollections/song/' + songId);
+  }
+
   putInCollection(songCollection: SongCollection, songCollectionElement: SongCollectionElement) {
     return this.api.put(SongCollectionElement, 'admin/api/songCollection/' + songCollection.uuid + '/songCollectionElement', songCollectionElement);
   }

@@ -1,14 +1,20 @@
 package com.bence.songbook.ui.activity;
 
+import android.arch.lifecycle.Lifecycle;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.bence.projector.common.dto.SongLinkDTO;
@@ -16,12 +22,15 @@ import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SongLinkApiBean;
 import com.bence.songbook.models.Song;
+import com.bence.songbook.ui.utils.CheckSongForUpdate;
+import com.bence.songbook.ui.utils.CheckSongForUpdateListener;
 import com.bence.songbook.ui.utils.Preferences;
 
 public class SuggestEditsChooseActivity extends AppCompatActivity {
     public final static int LINKING = 2;
     private Memory memory = Memory.getInstance();
     private Song song;
+    private LinearLayout updateSongsLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,11 +44,45 @@ public class SuggestEditsChooseActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
         Button linkButton = findViewById(R.id.linkButton);
+        updateSongsLayout = findViewById(R.id.updateSongsLayout);
         song = memory.getPassingSong();
         if (song.getUuid() == null || song.getUuid().isEmpty()) {
             linkButton.setVisibility(View.GONE);
-        } else if (memory.getSongForLinking() != null) {
-            linkButton.setText(R.string.link_with_this_song);
+        } else {
+            if (memory.getSongForLinking() != null) {
+                linkButton.setText(R.string.link_with_this_song);
+            }
+            LayoutInflater layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            CheckSongForUpdate checkSongForUpdate = CheckSongForUpdate.getInstance();
+            checkSongForUpdate.clearListeners();
+            checkSongForUpdate.addListener(new CheckSongForUpdateListener(layoutInflater) {
+                @Override
+                public void onSongHasBeenModified(final PopupWindow updatePopupWindow) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (SuggestEditsChooseActivity.this.getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.RESUMED)) {
+                                updatePopupWindow.showAtLocation(updateSongsLayout, Gravity.CENTER, 0, 0);
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onUpdateButtonClick() {
+                    setResult(CheckSongForUpdate.UPDATE_SONGS_RESULT);
+                    finish();
+                }
+            }, song);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == CheckSongForUpdate.UPDATE_SONGS_RESULT) {
+            setResult(resultCode);
+            finish();
         }
     }
 
@@ -97,6 +140,9 @@ public class SuggestEditsChooseActivity extends AppCompatActivity {
         }
         songLinkDTO.setSongId1(songForLinking.getUuid());
         songLinkDTO.setSongId2(song.getUuid());
+        if (songLinkDTO.getSongId1().equals(songLinkDTO.getSongId2())) {
+            return;
+        }
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {

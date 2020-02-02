@@ -15,4 +15,6 @@ public interface SongRepository extends BaseRepository<Song> {
     List<Song> findAllByVersionGroup(String versionGroup);
 
     void saveViews(List<SongViewsDTO> songViewsDTOS);
+
+    List<Song> findAllExceptAsDeleted();
 }

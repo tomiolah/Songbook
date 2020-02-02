@@ -10,4 +10,11 @@ export class Language extends BaseModel {
     super(values);
     Object.assign(this, values);
   }
+
+  printLanguage() {
+    if (this.englishName === this.nativeName) {
+      return this.englishName;
+    }
+    return this.englishName + " | " + this.nativeName;
+  }
 }

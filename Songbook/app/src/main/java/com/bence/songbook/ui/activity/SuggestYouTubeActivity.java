@@ -11,9 +11,13 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 
 import com.bence.projector.common.dto.SuggestionDTO;
@@ -23,6 +27,8 @@ import com.bence.songbook.api.SuggestionApiBean;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.ui.utils.CheckSongForUpdate;
+import com.bence.songbook.ui.utils.CheckSongForUpdateListener;
 import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.utils.Config;
 import com.google.android.youtube.player.YouTubeBaseActivity;
@@ -115,6 +121,27 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         } catch (Exception e) {
             Uri parse = Uri.parse("http://www.youtube.com/results?search_query=" + song.getTitle().replace(" ", "+"));
             startActivity(new Intent(Intent.ACTION_VIEW, parse));
+        }
+        if (song.getUuid() != null && !song.getUuid().isEmpty()) {
+            LayoutInflater layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+            CheckSongForUpdate.getInstance().addListener(new CheckSongForUpdateListener(layoutInflater) {
+                @Override
+                public void onSongHasBeenModified(final PopupWindow updatePopupWindow) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            LinearLayout updateSongsLayout = findViewById(R.id.updateSongsLayout);
+                            updatePopupWindow.showAtLocation(updateSongsLayout, Gravity.CENTER, 0, 0);
+                        }
+                    });
+                }
+
+                @Override
+                public void onUpdateButtonClick() {
+                    setResult(CheckSongForUpdate.UPDATE_SONGS_RESULT);
+                    finish();
+                }
+            }, song);
         }
     }
 

@@ -16,12 +16,19 @@ export class MenuTabsComponent implements OnInit {
   adminMenuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },
     { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
-    { link: '/admin/suggestions', icon: 'announcement', title: 'Suggestions' },
+    { link: '/suggestions', icon: 'announcement', title: 'Suggestions' },
     { link: '/admin/users', icon: 'supervised_user_circle', title: 'Users' },
+    { link: '/user/notifications', icon: 'notifications', title: 'Notifications' },
   ];
   userMenuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },
     { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
+  ];
+  reviewerMenuTabs = [
+    { link: '/songs', icon: 'menu', title: 'Songs' },
+    { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
+    { link: '/suggestions', icon: 'announcement', title: 'Suggestions' },
+    { link: '/user/notifications', icon: 'notifications', title: 'Notifications' },
   ];
 
   constructor(public auth: AuthService, ) {
@@ -37,13 +44,16 @@ export class MenuTabsComponent implements OnInit {
 
   isAdmin(): Boolean {
     const user: User = this.auth.getUser();
-    let user2 = new User();
-    user2 = Object.assign(user);
-    return this.isLoggedInUser() && user2.isAdmin();
+    return this.isLoggedInUser() && user.isAdmin();
   }
 
   isUser(): Boolean {
     const user: User = this.auth.getUser();
     return this.isLoggedInUser() && user.isUser();
+  }
+
+  isReviewer(): Boolean {
+    const user: User = this.auth.getUser();
+    return this.isLoggedInUser() && user.isReviewer();
   }
 }
