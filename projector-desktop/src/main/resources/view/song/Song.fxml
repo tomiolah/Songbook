@@ -270,9 +270,10 @@
                                             </HBox>
                                         </right>
                                         <bottom>
-                                            <HBox alignment="CENTER_LEFT" spacing="4.0">
+                                            <HBox fx:id="authorBox" alignment="CENTER_LEFT" spacing="4.0">
                                                 <Label text="Author"/>
-                                                <TextField fx:id="authorTextField" prefHeight="31.0" prefWidth="96.0"
+                                                <TextField fx:id="authorTextField" prefHeight="22.0" prefWidth="200.0"
+                                                           editable="false"
                                                            promptText="Author" BorderPane.alignment="CENTER"/>
                                                 <BorderPane.margin>
                                                     <Insets left="10.0"/>

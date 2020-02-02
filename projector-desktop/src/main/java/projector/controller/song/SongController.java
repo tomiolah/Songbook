@@ -38,6 +38,7 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -114,9 +115,11 @@ public class SongController {
     private final String link = "http://" + BASE_URL;
     private final String link2 = "https://" + BASE_URL;
     private final String link3 = "http://www." + BASE_URL;
-    private final String link4 = "http://www." + BASE_URL;
+    private final String link4 = "https://www." + BASE_URL;
     private final String prefix = "id:";
     private final SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
+    @FXML
+    private HBox authorBox;
     @FXML
     private BorderPane rightBorderPane;
     @FXML
@@ -689,7 +692,12 @@ public class SongController {
 
     private void settingTheAuthor(Song selectedSong) {
         String authorName = selectedSong.getAuthor();
-        authorTextField.setText(authorName);
+        if (authorName == null || authorName.trim().isEmpty()) {
+            authorBox.setVisible(false);
+        } else {
+            authorBox.setVisible(true);
+            authorTextField.setText(authorName);
+        }
     }
 
     private void initializeDragListeners() {
