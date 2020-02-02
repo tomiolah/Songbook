@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.CheckBox?>
@@ -17,8 +18,8 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="560" prefWidth="800"
-            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="projector.controller.song.SongController">
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="560" prefWidth="800" xmlns="http://javafx.com/javafx/11.0.1"
+            fx:controller="projector.controller.song.SongController">
     <center>
         <SplitPane fx:id="horizontalSplitPane" dividerPositions="0.35" BorderPane.alignment="CENTER">
             <BorderPane fx:id="leftBorderPane" prefHeight="200.0" prefWidth="200.0">
@@ -135,10 +136,10 @@
                                                 <Insets bottom="4.0"/>
                                             </padding>
                                         </CheckBox>
-                                        <Button fx:id="showVersionsButton" contentDisplay="CENTER"
-                                                graphicTextGap="0.0" layoutX="815.0" layoutY="163.0"
-                                                maxHeight="-Infinity" maxWidth="-Infinity" mnemonicParsing="false"
-                                                prefHeight="32.0" prefWidth="32.0" textAlignment="CENTER">
+                                        <Button fx:id="showVersionsButton" contentDisplay="CENTER" graphicTextGap="0.0"
+                                                layoutX="815.0" layoutY="163.0" maxHeight="-Infinity"
+                                                maxWidth="-Infinity" mnemonicParsing="false" prefHeight="32.0"
+                                                prefWidth="32.0" textAlignment="CENTER">
                                             <graphic>
                                                 <ImageView fitHeight="40.0" fitWidth="27.0" pickOnBounds="true"
                                                            preserveRatio="true">
@@ -268,6 +269,17 @@
                                                           BorderPane.alignment="CENTER"/>
                                             </HBox>
                                         </right>
+                                        <bottom>
+                                            <HBox fx:id="authorBox" alignment="CENTER_LEFT" spacing="4.0">
+                                                <Label text="Author"/>
+                                                <TextField fx:id="authorTextField" prefHeight="22.0" prefWidth="200.0"
+                                                           editable="false"
+                                                           promptText="Author" BorderPane.alignment="CENTER"/>
+                                                <BorderPane.margin>
+                                                    <Insets left="10.0"/>
+                                                </BorderPane.margin>
+                                            </HBox>
+                                        </bottom>
                                     </BorderPane>
                                 </center>
                             </BorderPane>
