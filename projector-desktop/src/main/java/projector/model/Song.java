@@ -197,7 +197,33 @@ public class Song extends BaseEntity {
         if (songCollectionElements == null) {
             songCollectionElements = new ArrayList<>();
         }
+        if (ckeckNull(songCollectionElements)) {
+            return withoutNullSongCollection(songCollectionElements);
+        }
         return songCollectionElements;
+    }
+
+    public void setSongCollectionElements(List<SongCollectionElement> songCollectionElements) {
+        this.songCollectionElements = songCollectionElements;
+    }
+
+    private List<SongCollectionElement> withoutNullSongCollection(List<SongCollectionElement> songCollectionElements) {
+        List<SongCollectionElement> collectionElements = new ArrayList<>();
+        for (SongCollectionElement songCollectionElement : songCollectionElements) {
+            if (songCollectionElement.getSongCollection() != null) {
+                collectionElements.add(songCollectionElement);
+            }
+        }
+        return collectionElements;
+    }
+
+    private boolean ckeckNull(List<SongCollectionElement> songCollectionElements) {
+        for (SongCollectionElement songCollectionElement : songCollectionElements) {
+            if (songCollectionElement.getSongCollection() == null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Language getLanguage() {
@@ -222,10 +248,6 @@ public class Song extends BaseEntity {
 
     public void setServerModifiedDate(Date serverModifiedDate) {
         this.serverModifiedDate = serverModifiedDate;
-    }
-
-    public void setSongCollectionElements(List<SongCollectionElement> songCollectionElements) {
-        this.songCollectionElements = songCollectionElements;
     }
 
     public void stripTitle() {
