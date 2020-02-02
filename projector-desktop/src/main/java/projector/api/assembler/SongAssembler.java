@@ -63,6 +63,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             song.setVersionGroup(songDTO.getVersionGroup());
             song.setViews(songDTO.getViews());
             song.setFavouriteCount(songDTO.getFavourites());
+            song.setAuthor(songDTO.getAuthor());
         }
         return song;
     }

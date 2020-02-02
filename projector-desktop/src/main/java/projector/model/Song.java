@@ -55,6 +55,8 @@ public class Song extends BaseEntity {
     private long views;
     @DatabaseField
     private long favouriteCount;
+    @DatabaseField(width = 100)
+    private String author;
 
     public Song() {
     }
@@ -270,6 +272,14 @@ public class Song extends BaseEntity {
             score += 4 * ((1 - (double) l / 2592000000L));
         }
         return score;
+    }
+
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
     }
 
     public void addToSongCollectionElements(SongCollectionElement songCollectionElement) {
