@@ -106,7 +106,7 @@ public class SuggestionResource {
         Song song = songService.findOne(suggestion.getSongId());
         List<User> reviewers = userService.findAllReviewersByLanguage(song.getLanguage());
         for (User user : reviewers) {
-            NotificationByLanguage notificationByLanguage = user.getUserProperties().getNotificationByLanguage(song.getLanguage());
+            NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(song.getLanguage());
             if (notificationByLanguage != null && notificationByLanguage.isSuggestions()) {
                 mailSenderService.sendEmailSuggestionToUser(suggestion, user);
             }

@@ -2,7 +2,7 @@
   style="border-collapse: collapse;height: 100%;margin: 0;width: 100%;background-color: rgb(218, 218, 218);">
   <tr>
     <td align="center" valign="top" style="height: 100%;margin: 0;padding: 10px;width: 100%;">
-      <table width="100%" style="border-collapse: collapse;border: 0;max-width: 700px !important;">
+      <table width="100%" style="border-collapse: collapse;border: 0;max-width: 100% !important;">
         <tr>
           <td valign="top" style="background-color: rgb(7, 72, 1);padding-top: 9px;padding-bottom: 0;">
           </td>

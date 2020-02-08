@@ -17,17 +17,12 @@ import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
-import com.bence.projector.server.mailsending.ConfigurationUtil;
-import com.bence.projector.server.mailsending.FreemarkerConfiguration;
-import com.bence.projector.server.utils.AppProperties;
-import freemarker.template.Template;
+import com.bence.projector.server.mailsending.MailSenderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -37,17 +32,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.io.StringWriter;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.bence.projector.server.api.resources.StatisticsResource.saveStatistics;
 
@@ -60,20 +49,20 @@ public class SongResource {
     private final SongTitleAssembler songTitleAssembler;
     private final StatisticsService statisticsService;
     private final UserService userService;
-    private final JavaMailSender sender;
     private final LanguageService languageService;
+    private final MailSenderService mailSenderService;
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, @Qualifier("javaMailSender") JavaMailSender sender, LanguageService languageService) {
+    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, @Qualifier("javaMailSender") JavaMailSender sender, LanguageService languageService, MailSenderService mailSenderService) {
         this.songRepository = songRepository;
         this.songService = songService;
         this.songAssembler = songAssembler;
         this.songTitleAssembler = songTitleAssembler;
         this.statisticsService = statisticsService;
         this.userService = userService;
-        this.sender = sender;
         this.languageService = languageService;
+        this.mailSenderService = mailSenderService;
     }
 
     static boolean songInReviewLanguages(User user, Song song) {
@@ -290,13 +279,7 @@ public class SongResource {
         song.setModifiedDate(date);
         final Song savedSong = songService.save(song);
         if (savedSong != null) {
-            Thread thread = new Thread(() -> {
-                try {
-                    sendEmail(song);
-                } catch (MessagingException e) {
-                    e.printStackTrace();
-                }
-            });
+            Thread thread = new Thread(() -> sendEmail(song));
             thread.start();
             SongDTO dto = songAssembler.createDto(savedSong);
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
@@ -304,54 +287,15 @@ public class SongResource {
         return new ResponseEntity<>("Could not create", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    private void sendEmail(Song song) throws MessagingException, MailSendException {
-        List<User> reviewers = userService.findAllReviewersByLanguage(song.getLanguage());
+    private void sendEmail(Song song) {
+        Language language = song.getLanguage();
+        List<User> reviewers = userService.findAllReviewersByLanguage(language);
         for (User user : reviewers) {
-            sendEmailToUser(song, user);
+            NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
+            if (notificationByLanguage != null && notificationByLanguage.isNewSongs()) {
+                mailSenderService.sendEmailNewSongToUser(song, user);
+            }
         }
-    }
-
-    private void sendEmailToUser(Song song, User user) throws MessagingException {
-        NotificationByLanguage notificationByLanguage = user.getUserProperties().getNotificationByLanguage(song.getLanguage());
-        if (notificationByLanguage == null || !notificationByLanguage.isNewSongs()) {
-            return;
-        }
-        final String freemarkerName = FreemarkerConfiguration.NEW_SONG + ".ftl";
-        freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
-        config.setDefaultEncoding("UTF-8");
-        MimeMessage message = sender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(new InternetAddress(user.getEmail()));
-        helper.setFrom(new InternetAddress("noreply@songbook"));
-        helper.setSubject("New song");
-
-        try {
-            Template template = config.getTemplate(freemarkerName);
-
-            StringWriter writer = new StringWriter();
-            template.process(createPattern(song), writer);
-
-            helper.getMimeMessage().setContent(writer.toString(), "text/html;charset=utf-8");
-        } catch (Exception e) {
-            e.printStackTrace();
-            helper.getMimeMessage().setContent("<div>\n" +
-                    "    <h3>New song: " + song.getTitle() + "</h3>\n" +
-                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + song.getId() + "\">Link</a>\n" +
-                    "  <h3>Email </h3><h4>" + song.getCreatedByEmail() + "</h4>" +
-                    "</div>", "text/html;charset=utf-8");
-        }
-        sender.send(message);
-    }
-
-    private Map<String, Object> createPattern(Song song) {
-        Map<String, Object> data = new HashMap<>();
-        data.put("baseUrl", AppProperties.getInstance().baseUrl());
-        data.put("title", song.getTitle());
-        data.put("songUuid", song.getId());
-        String createdByEmail = song.getCreatedByEmail();
-        data.put("email", createdByEmail == null ? "" : createdByEmail);
-
-        return data;
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/api/song/upload")
@@ -364,21 +308,17 @@ public class SongResource {
         final Song savedSong = songService.save(song);
         if (savedSong != null) {
             Thread thread = new Thread(() -> {
-                try {
-                    List<Song> songs = songService.findAllSongsLazy();
-                    boolean deleted = false;
-                    for (Song song1 : songs) {
-                        if (!savedSong.getId().equals(song.getId()) && songService.matches(savedSong, song1)) {
-                            songService.delete(savedSong.getId());
-                            deleted = true;
-                            break;
-                        }
+                List<Song> songs = songService.findAllSongsLazy();
+                boolean deleted = false;
+                for (Song song1 : songs) {
+                    if (!savedSong.getId().equals(song.getId()) && songService.matches(savedSong, song1)) {
+                        songService.delete(savedSong.getId());
+                        deleted = true;
+                        break;
                     }
-                    if (!deleted) {
-                        sendEmail(savedSong);
-                    }
-                } catch (MessagingException e) {
-                    e.printStackTrace();
+                }
+                if (!deleted) {
+                    sendEmail(savedSong);
                 }
             });
             thread.start();
@@ -451,13 +391,7 @@ public class SongResource {
         ResponseEntity<Object> responseEntity = updateSongByUser(principal, songId, songDTO, httpServletRequest, true);
         if (responseEntity.getStatusCode().equals(HttpStatus.ACCEPTED)) {
             Song song = songService.findOne(songId);
-            Thread thread = new Thread(() -> {
-                try {
-                    sendEmail(song);
-                } catch (MessagingException e) {
-                    e.printStackTrace();
-                }
-            });
+            Thread thread = new Thread(() -> sendEmail(song));
             thread.start();
         }
         return responseEntity;

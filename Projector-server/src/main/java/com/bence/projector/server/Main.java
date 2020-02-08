@@ -17,7 +17,11 @@ public class Main {
 
     @Bean
     public CommandLineRunner demo(UserService userService, MailSenderService mailSenderService) {
-        mailSenderService.tryToSendAllPrevious();
+        try {
+            mailSenderService.tryToSendAllPrevious();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return (String... args) -> CreateAdmin.registerAdmin(userService);
     }
 }

@@ -4,8 +4,8 @@ import { DayHourTimer } from "./dayHourTimer";
 
 export class LanguageNotification extends BaseModel {
     language: Language;
-    suggestions = false;
-    newSongs = false;
+    suggestions = true;
+    newSongs = true;
     suggestionsDayHourTimer: DayHourTimer = new DayHourTimer();
     newSongsDayHourTimer: DayHourTimer = new DayHourTimer();
     private static minutes15 = 15 * 60 * 1000;
