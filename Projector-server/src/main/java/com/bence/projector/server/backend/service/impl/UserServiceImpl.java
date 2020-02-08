@@ -50,10 +50,22 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
 
     @Override
     public List<User> findAllReviewersByLanguage(Language language) {
+        List<User> reviewers = findAllReviewers();
+        List<User> reviewersByLanguage = new ArrayList<>();
+        for (User reviewer : reviewers) {
+            if (containsInList(language, reviewer.getReviewLanguages())) {
+                reviewersByLanguage.add(reviewer);
+            }
+        }
+        return reviewersByLanguage;
+    }
+
+    @Override
+    public List<User> findAllReviewers() {
         List<User> users = findAll();
         List<User> reviewers = new ArrayList<>();
         for (User user : users) {
-            if (user.getRole().equals(Role.ROLE_REVIEWER) && containsInList(language, user.getReviewLanguages())) {
+            if (user.getRole().equals(Role.ROLE_REVIEWER)) {
                 reviewers.add(user);
             }
         }

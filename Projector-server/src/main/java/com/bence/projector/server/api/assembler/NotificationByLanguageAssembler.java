@@ -26,6 +26,8 @@ public class NotificationByLanguageAssembler implements GeneralAssembler<Notific
         dto.setLanguage(languageDTO);
         dto.setNewSongs(notificationByLanguage.isNewSongs());
         dto.setSuggestions(notificationByLanguage.isSuggestions());
+        dto.setSuggestionsDelay(notificationByLanguage.getSuggestionsDelay());
+        dto.setNewSongsDelay(notificationByLanguage.getNewSongsDelay());
         return dto;
     }
 
@@ -42,6 +44,8 @@ public class NotificationByLanguageAssembler implements GeneralAssembler<Notific
         notificationByLanguage.setLanguage(language);
         notificationByLanguage.setNewSongs(notificationByLanguageDTO.getNewSongs());
         notificationByLanguage.setSuggestions(notificationByLanguageDTO.getSuggestions());
+        notificationByLanguage.setSuggestionsDelay(notificationByLanguageDTO.getSuggestionsDelay());
+        notificationByLanguage.setNewSongsDelay(notificationByLanguageDTO.getNewSongsDelay());
         return notificationByLanguage;
     }
 }

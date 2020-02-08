@@ -1,6 +1,7 @@
 package com.bence.projector.server;
 
 import com.bence.projector.server.backend.service.UserService;
+import com.bence.projector.server.mailsending.MailSenderService;
 import com.bence.projector.server.utils.CreateAdmin;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -15,7 +16,8 @@ public class Main {
     }
 
     @Bean
-    public CommandLineRunner demo(UserService userService) {
+    public CommandLineRunner demo(UserService userService, MailSenderService mailSenderService) {
+        mailSenderService.tryToSendAllPrevious();
         return (String... args) -> CreateAdmin.registerAdmin(userService);
     }
 }

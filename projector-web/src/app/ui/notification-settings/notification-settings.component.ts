@@ -8,6 +8,7 @@ import { UserProperties } from '../../models/userProperties';
 import { Title } from '@angular/platform-browser';
 import { MatDialog } from '@angular/material';
 import { AuthenticateComponent } from '../authenticate/authenticate.component';
+import { DayHourTimer } from '../../models/dayHourTimer';
 
 @Component({
   selector: 'app-notification-settings',
@@ -133,4 +134,43 @@ export class NotificationSettingsComponent implements OnInit {
     });
   }
 
+  private updateSuggestionDelay(languageNotification: LanguageNotification) {
+    languageNotification.suggestionsDelay = languageNotification.suggestionsDayHourTimer.getInMilliseconds();
+    this.update();
+  }
+
+  onMinutesChange(languageNotification: LanguageNotification) {
+    languageNotification.suggestionsDayHourTimer.onMinutesChange();
+    this.updateSuggestionDelay(languageNotification);
+  }
+
+  onHoursChange(languageNotification: LanguageNotification) {
+    languageNotification.suggestionsDayHourTimer.onHoursChange();
+    this.updateSuggestionDelay(languageNotification);
+  }
+
+  onDaysChange(languageNotification: LanguageNotification) {
+    languageNotification.suggestionsDayHourTimer.onDaysChange();
+    this.updateSuggestionDelay(languageNotification);
+  }
+
+  private updateNewSongsDelay(languageNotification: LanguageNotification) {
+    languageNotification.newSongsDelay = languageNotification.newSongsDayHourTimer.getInMilliseconds();
+    this.update();
+  }
+
+  onMinutesChangeNewSongs(languageNotification: LanguageNotification) {
+    languageNotification.newSongsDayHourTimer.onMinutesChange();
+    this.updateNewSongsDelay(languageNotification);
+  }
+
+  onHoursChangeNewSongs(languageNotification: LanguageNotification) {
+    languageNotification.newSongsDayHourTimer.onHoursChange();
+    this.updateNewSongsDelay(languageNotification);
+  }
+
+  onDaysChangeNewSongs(languageNotification: LanguageNotification) {
+    languageNotification.newSongsDayHourTimer.onDaysChange();
+    this.updateNewSongsDelay(languageNotification);
+  }
 }
