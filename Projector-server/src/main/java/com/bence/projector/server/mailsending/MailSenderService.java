@@ -44,7 +44,6 @@ public class MailSenderService {
         NotificationByLanguage notificationByLanguage = user.getUserProperties().getNotificationByLanguage(language);
         notificationByLanguage.getSuggestionStack().add(suggestion);
         userService.save(user);
-        tryToSend(language, user);
         TimerTask task = new TimerTask() {
             public void run() {
                 tryToSend(language, user);
@@ -65,6 +64,7 @@ public class MailSenderService {
     }
 
     private void tryToSend(Language language, User user) {
+        user = userService.findOne(user.getId());
         NotificationByLanguage notificationByLanguage = user.getUserProperties().getNotificationByLanguage(language);
         List<Suggestion> suggestionStack = notificationByLanguage.getSuggestionStack();
         int suggestionStackSize = suggestionStack.size();
