@@ -105,6 +105,16 @@ public class NotificationByLanguage {
         if (newSongStack == null) {
             newSongStack = new ArrayList<>();
         }
+        List<Song> songList = new ArrayList<>(newSongStack.size());
+        for (Song song : newSongStack) {
+            if (song != null) {
+                songList.add(song);
+            }
+        }
+        if (songList.size() != newSongStack.size()) {
+            newSongStack.clear();
+            newSongStack.addAll(songList);
+        }
         return newSongStack;
     }
 

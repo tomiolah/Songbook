@@ -166,6 +166,35 @@ public class User extends BaseEntity {
         this.reviewLanguages = reviewLanguages;
     }
 
+    private boolean hasReviewerRoleForLanguage(Language language) {
+        if (role == Role.ROLE_ADMIN) {
+            return true;
+        }
+        String id = language.getId();
+        for (Language reviewLanguage : getReviewLanguages()) {
+            if (reviewLanguage.getId().equals(id)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public NotificationByLanguage getNotificationByLanguage(Language language) {
+        UserProperties userProperties = getUserProperties();
+        NotificationByLanguage notificationByLanguage = userProperties.getNotificationByLanguage(language);
+        if (notificationByLanguage == null) {
+            notificationByLanguage = new NotificationByLanguage();
+            notificationByLanguage.setLanguage(language);
+            boolean hasReviewerRoleForLanguage = hasReviewerRoleForLanguage(language);
+            notificationByLanguage.setSuggestions(hasReviewerRoleForLanguage);
+            notificationByLanguage.setNewSongs(hasReviewerRoleForLanguage);
+            if (hasReviewerRoleForLanguage) {
+                userProperties.getNotifications().add(notificationByLanguage);
+            }
+        }
+        return notificationByLanguage;
+    }
+
     public UserProperties getUserProperties() {
         if (userProperties == null) {
             userProperties = new UserProperties();
