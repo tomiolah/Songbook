@@ -19,6 +19,25 @@
                             notifications_off</mat-icon>
                     </button>
                     <h4 matLine>{{getLanguageName(languageNotification)}}</h4>
+                    <label *ngIf="languageNotification.suggestions">Delay&nbsp;</label>
+                    <mat-form-field class="timeInput"
+                        *ngIf="languageNotification.suggestions && languageNotification.suggestionsDayHourTimer.delayDays != -1">
+                        <input matInput type="number"
+                            [(ngModel)]="languageNotification.suggestionsDayHourTimer.delayDays" min="0" max="7"
+                            placeholder="Days" (change)="onDaysChange(languageNotification)">
+                    </mat-form-field>
+                    <mat-form-field class="timeInput"
+                        *ngIf="languageNotification.suggestions && languageNotification.suggestionsDayHourTimer.delayHours != -1">
+                        <input matInput type="number"
+                            [(ngModel)]="languageNotification.suggestionsDayHourTimer.delayHours" min="0" max="24"
+                            placeholder="Hours" (change)="onHoursChange(languageNotification)">
+                    </mat-form-field>
+                    <mat-form-field class="timeInput"
+                        *ngIf="languageNotification.suggestions && languageNotification.suggestionsDayHourTimer.delayMinutes != -1">
+                        <input matInput type="number"
+                            [(ngModel)]="languageNotification.suggestionsDayHourTimer.delayMinutes" min="1" max="60"
+                            placeholder="Minutes" (change)="onMinutesChange(languageNotification)">
+                    </mat-form-field>
                 </mat-list-item>
                 <mat-divider></mat-divider>
                 <h3 matSubheader>New songs</h3>
@@ -31,6 +50,23 @@
                             notifications_off</mat-icon>
                     </button>
                     <h4 matLine>{{getLanguageName(languageNotification)}}</h4>
+                    <label *ngIf="languageNotification.newSongs">Delay </label>
+                    <mat-form-field class="timeInput"
+                        *ngIf="languageNotification.newSongs && languageNotification.newSongsDayHourTimer.delayDays != -1">
+                        <input matInput type="number" [(ngModel)]="languageNotification.newSongsDayHourTimer.delayDays"
+                            min="0" max="7" placeholder="Days" (change)="onDaysChangeNewSongs(languageNotification)">
+                    </mat-form-field>
+                    <mat-form-field class="timeInput"
+                        *ngIf="languageNotification.newSongs && languageNotification.newSongsDayHourTimer.delayHours != -1">
+                        <input matInput type="number" [(ngModel)]="languageNotification.newSongsDayHourTimer.delayHours"
+                            min="0" max="24" placeholder="Hours" (change)="onHoursChangeNewSongs(languageNotification)">
+                    </mat-form-field>
+                    <mat-form-field class="timeInput"
+                        *ngIf="languageNotification.newSongs && languageNotification.newSongsDayHourTimer.delayMinutes != -1">
+                        <input matInput type="number"
+                            [(ngModel)]="languageNotification.newSongsDayHourTimer.delayMinutes" min="1" max="60"
+                            placeholder="Minutes" (change)="onMinutesChangeNewSongs(languageNotification)">
+                    </mat-form-field>
                 </mat-list-item>
             </mat-list>
         </mat-card-content>

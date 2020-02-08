@@ -12,33 +12,20 @@ import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.SuggestionService;
 import com.bence.projector.server.backend.service.UserService;
-import com.bence.projector.server.mailsending.ConfigurationUtil;
-import com.bence.projector.server.mailsending.FreemarkerConfiguration;
-import com.bence.projector.server.utils.AppProperties;
-import freemarker.template.Template;
+import com.bence.projector.server.mailsending.MailSenderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.MailSendException;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
-import java.io.StringWriter;
 import java.security.Principal;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static com.bence.projector.server.api.resources.SongResource.songInReviewLanguages;
 import static com.bence.projector.server.api.resources.StatisticsResource.saveStatistics;
@@ -53,9 +40,8 @@ public class SuggestionResource {
     private SuggestionAssembler suggestionAssembler;
     @Autowired
     private LanguageService languageService;
-    @Qualifier("javaMailSender")
     @Autowired
-    private JavaMailSender sender;
+    private MailSenderService mailSenderService;
     @Autowired
     private UserService userService;
     @Autowired
@@ -110,92 +96,21 @@ public class SuggestionResource {
         Suggestion model = suggestionAssembler.createModel(suggestionDTO);
         if (model != null) {
             Suggestion suggestion = suggestionService.save(model);
-            Thread thread = new Thread(() -> {
-                try {
-                    sendEmail(suggestion);
-                } catch (MessagingException e) {
-                    e.printStackTrace();
-                }
-            });
+            Thread thread = new Thread(() -> sendEmail(suggestion));
             thread.start();
         }
         return suggestionAssembler.createDto(model);
     }
 
-    private void sendEmail(Suggestion suggestion)
-            throws MessagingException, MailSendException {
+    private void sendEmail(Suggestion suggestion) {
         Song song = songService.findOne(suggestion.getSongId());
         List<User> reviewers = userService.findAllReviewersByLanguage(song.getLanguage());
         for (User user : reviewers) {
             NotificationByLanguage notificationByLanguage = user.getUserProperties().getNotificationByLanguage(song.getLanguage());
             if (notificationByLanguage != null && notificationByLanguage.isSuggestions()) {
-                sendEmailToUser(suggestion, user);
+                mailSenderService.sendEmailSuggestionToUser(suggestion, user);
             }
         }
-    }
-
-    private void sendEmailToUser(Suggestion suggestion, User user)
-            throws MessagingException, MailSendException {
-        final String freemarkerName = FreemarkerConfiguration.NEW_SUGGESTION + ".ftl";
-        freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
-        config.setDefaultEncoding("UTF-8");
-        MimeMessage message = sender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(new InternetAddress(user.getEmail()));
-        helper.setFrom(new InternetAddress("noreply@songbook"));
-        helper.setSubject("New suggestion");
-
-        try {
-            Template template = config.getTemplate(freemarkerName);
-
-            StringWriter writer = new StringWriter();
-            template.process(createPattern(suggestion), writer);
-
-            helper.getMimeMessage().setContent(writer.toString(), "text/html;charset=utf-8");
-        } catch (Exception e) {
-            e.printStackTrace();
-            String title = suggestion.getTitle();
-            if (title == null) {
-                title = "";
-            }
-            String description = suggestion.getDescription();
-            if (description == null) {
-                description = "";
-            }
-            String createdByEmail = suggestion.getCreatedByEmail();
-            if (createdByEmail == null) {
-                createdByEmail = "";
-            }
-            helper.getMimeMessage().setContent("<div>\n" +
-                    "    <h3>New suggestion: " + title + "</h3>\n" +
-                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/suggestion/" + suggestion.getId() + "\">Link</a>\n" +
-                    "  <h3>Email </h3><h4>" + createdByEmail + "</h4>" +
-                    "  <h3>" + description + "</h3>" +
-                    "</div>", "text/html;charset=utf-8");
-        }
-        sender.send(message);
-    }
-
-    private Map<String, Object> createPattern(Suggestion suggestion) {
-        Map<String, Object> data = new HashMap<>();
-        String title = suggestion.getTitle();
-        String createdByEmail = suggestion.getCreatedByEmail();
-        String description = suggestion.getDescription();
-        if (title == null) {
-            title = "";
-        }
-        if (description == null) {
-            description = "";
-        }
-        if (createdByEmail == null) {
-            createdByEmail = "";
-        }
-        data.put("baseUrl", AppProperties.getInstance().baseUrl());
-        data.put("title", title);
-        data.put("id", suggestion.getId());
-        data.put("email", createdByEmail);
-        data.put("description", description);
-        return data;
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/admin/api/suggestion/{suggestionId}")
