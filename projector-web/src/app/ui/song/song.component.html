@@ -156,8 +156,8 @@
     <button mat-button (click)="markForVersionGroup()">
       {{markText}}
     </button>
-    <button *ngIf="markedVersionGroup!==null" mat-button (click)="mergeVersionGroup()">
-      Merge version group
+    <button *ngIf="markedForVersionSong!==null && !marked" mat-button (click)="mergeVersionGroup()">
+      Merge with: {{markedForVersionSong.title}}
     </button>
   </div>
   <div *ngIf="songsByVersionGroup.length>0">

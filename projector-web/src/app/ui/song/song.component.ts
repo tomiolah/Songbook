@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, ViewChildren, ElementRef, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Song, SongService } from '../../services/song-service.service';
 import { Subscription } from 'rxjs/Subscription';
@@ -28,7 +28,7 @@ export class SongComponent implements OnInit, OnDestroy {
   receivedSimilar = false;
   markText = "Mark for version group";
   marked = false;
-  markedVersionGroup: string;
+  markedForVersionSong: Song;
   songsByVersionGroup: Song[] = [];
   public safeUrl: SafeResourceUrl = null;
   public isAndroid = false;
@@ -38,6 +38,8 @@ export class SongComponent implements OnInit, OnDestroy {
   copyToSongCollectionType = 3;
   public isIos = false;
   collections: SongCollection[] = [];
+  private markedVersionGroup_key = "markedForVersionSong";
+  @ViewChild("versions", {static:false}) versionsElement: ElementRef;
 
   constructor(private activatedRoute: ActivatedRoute,
     private songService: SongService,
@@ -49,10 +51,8 @@ export class SongComponent implements OnInit, OnDestroy {
     private songCollectionService: SongCollectionDataService,
     public sanitizer: DomSanitizer) {
     auth.getUserFromLocalStorage();
-    this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
-    if (this.markedVersionGroup == 'null') {
-      this.markedVersionGroup = null;
-    }
+    setInterval(() => this.refreshMergeSong(), 2000);
+    this.refreshMergeSong();
   }
 
   @Input()
@@ -77,6 +77,7 @@ export class SongComponent implements OnInit, OnDestroy {
     if (!song.deleted) {
       history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
     }
+    this.refreshMergeSong();
   }
 
   // noinspection JSMethodCanBeStatic
@@ -129,9 +130,22 @@ export class SongComponent implements OnInit, OnDestroy {
               this.collections = songCollections
             }
           );
+          this.refreshMergeSong();
         });
       }
     });
+  }
+
+  refreshMergeSong(): void {
+    this.markedForVersionSong = JSON.parse(localStorage.getItem(this.markedVersionGroup_key));
+    if (this.song != undefined) {
+      this.marked = this.markedForVersionSong != null && this.song != null && this.markedForVersionSong.uuid == this.song.uuid;
+    }
+    if (this.marked) {
+      this.markText = "Remove mark for version group";
+    } else {
+      this.markText = "Mark for version group";
+    }
   }
 
   showSimilarOnStart() {
@@ -263,32 +277,31 @@ export class SongComponent implements OnInit, OnDestroy {
   }
 
   markForVersionGroup() {
-    this.markedVersionGroup = null;
     this.marked = !this.marked;
     if (this.marked) {
-      this.markText = "Remove mark for version group";
-      let versionGroup = this.song.uuid;
-      if (this.song.versionGroup != null) {
-        versionGroup = this.song.versionGroup;
-      }
-      localStorage.setItem("markedVersionGroup", versionGroup);
+      localStorage.setItem(this.markedVersionGroup_key, JSON.stringify(this.song));
     } else {
-      this.markText = "Mark for version group";
-      localStorage.setItem("markedVersionGroup", null);
+      this.markedForVersionSong = null;
+      localStorage.setItem(this.markedVersionGroup_key, null);
     }
+    this.refreshMergeSong();
   }
 
   mergeVersionGroup() {
-    this.markedVersionGroup = localStorage.getItem("markedVersionGroup");
-    if (this.markedVersionGroup == 'null') {
-      this.markedVersionGroup = null;
+    this.markedForVersionSong = JSON.parse(localStorage.getItem(this.markedVersionGroup_key));
+    if (this.markedForVersionSong == null) {
       return;
     }
     const user = this.auth.getUser().isAdmin() ? 'admin' : 'user';
-    this.songService.mergeVersionGroup(this.song.uuid, this.markedVersionGroup, user).subscribe(
+    this.songService.mergeVersionGroup(this.song.uuid, this.markedForVersionSong.uuid, user).subscribe(
       (res) => {
         if (res.status === 202) {
-          this.markedVersionGroup = null;
+          if (this.auth.getUser().isAdmin()) {
+            this.ngOnInit();
+          }
+          this.snackBar.open('Merged ' + this.song.title + ' with ' + this.markedForVersionSong.title, 'Close', {
+            duration: 4000
+          })
         } else {
           console.log(res);
           this.openAuthenticateDialog(this.mergeVersionGroupType);

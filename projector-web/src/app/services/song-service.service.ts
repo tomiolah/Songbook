@@ -1,16 +1,32 @@
-import {Injectable} from '@angular/core';
-import {ApiService} from './api.service';
-import {Observable} from 'rxjs/Observable';
-import {BaseModel} from '../models/base-model';
-import {Language} from "../models/language";
+import { Injectable } from '@angular/core';
+import { ApiService } from './api.service';
+import { Observable } from 'rxjs/Observable';
+import { BaseModel } from '../models/base-model';
+import { Language } from "../models/language";
 
 export class ColorText {
   text: string;
   color = false;
+  commonCount: number = 0;
 }
 
-export class ColorLine {
-  texts: ColorText[];
+export class WordCompare {
+  text: string;
+  color = false;
+  characters: ColorText[] = [];
+  commonCount: number = 0;
+}
+
+export class LineWord {
+  words: WordCompare[] = [];
+  modified = false;
+}
+
+export class LineCompare {
+  text: string;
+  color = false;
+  lineWord: LineWord = new LineWord();
+  commonCount: number = 0;
 }
 
 export enum SectionType {
@@ -19,7 +35,7 @@ export enum SectionType {
 
 export class SongVerseDTO {
   lines: string[];
-  colorLines: ColorLine[];
+  lineCompareLines: LineCompare[];
   text = '';
   type: SectionType;
   was: boolean;
@@ -51,6 +67,7 @@ export class Song extends BaseModel {
   originalId: string;
   title = '';
   songVerseDTOS: SongVerseDTO[];
+  private songVerses: SongVerseDTO[];
   modifiedDate: number;
   createdDate: number;
   deleted = false;
@@ -67,6 +84,9 @@ export class Song extends BaseModel {
   createdByEmail: string;
   backUpSongId: string;
   lastModifiedByUserEmail: string;
+  commonWordsCount = 0;
+  commonCharacterCount = 0;
+  repeatChorus: boolean = true;
 
   constructor(values: Object = {}) {
     super(values);
@@ -105,6 +125,61 @@ export class Song extends BaseModel {
     song.songVerseDTOS = [];
     return song;
   }
+
+  private getVersesByVerseOrder(repeatChorus: boolean): SongVerseDTO[] {
+    let verseList: SongVerseDTO[] = [];
+    let verses = this.songVerseDTOS;
+    let size = verses.length;
+    if (this.verseOrderList == undefined) {
+      let chorus = new SongVerseDTO();
+      for (let i = 0; i < size; ++i) {
+        let songVerse = verses[i];
+        verseList.push(songVerse);
+        if (repeatChorus) {
+          if (songVerse.chorus) {
+            chorus = new SongVerseDTO();
+            Object.assign(chorus, songVerse);
+          } else if (chorus.text.length > 0 && chorus.chorus) {
+            if (i + 1 < size) {
+              if (!verses[i + 1].chorus) {
+                let copyChorus = new SongVerseDTO();
+                Object.assign(copyChorus, chorus);
+                verseList.push(copyChorus);
+              }
+            } else {
+              let copyChorus = new SongVerseDTO();
+              Object.assign(copyChorus, chorus);
+              verseList.push(copyChorus);
+            }
+          }
+        }
+      }
+    } else {
+      for (const verse of verses) {
+        verse.was = false;
+      }
+      for (const i of this.verseOrderList) {
+        if (i < size) {
+          if (!verses[i].was) {
+            verseList.push(verses[i]);
+            verses[i].was = true;
+          } else {
+            let verse = new SongVerseDTO();
+            Object.assign(verse, verses[i]);
+            verseList.push(verse);
+          }
+        }
+      }
+    }
+    return verseList;
+  }
+
+  public getVerses(): SongVerseDTO[] {
+    if (this.songVerses == undefined) {
+      this.songVerses = this.getVersesByVerseOrder(this.repeatChorus);
+    }
+    return this.songVerses;
+  }
 }
 
 @Injectable()
@@ -113,17 +188,17 @@ export class SongService {
   constructor(private api: ApiService) {
   }
 
-// noinspection JSUnusedGlobalSymbols
+  // noinspection JSUnusedGlobalSymbols
   getAllSongs(): Observable<Song[]> {
     return this.api.getAll(Song, 'api/songs');
   }
 
-// noinspection JSUnusedGlobalSymbols
+  // noinspection JSUnusedGlobalSymbols
   getAllSongTitles() {
     return this.api.getAll(Song, 'api/songTitles');
   }
 
-// noinspection JSUnusedGlobalSymbols
+  // noinspection JSUnusedGlobalSymbols
   getSongByTitle(title: string) {
     return this.api.getAttribute(Song, 'api/song?title=' + title);
   }

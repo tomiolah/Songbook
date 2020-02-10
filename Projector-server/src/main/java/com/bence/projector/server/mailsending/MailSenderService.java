@@ -2,10 +2,12 @@ package com.bence.projector.server.mailsending;
 
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.NotificationByLanguage;
+import com.bence.projector.server.backend.model.Role;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.model.User;
+import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.utils.AppProperties;
@@ -39,6 +41,8 @@ public class MailSenderService {
     private SongService songService;
     @Autowired
     private UserService userService;
+    @Autowired
+    private LanguageService languageService;
 
     public void sendEmailSuggestionToUser(Suggestion suggestion, User user) {
         Language language = songService.findOne(suggestion.getSongId()).getLanguage();
@@ -73,7 +77,13 @@ public class MailSenderService {
     public void tryToSendAllPrevious() {
         List<User> reviewers = userService.findAllReviewers();
         for (User reviewer : reviewers) {
-            for (Language language : reviewer.getReviewLanguages()) {
+            List<Language> languages;
+            if (reviewer.getRole() == Role.ROLE_ADMIN) {
+                languages = languageService.findAll();
+            } else {
+                languages = reviewer.getReviewLanguages();
+            }
+            for (Language language : languages) {
                 tryToSend(language, reviewer);
             }
         }
@@ -84,7 +94,7 @@ public class MailSenderService {
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
         List<Suggestion> suggestionStack = notificationByLanguage.getSuggestionStack();
         int suggestionStackSize = suggestionStack.size();
-        if (suggestionStackSize > 0) {
+        if (suggestionStackSize > 0 && notificationByLanguage.isSuggestions()) {
             Date now = new Date();
             if (suggestionStackSize > 49 || now.getTime() - notificationByLanguage.getSuggestionsDelay() > notificationByLanguage.getSuggestionsLastSentDate().getTime()) {
                 sendSuggestionsInThread(user, suggestionStack);
@@ -95,7 +105,7 @@ public class MailSenderService {
         }
         List<Song> newSongStack = notificationByLanguage.getNewSongStack();
         int newSongStackSize = newSongStack.size();
-        if (newSongStackSize > 0) {
+        if (newSongStackSize > 0 && notificationByLanguage.isNewSongs()) {
             Date now = new Date();
             if (newSongStackSize > 49 || now.getTime() - notificationByLanguage.getNewSongsDelay() > notificationByLanguage.getNewSongsLastSentDate().getTime()) {
                 sendNewSongsInThread(user, newSongStack);

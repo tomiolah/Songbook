@@ -498,8 +498,7 @@ export class EditSongComponent implements OnInit {
     const role = this.auth.getUser().getRolePath();
     this.songService.updateSong(role, this.song).subscribe(
       () => {
-        // noinspection JSIgnoredPromiseFromCall
-        this.router.navigate(['/songs']);
+        window.location.reload();
       },
       (err) => {
         if (err.status === 405) {
