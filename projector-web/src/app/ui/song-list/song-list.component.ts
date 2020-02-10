@@ -169,16 +169,16 @@ export class SongListComponent implements OnInit {
     return selectedLanguage;
   }
 
-  stripAccents(s) {
+  public static stripAccents(s) {
     s = s.normalize('NFD').replace(/[\u0300-\u036f]/g, "");
     s = s.replace(/[^a-zA-Z]/g, '');
     return s.toLowerCase();
   }
 
   filterStates(filter: string) {
-    filter = this.stripAccents(filter);
+    filter = SongListComponent.stripAccents(filter);
     return this.songTitles.filter(song => {
-      return this.stripAccents(song.title).indexOf(filter) >= 0;
+      return SongListComponent.stripAccents(song.title).indexOf(filter) >= 0;
     }
     );
   }

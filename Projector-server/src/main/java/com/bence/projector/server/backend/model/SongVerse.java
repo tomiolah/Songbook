@@ -4,7 +4,7 @@ import com.bence.projector.common.model.SectionType;
 
 public class SongVerse extends BaseEntity {
     private String text;
-    private boolean isChorus;
+    private Boolean isChorus;
     private String type;
     private SectionType sectionType = SectionType.VERSE;
 
@@ -38,6 +38,9 @@ public class SongVerse extends BaseEntity {
         if (sectionType != null && sectionType == SectionType.CHORUS) {
             return true;
         }
+        if (isChorus == null) {
+            return false;
+        }
         return isChorus;
     }
 
@@ -50,6 +53,9 @@ public class SongVerse extends BaseEntity {
     }
 
     public SectionType getSectionType() {
+        if (isChorus()) {
+            sectionType = SectionType.CHORUS;
+        }
         return sectionType;
     }
 

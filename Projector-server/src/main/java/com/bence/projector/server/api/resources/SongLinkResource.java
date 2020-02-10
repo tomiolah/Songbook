@@ -78,7 +78,7 @@ public class SongLinkResource {
     public SongLinkDTO songLink(@RequestBody final SongLinkDTO songLinkDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         SongLink model = songLinkAssembler.createModel(songLinkDTO);
-        if (model != null) {
+        if (model != null && !model.getSongId1().equals(model.getSongId2())) {
             SongLink songLink = songLinkService.save(model);
             Thread thread = new Thread(() -> {
                 try {
