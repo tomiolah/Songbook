@@ -8,6 +8,9 @@ export class ColorText {
   text: string;
   color = false;
   commonCount: number = 0;
+  forwardIndexK: number;
+  backwardIndexK: number;
+  backwardColor = false;
 }
 
 export class WordCompare {

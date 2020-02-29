@@ -156,10 +156,15 @@ export class CompareSongsComponent implements OnChanges {
 
   private static getText(song: Song) {
     let text = '';
+    let first = true;
     for (let songVerse of song.getVerses()) {
       if (songVerse.lines != undefined) {
         for (let line of songVerse.lines) {
+          if (!first) {
+            text += '\n';
+          }
           text += line;
+          first = false;
         }
       }
     }
@@ -544,7 +549,77 @@ export class CompareSongsComponent implements OnChanges {
     let y = commonStrings.length;
     y = y / b.length;
     this.percentage = (x + y) / 2;
-    return commonStrings;
+
+    let firstLine = true;
+    let k = 0;
+    let characterCount = 0;
+    for (const songVerse of this.song.getVerses()) {
+      songVerse.lineCompareLines = [];
+      for (const line of songVerse.lines) {
+        const lineCompare = new LineCompare();
+        let lineWithEndLine = line;
+        if (!firstLine) {
+          lineWithEndLine += '\n';
+        }
+        const wordCompare = new WordCompare();
+        wordCompare.characters = [];
+        for (const c of lineWithEndLine) {
+          const colorText = new ColorText();
+          colorText.text = c;
+          colorText.color = (k < commonStrings.length) && (c == commonStrings[k]);
+          if (colorText.color) {
+            colorText.forwardIndexK = k;
+            ++k;
+          }
+          wordCompare.characters.push(colorText);
+          ++characterCount;
+        }
+        firstLine = false;
+        songVerse.lineCompareLines.push(lineCompare);
+      }
+    }
+    k = commonStrings.length - 1;
+    characterCount = 0;
+    let maxFixed = -1;
+    const INF = 999999;
+    let minFixed = INF;
+    let wasDifferentK = false;
+    let songVerseI = this.song.getVerses().length - 1;
+    while (songVerseI >= 0) {
+      const songVerse = this.song.getVerses()[songVerseI];
+      let lineCompareI = songVerse.lineCompareLines.length - 1;
+      while (lineCompareI >= 0) {
+        const lineCompare = songVerse.lineCompareLines[lineCompareI];
+        let wordCompareI = lineCompare.lineWord.words.length - 1;
+        while (wordCompareI >= 0) {
+          const wordCompare = lineCompare.lineWord.words[wordCompareI];
+          let charactersI = wordCompare.characters.length - 1;
+          while (charactersI >= 0) {
+            const colorText = wordCompare.characters[charactersI];
+            colorText.backwardColor = (0 <= k) && (colorText.text == commonStrings[k]);
+            if (colorText.backwardColor) {
+              colorText.backwardIndexK = k;
+              if (colorText.backwardIndexK == colorText.forwardIndexK) {
+                // place is found
+                if (maxFixed < k) {
+                  maxFixed = k;
+                }
+                if (!wasDifferentK && minFixed > k) {
+                  minFixed = k;
+                }
+              } else {
+                wasDifferentK = true;
+                maxFixed = -1;
+              }
+              --k;
+            }
+            wordCompare.characters.push(colorText);
+            ++characterCount;
+          }
+        }
+      }
+    }
+    // commonStrings[0..maxFixed], commonStrings[minFixed..k-1] place is found
   }
 
   private calculateDifferencesByLines() {
@@ -582,7 +657,7 @@ export class CompareSongsComponent implements OnChanges {
     for (const word of commonWords) {
       countCommonWordsCharacter = countCommonWordsCharacter + word.length;
     }
-    if (commonCharacters.length * 100 / countCommonWordsCharacter > 110) {
+    if (commonCharacters.length > countCommonWordsCharacter) {
       commonWords = CompareSongsComponent.getCommonWordsByCommonCharacter(leftSongWords, rightSongWords, commonCharacters);
     }
     CompareSongsComponent.createLineWordsForLineCompare(leftSongLineCompares, rightSongLineCompares, commonWords, song, otherSong);
