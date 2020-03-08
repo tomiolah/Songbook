@@ -51,6 +51,22 @@ public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> i
     }
 
     @Override
+    public List<SongCollectionElement> findSongCollectionElementsBySong(Song song) {
+        List<SongCollectionElement> songCollectionElements = new ArrayList<>();
+        List<SongCollection> songCollections = findAllBySong(song);
+        String id = song.getId();
+        for (SongCollection songCollection : songCollections) {
+            for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
+                if (songCollectionElement.getSongUuid().equals(id)) {
+                    songCollectionElement.setSongCollection(songCollection);
+                    songCollectionElements.add(songCollectionElement);
+                }
+            }
+        }
+        return songCollectionElements;
+    }
+
+    @Override
     public List<SongCollection> findAll() {
         ArrayList<SongCollection> songCollections = new ArrayList<>();
         List<SongCollection> all = songCollectionRepository.findAll();

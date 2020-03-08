@@ -48,6 +48,8 @@ public class Language extends BaseEntity {
         for (Song song : songs) {
             if (song == null) {
                 removingIndexList.add(i);
+            } else {
+                song.setLanguage(this);
             }
             ++i;
         }

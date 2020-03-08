@@ -8,6 +8,8 @@ public class SongCollectionElement {
     private String songUuid;
     @Transient
     private Song song;
+    @Transient
+    private SongCollection songCollection;
 
     public String getOrdinalNumber() {
         return ordinalNumber;
@@ -45,5 +47,13 @@ public class SongCollectionElement {
 
     public void setSong(Song song) {
         this.song = song;
+    }
+
+    public SongCollection getSongCollection() {
+        return songCollection;
+    }
+
+    public void setSongCollection(SongCollection songCollection) {
+        this.songCollection = songCollection;
     }
 }
