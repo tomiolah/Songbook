@@ -663,6 +663,9 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     private Long getLastModifiedDateTimeByLanguage(Language language) {
+        if (language == null) {
+            return 0L;
+        }
         HashMap<String, Long> lastModifiedDateTimeByLanguage = getLastModifiedDateTimeByLanguage();
         String key = language.getId();
         if (lastModifiedDateTimeByLanguage.containsKey(key)) {
