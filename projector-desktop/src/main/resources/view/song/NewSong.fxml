@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ColorPicker?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.RadioButton?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextArea?>
@@ -16,7 +17,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="700.0" prefWidth="400.0"
-            xmlns="http://javafx.com/javafx/8.0.121" fx:controller="projector.controller.song.NewSongController">
+            xmlns="http://javafx.com/javafx/8.0.999-ea" fx:controller="projector.controller.song.NewSongController">
     <top>
         <VBox>
             <BorderPane>
@@ -38,8 +39,7 @@
                     <Insets left="4.0" right="4.0"/>
                 </padding>
                 <right>
-                    <CheckBox fx:id="uploadCheckBox" selected="true" text="Upload"
-                              BorderPane.alignment="CENTER"/>
+                    <CheckBox fx:id="uploadCheckBox" selected="true" text="Upload" BorderPane.alignment="CENTER"/>
                 </right>
             </BorderPane>
             <BorderPane prefHeight="54.0" BorderPane.alignment="CENTER">
@@ -133,9 +133,12 @@
     </center>
     <bottom>
         <BorderPane>
+            <top>
+                <ListView fx:id="verseOrderListView" prefHeight="42.0" BorderPane.alignment="CENTER"/>
+            </top>
             <left>
                 <Button fx:id="uploadButton" mnemonicParsing="false" onAction="#uploadButtonOnAction" text="%Upload"
-                        BorderPane.alignment="CENTER_RIGHT">
+                        visible="false" BorderPane.alignment="CENTER_RIGHT">
                     <BorderPane.margin>
                         <Insets bottom="4.0" right="4.0" top="4.0"/>
                     </BorderPane.margin>

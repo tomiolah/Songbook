@@ -46,6 +46,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.Main;
@@ -118,6 +119,8 @@ public class SongController {
     private final String link4 = "https://www." + BASE_URL;
     private final String prefix = "id:";
     private final SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
+    @FXML
+    private ListView<SongVerse> verseOrderListView;
     @FXML
     private HBox authorBox;
     @FXML
@@ -456,6 +459,7 @@ public class SongController {
                             songRemoteListener.onSongVerseListViewChanged(songListViewItems);
                         }
                         settingTheAuthor(selectedSong);
+                        settingTheVerseOrder(selectedSong);
                     }
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
@@ -687,9 +691,42 @@ public class SongController {
             initializeShowVersionsButton();
             initializeDragListeners();
             initializeSongs();
+            initializeVerseOrderList();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void initializeVerseOrderList() {
+        verseOrderListView.orientationProperty().set(Orientation.HORIZONTAL);
+        verseOrderListView.setCellFactory(new Callback<ListView<SongVerse>, ListCell<SongVerse>>() {
+            @Override
+            public ListCell<SongVerse> call(ListView<SongVerse> listView) {
+
+                return new ListCell<SongVerse>() {
+                    @Override
+                    protected void updateItem(SongVerse songVerse, boolean empty) {
+                        try {
+                            super.updateItem(songVerse, empty);
+                            if (songVerse != null && !empty) {
+                                setText(songVerse.getSectionTypeStringWithCount());
+                            } else {
+                                setText(null);
+                            }
+                        } catch (Exception e) {
+                            LOG.error(e.getMessage(), e);
+                        }
+                    }
+                };
+            }
+        });
+    }
+
+    private void settingTheVerseOrder(Song selectedSong) {
+        ObservableList<SongVerse> verseOrderListViewItems = verseOrderListView.getItems();
+        verseOrderListViewItems.clear();
+        List<SongVerse> songVersesByVerseOrder = selectedSong.getSongVersesByVerseOrder();
+        verseOrderListViewItems.addAll(songVersesByVerseOrder);
     }
 
     private void settingTheAuthor(Song selectedSong) {

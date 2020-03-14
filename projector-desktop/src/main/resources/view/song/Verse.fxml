@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.TextArea?>
-<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.BorderPane?>
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8.0.121"
             fx:controller="projector.controller.song.VerseController">
-    <right>
+    <left>
         <BorderPane fx:id="rightBorderPane">
             <center>
                 <TextArea fx:id="secondTextArea" prefHeight="144.0" prefWidth="277.0" wrapText="true"
@@ -16,15 +16,15 @@
                     </BorderPane.margin>
                 </TextArea>
             </center>
-            <right>
-                <ToggleButton fx:id="chorusToggleButton" text="%Refrain" BorderPane.alignment="CENTER">
+            <left>
+                <ComboBox fx:id="sectionTypeComboBox" BorderPane.alignment="CENTER">
                     <BorderPane.margin>
                         <Insets left="4.0"/>
                     </BorderPane.margin>
-                </ToggleButton>
-            </right>
+                </ComboBox>
+            </left>
         </BorderPane>
-    </right>
+    </left>
     <padding>
         <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
     </padding>

@@ -1,8 +1,10 @@
 package projector.controller.song;
 
+import com.bence.projector.common.model.SectionType;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -12,6 +14,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.IndexRange;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -23,6 +27,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.Main;
@@ -53,6 +58,8 @@ public class NewSongController {
 
     private static final Logger LOG = LoggerFactory.getLogger(NewSongController.class);
     private final Settings settings = Settings.getInstance();
+    @FXML
+    private ListView<SongVerse> verseOrderListView;
     @FXML
     private CheckBox uploadCheckBox;
     @FXML
@@ -126,10 +133,37 @@ public class NewSongController {
         languageComboBoxForNewSong.getItems().addAll(languages);
         textAreas.getChildren().clear();
         verseControllers.clear();
+        verseOrderListView.getItems().clear();
+        initializeVerseOrderList();
     }
 
     private void initializeNewVerseButton() {
         newVerseButton.setOnAction(event -> addNewSongVerse(new SongVerse()));
+    }
+
+    private void initializeVerseOrderList() {
+        verseOrderListView.orientationProperty().set(Orientation.HORIZONTAL);
+        verseOrderListView.setCellFactory(new Callback<ListView<SongVerse>, ListCell<SongVerse>>() {
+            @Override
+            public ListCell<SongVerse> call(ListView<SongVerse> listView) {
+
+                return new ListCell<SongVerse>() {
+                    @Override
+                    protected void updateItem(SongVerse songVerse, boolean empty) {
+                        try {
+                            super.updateItem(songVerse, empty);
+                            if (songVerse != null && !empty) {
+                                setText(songVerse.getSectionTypeStringWithCount());
+                            } else {
+                                setText(null);
+                            }
+                        } catch (Exception e) {
+                            LOG.error(e.getMessage(), e);
+                        }
+                    }
+                };
+            }
+        });
     }
 
     private void toProjectionScreen() {
@@ -140,9 +174,9 @@ public class NewSongController {
         for (String i : split) {
             if (i.length() >= caretPosition) {
                 StringBuilder result = new StringBuilder();
-                for (String j : i.split("\n")) {
-                    if (!j.startsWith(SongVerse.CHORUS) && !j.toLowerCase().startsWith("[verse]")) {
-                        result.append(j).append("\n");
+                for (String line : i.split("\n")) {
+                    if (SectionType.getValueFromString(line).equals(SectionType.VERSE)) {
+                        result.append(line).append("\n");
                     }
                 }
                 previewProjectionScreenController.setText(result.substring(0, result.length() - 1),
@@ -164,15 +198,25 @@ public class NewSongController {
             if (newValue) {
                 borderPane.setCenter(verseEditorScrollPane);
                 verseControllers.clear();
+                verseOrderListView.getItems().clear();
                 textAreas.getChildren().clear();
                 String textAreaText = textArea.getText();
                 String[] split = textAreaText.split("\n\n");
                 for (String i : split) {
                     SongVerse songVerse = new SongVerse();
                     String s = i.trim();
-                    if (s.startsWith(SongVerse.CHORUS + "\n")) {
-                        songVerse.setChorus(true);
-                        s = s.substring(SongVerse.CHORUS.length() + 1);
+                    String[] lines = s.split("\n");
+                    if (lines.length > 0) {
+                        String firstLine = lines[0];
+                        SectionType sectionType = SectionType.getValueFromString(firstLine);
+                        if (!sectionType.equals(SectionType.VERSE)) {
+                            songVerse.setSectionType(sectionType);
+                            s = s.substring(firstLine.length() + 1);
+                        } else {
+                            songVerse.setSectionType(SectionType.VERSE);
+                        }
+                    } else {
+                        songVerse.setSectionType(SectionType.VERSE);
                     }
                     songVerse.setText(s);
                     addNewSongVerse(songVerse);
@@ -190,14 +234,15 @@ public class NewSongController {
             }
         });
         verseEditorRadioButton.setSelected(true);
+        editingSong = new Song();
     }
 
     private String getRawTextFromVerses() {
         StringBuilder text = new StringBuilder();
         for (VerseController verseController : verseControllers) {
             final SongVerse songVerse = verseController.getSongVerse();
-            if (songVerse.isChorus()) {
-                text.append(SongVerse.CHORUS + "\n");
+            if (!songVerse.getSectionType().equals(SectionType.VERSE)) {
+                text.append(songVerse.getSectionType().getStringValue()).append("\n");
             }
             final String rawText = verseController.getRawText();
             if (!rawText.isEmpty()) {
@@ -272,6 +317,12 @@ public class NewSongController {
         }
         newSong.setLanguage(selectedLanguage);
         newSong.setTitle(titleTextField.getText().trim());
+        ObservableList<SongVerse> verseOrderListViewItems = verseOrderListView.getItems();
+        List<Short> verseOrderList = new ArrayList<>(verseOrderListViewItems.size());
+        for (SongVerse songVerse : verseOrderListViewItems) {
+            verseOrderList.add((short) songVerse.getSongVerseCountBySectionType());
+        }
+        newSong.setVerseOrderList(verseOrderList);
         newSong.setModifiedDate(createdDate);
         newSong.setPublished(false);
         newSong.setPublish(uploadCheckBox.isSelected());
@@ -303,6 +354,7 @@ public class NewSongController {
         editingSong = selectedSong;
         textAreas.getChildren().clear();
         verseControllers.clear();
+        verseOrderListView.getItems().clear();
         for (SongVerse songVerse : selectedSong.getVerses()) {
             if (!songVerse.isRepeated()) {
                 addNewSongVerse(songVerse);
@@ -311,6 +363,7 @@ public class NewSongController {
     }
 
     private void addNewSongVerse(SongVerse songVerse) {
+        songVerse.setMainSong(editingSong);
         ObservableList<Node> textAreasChildren = textAreas.getChildren();
         try {
             FXMLLoader loader = new FXMLLoader();
@@ -339,6 +392,7 @@ public class NewSongController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        verseOrderListView.getItems().add(songVerse);
     }
 
     void setSelectedSong(SearchedSong selectedSong) {

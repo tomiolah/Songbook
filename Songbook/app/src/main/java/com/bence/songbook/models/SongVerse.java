@@ -124,12 +124,14 @@ public class SongVerse extends BaseEntity implements Serializable {
 
     public boolean equals(SongVerse other) {
         String uuid = getUuid();
-        if (uuid != null) {
-            return uuid.equals(other.getUuid());
+        String otherUuid = other.getUuid();
+        if (uuid != null && otherUuid != null) {
+            return uuid.equals(otherUuid);
         }
         Long id = getId();
-        if (id != null) {
-            return id.equals(other.getId());
+        Long otherId = other.getId();
+        if (id != null && otherId != null) {
+            return id.equals(otherId);
         }
         return text.equals(other.text);
     }
