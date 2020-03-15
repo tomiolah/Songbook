@@ -22,6 +22,9 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.input.ClipboardContent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -46,20 +49,24 @@ import projector.service.ServiceException;
 import projector.service.ServiceManager;
 import projector.service.SongService;
 import projector.service.SongVerseService;
+import projector.utils.DraggableEntity;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 public class NewSongController {
 
     private static final Logger LOG = LoggerFactory.getLogger(NewSongController.class);
     private final Settings settings = Settings.getInstance();
+    private final String prefix = "verseOrderListView:move:";
     @FXML
-    private ListView<SongVerse> verseOrderListView;
+    private ListView<DraggableEntity<SongVerse>> verseOrderListView;
     @FXML
     private CheckBox uploadCheckBox;
     @FXML
@@ -92,7 +99,7 @@ public class NewSongController {
     private BorderPane borderPane;
     private SongController songController;
     private Stage stage;
-    private boolean edit;
+    private Boolean edit;
     @FXML
     private ProjectionScreenController previewProjectionScreenController;
     private Stage stage2;
@@ -106,7 +113,7 @@ public class NewSongController {
     private List<Language> languages;
 
     public void initialize() {
-        edit = false;
+        edit = null;
         textArea.textProperty().addListener((observable, oldValue, newValue) -> toProjectionScreen());
         textArea.setWrapText(true);
         textArea.caretPositionProperty().addListener((observable, oldValue, newValue) -> toProjectionScreen());
@@ -138,22 +145,106 @@ public class NewSongController {
     }
 
     private void initializeNewVerseButton() {
-        newVerseButton.setOnAction(event -> addNewSongVerse(new SongVerse()));
+        newVerseButton.setOnAction(event -> {
+            List<SongVerse> songVerses = calculateOrder();
+            List<SongVerse> songVersesByVerseOrder = editingSong.getSongVersesByVerseOrder();
+            boolean sameOrder = songVersesListsSameOrder(songVerses, songVersesByVerseOrder);
+            SongVerse songVerse = new SongVerse();
+            editingSong.getVerses().add(songVerse);
+            addNewSongVerse(songVerse);
+            if (sameOrder) {
+                fillVerseOrder(calculateOrder());
+            } else {
+                ObservableList<DraggableEntity<SongVerse>> verseOrderListViewItems = verseOrderListView.getItems();
+                DraggableEntity<SongVerse> songVerseDraggableEntity = new DraggableEntity<>(songVerse);
+                songVerseDraggableEntity.setListViewIndex(verseOrderListViewItems.size());
+                verseOrderListViewItems.add(songVerseDraggableEntity);
+            }
+            setVerseOrderForSong(editingSong);
+        });
+    }
+
+    private boolean songVersesListsSameOrder(List<SongVerse> songVerses1, List<SongVerse> songVerses2) {
+        int size = songVerses1.size();
+        if (size != songVerses2.size()) {
+            return false;
+        }
+        for (int i = 0; i < size; ++i) {
+            if (!songVerses1.get(i).getText().equals(songVerses2.get(i).getText())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void initializeVerseOrderList() {
         verseOrderListView.orientationProperty().set(Orientation.HORIZONTAL);
-        verseOrderListView.setCellFactory(new Callback<ListView<SongVerse>, ListCell<SongVerse>>() {
+        verseOrderListView.setCellFactory(new Callback<ListView<DraggableEntity<SongVerse>>, ListCell<DraggableEntity<SongVerse>>>() {
             @Override
-            public ListCell<SongVerse> call(ListView<SongVerse> listView) {
+            public ListCell<DraggableEntity<SongVerse>> call(ListView<DraggableEntity<SongVerse>> listView) {
 
-                return new ListCell<SongVerse>() {
+                return new ListCell<DraggableEntity<SongVerse>>() {
                     @Override
-                    protected void updateItem(SongVerse songVerse, boolean empty) {
+                    protected void updateItem(DraggableEntity<SongVerse> songVerse, boolean empty) {
                         try {
                             super.updateItem(songVerse, empty);
                             if (songVerse != null && !empty) {
-                                setText(songVerse.getSectionTypeStringWithCount());
+                                setText(songVerse.getEntity().getSectionTypeStringWithCount());
+                                ListCell<DraggableEntity<SongVerse>> thisCell = this;
+                                setOnDragDetected(event -> {
+                                    if (getItem() == null) {
+                                        return;
+                                    }
+                                    Dragboard dragboard = startDragAndDrop(TransferMode.MOVE);
+                                    ClipboardContent content = new ClipboardContent();
+                                    content.putString(prefix + verseOrderListView.getSelectionModel().getSelectedIndex());
+                                    dragboard.setContent(content);
+                                });
+                                setOnDragEntered(event -> {
+                                    if (event.getGestureSource() != thisCell && event.getDragboard().hasString()) {
+                                        setOpacity(0.3);
+                                    }
+                                });
+                                setOnDragExited(event -> {
+                                    if (event.getGestureSource() != thisCell &&
+                                            event.getDragboard().hasString()) {
+                                        setOpacity(1);
+                                    }
+                                });
+                                setOnDragOver(dragEvent -> dragEvent.acceptTransferModes(TransferMode.MOVE, TransferMode.COPY, TransferMode.LINK));
+                                setOnDragDropped(event -> {
+                                    if (getItem() == null) {
+                                        return;
+                                    }
+                                    Dragboard dragboard = event.getDragboard();
+                                    if (dragboard.hasString()) {
+                                        int index = getIndexFromDragBoard(dragboard);
+                                        if (index != -1) {
+                                            ObservableList<DraggableEntity<SongVerse>> items = verseOrderListView.getItems();
+                                            DraggableEntity<SongVerse> songVerse1 = items.get(index);
+                                            int otherIndex = songVerse.getListViewIndex();
+                                            if (otherIndex < index) {
+                                                for (int i = index; i > otherIndex; --i) {
+                                                    DraggableEntity<SongVerse> element = items.get(i - 1);
+                                                    element.setListViewIndex(i);
+                                                    items.set(i, element);
+                                                }
+                                                songVerse1.setListViewIndex(otherIndex);
+                                                items.set(otherIndex, songVerse1);
+                                            } else if (otherIndex > index) {
+                                                for (int i = index; i < otherIndex; ++i) {
+                                                    DraggableEntity<SongVerse> element = items.get(i + 1);
+                                                    element.setListViewIndex(i);
+                                                    items.set(i, element);
+                                                }
+                                                songVerse1.setListViewIndex(otherIndex);
+                                                items.set(otherIndex, songVerse1);
+                                            }
+                                        }
+                                        event.setDropCompleted(true);
+                                    }
+
+                                });
                             } else {
                                 setText(null);
                             }
@@ -164,6 +255,14 @@ public class NewSongController {
                 };
             }
         });
+    }
+
+    private int getIndexFromDragBoard(Dragboard dragboard) {
+        String string = dragboard.getString();
+        if (string.startsWith(prefix)) {
+            return Integer.parseInt(string.replace(prefix, ""));
+        }
+        return -1;
     }
 
     private void toProjectionScreen() {
@@ -179,8 +278,11 @@ public class NewSongController {
                         result.append(line).append("\n");
                     }
                 }
-                previewProjectionScreenController.setText(result.substring(0, result.length() - 1),
-                        ProjectionType.SONG);
+                int end = result.length() - 1;
+                if (end > 0) {
+                    previewProjectionScreenController.setText(result.substring(0, end),
+                            ProjectionType.SONG);
+                }
                 break;
             } else {
                 caretPosition -= (i.length() + 2);
@@ -193,37 +295,62 @@ public class NewSongController {
         final ToggleGroup toggleGroup = new ToggleGroup();
         verseEditorRadioButton.setToggleGroup(toggleGroup);
         rawTextEditorRadioButton.setToggleGroup(toggleGroup);
+        verseEditorRadioButton.setSelected(true);
         verseEditorRadioButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
             borderPane.getChildren().clear();
+            if (edit == null) {
+                return;
+            }
             if (newValue) {
                 borderPane.setCenter(verseEditorScrollPane);
                 verseControllers.clear();
                 verseOrderListView.getItems().clear();
                 textAreas.getChildren().clear();
-                String textAreaText = textArea.getText();
+                String s = textArea.getText();
+                while (s.contains("\n\n\n")) {
+                    s = s.replaceAll("\n\n\n", "\n\n");
+                }
+                String textAreaText = s.replaceAll("]\n\n", "]\n");
                 String[] split = textAreaText.split("\n\n");
-                for (String i : split) {
-                    SongVerse songVerse = new SongVerse();
-                    String s = i.trim();
-                    String[] lines = s.split("\n");
-                    if (lines.length > 0) {
-                        String firstLine = lines[0];
-                        SectionType sectionType = SectionType.getValueFromString(firstLine);
-                        if (!sectionType.equals(SectionType.VERSE)) {
-                            songVerse.setSectionType(sectionType);
-                            s = s.substring(firstLine.length() + 1);
+                Map<String, Short> versesMap = new HashMap<>(split.length);
+                short verseCount = 0;
+                List<Short> verseOrderList = new ArrayList<>(split.length);
+                for (String verseText : split) {
+                    String key = verseText.trim();
+                    Short verseIndex = versesMap.get(key);
+                    if (verseIndex == null) {
+                        verseIndex = verseCount;
+                        versesMap.put(key, verseCount++);
+                        SongVerse songVerse = new SongVerse();
+                        String trimmedText = key;
+                        String[] lines = trimmedText.split("\n");
+                        if (lines.length > 0) {
+                            String firstLine = lines[0];
+                            SectionType sectionType = SectionType.getValueFromString(firstLine);
+                            if (!sectionType.equals(SectionType.VERSE)) {
+                                songVerse.setSectionType(sectionType);
+                                if (trimmedText.length() == firstLine.length()) {
+                                    continue;
+                                }
+                                trimmedText = trimmedText.substring(firstLine.length() + 1);
+                            } else {
+                                songVerse.setSectionType(SectionType.VERSE);
+                            }
                         } else {
                             songVerse.setSectionType(SectionType.VERSE);
                         }
-                    } else {
-                        songVerse.setSectionType(SectionType.VERSE);
+                        songVerse.setText(trimmedText);
+                        editingSong.getVerses().add(songVerse);
+                        addNewSongVerse(songVerse);
                     }
-                    songVerse.setText(s);
-                    addNewSongVerse(songVerse);
+                    verseOrderList.add(verseIndex);
                 }
+                editingSong.setVerseOrderList(verseOrderList);
+                fillVerseOrder(editingSong.getSongVersesByVerseOrder());
                 colorPicker.setDisable(false);
                 saveButton.setDisable(false);
                 uploadButton.setDisable(false);
+                verseOrderListView.setVisible(true);
             } else {
                 colorPicker.setDisable(true);
                 saveButton.setDisable(true);
@@ -231,20 +358,22 @@ public class NewSongController {
                 String text = getRawTextFromVerses();
                 textArea.setText(text);
                 borderPane.setCenter(rawTextBorderPane);
+                verseOrderListView.setVisible(false);
+                editingSong.getVerses().clear();
             }
         });
-        verseEditorRadioButton.setSelected(true);
-        editingSong = new Song();
+        borderPane.getChildren().clear();
+        borderPane.setCenter(verseEditorScrollPane);
     }
 
     private String getRawTextFromVerses() {
         StringBuilder text = new StringBuilder();
-        for (VerseController verseController : verseControllers) {
-            final SongVerse songVerse = verseController.getSongVerse();
+        List<SongVerse> songVersesByVerseOrder = editingSong.getSongVersesByVerseOrder();
+        for (SongVerse songVerse : songVersesByVerseOrder) {
             if (!songVerse.getSectionType().equals(SectionType.VERSE)) {
                 text.append(songVerse.getSectionType().getStringValue()).append("\n");
             }
-            final String rawText = verseController.getRawText();
+            final String rawText = songVerse.getText();
             if (!rawText.isEmpty()) {
                 text.append(rawText).append("\n\n");
             }
@@ -266,11 +395,7 @@ public class NewSongController {
     }
 
     private boolean isEdit() {
-        return edit;
-    }
-
-    void setEdit() {
-        this.edit = true;
+        return edit != null && edit;
     }
 
     void setSongController(SongController songController) {
@@ -317,12 +442,7 @@ public class NewSongController {
         }
         newSong.setLanguage(selectedLanguage);
         newSong.setTitle(titleTextField.getText().trim());
-        ObservableList<SongVerse> verseOrderListViewItems = verseOrderListView.getItems();
-        List<Short> verseOrderList = new ArrayList<>(verseOrderListViewItems.size());
-        for (SongVerse songVerse : verseOrderListViewItems) {
-            verseOrderList.add((short) songVerse.getSongVerseCountBySectionType());
-        }
-        newSong.setVerseOrderList(verseOrderList);
+        setVerseOrderForSong(newSong);
         newSong.setModifiedDate(createdDate);
         newSong.setPublished(false);
         newSong.setPublish(uploadCheckBox.isSelected());
@@ -346,20 +466,31 @@ public class NewSongController {
         return true;
     }
 
+    private void setVerseOrderForSong(Song song) {
+        ObservableList<DraggableEntity<SongVerse>> verseOrderListViewItems = verseOrderListView.getItems();
+        List<Short> verseOrderList = new ArrayList<>(verseOrderListViewItems.size());
+        for (DraggableEntity<SongVerse> songVerse : verseOrderListViewItems) {
+            verseOrderList.add(songVerse.getEntity().getVerseOrderIndex());
+        }
+        song.setVerseOrderList(verseOrderList);
+    }
+
     void setTitleTextFieldText(String text) {
         titleTextField.setText(text);
     }
 
     void setEditingSong(Song selectedSong) {
-        editingSong = selectedSong;
+        editingSong = new Song(selectedSong);
         textAreas.getChildren().clear();
         verseControllers.clear();
         verseOrderListView.getItems().clear();
-        for (SongVerse songVerse : selectedSong.getVerses()) {
+        for (SongVerse songVerse : editingSong.getVerses()) {
             if (!songVerse.isRepeated()) {
                 addNewSongVerse(songVerse);
             }
         }
+        fillVerseOrder(editingSong.getSongVersesByVerseOrder());
+        edit = true;
     }
 
     private void addNewSongVerse(SongVerse songVerse) {
@@ -372,6 +503,7 @@ public class NewSongController {
             Pane root = loader.load();
             VerseController verseController = loader.getController();
             verseController.setSongVerse(songVerse);
+            verseController.setOnChangeListener(this::calculateOrder);
             verseControllers.add(verseController);
             final TextArea textArea = verseController.getTextArea();
             textArea.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -392,7 +524,41 @@ public class NewSongController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        verseOrderListView.getItems().add(songVerse);
+    }
+
+    private List<SongVerse> calculateOrder() {
+        List<SongVerse> songVersesByCalculatedOrder = new ArrayList<>();
+        SongVerse chorus = null;
+        int delta = 1;
+        for (VerseController verseController : verseControllers) {
+            SongVerse songVerse = verseController.getSongVerse();
+            if (songVerse.getSectionType() == SectionType.CHORUS) {
+                chorus = songVerse;
+                delta = 0;
+            } else {
+                if (chorus != null && delta > 0) {
+                    songVersesByCalculatedOrder.add(chorus);
+                }
+                ++delta;
+            }
+            songVersesByCalculatedOrder.add(songVerse);
+        }
+        SectionType lastAddedVerseType = songVersesByCalculatedOrder.get(songVersesByCalculatedOrder.size() - 1).getSectionType();
+        if (chorus != null && lastAddedVerseType != SectionType.CHORUS && lastAddedVerseType != SectionType.CODA && delta > 0) {
+            songVersesByCalculatedOrder.add(chorus);
+        }
+        return songVersesByCalculatedOrder;
+    }
+
+    private void fillVerseOrder(List<SongVerse> verses) {
+        ObservableList<DraggableEntity<SongVerse>> verseOrderListViewItems = verseOrderListView.getItems();
+        verseOrderListViewItems.clear();
+        int i = 0;
+        for (SongVerse songVerse : verses) {
+            DraggableEntity<SongVerse> songVerseDraggableEntity = new DraggableEntity<>(songVerse);
+            songVerseDraggableEntity.setListViewIndex(i++);
+            verseOrderListViewItems.add(songVerseDraggableEntity);
+        }
     }
 
     void setSelectedSong(SearchedSong selectedSong) {
@@ -457,5 +623,10 @@ public class NewSongController {
         for (VerseController verseController : verseControllers) {
             verseController.showSecondText(selected);
         }
+    }
+
+    void setNewSong() {
+        edit = false;
+        editingSong = new Song();
     }
 }

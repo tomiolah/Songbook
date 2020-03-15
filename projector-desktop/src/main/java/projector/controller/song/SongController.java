@@ -192,7 +192,7 @@ public class SongController {
     private SongCollection selectedSongCollection;
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
     private Song selectedSong;
-    private ArrayList<SongVerse> selectedSongVerseList;
+    private List<SongVerse> selectedSongVerseList;
     private int successfullyCreated;
     private SongRemoteListener songRemoteListener;
     private SongReadRemoteListener songReadRemoteListener;
@@ -376,8 +376,7 @@ public class SongController {
                         final int width = (int) projectionScreenController.getScene().getWidth();
                         int height = (int) projectionScreenController.getScene().getHeight();
                         final int size = (int) songHeightSlider.getValue();
-                        selectedSongVerseList = new ArrayList<>(selectedSong.getVerses().size());
-                        addAgainChorus(selectedSong, selectedSongVerseList);
+                        selectedSongVerseList = selectedSong.getSongVersesByVerseOrder();
                         MyTextFlow myTextFlow = new MyTextFlow();
                         int width1;
                         boolean aspectRatioCheckBoxSelected = aspectRatioCheckBox.isSelected();
@@ -1270,31 +1269,6 @@ public class SongController {
         }
     }
 
-    private void addAgainChorus(Song selectedSong, List<SongVerse> verseList) {
-        try {
-            final List<SongVerse> verses = selectedSong.getVerses();
-            SongVerse chorus = null;
-            int size = verses.size();
-            for (int i = 0; i < size; ++i) {
-                SongVerse songVerse = verses.get(i);
-                verseList.add(songVerse);
-                if (songVerse.isChorus()) {
-                    chorus = songVerse;
-                } else if (chorus != null) {
-                    if (i + 1 < size) {
-                        if (!verses.get(i + 1).isChorus()) {
-                            verseList.add(chorus);
-                        }
-                    } else {
-                        verseList.add(chorus);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
-
     private void initializeProgressLineButton() {
         try {
             progressLineToggleButton.setOnAction(event -> settings.setShowProgressLine(progressLineToggleButton.isSelected()));
@@ -1816,7 +1790,6 @@ public class SongController {
                         Pane root = loader.load();
                         NewSongController newSongController = loader.getController();
                         newSongController.setSongController(songController);
-                        newSongController.setEdit();
                         newSongController.setSelectedSong(listView.getSelectionModel().getSelectedItem());
                         newSongController.setTitleTextFieldText(selectedSong.getTitle());
                         Scene scene = new Scene(root);
@@ -2156,6 +2129,7 @@ public class SongController {
             previewProjectionScreenController.setStage(stage2);
 
             stage.setOnCloseRequest(we -> stage2.close());
+            newSongController.setNewSong();
             newSongController.setStage(stage, stage2);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);

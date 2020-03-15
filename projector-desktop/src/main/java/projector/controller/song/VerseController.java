@@ -11,6 +11,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.controller.song.util.OnChangeListener;
 import projector.model.SongVerse;
 
 import static projector.utils.scene.text.MyTextFlow.getStringTextFromRawText;
@@ -27,6 +28,7 @@ public class VerseController {
     @FXML
     private TextArea textArea;
     private SongVerse songVerse;
+    private OnChangeListener onChangeListener;
 
     public void initialize() {
         showSecondText(false);
@@ -59,6 +61,12 @@ public class VerseController {
         };
         sectionTypeComboBox.setButtonCell(cellFactory.call(null));
         sectionTypeComboBox.setCellFactory(cellFactory);
+        sectionTypeComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (onChangeListener != null) {
+                onChangeListener.onChange();
+            }
+        });
+        textArea.textProperty().addListener((observable, oldValue, newValue) -> songVerse.setText(newValue));
     }
 
     String getRawText() {
@@ -124,5 +132,9 @@ public class VerseController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    public void setOnChangeListener(OnChangeListener onChangeListener) {
+        this.onChangeListener = onChangeListener;
     }
 }

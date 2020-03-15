@@ -5,6 +5,7 @@ import com.google.gson.annotations.Expose;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
+import projector.utils.CloneUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -71,6 +72,31 @@ public class Song extends BaseEntity {
         this.fileText = fileText;
         this.versTimes = versTimes == null ? null : versTimes.clone();
         this.songBooks = songBooks;
+    }
+
+    public Song(Song song) {
+        super(song);
+        this.title = song.title;
+        this.strippedTitle = song.strippedTitle;
+        this.verses = SongVerse.cloneList(song.verses);
+        this.createdDate = song.createdDate;
+        this.modifiedDate = song.modifiedDate;
+        this.serverModifiedDate = song.serverModifiedDate;
+        this.deleted = song.deleted;
+        this.fileText = song.fileText;
+        this.versTimes = song.versTimes;
+        this.songBooks = song.songBooks;
+        this.publish = song.publish;
+        this.published = song.published;
+        this.language = song.language;
+        this.songCollections = song.songCollections;
+        this.songCollectionElements = song.songCollectionElements;
+        this.versionGroup = song.versionGroup;
+        this.views = song.views;
+        this.favouriteCount = song.favouriteCount;
+        this.author = song.author;
+        this.verseOrder = song.verseOrder;
+        this.verseOrderList = CloneUtil.cloneList(song.verseOrderList);
     }
 
     private static long getCurrentDate() {
@@ -191,10 +217,13 @@ public class Song extends BaseEntity {
 
     public List<SongVerse> getVerses() {
         if (verses == null) {
-            List<SongVerse> songVerses = new ArrayList<>(songVerseForeignCollection.size());
-            songVerses.addAll(songVerseForeignCollection);
-            verses = songVerses;
-            return songVerses;
+            if (songVerseForeignCollection != null) {
+                List<SongVerse> songVerses = new ArrayList<>(songVerseForeignCollection.size());
+                songVerses.addAll(songVerseForeignCollection);
+                verses = songVerses;
+            } else {
+                verses = new ArrayList<>();
+            }
         }
         return verses;
     }

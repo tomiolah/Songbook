@@ -9,6 +9,14 @@ public abstract class AbstractModel {
     @DatabaseField(index = true, width = 36)
     private String uuid;
 
+    public AbstractModel(AbstractModel other) {
+        this.uuid = other.uuid;
+    }
+
+    public AbstractModel() {
+
+    }
+
     public String getUuid() {
         return uuid;
     }

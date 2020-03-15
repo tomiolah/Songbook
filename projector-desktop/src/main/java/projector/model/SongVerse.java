@@ -48,6 +48,9 @@ public class SongVerse extends BaseEntity {
     }
 
     static List<SongVerse> cloneList(List<SongVerse> songVerses) {
+        if (songVerses == null) {
+            return null;
+        }
         List<SongVerse> clonedSongVerses = new ArrayList<>(songVerses.size());
         for (SongVerse songVerse : songVerses) {
             clonedSongVerses.add(new SongVerse(songVerse));
@@ -65,7 +68,10 @@ public class SongVerse extends BaseEntity {
     }
 
     public boolean isChorus() {
-        return chorus;
+        if (sectionTypeData == null) {
+            return chorus;
+        }
+        return SectionType.getInstance(sectionTypeData) == SectionType.CHORUS;
     }
 
     public void setChorus(boolean chorus) {
@@ -103,11 +109,11 @@ public class SongVerse extends BaseEntity {
     public SectionType getSectionType() {
         if (sectionTypeData == null) {
             sectionType = SectionType.VERSE;
+            if (isChorus()) {
+                sectionType = SectionType.CHORUS;
+            }
         } else {
             sectionType = SectionType.getInstance(sectionTypeData);
-        }
-        if (isChorus()) {
-            sectionType = SectionType.CHORUS;
         }
         return sectionType;
     }
@@ -208,6 +214,27 @@ public class SongVerse extends BaseEntity {
         if (id != null && otherId != null) {
             return id.equals(otherId);
         }
+        return equalsOtherText(other);
+    }
+
+    private boolean equalsOtherText(SongVerse other) {
+        if (text == null) {
+            return other.text == null;
+        }
         return text.equals(other.text);
+    }
+
+    public short getVerseOrderIndex() {
+        short index = 0;
+        if (mainSong == null) {
+            return 0;
+        }
+        for (SongVerse songVerse : mainSong.getVerses()) {
+            if (equalsOtherText(songVerse)) {
+                return index;
+            }
+            ++index;
+        }
+        return 0;
     }
 }
