@@ -22,6 +22,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.TransferMode;
@@ -111,6 +112,7 @@ public class NewSongController {
     private VerseController lastFocusedVerse;
     private SongVerseService songVerseService = ServiceManager.getSongVerseService();
     private List<Language> languages;
+    private boolean sameAsCalculatedOrder = false;
 
     public void initialize() {
         edit = null;
@@ -154,6 +156,7 @@ public class NewSongController {
             addNewSongVerse(songVerse);
             if (sameOrder) {
                 fillVerseOrder(calculateOrder());
+                sameAsCalculatedOrder = true;
             } else {
                 ObservableList<DraggableEntity<SongVerse>> verseOrderListViewItems = verseOrderListView.getItems();
                 DraggableEntity<SongVerse> songVerseDraggableEntity = new DraggableEntity<>(songVerse);
@@ -184,6 +187,8 @@ public class NewSongController {
             public ListCell<DraggableEntity<SongVerse>> call(ListView<DraggableEntity<SongVerse>> listView) {
 
                 return new ListCell<DraggableEntity<SongVerse>>() {
+                    final Tooltip tooltip = new Tooltip();
+
                     @Override
                     protected void updateItem(DraggableEntity<SongVerse> songVerse, boolean empty) {
                         try {
@@ -240,13 +245,16 @@ public class NewSongController {
                                                 songVerse1.setListViewIndex(otherIndex);
                                                 items.set(otherIndex, songVerse1);
                                             }
+                                            calculateSameOrder();
                                         }
                                         event.setDropCompleted(true);
                                     }
-
                                 });
+                                tooltip.setText(songVerse.getEntity().getText());
+                                setTooltip(tooltip);
                             } else {
                                 setText(null);
+                                setTooltip(null);
                             }
                         } catch (Exception e) {
                             LOG.error(e.getMessage(), e);
@@ -370,11 +378,11 @@ public class NewSongController {
         StringBuilder text = new StringBuilder();
         List<SongVerse> songVersesByVerseOrder = editingSong.getSongVersesByVerseOrder();
         for (SongVerse songVerse : songVersesByVerseOrder) {
-            if (!songVerse.getSectionType().equals(SectionType.VERSE)) {
-                text.append(songVerse.getSectionType().getStringValue()).append("\n");
-            }
             final String rawText = songVerse.getText();
-            if (!rawText.isEmpty()) {
+            if (rawText != null && !rawText.isEmpty()) {
+                if (!songVerse.getSectionType().equals(SectionType.VERSE)) {
+                    text.append(songVerse.getSectionType().getStringValue()).append("\n");
+                }
                 text.append(rawText).append("\n\n");
             }
         }
@@ -490,7 +498,15 @@ public class NewSongController {
             }
         }
         fillVerseOrder(editingSong.getSongVersesByVerseOrder());
+        calculateSameOrder();
         edit = true;
+    }
+
+    private void calculateSameOrder() {
+        List<SongVerse> songVerses = calculateOrder();
+        setVerseOrderForSong(editingSong);
+        List<SongVerse> songVersesByVerseOrder = editingSong.getSongVersesByVerseOrder();
+        sameAsCalculatedOrder = songVersesListsSameOrder(songVerses, songVersesByVerseOrder);
     }
 
     private void addNewSongVerse(SongVerse songVerse) {
@@ -503,7 +519,15 @@ public class NewSongController {
             Pane root = loader.load();
             VerseController verseController = loader.getController();
             verseController.setSongVerse(songVerse);
-            verseController.setOnChangeListener(this::calculateOrder);
+            verseController.setOnChangeListener(() -> {
+                if (sameAsCalculatedOrder) {
+                    fillVerseOrder(calculateOrder());
+                } else {
+                    fillVerseOrder(editingSong.getSongVersesByVerseOrder());
+                }
+                setVerseOrderForSong(editingSong);
+                invalidateVerseControllers();
+            });
             verseControllers.add(verseController);
             final TextArea textArea = verseController.getTextArea();
             textArea.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -523,6 +547,12 @@ public class NewSongController {
             textAreasChildren.add(root);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void invalidateVerseControllers() {
+        for (VerseController verseController : verseControllers) {
+            verseController.reFillSectionType();
         }
     }
 

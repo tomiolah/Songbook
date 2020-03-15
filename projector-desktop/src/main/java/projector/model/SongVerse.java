@@ -159,7 +159,7 @@ public class SongVerse extends BaseEntity {
         return count;
     }
 
-    public int getSongVerseCountBySectionType() {
+    private int getSongVerseCountBySectionType() {
         return getSongVerseCountBySectionType(getSectionType());
     }
 
@@ -177,6 +177,14 @@ public class SongVerse extends BaseEntity {
 
     public String getSectionTypeStringWithCount() {
         String sectionTypeString = getSectionTypeString();
+        if (hasOtherSameTypeInSong()) {
+            sectionTypeString += getSongVerseCountBySectionType();
+        }
+        return sectionTypeString;
+    }
+
+    public String getLongSectionTypeStringWithCount() {
+        String sectionTypeString = getSectionTypeString(sectionType);
         if (hasOtherSameTypeInSong()) {
             sectionTypeString += getSongVerseCountBySectionType();
         }

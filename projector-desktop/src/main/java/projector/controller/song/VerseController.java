@@ -13,6 +13,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.controller.song.util.OnChangeListener;
 import projector.model.SongVerse;
+import projector.utils.CloneUtil;
+
+import java.util.List;
 
 import static projector.utils.scene.text.MyTextFlow.getStringTextFromRawText;
 
@@ -29,16 +32,11 @@ public class VerseController {
     private TextArea textArea;
     private SongVerse songVerse;
     private OnChangeListener onChangeListener;
+    private boolean onChangeListenerPause = false;
 
     public void initialize() {
         showSecondText(false);
-        ObservableList<SectionType> sectionTypeComboBoxItems = sectionTypeComboBox.getItems();
-        sectionTypeComboBoxItems.add(SectionType.INTRO);
-        sectionTypeComboBoxItems.add(SectionType.VERSE);
-        sectionTypeComboBoxItems.add(SectionType.PRE_CHORUS);
-        sectionTypeComboBoxItems.add(SectionType.CHORUS);
-        sectionTypeComboBoxItems.add(SectionType.BRIDGE);
-        sectionTypeComboBoxItems.add(SectionType.CODA);
+        fillSectionTypeComboBox();
         Callback<ListView<SectionType>, ListCell<SectionType>> cellFactory = new Callback<ListView<SectionType>, ListCell<SectionType>>() {
             @Override
             public ListCell<SectionType> call(ListView<SectionType> param) {
@@ -48,7 +46,11 @@ public class VerseController {
                         try {
                             super.updateItem(sectionType, empty);
                             if (sectionType != null && !empty) {
-                                setText(songVerse.getSectionTypeString(sectionType));
+                                if (songVerse.getSectionType().equals(sectionType)) {
+                                    setText(songVerse.getLongSectionTypeStringWithCount());
+                                } else {
+                                    setText(songVerse.getSectionTypeString(sectionType));
+                                }
                             } else {
                                 setText(null);
                             }
@@ -62,11 +64,31 @@ public class VerseController {
         sectionTypeComboBox.setButtonCell(cellFactory.call(null));
         sectionTypeComboBox.setCellFactory(cellFactory);
         sectionTypeComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if (onChangeListener != null) {
+            if (newValue == null) {
+                return;
+            }
+            if (onChangeListener != null && !onChangeListenerPause) {
+                songVerse.setSectionType(newValue);
                 onChangeListener.onChange();
             }
         });
-        textArea.textProperty().addListener((observable, oldValue, newValue) -> songVerse.setText(newValue));
+        textArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            songVerse.setText(newValue);
+            if (onChangeListener != null && !onChangeListenerPause) {
+                onChangeListener.onChange();
+            }
+        });
+    }
+
+    private void fillSectionTypeComboBox() {
+        ObservableList<SectionType> sectionTypeComboBoxItems = sectionTypeComboBox.getItems();
+        sectionTypeComboBoxItems.clear();
+        sectionTypeComboBoxItems.add(SectionType.INTRO);
+        sectionTypeComboBoxItems.add(SectionType.VERSE);
+        sectionTypeComboBoxItems.add(SectionType.PRE_CHORUS);
+        sectionTypeComboBoxItems.add(SectionType.CHORUS);
+        sectionTypeComboBoxItems.add(SectionType.BRIDGE);
+        sectionTypeComboBoxItems.add(SectionType.CODA);
     }
 
     String getRawText() {
@@ -134,7 +156,22 @@ public class VerseController {
         }
     }
 
-    public void setOnChangeListener(OnChangeListener onChangeListener) {
+    void setOnChangeListener(OnChangeListener onChangeListener) {
         this.onChangeListener = onChangeListener;
+    }
+
+    void reFillSectionType() {
+        onChangeListenerPause = true;
+        SectionType value = sectionTypeComboBox.getValue();
+        ObservableList<SectionType> items = sectionTypeComboBox.getItems();
+        if (items != null) {
+            List<SectionType> sectionTypes = CloneUtil.cloneList(items);
+            items.clear();
+            //noinspection ConstantConditions
+            items.addAll(sectionTypes);
+            sectionTypeComboBox.setItems(items);
+            sectionTypeComboBox.setValue(value);
+        }
+        onChangeListenerPause = false;
     }
 }
