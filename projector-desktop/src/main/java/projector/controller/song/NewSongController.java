@@ -41,6 +41,7 @@ import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.controller.LoginController;
 import projector.controller.ProjectionScreenController;
+import projector.controller.song.util.OnChangeListener;
 import projector.controller.song.util.SearchedSong;
 import projector.model.Language;
 import projector.model.Song;
@@ -158,13 +159,17 @@ public class NewSongController {
                 fillVerseOrder(calculateOrder());
                 sameAsCalculatedOrder = true;
             } else {
-                ObservableList<DraggableEntity<SongVerse>> verseOrderListViewItems = verseOrderListView.getItems();
-                DraggableEntity<SongVerse> songVerseDraggableEntity = new DraggableEntity<>(songVerse);
-                songVerseDraggableEntity.setListViewIndex(verseOrderListViewItems.size());
-                verseOrderListViewItems.add(songVerseDraggableEntity);
+                addVerseToVerseOrder(songVerse);
             }
             setVerseOrderForSong(editingSong);
         });
+    }
+
+    private void addVerseToVerseOrder(SongVerse songVerse) {
+        ObservableList<DraggableEntity<SongVerse>> verseOrderListViewItems = verseOrderListView.getItems();
+        DraggableEntity<SongVerse> songVerseDraggableEntity = new DraggableEntity<>(songVerse);
+        songVerseDraggableEntity.setListViewIndex(verseOrderListViewItems.size());
+        verseOrderListViewItems.add(songVerseDraggableEntity);
     }
 
     private boolean songVersesListsSameOrder(List<SongVerse> songVerses1, List<SongVerse> songVerses2) {
@@ -519,14 +524,23 @@ public class NewSongController {
             Pane root = loader.load();
             VerseController verseController = loader.getController();
             verseController.setSongVerse(songVerse);
-            verseController.setOnChangeListener(() -> {
-                if (sameAsCalculatedOrder) {
-                    fillVerseOrder(calculateOrder());
-                } else {
-                    fillVerseOrder(editingSong.getSongVersesByVerseOrder());
+            verseController.setOnChangeListener(new OnChangeListener() {
+                @Override
+                public void onChange() {
+                    if (sameAsCalculatedOrder) {
+                        fillVerseOrder(calculateOrder());
+                    } else {
+                        fillVerseOrder(editingSong.getSongVersesByVerseOrder());
+                    }
+                    setVerseOrderForSong(editingSong);
+                    invalidateVerseControllers();
                 }
-                setVerseOrderForSong(editingSong);
-                invalidateVerseControllers();
+
+                @Override
+                public void onAddToVerseButton() {
+                    addVerseToVerseOrder(songVerse);
+                    setVerseOrderForSong(editingSong);
+                }
             });
             verseControllers.add(verseController);
             final TextArea textArea = verseController.getTextArea();

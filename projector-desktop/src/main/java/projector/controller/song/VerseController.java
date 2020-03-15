@@ -3,6 +3,7 @@ package projector.controller.song;
 import com.bence.projector.common.model.SectionType;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -22,6 +23,8 @@ import static projector.utils.scene.text.MyTextFlow.getStringTextFromRawText;
 public class VerseController {
 
     private static final Logger LOG = LoggerFactory.getLogger(VerseController.class);
+    @FXML
+    private Button addToVerseOrderButton;
     @FXML
     private ComboBox<SectionType> sectionTypeComboBox;
     @FXML
@@ -76,6 +79,11 @@ public class VerseController {
             songVerse.setText(newValue);
             if (onChangeListener != null && !onChangeListenerPause) {
                 onChangeListener.onChange();
+            }
+        });
+        addToVerseOrderButton.setOnAction(event -> {
+            if (onChangeListener != null) {
+                onChangeListener.onAddToVerseButton();
             }
         });
     }
