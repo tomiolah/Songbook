@@ -13,9 +13,11 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.IndexRange;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
@@ -25,6 +27,7 @@ import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
@@ -61,6 +64,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+
+import static projector.utils.ContextMenuUtil.initializeContextMenu;
 
 public class NewSongController {
 
@@ -187,6 +192,29 @@ public class NewSongController {
 
     private void initializeVerseOrderList() {
         verseOrderListView.orientationProperty().set(Orientation.HORIZONTAL);
+        final ContextMenu cm = new ContextMenu();
+        initializeContextMenu(cm, LOG);
+        MenuItem deleteMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Delete"));
+        deleteMenuItem.setOnAction(event -> {
+            try {
+                DraggableEntity<SongVerse> selectedItem = verseOrderListView.getSelectionModel().getSelectedItem();
+                verseOrderListView.getItems().remove(selectedItem);
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        cm.getItems().addAll(deleteMenuItem);
+        verseOrderListView.setOnMouseClicked(event -> {
+            try {
+                if (event.getButton() == MouseButton.SECONDARY && !aloneInList(verseOrderListView.getSelectionModel().getSelectedItem(), verseOrderListView.getItems())) {
+                    cm.show(verseOrderListView, event.getScreenX(), event.getScreenY());
+                } else {
+                    cm.hide();
+                }
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
         verseOrderListView.setCellFactory(new Callback<ListView<DraggableEntity<SongVerse>>, ListCell<DraggableEntity<SongVerse>>>() {
             @Override
             public ListCell<DraggableEntity<SongVerse>> call(ListView<DraggableEntity<SongVerse>> listView) {
@@ -268,6 +296,17 @@ public class NewSongController {
                 };
             }
         });
+    }
+
+    private boolean aloneInList(DraggableEntity<SongVerse> selectedItem, ObservableList<DraggableEntity<SongVerse>> items) {
+        int listViewIndex = selectedItem.getListViewIndex();
+        SongVerse selectedVerse = selectedItem.getEntity();
+        for (DraggableEntity<SongVerse> verseDraggableEntity : items) {
+            if (verseDraggableEntity.getListViewIndex() != listViewIndex && verseDraggableEntity.getEntity().equals(selectedVerse)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private int getIndexFromDragBoard(Dragboard dragboard) {

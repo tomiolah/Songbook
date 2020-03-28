@@ -35,7 +35,6 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -104,6 +103,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static java.lang.Math.min;
+import static projector.utils.ContextMenuUtil.initializeContextMenu;
 import static projector.utils.StringUtils.stripAccents;
 
 public class SongController {
@@ -1763,14 +1763,7 @@ public class SongController {
     private void initListViewMenuItem() {
         try {
             final ContextMenu cm = new ContextMenu();
-            consumeContextMenuOnSecondaryButton(cm);
-            cm.setOnAction(event -> {
-                try {
-                    cm.hide();
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
+            initializeContextMenu(cm, LOG);
             MenuItem editMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Edit"));
             MenuItem addToCollectionMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Add to collection"));
             MenuItem removeFromCollectionMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Remove from collection"));
@@ -1907,14 +1900,7 @@ public class SongController {
     private void initSongCollectionListViewMenuItem() {
         try {
             final ContextMenu cm = new ContextMenu();
-            consumeContextMenuOnSecondaryButton(cm);
-            cm.setOnAction(event -> {
-                try {
-                    cm.hide();
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
+            initializeContextMenu(cm, LOG);
             MenuItem editMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Edit"));
             MenuItem deleteMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Delete"));
 //            cm.getItems().addAll(editMenuItem, deleteMenuItem);
@@ -1969,18 +1955,6 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
-    }
-
-    private void consumeContextMenuOnSecondaryButton(ContextMenu cm) {
-        cm.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-            try {
-                if (event.getButton() == MouseButton.SECONDARY) {
-                    event.consume();
-                }
-            } catch (Exception e) {
-                LOG.error(e.getMessage(), e);
-            }
-        });
     }
 
     void addSongCollections() {
