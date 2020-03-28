@@ -33,7 +33,39 @@ public enum SectionType {
         return sectionTypeMap;
     }
 
+    public static SectionType getValueFromString(String s) {
+        switch (s) {
+            case "[INTRO]":
+                return INTRO;
+            case "[PRE_CHORUS]":
+                return PRE_CHORUS;
+            case "[CHORUS]":
+                return CHORUS;
+            case "[BRIDGE]":
+                return BRIDGE;
+            case "[CODA]":
+                return CODA;
+        }
+        return VERSE;
+    }
+
     public int getValue() {
         return value;
+    }
+
+    public String getStringValue() {
+        switch (getInstance(value)) {
+            case INTRO:
+                return "[INTRO]";
+            case PRE_CHORUS:
+                return "[PRE_CHORUS]";
+            case CHORUS:
+                return "[CHORUS]";
+            case BRIDGE:
+                return "[BRIDGE]";
+            case CODA:
+                return "[CODA]";
+        }
+        return "";
     }
 }

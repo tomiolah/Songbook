@@ -28,6 +28,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
@@ -35,7 +36,6 @@ import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -46,6 +46,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.Main;
@@ -103,6 +104,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static java.lang.Math.min;
+import static projector.utils.ContextMenuUtil.initializeContextMenu;
 import static projector.utils.StringUtils.stripAccents;
 
 public class SongController {
@@ -118,6 +120,8 @@ public class SongController {
     private final String link4 = "https://www." + BASE_URL;
     private final String prefix = "id:";
     private final SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
+    @FXML
+    private ListView<SongVerse> verseOrderListView;
     @FXML
     private HBox authorBox;
     @FXML
@@ -189,11 +193,12 @@ public class SongController {
     private SongCollection selectedSongCollection;
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
     private Song selectedSong;
-    private ArrayList<SongVerse> selectedSongVerseList;
+    private List<SongVerse> selectedSongVerseList;
     private int successfullyCreated;
     private SongRemoteListener songRemoteListener;
     private SongReadRemoteListener songReadRemoteListener;
     private boolean initialized = false;
+    private boolean synchronizingVerseOrderListSelection = false;
 
     public SongController() {
         songService = ServiceManager.getSongService();
@@ -373,8 +378,7 @@ public class SongController {
                         final int width = (int) projectionScreenController.getScene().getWidth();
                         int height = (int) projectionScreenController.getScene().getHeight();
                         final int size = (int) songHeightSlider.getValue();
-                        selectedSongVerseList = new ArrayList<>(selectedSong.getVerses().size());
-                        addAgainChorus(selectedSong, selectedSongVerseList);
+                        selectedSongVerseList = selectedSong.getSongVersesByVerseOrder();
                         MyTextFlow myTextFlow = new MyTextFlow();
                         int width1;
                         boolean aspectRatioCheckBoxSelected = aspectRatioCheckBox.isSelected();
@@ -456,6 +460,7 @@ public class SongController {
                             songRemoteListener.onSongVerseListViewChanged(songListViewItems);
                         }
                         settingTheAuthor(selectedSong);
+                        settingTheVerseOrder(selectedSong);
                     }
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
@@ -510,6 +515,7 @@ public class SongController {
             songListView.getSelectionModel().getSelectedIndices().addListener((ListChangeListener<Integer>) c -> {
                 try {
                     ObservableList<Integer> ob = songListView.getSelectionModel().getSelectedIndices();
+                    synchronizedSelectVerseOrderListView(ob);
                     if (ob.size() == 1) {
                         int selectedIndex = ob.get(0);
                         if (selectedIndex < 0) {
@@ -687,9 +693,83 @@ public class SongController {
             initializeShowVersionsButton();
             initializeDragListeners();
             initializeSongs();
+            initializeVerseOrderList();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void synchronizedSelectVerseOrderListView(ObservableList<Integer> ob) {
+        if (synchronizingVerseOrderListSelection) {
+            return;
+        }
+        synchronizingVerseOrderListSelection = true;
+        MultipleSelectionModel<SongVerse> selectionModel = verseOrderListView.getSelectionModel();
+        int size = verseOrderListView.getItems().size();
+        selectionModel.clearSelection();
+        for (int index : ob) {
+            int index1 = index - 1;
+            if (index1 >= 0 && index1 < size) {
+                selectionModel.select(index1);
+            }
+        }
+        synchronizingVerseOrderListSelection = false;
+    }
+
+    private void synchronizedSelectSongVerseListView(ObservableList<Integer> ob) {
+        if (synchronizingVerseOrderListSelection) {
+            return;
+        }
+        synchronizingVerseOrderListSelection = true;
+        MultipleSelectionModel<MyTextFlow> selectionModel = songListView.getSelectionModel();
+        int size = songListView.getItems().size();
+        selectionModel.clearSelection();
+        for (int index : ob) {
+            int index1 = index + 1;
+            if (index1 >= 0 && index1 < size) {
+                selectionModel.select(index1);
+            }
+        }
+        synchronizingVerseOrderListSelection = false;
+    }
+
+    private void initializeVerseOrderList() {
+        verseOrderListView.orientationProperty().set(Orientation.HORIZONTAL);
+        verseOrderListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        final ObservableList<Integer> selectedIndices = verseOrderListView.getSelectionModel().getSelectedIndices();
+        selectedIndices.addListener((ListChangeListener<Integer>) c -> synchronizedSelectSongVerseListView(selectedIndices));
+        verseOrderListView.setCellFactory(new Callback<ListView<SongVerse>, ListCell<SongVerse>>() {
+            @Override
+            public ListCell<SongVerse> call(ListView<SongVerse> listView) {
+
+                return new ListCell<SongVerse>() {
+                    final Tooltip tooltip = new Tooltip();
+
+                    @Override
+                    protected void updateItem(SongVerse songVerse, boolean empty) {
+                        try {
+                            super.updateItem(songVerse, empty);
+                            if (songVerse != null && !empty) {
+                                setText(songVerse.getSectionTypeStringWithCount());
+                                tooltip.setText(songVerse.getText());
+                                setTooltip(tooltip);
+                            } else {
+                                setText(null);
+                            }
+                        } catch (Exception e) {
+                            LOG.error(e.getMessage(), e);
+                        }
+                    }
+                };
+            }
+        });
+    }
+
+    private void settingTheVerseOrder(Song selectedSong) {
+        ObservableList<SongVerse> verseOrderListViewItems = verseOrderListView.getItems();
+        verseOrderListViewItems.clear();
+        List<SongVerse> songVersesByVerseOrder = selectedSong.getSongVersesByVerseOrder();
+        verseOrderListViewItems.addAll(songVersesByVerseOrder);
     }
 
     private void settingTheAuthor(Song selectedSong) {
@@ -1233,31 +1313,6 @@ public class SongController {
         }
     }
 
-    private void addAgainChorus(Song selectedSong, List<SongVerse> verseList) {
-        try {
-            final List<SongVerse> verses = selectedSong.getVerses();
-            SongVerse chorus = null;
-            int size = verses.size();
-            for (int i = 0; i < size; ++i) {
-                SongVerse songVerse = verses.get(i);
-                verseList.add(songVerse);
-                if (songVerse.isChorus()) {
-                    chorus = songVerse;
-                } else if (chorus != null) {
-                    if (i + 1 < size) {
-                        if (!verses.get(i + 1).isChorus()) {
-                            verseList.add(chorus);
-                        }
-                    } else {
-                        verseList.add(chorus);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
-        }
-    }
-
     private void initializeProgressLineButton() {
         try {
             progressLineToggleButton.setOnAction(event -> settings.setShowProgressLine(progressLineToggleButton.isSelected()));
@@ -1752,14 +1807,7 @@ public class SongController {
     private void initListViewMenuItem() {
         try {
             final ContextMenu cm = new ContextMenu();
-            consumeContextMenuOnSecondaryButton(cm);
-            cm.setOnAction(event -> {
-                try {
-                    cm.hide();
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
+            initializeContextMenu(cm, LOG);
             MenuItem editMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Edit"));
             MenuItem addToCollectionMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Add to collection"));
             MenuItem removeFromCollectionMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Remove from collection"));
@@ -1779,7 +1827,6 @@ public class SongController {
                         Pane root = loader.load();
                         NewSongController newSongController = loader.getController();
                         newSongController.setSongController(songController);
-                        newSongController.setEdit();
                         newSongController.setSelectedSong(listView.getSelectionModel().getSelectedItem());
                         newSongController.setTitleTextFieldText(selectedSong.getTitle());
                         Scene scene = new Scene(root);
@@ -1897,14 +1944,7 @@ public class SongController {
     private void initSongCollectionListViewMenuItem() {
         try {
             final ContextMenu cm = new ContextMenu();
-            consumeContextMenuOnSecondaryButton(cm);
-            cm.setOnAction(event -> {
-                try {
-                    cm.hide();
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
+            initializeContextMenu(cm, LOG);
             MenuItem editMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Edit"));
             MenuItem deleteMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Delete"));
 //            cm.getItems().addAll(editMenuItem, deleteMenuItem);
@@ -1959,18 +1999,6 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
-    }
-
-    private void consumeContextMenuOnSecondaryButton(ContextMenu cm) {
-        cm.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-            try {
-                if (event.getButton() == MouseButton.SECONDARY) {
-                    event.consume();
-                }
-            } catch (Exception e) {
-                LOG.error(e.getMessage(), e);
-            }
-        });
     }
 
     void addSongCollections() {
@@ -2119,6 +2147,7 @@ public class SongController {
             previewProjectionScreenController.setStage(stage2);
 
             stage.setOnCloseRequest(we -> stage2.close());
+            newSongController.setNewSong();
             newSongController.setStage(stage, stage2);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);

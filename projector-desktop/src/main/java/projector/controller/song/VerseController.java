@@ -1,12 +1,22 @@
 package projector.controller.song;
 
+import com.bence.projector.common.model.SectionType;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
+import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.controller.song.util.OnChangeListener;
 import projector.model.SongVerse;
+import projector.utils.CloneUtil;
+
+import java.util.List;
 
 import static projector.utils.scene.text.MyTextFlow.getStringTextFromRawText;
 
@@ -14,25 +24,79 @@ public class VerseController {
 
     private static final Logger LOG = LoggerFactory.getLogger(VerseController.class);
     @FXML
+    private Button addToVerseOrderButton;
+    @FXML
+    private ComboBox<SectionType> sectionTypeComboBox;
+    @FXML
     private BorderPane rightBorderPane;
     @FXML
     private TextArea secondTextArea;
     @FXML
     private TextArea textArea;
-    @FXML
-    private ToggleButton chorusToggleButton;
     private SongVerse songVerse;
+    private OnChangeListener onChangeListener;
+    private boolean onChangeListenerPause = false;
 
     public void initialize() {
-        chorusToggleButton.selectedProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue) {
-                chorusToggleButton.setStyle("-fx-base: lightgreen;");
-            } else {
-                chorusToggleButton.setStyle("-fx-base: #e6e6e6;");
+        showSecondText(false);
+        fillSectionTypeComboBox();
+        Callback<ListView<SectionType>, ListCell<SectionType>> cellFactory = new Callback<ListView<SectionType>, ListCell<SectionType>>() {
+            @Override
+            public ListCell<SectionType> call(ListView<SectionType> param) {
+                return new ListCell<SectionType>() {
+                    @Override
+                    protected void updateItem(SectionType sectionType, boolean empty) {
+                        try {
+                            super.updateItem(sectionType, empty);
+                            if (sectionType != null && !empty) {
+                                if (songVerse.getSectionType().equals(sectionType)) {
+                                    setText(songVerse.getLongSectionTypeStringWithCount());
+                                } else {
+                                    setText(songVerse.getSectionTypeString(sectionType));
+                                }
+                            } else {
+                                setText(null);
+                            }
+                        } catch (Exception e) {
+                            LOG.error(e.getMessage(), e);
+                        }
+                    }
+                };
+            }
+        };
+        sectionTypeComboBox.setButtonCell(cellFactory.call(null));
+        sectionTypeComboBox.setCellFactory(cellFactory);
+        sectionTypeComboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue == null) {
+                return;
+            }
+            if (onChangeListener != null && !onChangeListenerPause) {
+                songVerse.setSectionType(newValue);
+                onChangeListener.onChange();
             }
         });
-        chorusToggleButton.setFocusTraversable(false);
-        showSecondText(false);
+        textArea.textProperty().addListener((observable, oldValue, newValue) -> {
+            songVerse.setText(newValue);
+            if (onChangeListener != null && !onChangeListenerPause) {
+                onChangeListener.onChange();
+            }
+        });
+        addToVerseOrderButton.setOnAction(event -> {
+            if (onChangeListener != null) {
+                onChangeListener.onAddToVerseButton();
+            }
+        });
+    }
+
+    private void fillSectionTypeComboBox() {
+        ObservableList<SectionType> sectionTypeComboBoxItems = sectionTypeComboBox.getItems();
+        sectionTypeComboBoxItems.clear();
+        sectionTypeComboBoxItems.add(SectionType.INTRO);
+        sectionTypeComboBoxItems.add(SectionType.VERSE);
+        sectionTypeComboBoxItems.add(SectionType.PRE_CHORUS);
+        sectionTypeComboBoxItems.add(SectionType.CHORUS);
+        sectionTypeComboBoxItems.add(SectionType.BRIDGE);
+        sectionTypeComboBoxItems.add(SectionType.CODA);
     }
 
     String getRawText() {
@@ -62,12 +126,12 @@ public class VerseController {
         return textArea;
     }
 
-    public TextArea getSecondTextArea() {
+    TextArea getSecondTextArea() {
         return secondTextArea;
     }
 
     SongVerse getSongVerse() {
-        songVerse.setChorus(chorusToggleButton.isSelected());
+        songVerse.setSectionType(sectionTypeComboBox.getValue());
         songVerse.setText(textArea.getText().trim());
         songVerse.setSecondText(secondTextArea.getText());
         return songVerse;
@@ -75,7 +139,7 @@ public class VerseController {
 
     void setSongVerse(SongVerse songVerse) {
         this.songVerse = songVerse;
-        chorusToggleButton.setSelected(songVerse.isChorus());
+        sectionTypeComboBox.getSelectionModel().select(songVerse.getSectionType());
         textArea.setText(getStringTextFromRawText(songVerse.getText()));
         try {
             String secondText = songVerse.getSecondText();
@@ -88,7 +152,7 @@ public class VerseController {
         }
     }
 
-    public void showSecondText(boolean showSecondText) {
+    void showSecondText(boolean showSecondText) {
         try {
             if (showSecondText) {
                 rightBorderPane.setCenter(secondTextArea);
@@ -98,5 +162,24 @@ public class VerseController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    void setOnChangeListener(OnChangeListener onChangeListener) {
+        this.onChangeListener = onChangeListener;
+    }
+
+    void reFillSectionType() {
+        onChangeListenerPause = true;
+        SectionType value = sectionTypeComboBox.getValue();
+        ObservableList<SectionType> items = sectionTypeComboBox.getItems();
+        if (items != null) {
+            List<SectionType> sectionTypes = CloneUtil.cloneList(items);
+            items.clear();
+            //noinspection ConstantConditions
+            items.addAll(sectionTypes);
+            sectionTypeComboBox.setItems(items);
+            sectionTypeComboBox.setValue(value);
+        }
+        onChangeListenerPause = false;
     }
 }
