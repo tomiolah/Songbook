@@ -28,6 +28,7 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
@@ -197,6 +198,7 @@ public class SongController {
     private SongRemoteListener songRemoteListener;
     private SongReadRemoteListener songReadRemoteListener;
     private boolean initialized = false;
+    private boolean synchronizingVerseOrderListSelection = false;
 
     public SongController() {
         songService = ServiceManager.getSongService();
@@ -513,6 +515,7 @@ public class SongController {
             songListView.getSelectionModel().getSelectedIndices().addListener((ListChangeListener<Integer>) c -> {
                 try {
                     ObservableList<Integer> ob = songListView.getSelectionModel().getSelectedIndices();
+                    synchronizedSelectVerseOrderListView(ob);
                     if (ob.size() == 1) {
                         int selectedIndex = ob.get(0);
                         if (selectedIndex < 0) {
@@ -696,19 +699,60 @@ public class SongController {
         }
     }
 
+    private void synchronizedSelectVerseOrderListView(ObservableList<Integer> ob) {
+        if (synchronizingVerseOrderListSelection) {
+            return;
+        }
+        synchronizingVerseOrderListSelection = true;
+        MultipleSelectionModel<SongVerse> selectionModel = verseOrderListView.getSelectionModel();
+        int size = verseOrderListView.getItems().size();
+        selectionModel.clearSelection();
+        for (int index : ob) {
+            int index1 = index - 1;
+            if (index1 >= 0 && index1 < size) {
+                selectionModel.select(index1);
+            }
+        }
+        synchronizingVerseOrderListSelection = false;
+    }
+
+    private void synchronizedSelectSongVerseListView(ObservableList<Integer> ob) {
+        if (synchronizingVerseOrderListSelection) {
+            return;
+        }
+        synchronizingVerseOrderListSelection = true;
+        MultipleSelectionModel<MyTextFlow> selectionModel = songListView.getSelectionModel();
+        int size = songListView.getItems().size();
+        selectionModel.clearSelection();
+        for (int index : ob) {
+            int index1 = index + 1;
+            if (index1 >= 0 && index1 < size) {
+                selectionModel.select(index1);
+            }
+        }
+        synchronizingVerseOrderListSelection = false;
+    }
+
     private void initializeVerseOrderList() {
         verseOrderListView.orientationProperty().set(Orientation.HORIZONTAL);
+        verseOrderListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
+        final ObservableList<Integer> selectedIndices = verseOrderListView.getSelectionModel().getSelectedIndices();
+        selectedIndices.addListener((ListChangeListener<Integer>) c -> synchronizedSelectSongVerseListView(selectedIndices));
         verseOrderListView.setCellFactory(new Callback<ListView<SongVerse>, ListCell<SongVerse>>() {
             @Override
             public ListCell<SongVerse> call(ListView<SongVerse> listView) {
 
                 return new ListCell<SongVerse>() {
+                    final Tooltip tooltip = new Tooltip();
+
                     @Override
                     protected void updateItem(SongVerse songVerse, boolean empty) {
                         try {
                             super.updateItem(songVerse, empty);
                             if (songVerse != null && !empty) {
                                 setText(songVerse.getSectionTypeStringWithCount());
+                                tooltip.setText(songVerse.getText());
+                                setTooltip(tooltip);
                             } else {
                                 setText(null);
                             }
