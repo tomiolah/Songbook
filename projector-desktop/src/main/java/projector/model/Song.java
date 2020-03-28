@@ -358,7 +358,7 @@ public class Song extends BaseEntity {
         this.versionGroup = versionGroup;
     }
 
-    private long getViews() {
+    public long getViews() {
         return views;
     }
 
@@ -366,7 +366,7 @@ public class Song extends BaseEntity {
         this.views = views;
     }
 
-    private long getFavouriteCount() {
+    public long getFavouriteCount() {
         return favouriteCount;
     }
 
