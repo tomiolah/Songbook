@@ -54,6 +54,7 @@ export class SongVerseDTO {
 
 export class SongVerseUI extends SongVerseDTO {
   selected: boolean;
+  verseIndex: number = 0;
 
   constructor(values: Object = {}) {
     super(values);
