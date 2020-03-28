@@ -13,7 +13,6 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.input.TransferMode;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -42,6 +41,7 @@ import java.util.List;
 
 import static projector.controller.song.SongController.setSongCollections;
 import static projector.controller.song.SongController.setTextFlowsText;
+import static projector.utils.ContextMenuUtil.initializeContextMenu;
 
 public class ScheduleController {
     private static final Logger LOG = LoggerFactory.getLogger(ScheduleController.class);
@@ -174,13 +174,7 @@ public class ScheduleController {
             }
         });
         final ContextMenu cm = new ContextMenu();
-        cm.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
-            if (event.getButton() == MouseButton.SECONDARY) {
-                event.consume();
-            }
-            System.out.println(event.getButton());
-        });
-        cm.setOnAction(event -> cm.hide());
+        initializeContextMenu(cm, LOG);
         MenuItem moveUpMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Move up"));
         MenuItem moveDownMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Move down"));
         MenuItem removeMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Remove"));

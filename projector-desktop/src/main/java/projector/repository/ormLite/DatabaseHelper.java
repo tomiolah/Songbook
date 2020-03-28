@@ -37,7 +37,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 10;
+    private final int DATABASE_VERSION = 11;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
     private ConnectionSource connectionSource;
@@ -98,11 +98,23 @@ public class DatabaseHelper {
                     } catch (Exception ignored) {
                     }
                 }
-                //noinspection ConstantConditions
                 if (oldVersion <= 9) {
                     Dao<Song, Long> songDao = getSongDao();
                     try {
                         songDao.executeRaw("ALTER TABLE `song` ADD COLUMN author VARCHAR(100)");
+                    } catch (Exception ignored) {
+                    }
+                }
+                //noinspection ConstantConditions
+                if (oldVersion <= 10) {
+                    Dao<Song, Long> songDao = getSongDao();
+                    try {
+                        songDao.executeRaw("ALTER TABLE `song` ADD COLUMN verseOrder VARCHAR(100)");
+                    } catch (Exception ignored) {
+                    }
+                    Dao<SongVerse, Long> songVerseDao = getSongVerseDao();
+                    try {
+                        songVerseDao.executeRaw("ALTER TABLE `songVerse` ADD COLUMN sectionTypeData INTEGER");
                     } catch (Exception ignored) {
                     }
                 }

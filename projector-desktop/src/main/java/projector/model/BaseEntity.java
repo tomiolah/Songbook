@@ -11,11 +11,17 @@ public abstract class BaseEntity extends AbstractModel implements Serializable {
     private Long id;
 
     public BaseEntity() {
-        this(null);
+        this((Long) null);
     }
 
     public BaseEntity(Long id) {
+        super();
         this.id = id;
+    }
+
+    public BaseEntity(BaseEntity other) {
+        super(other);
+        this.id = other.id;
     }
 
     public Long getId() {

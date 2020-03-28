@@ -361,7 +361,6 @@ public class Settings {
             maxFont = Integer.parseInt(br.readLine());
             br.readLine();
             String strline = br.readLine();
-            System.out.println(strline + strline);
             withAccents = parseBoolean(strline);
             br.readLine();
             backgroundColor = new Color(parseDouble(br.readLine()), parseDouble(br.readLine()),

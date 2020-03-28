@@ -35,7 +35,7 @@ public class SongResourceSeo {
         }
         model.addAttribute("title", song.getTitle());
         model.addAttribute("song", song);
-        Song randomSong = songService.getRandomSong();
+        Song randomSong = songService.getRandomSong(song.getLanguage());
         model.addAttribute("randomSongUrl", "/song/" + randomSong.getId());
         HashMap<String, Integer> hashMap = new HashMap<>();
         String regex = "[.!?,;'\\\\:\"|<>{}\\[\\]_\\-=+0-9@#$%^&*()`~\\n]+";

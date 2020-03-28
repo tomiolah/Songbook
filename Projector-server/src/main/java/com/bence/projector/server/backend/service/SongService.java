@@ -21,7 +21,7 @@ public interface SongService extends BaseService<Song> {
 
     List<Song> findAllByVersionGroup(String versionGroup);
 
-    Song getRandomSong();
+    Song getRandomSong(Language language);
 
     void removeSongFromLanguage(Song song, Language oldLanguage);
 

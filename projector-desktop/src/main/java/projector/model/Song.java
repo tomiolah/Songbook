@@ -1,9 +1,11 @@
 package projector.model;
 
+import com.bence.projector.common.model.SectionType;
 import com.google.gson.annotations.Expose;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
+import projector.utils.CloneUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -57,6 +59,9 @@ public class Song extends BaseEntity {
     private long favouriteCount;
     @DatabaseField(width = 100)
     private String author;
+    @DatabaseField(width = 100)
+    private String verseOrder;
+    private List<Short> verseOrderList;
 
     public Song() {
     }
@@ -69,8 +74,96 @@ public class Song extends BaseEntity {
         this.songBooks = songBooks;
     }
 
+    public Song(Song song) {
+        super(song);
+        this.title = song.title;
+        this.strippedTitle = song.strippedTitle;
+        this.verses = SongVerse.cloneList(song.verses);
+        this.createdDate = song.createdDate;
+        this.modifiedDate = song.modifiedDate;
+        this.serverModifiedDate = song.serverModifiedDate;
+        this.deleted = song.deleted;
+        this.fileText = song.fileText;
+        this.versTimes = song.versTimes;
+        this.songBooks = song.songBooks;
+        this.publish = song.publish;
+        this.published = song.published;
+        this.language = song.language;
+        this.songCollections = song.songCollections;
+        this.songCollectionElements = song.songCollectionElements;
+        this.versionGroup = song.versionGroup;
+        this.views = song.views;
+        this.favouriteCount = song.favouriteCount;
+        this.author = song.author;
+        this.verseOrder = song.verseOrder;
+        this.verseOrderList = CloneUtil.cloneList(song.verseOrderList);
+    }
+
     private static long getCurrentDate() {
         return currentDate;
+    }
+
+    public List<Short> getVerseOrderList() {
+        if (verseOrderList == null) {
+            verseOrderList = new ArrayList<>();
+            if (verseOrder != null) {
+                String[] split = verseOrder.split(",");
+                for (String s : split) {
+                    verseOrderList.add(Short.parseShort(s));
+                }
+            }
+            if (verseOrderList.isEmpty()) {
+                short i = 0;
+                short chorusIndex = 0;
+                boolean wasChorus = false;
+                List<SongVerse> verses = getVerses();
+                int size = verses.size();
+                for (SongVerse verse : verses) {
+                    verseOrderList.add(i);
+                    if (wasChorus) {
+                        SectionType sectionType = verse.getSectionType();
+                        boolean nextNotChorus = i >= size - 1 || !verses.get(i + 1).isChorus();
+                        if (!sectionType.equals(SectionType.CHORUS) && !sectionType.equals(SectionType.CODA) && nextNotChorus) {
+                            verseOrderList.add(chorusIndex);
+                        }
+                    }
+                    if (verse.getSectionType().equals(SectionType.CHORUS)) {
+                        chorusIndex = i;
+                        wasChorus = true;
+                    }
+                    ++i;
+                }
+
+            }
+        }
+        return verseOrderList;
+    }
+
+    public void setVerseOrderList(List<Short> verseOrderList) {
+        this.verseOrderList = verseOrderList;
+        if (verseOrderList == null) {
+            return;
+        }
+        StringBuilder s = new StringBuilder();
+        boolean first = true;
+        for (Short index : verseOrderList) {
+            if (!first) {
+                s.append(",");
+            }
+            s.append(index);
+            first = false;
+        }
+        verseOrder = s.toString();
+    }
+
+    public List<SongVerse> getSongVersesByVerseOrder() {
+        List<Short> verseOrderList = getVerseOrderList();
+        List<SongVerse> songVerses = new ArrayList<>(verseOrderList.size());
+        List<SongVerse> verses = getVerses();
+        for (Short index : verseOrderList) {
+            songVerses.add(verses.get(index));
+        }
+        return songVerses;
     }
 
     public String getTitle() {
@@ -124,10 +217,13 @@ public class Song extends BaseEntity {
 
     public List<SongVerse> getVerses() {
         if (verses == null) {
-            List<SongVerse> songVerses = new ArrayList<>(songVerseForeignCollection.size());
-            songVerses.addAll(songVerseForeignCollection);
-            verses = songVerses;
-            return songVerses;
+            if (songVerseForeignCollection != null) {
+                List<SongVerse> songVerses = new ArrayList<>(songVerseForeignCollection.size());
+                songVerses.addAll(songVerseForeignCollection);
+                verses = songVerses;
+            } else {
+                verses = new ArrayList<>();
+            }
         }
         return verses;
     }
@@ -262,7 +358,7 @@ public class Song extends BaseEntity {
         this.versionGroup = versionGroup;
     }
 
-    private long getViews() {
+    public long getViews() {
         return views;
     }
 
@@ -270,7 +366,7 @@ public class Song extends BaseEntity {
         this.views = views;
     }
 
-    private long getFavouriteCount() {
+    public long getFavouriteCount() {
         return favouriteCount;
     }
 
