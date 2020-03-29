@@ -62,9 +62,6 @@
               <button type="button" mat-icon-button (click)="addNewVerse()" matTooltip="Add a new section">
                 <mat-icon>add</mat-icon>
               </button>
-              <button type="button" mat-icon-button (click)="refactor()">
-                <mat-icon svgIcon="magic_tool">magic_tool</mat-icon>
-              </button>
               <br>
               <br>
               <div cdkDropListGroup>
@@ -115,6 +112,9 @@
           <br>
           <br>
           <button type="submit" (click)="onSubmit()" class="btn btn-success" [disabled]="needToDisable()">Submit</button>
+          <button *ngIf="refactorable()"  type="button" mat-icon-button (click)="refactor()" matTooltip="Automatic fixes">
+            <mat-icon svgIcon="magic_tool">magic_tool</mat-icon>
+          </button>
         </div>
         <br>
       </form>

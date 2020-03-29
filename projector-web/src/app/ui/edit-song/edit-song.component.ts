@@ -492,7 +492,7 @@ export class EditSongComponent implements OnInit {
   }
 
   needToDisable() {
-    return !this.form.valid || this.editorType === 'raw';
+    return !this.form.valid || this.editorType === 'raw' || this.selectedLanguage == null;
   }
 
   refactor() {
@@ -501,13 +501,41 @@ export class EditSongComponent implements OnInit {
       let i = 0;
       for (const key in formValue) {
         if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
-          let newValue = replace(formValue, key);
+          let newValue = replace(formValue[key]);
           this.form.controls['verse' + i].setValue(newValue);
           this.form.controls['verse' + i].updateValueAndValidity();
           i = i + 1;
         }
+        const aKey = 'title';
+        if (formValue.hasOwnProperty(key) && key.startsWith(aKey)) {
+          let newValue = replace(formValue[key]);
+          this.form.controls[aKey].setValue(newValue);
+          this.form.controls[aKey].updateValueAndValidity();
+        }
       }
     }
+  }
+
+  refactorable(): boolean {
+    if (this.editorType !== 'raw') {
+      const formValue = this.form.value;
+      for (const key in formValue) {
+        if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
+          const value = formValue[key];
+          if (value != replace(value)) {
+            return true;
+          }
+        }
+        const aKey = 'title';
+        if (formValue.hasOwnProperty(key) && key.startsWith(aKey)) {
+          const value = formValue[key];
+          if (value != replace(value)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   calculateUrlId() {

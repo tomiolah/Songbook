@@ -361,6 +361,9 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         }
         long time = modifiedDate.getTime();
         Language language = song.getLanguage();
+        if (language == null) {
+            return;
+        }
         long lastModifiedDateTime = getLastModifiedDateTimeByLanguage(language);
         if (time > lastModifiedDateTime) {
             HashMap<String, Long> map = getLastModifiedDateTimeByLanguage();
