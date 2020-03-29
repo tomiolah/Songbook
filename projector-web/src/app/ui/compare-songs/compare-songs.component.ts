@@ -156,10 +156,15 @@ export class CompareSongsComponent implements OnChanges {
 
   private static getText(song: Song) {
     let text = '';
+    let first = true;
     for (let songVerse of song.getVerses()) {
       if (songVerse.lines != undefined) {
         for (let line of songVerse.lines) {
+          if (!first) {
+            text += '\n';
+          }
           text += line;
+          first = false;
         }
       }
     }
@@ -531,9 +536,11 @@ export class CompareSongsComponent implements OnChanges {
     this.m_secondSong.repeatChorus = repeatChorus;
     CompareSongsComponent.createLines(this.m_song);
     CompareSongsComponent.createLines(this.m_secondSong);
-    this.calculateDifferencesByLines();
     this.getCommonStringsAndSetPercentage();
   }
+
+  private v: number[];
+  private bestCombination: number[];
 
   private getCommonStringsAndSetPercentage() {
     let a = CompareSongsComponent.getText(this.m_song);
@@ -544,7 +551,216 @@ export class CompareSongsComponent implements OnChanges {
     let y = commonStrings.length;
     y = y / b.length;
     this.percentage = (x + y) / 2;
-    return commonStrings;
+
+    this.setColorTextByCommonStringToSong(commonStrings, a, this.m_song);
+    this.setColorTextByCommonStringToSong(commonStrings, b, this.m_secondSong);
+  }
+
+  private commonString;
+  private minK;
+  private maxK;
+  private maxI;
+  private textString;
+  private MAX_POINT = 999999;
+  private bestCombinationChangePoint = this.MAX_POINT;
+  private bestCombinationDiffPoint = this.MAX_POINT;
+
+  private setColorTextByCommonStringToSong(commonStrings: any[], a: string, song: Song) {
+    let firstLine = true;
+    let k = 0;
+    let characterCount = 0;
+    let characterIndexByLeft: number[] = [];
+    let characterIndexByRight: number[] = [];
+    for (let i = 0; i < commonStrings.length; ++i) {
+      characterIndexByLeft.push(-1);
+      characterIndexByRight.push(-1);
+    }
+    for (const songVerse of song.getVerses()) {
+      songVerse.lineCompareLines = [];
+      for (const line of songVerse.lines) {
+        const lineCompare = new LineCompare();
+        let lineWithEndLine = "";
+        if (!firstLine) {
+          lineWithEndLine += '\n';
+        }
+        lineWithEndLine += line;
+        lineCompare.text = lineWithEndLine;
+        let words = CompareSongsComponent.getWordsByLine(lineWithEndLine);
+        for (const word of words) {
+          const wordCompare = new WordCompare();
+          wordCompare.characters = [];
+          wordCompare.text = "";
+          for (const c of word) {
+            const colorText = new ColorText();
+            colorText.text = c;
+            wordCompare.text += c;
+            colorText.color = (k < commonStrings.length) && (c == commonStrings[k]);
+            if (colorText.color) {
+              characterIndexByLeft[k] = characterCount;
+              colorText.forwardIndexK = k;
+              ++k;
+            }
+            wordCompare.characters.push(colorText);
+            ++characterCount;
+          }
+          lineCompare.lineWord.words.push(wordCompare);
+        }
+        firstLine = false;
+        songVerse.lineCompareLines.push(lineCompare);
+      }
+    }
+    k = commonStrings.length - 1;
+    characterCount = a.length - 1;
+    let songVerseI = song.getVerses().length - 1;
+    while (songVerseI >= 0) {
+      const songVerse = song.getVerses()[songVerseI];
+      let lineCompareI = songVerse.lineCompareLines.length - 1;
+      while (lineCompareI >= 0) {
+        const lineCompare = songVerse.lineCompareLines[lineCompareI];
+        let wordCompareI = lineCompare.lineWord.words.length - 1;
+        while (wordCompareI >= 0) {
+          const wordCompare = lineCompare.lineWord.words[wordCompareI];
+          let charactersI = wordCompare.characters.length - 1;
+          while (charactersI >= 0) {
+            const colorText = wordCompare.characters[charactersI];
+            colorText.backwardColor = (0 <= k) && (colorText.text == commonStrings[k]);
+            if (colorText.backwardColor) {
+              characterIndexByRight[k] = characterCount;
+              --k;
+            }
+            --characterCount;
+            --charactersI;
+          }
+          --wordCompareI;
+        }
+        --lineCompareI;
+      }
+      --songVerseI;
+    }
+    this.v = [];
+    this.bestCombination = [];
+    for (let i = 0; i < commonStrings.length; ++i) {
+      this.v.push(-1);
+      this.bestCombination.push(-1);
+    }
+    let lastSameIndex = -1;
+    while (characterIndexByLeft[lastSameIndex + 1] == characterIndexByRight[lastSameIndex + 1] && lastSameIndex + 1 < characterIndexByLeft.length) {
+      ++lastSameIndex;
+      this.bestCombination[lastSameIndex] = characterIndexByLeft[lastSameIndex];
+    }
+    let nextSameIndex = this.getNextSame(lastSameIndex + 1, characterIndexByLeft, characterIndexByRight);
+    this.textString = a;
+    this.commonString = commonStrings;
+    this.getBestCombination(lastSameIndex + 1, nextSameIndex - 1, characterIndexByLeft, characterIndexByRight);
+    while (nextSameIndex >= 0 && nextSameIndex < characterIndexByLeft.length) {
+      this.bestCombination[nextSameIndex] = characterIndexByLeft[nextSameIndex];
+      lastSameIndex = nextSameIndex;
+      while (characterIndexByLeft[lastSameIndex + 1] == characterIndexByRight[lastSameIndex + 1] && lastSameIndex + 1 < characterIndexByLeft.length) {
+        ++lastSameIndex;
+        this.bestCombination[lastSameIndex] = characterIndexByLeft[lastSameIndex];
+      }
+      nextSameIndex = this.getNextSame(lastSameIndex + 1, characterIndexByLeft, characterIndexByRight);
+      this.getBestCombination(lastSameIndex + 1, nextSameIndex - 1, characterIndexByLeft, characterIndexByRight);
+    }
+    k = commonStrings.length - 1;
+    characterCount = a.length - 1;
+    songVerseI = song.getVerses().length - 1;
+    while (songVerseI >= 0) {
+      const songVerse = song.getVerses()[songVerseI];
+      let lineCompareI = songVerse.lineCompareLines.length - 1;
+      while (lineCompareI >= 0) {
+        const lineCompare = songVerse.lineCompareLines[lineCompareI];
+        lineCompare.color = true;
+        let wordCompareI = lineCompare.lineWord.words.length - 1;
+        while (wordCompareI >= 0) {
+          const wordCompare = lineCompare.lineWord.words[wordCompareI];
+          wordCompare.color = true;
+          let charactersI = wordCompare.characters.length - 1;
+          while (charactersI >= 0) {
+            const colorText = wordCompare.characters[charactersI];
+            colorText.color = (0 <= k) && characterCount == this.bestCombination[k];
+            if (colorText.color) {
+              --k;
+            } else {
+              wordCompare.color = false;
+              lineCompare.color = false;
+            }
+            --characterCount;
+            --charactersI;
+          }
+          --wordCompareI;
+        }
+        --lineCompareI;
+      }
+      --songVerseI;
+    }
+  }
+
+  private getCombinationChangePoint(): number {
+    let x = 0;
+    for (let i = this.minK; i < this.maxK; ++i) {
+      if (this.v[i] + 1 != this.v[i + 1]) {
+        ++x;
+      }
+    }
+    return x;
+  }
+
+  private getCombinationDiffPoint(): number {
+    return this.v[this.maxK] - this.v[this.minK];
+  }
+
+  private copyToBestCombination(a: number, b: number) {
+    for (let i = a; i <= b; ++i) {
+      this.bestCombination[i] = this.v[i];
+    }
+  }
+
+  private back(k: number, i: number) {
+    for (; i <= this.maxI - (this.maxK - k); ++i) {
+      if (this.commonString[k] == this.textString[i]) {
+        this.v[k] = i;
+        if (k == this.maxK) {
+          let changePoint = this.getCombinationChangePoint();
+          if (this.bestCombinationChangePoint > changePoint) {
+            this.bestCombinationChangePoint = changePoint;
+            this.bestCombinationDiffPoint = this.getCombinationDiffPoint();
+            this.copyToBestCombination(this.minK, this.maxK);
+          } else if (this.bestCombinationChangePoint == changePoint) {
+            let diffPoint = this.getCombinationDiffPoint();
+            if (this.bestCombinationDiffPoint > diffPoint) {
+              this.bestCombinationDiffPoint = diffPoint;
+              this.copyToBestCombination(this.minK, this.maxK);
+            }
+          }
+        } else {
+          this.back(k + 1, i + 1);
+        }
+      }
+      if (this.bestCombinationChangePoint == 0) {
+        return;
+      }
+    }
+  }
+
+  private getBestCombination(a: number, b: number, characterIndexByLeft: number[], characterIndexByRight: number[]) {
+    if (a > b) {
+      return;
+    }
+    this.bestCombinationChangePoint = this.MAX_POINT;
+    this.minK = a;
+    this.maxK = b;
+    this.maxI = characterIndexByRight[b];
+    this.back(a, characterIndexByLeft[a]);
+  }
+
+  private getNextSame(firstIndex: number, characterIndexByLeft: number[], characterIndexByRight: number[]): number {
+    for (let i = firstIndex; i < characterIndexByLeft.length; ++i) {
+      if (characterIndexByLeft[i] == characterIndexByRight[i]) {
+        return i;
+      }
+    }
+    return characterIndexByLeft.length;
   }
 
   private calculateDifferencesByLines() {
@@ -582,7 +798,7 @@ export class CompareSongsComponent implements OnChanges {
     for (const word of commonWords) {
       countCommonWordsCharacter = countCommonWordsCharacter + word.length;
     }
-    if (commonCharacters.length * 100 / countCommonWordsCharacter > 110) {
+    if (commonCharacters.length > countCommonWordsCharacter) {
       commonWords = CompareSongsComponent.getCommonWordsByCommonCharacter(leftSongWords, rightSongWords, commonCharacters);
     }
     CompareSongsComponent.createLineWordsForLineCompare(leftSongLineCompares, rightSongLineCompares, commonWords, song, otherSong);
@@ -634,6 +850,7 @@ export class CompareSongsComponent implements OnChanges {
   }
 
   focusOnElement(element: ElementRef) {
+    return; // because it's disabled
     if (element == undefined) {
       return;
     }

@@ -159,6 +159,7 @@ export class EditSongComponent implements OnInit {
 
   calculateOrder() {
     if (this.customSectionOrder) {
+      this.sectionOrder = [];
       for (const sectionIndex of this.song.verseOrderList) {
         for (const usedSection of this.usedSectionTypes) {
           if (usedSection.index == sectionIndex) {
@@ -281,7 +282,9 @@ export class EditSongComponent implements OnInit {
     section.type = SectionType.Verse;
     this.verses.push(section);
     this.verseControls.push(control);
-    this.form.addControl('verse' + (this.verses.length - 1), control);
+    const index = this.verses.length - 1;
+    this.form.addControl('verse' + (index), control);
+    this.song.verseOrderList.push(index);
     this.calculateUsedSectionTypes();
   }
 
@@ -385,10 +388,15 @@ export class EditSongComponent implements OnInit {
   }
 
   private setVerseOrderListFromSectionOrder() {
-    this.song.verseOrderList = [];
+    this.song.verseOrderList = this.getVerseOrderListFromSectionOrder();
+  }
+
+  private getVerseOrderListFromSectionOrder(): number[] {
+    let verseOrderList: number[] = [];
     for (const section of this.sectionOrder) {
-      this.song.verseOrderList.push(section.index);
+      verseOrderList.push(section.index);
     }
+    return verseOrderList;
   }
 
   openNewLanguageDialog(): void {
@@ -404,25 +412,34 @@ export class EditSongComponent implements OnInit {
     if (this.editorType === 'raw') {
       const formValue = this.form.value;
       let i = 0;
-      let text = '';
+      let songVerses = [];
       for (const key in formValue) {
         if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
-          const value = formValue[key];
-          if (text.length > 0) {
-            text = text + "\n\n";
-          }
-          const type = this.verses[i].type;
-          if (type != SectionType.Verse) {
-            for (const sectionType of this.sectionTypes) {
-              if (type == sectionType.type) {
-                text = text + "[" + sectionType.name + "]\n";
-                break;
-              }
+          const songVerse = new SongVerseDTO();
+          songVerse.text = formValue[key];
+          songVerse.type = this.verses[i].type;;
+          songVerses.push(songVerse);
+          ++i;
+        }
+      }
+      let song = new Song();
+      song.songVerseDTOS = songVerses;
+      song.verseOrderList = this.getVerseOrderListFromSectionOrder();
+      let text = '';
+      for (const songVerse of song.getVerses()) {
+        if (text.length > 0) {
+          text = text + "\n\n";
+        }
+        const type = songVerse.type;
+        if (type != SectionType.Verse) {
+          for (const sectionType of this.sectionTypes) {
+            if (type == sectionType.type) {
+              text = text + "[" + sectionType.name + "]\n";
+              break;
             }
           }
-          text = text + value;
-          i = i + 1;
         }
+        text = text + songVerse.text;
       }
       this.songTextFormControl.patchValue(text);
     } else {
@@ -437,6 +454,9 @@ export class EditSongComponent implements OnInit {
       this.verses.splice(0, this.verses.length);
       this.verseControls.splice(0, this.verseControls.length);
       i = 0;
+      let verseMap = new Map<string, SongVerseUI>();
+      let verseCount = 0;
+      this.song.verseOrderList = [];
       for (const verseI of this.songTextFormControl.value.split("\n\n")) {
         const songVerse = new SongVerseUI();
         songVerse.type = SectionType.Verse;
@@ -448,20 +468,31 @@ export class EditSongComponent implements OnInit {
             verse = verseI.substring(sectionString.length, verseI.length);
           }
         }
-        const control = new FormControl(verse);
-        control.setValue(verse);
-        this.verseControls.push(control);
-        this.form.addControl('verse' + i, control);
-        control.patchValue(verse);
-        this.verses.push(songVerse);
-        ++i;
+        songVerse.text = verse;
+        let verseIndex;
+        if (verseMap.has(verse)) {
+          verseIndex = verseMap.get(verse).verseIndex;
+        } else {
+          verseIndex = verseCount++;
+          songVerse.verseIndex = verseIndex;
+          verseMap.set(verse, songVerse);
+          const control = new FormControl(verse);
+          control.setValue(verse);
+          this.verseControls.push(control);
+          this.form.addControl('verse' + i, control);
+          control.patchValue(verse);
+          this.verses.push(songVerse);
+          ++i;
+        }
+        this.song.verseOrderList.push(verseIndex);
       }
+      this.customSectionOrder = true;
       this.calculateUsedSectionTypes();
     }
   }
 
   needToDisable() {
-    return !this.form.valid || this.editorType === 'raw';
+    return !this.form.valid || this.editorType === 'raw' || this.selectedLanguage == null;
   }
 
   refactor() {
@@ -470,13 +501,41 @@ export class EditSongComponent implements OnInit {
       let i = 0;
       for (const key in formValue) {
         if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
-          let newValue = replace(formValue, key);
+          let newValue = replace(formValue[key]);
           this.form.controls['verse' + i].setValue(newValue);
           this.form.controls['verse' + i].updateValueAndValidity();
           i = i + 1;
         }
+        const aKey = 'title';
+        if (formValue.hasOwnProperty(key) && key.startsWith(aKey)) {
+          let newValue = replace(formValue[key]);
+          this.form.controls[aKey].setValue(newValue);
+          this.form.controls[aKey].updateValueAndValidity();
+        }
       }
     }
+  }
+
+  refactorable(): boolean {
+    if (this.editorType !== 'raw') {
+      const formValue = this.form.value;
+      for (const key in formValue) {
+        if (formValue.hasOwnProperty(key) && key.startsWith('verse') && !key.startsWith('verseOrder')) {
+          const value = formValue[key];
+          if (value != replace(value)) {
+            return true;
+          }
+        }
+        const aKey = 'title';
+        if (formValue.hasOwnProperty(key) && key.startsWith(aKey)) {
+          const value = formValue[key];
+          if (value != replace(value)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   calculateUrlId() {
@@ -540,6 +599,5 @@ export class EditSongComponent implements OnInit {
       this.customSectionOrder = true;
     }
     this.calculateUsedSectionTypes();
-    this.song.verseOrderList = [];
   }
 }
