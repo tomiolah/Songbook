@@ -703,6 +703,14 @@ export class CompareSongsComponent implements OnChanges {
         ++x;
       }
     }
+    let j = this.maxK + 1;
+    if (j > 0 && j < this.v.length && this.v[j - 1] != this.v[j]) {
+      ++x;
+    }
+    j = this.minK - 1;
+    if (j > 0 && j < this.v.length && this.v[j - 1] != this.v[j] && this.minK != this.maxK) {
+      ++x;
+    }
     return x;
   }
 
@@ -715,6 +723,9 @@ export class CompareSongsComponent implements OnChanges {
       this.bestCombination[i] = this.v[i];
     }
   }
+
+  private backCount: number;
+  private backCountMax = 100000;
 
   private back(k: number, i: number) {
     for (; i <= this.maxI - (this.maxK - k); ++i) {
@@ -733,11 +744,12 @@ export class CompareSongsComponent implements OnChanges {
               this.copyToBestCombination(this.minK, this.maxK);
             }
           }
+          this.backCount++;
         } else {
           this.back(k + 1, i + 1);
         }
       }
-      if (this.bestCombinationChangePoint == 0) {
+      if (this.bestCombinationChangePoint == 0 || this.backCount > this.backCountMax) {
         return;
       }
     }
@@ -751,6 +763,7 @@ export class CompareSongsComponent implements OnChanges {
     this.minK = a;
     this.maxK = b;
     this.maxI = characterIndexByRight[b];
+    this.backCount = 0;
     this.back(a, characterIndexByLeft[a]);
   }
 
