@@ -3,6 +3,7 @@ import { Observable } from 'rxjs/Observable';
 import { ApiService } from './api.service';
 import { Suggestion } from '../models/suggestion';
 import { Language } from '../models/language';
+import { Song } from './song-service.service';
 
 @Injectable()
 export class SuggestionDataService {
@@ -16,6 +17,10 @@ export class SuggestionDataService {
 
   getAllInReviewByLanguage(role: string, selectedLanguage: Language): Observable<Suggestion[]> {
     return this.api.getAll(Suggestion, role + '/api/suggestions/language/' + selectedLanguage.uuid);
+  }
+
+  getAllBySong(role: string, song: Song): Observable<Suggestion[]> {
+    return this.api.getAll(Suggestion, role + '/api/suggestions/song/' + song.uuid);
   }
 
   getSuggestion(role: string, suggestionId): Observable<Suggestion> {

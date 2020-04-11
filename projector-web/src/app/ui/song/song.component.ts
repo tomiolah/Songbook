@@ -12,6 +12,8 @@ import { AddToCollectionComponent } from "../add-to-collection/add-to-collection
 import { MobileOsTypeEnum } from "../../util/enums";
 import { SongCollection, SongCollectionElement } from '../../models/songCollection';
 import { SongCollectionDataService } from '../../services/song-collection-data.service';
+import { SuggestionDataService } from '../../services/suggestion-data.service';
+import { Suggestion } from '../../models/suggestion';
 
 @Component({
   selector: 'app-song',
@@ -36,10 +38,12 @@ export class SongComponent implements OnInit, OnDestroy {
   eraseSongType = 1;
   mergeVersionGroupType = 2;
   copyToSongCollectionType = 3;
+  loadSuggestionType = 4;
   public isIos = false;
   collections: SongCollection[] = [];
+  unreviewedSuggestions: Suggestion[] = [];
   private markedVersionGroup_key = "markedForVersionSong";
-  @ViewChild("versions", {static:false}) versionsElement: ElementRef;
+  @ViewChild("versions", { static: false }) versionsElement: ElementRef;
 
   constructor(private activatedRoute: ActivatedRoute,
     private songService: SongService,
@@ -49,6 +53,7 @@ export class SongComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private router: Router,
     private songCollectionService: SongCollectionDataService,
+    private suggestionDataService: SuggestionDataService,
     public sanitizer: DomSanitizer) {
     auth.getUserFromLocalStorage();
     setInterval(() => this.refreshMergeSong(), 2000);
@@ -74,6 +79,7 @@ export class SongComponent implements OnInit, OnDestroy {
     this.titleService.setTitle(this.song.title);
     this.songsByVersionGroup = [];
     this.loadVersionGroup();
+    this.loadSuggestions();
     if (!song.deleted) {
       history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
     }
@@ -125,6 +131,7 @@ export class SongComponent implements OnInit, OnDestroy {
           }
           this.loadVersionGroup();
           this.showSimilarOnStart();
+          this.loadSuggestions();
           this.songCollectionService.getAllBySongId(songId).subscribe(
             (songCollections) => {
               this.collections = songCollections
@@ -227,25 +234,6 @@ export class SongComponent implements OnInit, OnDestroy {
 
   selectSecondSong(song: Song) {
     this.secondSong = song;
-  }
-
-  acceptChanges() {
-    let updateSong = new Song();
-    let uuid = this.secondSong.uuid;
-    let id = this.secondSong.id;
-    Object.assign(updateSong, this.originalSong);
-    updateSong.uuid = uuid;
-    updateSong.id = id;
-    updateSong.modifiedDate = this.secondSong.modifiedDate;
-    updateSong.deleted = false;
-    const role = this.auth.getUser().getRolePath();
-    this.songService.updateSong(role, updateSong).subscribe(
-      () => {
-      },
-      (err) => {
-        console.log(err);
-      }
-    );
   }
 
   copySongCollectionElementsToSimilar() {
@@ -401,8 +389,34 @@ export class SongComponent implements OnInit, OnDestroy {
           this.eraseSong();
         } else if (type == this.copyToSongCollectionType) {
           this.copySongCollectionElementsToSimilar();
+        } else if (type == this.loadSuggestionType) {
+          this.loadSuggestions();
         }
       }
     });
   }
+
+  private loadSuggestions() {
+    const user = this.auth.getUser();
+    const role = user.getRolePath();
+    if (this.auth.isLoggedIn && user != undefined && (user.hasReviewerRoleForSong(this.song) || user.isAdmin())) {
+      this.showSimilar();
+      this.suggestionDataService.getAllBySong(role, this.song).subscribe(
+        (suggestionList) => {
+          this.unreviewedSuggestions = [];
+          for (const suggestion of suggestionList) {
+            if (!suggestion.reviewed) {
+              this.unreviewedSuggestions.push(suggestion);
+            }
+          }
+        },
+        (err) => {
+          if (err.message === 'Unexpected token < in JSON at position 0') {
+            this.openAuthenticateDialog(this.loadSuggestionType);
+          }
+        }
+      );
+    }
+  }
+
 }

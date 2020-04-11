@@ -16,13 +16,23 @@
       </div>
     </div>
     <mat-card-content>
-      <mat-card *ngFor="let songVerse of song.songVerseDTOS"
+      <mat-card *ngFor="let songVerse of song.getSongVerses()"
         [ngClass]="songVerse.chorus?['chorus','mat-elevation-z5']:'mat-elevation-z1'">
         <mat-card-content>
+          <span class="sectionTypeElementInVerses">
+            {{songVerse.getTypeInitialWithCount()}}
+          </span>
           <div *ngFor="let line of songVerse.lines">
             <h4 class="verse">{{line}}</h4>
           </div>
         </mat-card-content>
+      </mat-card>
+      <br>
+      <mat-card>
+        <span *ngFor="let songVerse of song.getVerses()" class="sectionTypeElement" matTooltip="{{songVerse.text}}"
+          matTooltipPosition="above">
+          {{songVerse.getTypeInitialWithCount()}}
+        </span>
       </mat-card>
       <div *ngIf="safeUrl!=null">
         <br>
@@ -115,6 +125,21 @@
         Erase
       </button>
       <br>
+      <div *ngIf="unreviewedSuggestions.length > 0">
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Song has unreviewed suggestions
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <mat-nav-list>
+            <mat-list-item *ngFor="let suggestion of unreviewedSuggestions" (click)="selectSuggestion(suggestion)">
+              <a>{{ suggestion.modifiedDate | date: 'yyyy/MM/dd HH:mm'}} {{" " + suggestion.getHeader() + " "}} </a>
+              <a href="/#/suggestion/{{suggestion.uuid}}" target="_blank">{{'. Open'}}</a>
+            </mat-list-item>
+          </mat-nav-list>
+        </mat-expansion-panel>
+      </div>
       <button mat-button (click)="editSong()">
         Edit
       </button>
@@ -125,22 +150,26 @@
         </button>
         <div *ngIf="showSimilarities">
           <div *ngIf="similar.length>0">
-            <mat-nav-list>
-              <mat-list-item *ngFor="let song of similar" (click)="selectSecondSong(song)">
-                <a>{{ song.title + " "}}</a>
-                <a href="/#/song/{{song.uuid}}" target="_blank">{{'. Open'}}</a>
-              </mat-list-item>
-            </mat-nav-list>
-            <div *ngIf="secondSong!==null">
-              <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
-              <button *ngIf="auth.getUser().isAdmin()" mat-button (click)="acceptChanges()">
-                Put changes into similar!
-              </button>
-              <button *ngIf="auth.getUser().isAdmin() && collections != undefined && collections.length > 0" mat-button
-                (click)="copySongCollectionElementsToSimilar()">
-                Copy song collection elements to similar!
-              </button>
-            </div>
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  Similar songs
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <mat-nav-list>
+                <mat-list-item *ngFor="let song of similar" (click)="selectSecondSong(song)">
+                  <a>{{ song.title + " "}}</a>
+                  <a href="/#/song/{{song.uuid}}" target="_blank">{{'. Open'}}</a>
+                </mat-list-item>
+              </mat-nav-list>
+              <div *ngIf="secondSong!==null">
+                <app-compare-songs [song]="song" [secondSong]="secondSong"></app-compare-songs>
+                <button *ngIf="auth.getUser().isAdmin() && collections != undefined && collections.length > 0"
+                  mat-button (click)="copySongCollectionElementsToSimilar()">
+                  Copy song collection elements to similar!
+                </button>
+              </div>
+            </mat-expansion-panel>
           </div>
           <div *ngIf="similar.length<1&&receivedSimilar">
             <h3>No similar</h3>

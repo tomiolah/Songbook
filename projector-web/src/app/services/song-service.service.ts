@@ -42,6 +42,7 @@ export class SongVerseDTO {
   text = '';
   type: SectionType;
   was: boolean;
+  mainSong: Song;
 
   constructor(values: Object = {}) {
     Object.assign(this, values);
@@ -49,6 +50,68 @@ export class SongVerseDTO {
 
   chorus(): boolean {
     return this.type == SectionType.Chorus;
+  }
+
+  public getTypeInitial(): string {
+    switch (this.type) {
+      case SectionType.Intro:
+        return 'I';
+      case SectionType.Verse:
+        return 'V';
+      case SectionType.Pre_chorus:
+        return 'PC';
+      case SectionType.Chorus:
+        return 'C';
+      case SectionType.Bridge:
+        return 'B';
+      case SectionType.Coda:
+        return 'E';
+      default:
+        return '';
+    }
+  }
+
+  public getTypeInitialWithCount(): string {
+    let sectionTypeString = this.getTypeInitial();
+    if (this.hasOtherSameTypeInSong()) {
+      sectionTypeString += this.getSongVerseCountBySectionType();
+    }
+    return sectionTypeString;
+  }
+
+  private getSongVerseCountBySectionType(): number {
+    if (this.mainSong == null) {
+      return 0;
+    }
+    let count = 0;
+    for (const verse of this.mainSong.songVerseDTOS) {
+      if (verse.type == this.type) {
+        ++count;
+        if (this.equals(verse)) {
+          break;
+        }
+      }
+    }
+    return count;
+  }
+
+  private hasOtherSameTypeInSong(): boolean {
+    if (this.mainSong == null) {
+      return false;
+    }
+    for (const verse of this.mainSong.songVerseDTOS) {
+      if (verse.type == this.type && !this.equals(verse)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private equals(other: SongVerseDTO): boolean {
+    if (this.text == null) {
+      return other.text == null;
+    }
+    return this.text == other.text;
   }
 }
 
@@ -70,6 +133,7 @@ export class Song extends BaseModel {
   private static currentDate = new Date().getTime();
   originalId: string;
   title = '';
+  private typeSafeSongVerses: SongVerseDTO[];
   songVerseDTOS: SongVerseDTO[];
   private songVerses: SongVerseDTO[];
   modifiedDate: number;
@@ -175,14 +239,38 @@ export class Song extends BaseModel {
         }
       }
     }
-    return verseList;
+    return this.ensureSongVerseClass(verseList);
   }
 
-  public getVerses(): SongVerseDTO[] {
+  private ensureSongVerseClass(verses: SongVerseDTO[]): SongVerseDTO[] {
+    let list: SongVerseDTO[] = [];
+    for (const verse of verses) {
+      list.push(new SongVerseDTO(verse));
+    }
+    return list;
+  }
+
+  public getVerses(): SongVerseDTO[] { // with repeat
     if (this.songVerses == undefined) {
       this.songVerses = this.getVersesByVerseOrder(this.repeatChorus);
+      for (const verse of this.songVerses) {
+        verse.mainSong = this
+      }
     }
     return this.songVerses;
+  }
+
+  public getSongVerses(): SongVerseDTO[] { // no repeat
+    if (this.typeSafeSongVerses == undefined) {
+      if (this.songVerseDTOS == undefined) {
+        return [];
+      }
+      this.typeSafeSongVerses = this.ensureSongVerseClass(this.songVerseDTOS);
+      for (const verse of this.typeSafeSongVerses) {
+        verse.mainSong = this
+      }
+    }
+    return this.typeSafeSongVerses;
   }
 }
 
