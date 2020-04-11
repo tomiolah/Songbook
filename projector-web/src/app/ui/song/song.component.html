@@ -16,13 +16,23 @@
       </div>
     </div>
     <mat-card-content>
-      <mat-card *ngFor="let songVerse of song.songVerseDTOS"
+      <mat-card *ngFor="let songVerse of song.getSongVerses()"
         [ngClass]="songVerse.chorus?['chorus','mat-elevation-z5']:'mat-elevation-z1'">
         <mat-card-content>
+          <span class="sectionTypeElementInVerses">
+            {{songVerse.getTypeInitialWithCount()}}
+          </span>
           <div *ngFor="let line of songVerse.lines">
             <h4 class="verse">{{line}}</h4>
           </div>
         </mat-card-content>
+      </mat-card>
+      <br>
+      <mat-card>
+        <span *ngFor="let songVerse of song.getVerses()" class="sectionTypeElement" matTooltip="{{songVerse.text}}"
+          matTooltipPosition="above">
+          {{songVerse.getTypeInitialWithCount()}}
+        </span>
       </mat-card>
       <div *ngIf="safeUrl!=null">
         <br>
