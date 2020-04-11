@@ -37,6 +37,16 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
     }
 
     @Override
+    public Suggestion findOne(String id) {
+        if (suggestionHashMap.containsKey(id)) {
+            return suggestionHashMap.get(id);
+        }
+        Suggestion suggestion = super.findOne(id);
+        suggestionHashMap.put(id, suggestion);
+        return suggestion;
+    }
+
+    @Override
     public List<Suggestion> findAllByLanguage(Language language) {
         String languageId = language.getId();
         List<Suggestion> suggestions = new ArrayList<>(suggestionHashMap.size());
@@ -54,6 +64,16 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
                 }
             } catch (NullPointerException ignored) {
             }
+        }
+        return suggestions;
+    }
+
+    @Override
+    public List<Suggestion> findAllBySong(Song song) {
+        List<Suggestion> allBySongId = suggestionRepository.findAllBySongId(song.getId());
+        List<Suggestion> suggestions = new ArrayList<>(allBySongId.size());
+        for (Suggestion suggestion : allBySongId) {
+            suggestions.add(findOne(suggestion.getId()));
         }
         return suggestions;
     }

@@ -74,20 +74,35 @@ public class SuggestionResource {
         return getSuggestionDTOS(languageId);
     }
 
-    private SuggestionDTO getSuggestionDTO(@PathVariable String id, HttpServletRequest httpServletRequest) {
-        saveStatistics(httpServletRequest, statisticsService);
+    private SuggestionDTO getSuggestionDTO(@PathVariable String id) {
         Suggestion suggestion = suggestionService.findOne(id);
         return suggestionAssembler.createDto(suggestion);
     }
 
+    @RequestMapping(value = "admin/api/suggestions/song/{songId}", method = RequestMethod.GET)
+    public List<SuggestionDTO> getSuggestionsBySong(@PathVariable("songId") String songId) {
+        return getSuggestionDTOBySong(songId);
+    }
+
+    @RequestMapping(value = "reviewer/api/suggestions/song/{songId}", method = RequestMethod.GET)
+    public List<SuggestionDTO> getSuggestionsBySongR(@PathVariable("songId") String songId) {
+        return getSuggestionDTOBySong(songId);
+    }
+
+    private List<SuggestionDTO> getSuggestionDTOBySong(@PathVariable String songId) {
+        Song song = songService.findOne(songId);
+        List<Suggestion> allBySong = suggestionService.findAllBySong(song);
+        return suggestionAssembler.createDtoList(allBySong);
+    }
+
     @RequestMapping(value = "admin/api/suggestion/{id}", method = RequestMethod.GET)
-    public SuggestionDTO getSuggestion(@PathVariable final String id, HttpServletRequest httpServletRequest) {
-        return getSuggestionDTO(id, httpServletRequest);
+    public SuggestionDTO getSuggestion(@PathVariable final String id) {
+        return getSuggestionDTO(id);
     }
 
     @RequestMapping(value = "reviewer/api/suggestion/{id}", method = RequestMethod.GET)
-    public SuggestionDTO getSuggestionR(@PathVariable final String id, HttpServletRequest httpServletRequest) {
-        return getSuggestionDTO(id, httpServletRequest);
+    public SuggestionDTO getSuggestionR(@PathVariable final String id) {
+        return getSuggestionDTO(id);
     }
 
     @RequestMapping(value = "api/suggestion", method = RequestMethod.POST)

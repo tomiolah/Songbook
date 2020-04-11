@@ -1,5 +1,5 @@
-import {SongVerseDTO} from '../services/song-service.service';
-import {BaseModel} from './base-model';
+import { SongVerseDTO } from '../services/song-service.service';
+import { BaseModel } from './base-model';
 
 export class Suggestion extends BaseModel {
   songId: string;
@@ -18,5 +18,15 @@ export class Suggestion extends BaseModel {
   constructor(values: Object = {}) {
     super(values);
     Object.assign(this, values);
+  }
+
+  getHeader() {
+    if (this.description != undefined && this.description.length > 0) {
+      return this.description
+    }
+    if (this.youtubeUrl != undefined && this.youtubeUrl.length > 0) {
+      return 'Youtube video: ' + this.youtubeUrl
+    }
+    return '';
   }
 }
