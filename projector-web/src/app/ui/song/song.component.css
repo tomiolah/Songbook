@@ -34,3 +34,18 @@
 .chorus {
   z-index: 1;
 }
+
+.sectionTypeElement, .sectionTypeElementInVerses {
+  color: rgb(121, 121, 121);
+}
+
+.sectionTypeElement {
+  margin-right: 1em;
+}
+
+.sectionTypeElementInVerses {
+  position: absolute;
+  top: 0.5em;
+  left: 0.5em;
+  z-index: 1;
+}

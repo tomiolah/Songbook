@@ -38,8 +38,11 @@ export function replace(value: string) {
   newValue = replaceMatch(newValue, /ţ/g, 'ț');
   newValue = replaceMatch(newValue, /ã/g, 'ă');
   newValue = replaceMatch(newValue, /õ/g, 'ő');
+  newValue = replaceMatch(newValue, /ō/g, 'ő');
+  newValue = replaceMatch(newValue, /ô/g, 'ő');
   newValue = replaceMatch(newValue, /Õ/g, 'Ő');
   newValue = replaceMatch(newValue, /û/g, 'ű');
+  newValue = replaceMatch(newValue, /û/g, 'ū');
   return newValue;
 }
 

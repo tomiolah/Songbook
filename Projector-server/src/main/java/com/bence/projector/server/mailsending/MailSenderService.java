@@ -29,8 +29,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 
 @Component
 public class MailSenderService {
@@ -49,13 +47,6 @@ public class MailSenderService {
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
         notificationByLanguage.getSuggestionStack().add(suggestion);
         userService.save(user);
-        TimerTask task = new TimerTask() {
-            public void run() {
-                tryToSend(language, user);
-            }
-        };
-        Timer timer = new Timer("Timer");
-        timer.schedule(task, notificationByLanguage.getSuggestionsDelay());
         tryToSendAllPrevious();
     }
 
@@ -64,13 +55,6 @@ public class MailSenderService {
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
         notificationByLanguage.getNewSongStack().add(song);
         userService.save(user);
-        TimerTask task = new TimerTask() {
-            public void run() {
-                tryToSend(language, user);
-            }
-        };
-        Timer timer = new Timer("Timer");
-        timer.schedule(task, notificationByLanguage.getNewSongsDelay());
         tryToSendAllPrevious();
     }
 

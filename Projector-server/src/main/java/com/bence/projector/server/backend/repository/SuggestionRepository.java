@@ -8,4 +8,6 @@ import java.util.List;
 
 public interface SuggestionRepository extends MongoRepository<Suggestion, String> {
     List<Suggestion> findAllByModifiedDateGreaterThan(Date createdDate);
+
+    List<Suggestion> findAllBySongId(String songId);
 }
