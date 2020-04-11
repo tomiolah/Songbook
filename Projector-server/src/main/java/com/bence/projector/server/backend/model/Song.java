@@ -232,6 +232,13 @@ public class Song extends BaseEntity {
     }
 
     public List<Short> getVerseOrderList() {
+        if (verses != null && verseOrderList != null) {
+            for (short index = 0; index < verses.size(); ++index) {
+                if (!verseOrderList.contains(index)) {
+                    verseOrderList.add(index);
+                }
+            }
+        }
         return verseOrderList;
     }
 
@@ -278,11 +285,11 @@ public class Song extends BaseEntity {
         return previousLanguages;
     }
 
-    public void setBeforeId(String beforeId) {
-        this.beforeId = beforeId;
-    }
-
     public String getBeforeId() {
         return beforeId;
+    }
+
+    public void setBeforeId(String beforeId) {
+        this.beforeId = beforeId;
     }
 }
