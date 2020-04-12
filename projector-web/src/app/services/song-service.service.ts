@@ -272,6 +272,18 @@ export class Song extends BaseModel {
     }
     return this.typeSafeSongVerses;
   }
+  
+  public removeCircularReference() {
+    this.removeMainSong(this.songVerseDTOS);
+    this.removeMainSong(this.typeSafeSongVerses);
+    this.removeMainSong(this.songVerses);
+  }
+
+  private removeMainSong(verses: SongVerseDTO[]) {
+    for (const verse of verses) {
+      verse.mainSong = undefined;
+    }
+  }
 }
 
 @Injectable()
@@ -321,6 +333,7 @@ export class SongService {
 
   updateSong(role: string, song: Song) {
     song.id = song.uuid;
+    song.removeCircularReference();
     return this.api.update(Song, role + '/api/song/', song);
   }
 
@@ -350,6 +363,7 @@ export class SongService {
 
   changeLanguage(role: string, song: Song) {
     song.id = song.uuid;
+    song.removeCircularReference();
     return this.api.update(Song, role + '/api/changeLanguageForSong/', song);
   }
 }
