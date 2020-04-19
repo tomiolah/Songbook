@@ -12,6 +12,7 @@ export class MenuTabsComponent implements OnInit {
   menuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },
     { link: '/login', icon: 'person', title: 'Login' },
+    { link: '/desktop-app', icon: 'devices', title: 'Desktop app' },
   ];
   adminMenuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },
@@ -19,16 +20,19 @@ export class MenuTabsComponent implements OnInit {
     { link: '/suggestions', icon: 'announcement', title: 'Suggestions' },
     { link: '/admin/users', icon: 'supervised_user_circle', title: 'Users' },
     { link: '/user/notifications', icon: 'notifications', title: 'Notifications' },
+    { link: '/desktop-app', icon: 'devices', title: 'Desktop app' },
   ];
   userMenuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },
     { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
+    { link: '/desktop-app', icon: 'devices', title: 'Desktop app' },
   ];
   reviewerMenuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },
     { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
     { link: '/suggestions', icon: 'announcement', title: 'Suggestions' },
     { link: '/user/notifications', icon: 'notifications', title: 'Notifications' },
+    { link: '/desktop-app', icon: 'devices', title: 'Desktop app' },
   ];
 
   constructor(public auth: AuthService, ) {
