@@ -14,6 +14,7 @@ import { ActivationComponent } from '../ui/activation/activation.component';
 import { UsersComponent } from '../ui/users/users.component';
 import { UserComponent } from '../ui/user/user.component';
 import { NotificationSettingsComponent } from '../ui/notification-settings/notification-settings.component';
+import { ProjectorComponent } from '../ui/projector/projector.component';
 
 export const appRoutes: Routes = [
   {
@@ -48,6 +49,7 @@ export const appRoutes: Routes = [
   { path: 'registration', component: UserRegisterComponent },
   { path: 'activation/:code', component: ActivationComponent },
   { path: 'user/notifications', component: NotificationSettingsComponent },
+  { path: 'desktop-app', component: ProjectorComponent },
   { path: '**', component: NotFoundComponent },
 ];
 

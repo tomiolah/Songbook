@@ -84,6 +84,7 @@ import { UsersComponent } from './ui/users/users.component';
 import { UserComponent } from './ui/user/user.component';
 import { NotificationSettingsComponent } from './ui/notification-settings/notification-settings.component';
 import { UserPropertiesDataService } from './services/user-properties-data.service';
+import { ProjectorComponent } from './ui/projector/projector.component';
 
 @NgModule({
   exports: [
@@ -159,6 +160,7 @@ export class PlunkerMaterialModule {
     UsersComponent,
     UserComponent,
     NotificationSettingsComponent,
+    ProjectorComponent,
   ],
   imports: [
     BrowserModule,
