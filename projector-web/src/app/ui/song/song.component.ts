@@ -267,7 +267,9 @@ export class SongComponent implements OnInit, OnDestroy {
   markForVersionGroup() {
     this.marked = !this.marked;
     if (this.marked) {
-      localStorage.setItem(this.markedVersionGroup_key, JSON.stringify(this.song));
+      let copySong = Song.copy(this.song);
+      copySong.removeCircularReference();
+      localStorage.setItem(this.markedVersionGroup_key, JSON.stringify(copySong));
     } else {
       this.markedForVersionSong = null;
       localStorage.setItem(this.markedVersionGroup_key, null);

@@ -161,6 +161,25 @@ export class Song extends BaseModel {
     Object.assign(this, values);
   }
 
+  static copy(other: Song): Song {
+    let song = new Song(other);
+    song.songVerseDTOS = Song.copyVerses(other.songVerseDTOS);
+    song.typeSafeSongVerses = Song.copyVerses(other.typeSafeSongVerses);
+    song.songVerses = Song.copyVerses(other.songVerses);
+    return song;
+  }
+
+  private static copyVerses(otherSongVerses: SongVerseDTO[]): SongVerseDTO[] {
+    if (otherSongVerses != undefined) {
+      let songVerses: SongVerseDTO[] = [];
+      for (let i = 0; i < otherSongVerses.length; ++i) {
+        songVerses[i] = new SongVerseDTO(otherSongVerses[i]);
+      }
+      return songVerses;
+    }
+    return undefined;
+  }
+
   static getScore(song) {
     let score = 0;
     if (song.views != null) {
@@ -272,7 +291,7 @@ export class Song extends BaseModel {
     }
     return this.typeSafeSongVerses;
   }
-  
+
   public removeCircularReference() {
     this.removeMainSong(this.songVerseDTOS);
     this.removeMainSong(this.typeSafeSongVerses);
