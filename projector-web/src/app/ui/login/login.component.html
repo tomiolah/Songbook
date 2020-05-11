@@ -14,8 +14,7 @@
 
           <div class="form-group">
             <label for="password">{{'Password'}}</label>
-            <input type="password" id="password" class="form-control" formControlName="password"
-                   required>
+            <input type="password" id="password" class="form-control" formControlName="password" required>
             <div *ngIf="formErrors.password" class="alert alert-danger">{{formErrors.password}}</div>
           </div>
           <button type="submit" class="btn btn-success" [disabled]="!loginForm.valid">{{'Submit'}}
@@ -26,6 +25,7 @@
     <mat-card>
       <mat-card-content>
         <a href="/#/registration">{{'Create account'}}</a>
+        &nbsp;|&nbsp;<a href="/#/forgottenPassword">{{'Forgotten password'}}</a>
       </mat-card-content>
     </mat-card>
   </div>

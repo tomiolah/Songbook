@@ -24,11 +24,15 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.bence.projector.server.api.resources.PasswordController.TOKEN_DURATION;
 
 @Component
 public class MailSenderService {
@@ -123,7 +127,7 @@ public class MailSenderService {
             MimeMessageHelper helper;
             helper = new MimeMessageHelper(message, true);
             helper.setTo(new InternetAddress(user.getEmail()));
-            helper.setFrom(new InternetAddress("noreply@songbook"));
+            helper.setFrom(new InternetAddress(getHostEmail()));
             if (suggestions.size() > 1) {
                 helper.setSubject("New suggestions");
             } else {
@@ -152,7 +156,7 @@ public class MailSenderService {
             MimeMessageHelper helper;
             helper = new MimeMessageHelper(message, true);
             helper.setTo(new InternetAddress(user.getEmail()));
-            helper.setFrom(new InternetAddress("noreply@songbook"));
+            helper.setFrom(new InternetAddress(getHostEmail()));
             if (songs.size() > 1) {
                 helper.setSubject("New songs");
             } else {
@@ -203,6 +207,47 @@ public class MailSenderService {
         }
         data.put("suggestionRows", suggestionRows);
         data.put("baseUrl", AppProperties.getInstance().baseUrl());
+        return data;
+    }
+
+    private String getHostEmail() {
+        return "noreply@songbook";
+    }
+
+    public void sendForgottenEmail(String email, String link) {
+        try {
+            final String freemarkerName = FreemarkerConfiguration.TOKEN_LINK_PAGE + ".html";
+            freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
+            config.setDefaultEncoding("UTF-8");
+            MimeMessage message = sender.createMimeMessage();
+            MimeMessageHelper helper;
+            helper = new MimeMessageHelper(message, true);
+            helper.setTo(new InternetAddress(email));
+            helper.setFrom(new InternetAddress(getHostEmail()));
+            helper.setSubject("Forgotten password");
+
+            Template template = config.getTemplate(freemarkerName);
+
+            StringWriter writer = new StringWriter();
+            Map<String, Object> model = createPatternForForgottenPassword(link);
+            template.process(model, writer);
+
+            helper.getMimeMessage().setContent(writer.toString(), "text/html;charset=utf-8");
+            sender.send(message);
+        } catch (MessagingException | IOException | TemplateException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Map<String, Object> createPatternForForgottenPassword(String link) {
+        Map<String, Object> data = new HashMap<>();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+
+        final Date currentDate = new Date();
+        data.put("currentDate", dateFormat.format(currentDate));
+        data.put("tokenExpiryDate", dateFormat.format(currentDate.getTime() + TOKEN_DURATION));
+        data.put("link", link);
+
         return data;
     }
 }
