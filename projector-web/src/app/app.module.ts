@@ -85,6 +85,8 @@ import { UserComponent } from './ui/user/user.component';
 import { NotificationSettingsComponent } from './ui/notification-settings/notification-settings.component';
 import { UserPropertiesDataService } from './services/user-properties-data.service';
 import { ProjectorComponent } from './ui/projector/projector.component';
+import { ForgottenPasswordComponent } from './ui/forgotten-password/forgotten-password.component';
+import { ChangePasswordByTokenComponent } from './ui/forgotten-password/change-password-by-token/change-password-by-token.component';
 
 @NgModule({
   exports: [
@@ -161,6 +163,8 @@ export class PlunkerMaterialModule {
     UserComponent,
     NotificationSettingsComponent,
     ProjectorComponent,
+    ForgottenPasswordComponent,
+    ChangePasswordByTokenComponent,
   ],
   imports: [
     BrowserModule,

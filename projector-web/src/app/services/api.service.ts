@@ -1,7 +1,7 @@
-import {Injectable} from '@angular/core';
-import {BaseModel} from '../models/base-model';
-import {Http, Response} from '@angular/http';
-import {Observable} from 'rxjs/Observable';
+import { Injectable } from '@angular/core';
+import { BaseModel } from '../models/base-model';
+import { Http, Response } from '@angular/http';
+import { Observable } from 'rxjs/Observable';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/catch';
 import 'rxjs/add/observable/throw';
@@ -105,5 +105,10 @@ export class ApiService {
         return response;
       })
       .catch(ApiService.handleError);
+  }
+
+  getTime() {
+    return this.http.get('/getTime')
+      .map(response => response);
   }
 }

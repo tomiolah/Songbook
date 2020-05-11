@@ -29,4 +29,13 @@ export class UserDataService {
     user.id = user.uuid;
     return this.api.update(User, 'admin/api/user/', user);
   }
+
+  requireForgottenToken(email: string) {
+    return this.api.post('/forgotten_password?email=' + email)
+  }
+
+  resetPassword(token: string, user: User) {
+    return this.api.put(User, '/reset_password?token=' + token, user)
+      .map(response => response);
+  }
 }

@@ -15,6 +15,8 @@ import { UsersComponent } from '../ui/users/users.component';
 import { UserComponent } from '../ui/user/user.component';
 import { NotificationSettingsComponent } from '../ui/notification-settings/notification-settings.component';
 import { ProjectorComponent } from '../ui/projector/projector.component';
+import { ForgottenPasswordComponent } from '../ui/forgotten-password/forgotten-password.component';
+import { ChangePasswordByTokenComponent } from '../ui/forgotten-password/change-password-by-token/change-password-by-token.component';
 
 export const appRoutes: Routes = [
   {
@@ -50,6 +52,8 @@ export const appRoutes: Routes = [
   { path: 'activation/:code', component: ActivationComponent },
   { path: 'user/notifications', component: NotificationSettingsComponent },
   { path: 'desktop-app', component: ProjectorComponent },
+  { path: 'forgottenPassword', component: ForgottenPasswordComponent },
+  { path: 'changePasswordByToken', component: ChangePasswordByTokenComponent },
   { path: '**', component: NotFoundComponent },
 ];
 
