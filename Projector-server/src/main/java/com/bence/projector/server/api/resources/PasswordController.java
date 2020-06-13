@@ -67,14 +67,16 @@ public class PasswordController {
             User user = userService.findByEmail(userRegisterDTO.getEmail());
             if (user != null) {
                 if (user.getExpiryDate() != null) {
-                    user.setToken(null);
-                    user.setExpiryDate(null);
                     Date currentDate = new Date();
                     if (user.getExpiryDate().after(currentDate) && token.equals(user.getToken())) {
                         user.setPassword(passwordEncoder.encode(userRegisterDTO.getPassword()));
+                        user.setToken(null);
+                        user.setExpiryDate(null);
                         userService.save(user);
                         return new ResponseEntity<>(new ResponseMessage("PASSWORD_CHANGED"), HttpStatus.ACCEPTED);
                     }
+                    user.setToken(null);
+                    user.setExpiryDate(null);
                     userService.save(user);
                 }
                 return new ResponseEntity<>(new ResponseMessage("TOKEN_EXPIRED_REQUIRE"), HttpStatus.NOT_ACCEPTABLE);
