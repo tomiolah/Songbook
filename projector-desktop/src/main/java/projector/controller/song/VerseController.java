@@ -37,6 +37,28 @@ public class VerseController {
     private OnChangeListener onChangeListener;
     private boolean onChangeListenerPause = false;
 
+    public static String getRawTextFromVerseString(String textAreaText) {
+        if (textAreaText != null) {
+            String text = textAreaText.trim();
+            char[] chars = text.toCharArray();
+            StringBuilder newText = new StringBuilder();
+            for (int i = 0; i < chars.length; ++i) {
+                if (chars[i] == '\\') {
+                    newText.append("\\\\");
+                } else if (chars[i] == '&') {
+                    newText.append("\\&");
+                } else if (chars[i] == '\n' && i + 1 < chars.length && chars[i + 1] == '\n') {
+                    newText.append("&\n");
+                    ++i;
+                } else {
+                    newText.append(chars[i]);
+                }
+            }
+            return newText.toString();
+        }
+        return "";
+    }
+
     public void initialize() {
         showSecondText(false);
         fillSectionTypeComboBox();
@@ -101,25 +123,7 @@ public class VerseController {
 
     String getRawText() {
         final String textAreaText = textArea.getText();
-        if (textAreaText != null) {
-            String text = textAreaText.trim();
-            char[] chars = text.toCharArray();
-            StringBuilder newText = new StringBuilder();
-            for (int i = 0; i < chars.length; ++i) {
-                if (chars[i] == '\\') {
-                    newText.append("\\\\");
-                } else if (chars[i] == '&') {
-                    newText.append("\\&");
-                } else if (chars[i] == '\n' && i + 1 < chars.length && chars[i + 1] == '\n') {
-                    newText.append("&\n");
-                    ++i;
-                } else {
-                    newText.append(chars[i]);
-                }
-            }
-            return newText.toString();
-        }
-        return "";
+        return getRawTextFromVerseString(textAreaText);
     }
 
     TextArea getTextArea() {

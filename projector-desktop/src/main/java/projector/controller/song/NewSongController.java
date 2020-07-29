@@ -65,6 +65,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import static projector.controller.song.VerseController.getRawTextFromVerseString;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
 
 public class NewSongController {
@@ -422,8 +423,8 @@ public class NewSongController {
         StringBuilder text = new StringBuilder();
         List<SongVerse> songVersesByVerseOrder = editingSong.getSongVersesByVerseOrder();
         for (SongVerse songVerse : songVersesByVerseOrder) {
-            final String rawText = songVerse.getText();
-            if (rawText != null && !rawText.isEmpty()) {
+            final String rawText = getRawTextFromVerseString(songVerse.getText());
+            if (!rawText.isEmpty()) {
                 if (!songVerse.getSectionType().equals(SectionType.VERSE)) {
                     text.append(songVerse.getSectionType().getStringValue()).append("\n");
                 }
