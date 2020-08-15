@@ -292,4 +292,8 @@ public class Song extends BaseEntity {
     public void setBeforeId(String beforeId) {
         this.beforeId = beforeId;
     }
+
+    public boolean isPublic() {
+        return !isReviewerErased() && !isDeleted() && !isBackUp();
+    }
 }

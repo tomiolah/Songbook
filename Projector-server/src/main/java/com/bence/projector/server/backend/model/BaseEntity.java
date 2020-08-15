@@ -28,4 +28,8 @@ public class BaseEntity {
     public void setId(final String id) {
         this.id = id;
     }
+
+    public boolean isSameId(BaseEntity baseEntity) {
+        return id != null && baseEntity != null && baseEntity.id != null && id.equals(baseEntity.id);
+    }
 }

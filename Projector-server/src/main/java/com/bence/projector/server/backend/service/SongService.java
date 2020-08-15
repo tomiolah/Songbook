@@ -2,6 +2,7 @@ package com.bence.projector.server.backend.service;
 
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
+import com.bence.projector.server.backend.model.User;
 
 import java.util.Date;
 import java.util.List;
@@ -44,4 +45,6 @@ public interface SongService extends BaseService<Song> {
     void enrollSongInMap(Song song);
 
     List<Song> findAllInReviewByLanguage(Language language);
+
+    List<Song> findAllReviewedByUser(User user);
 }

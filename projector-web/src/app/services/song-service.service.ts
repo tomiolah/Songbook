@@ -3,6 +3,7 @@ import { ApiService } from './api.service';
 import { Observable } from 'rxjs/Observable';
 import { BaseModel } from '../models/base-model';
 import { Language } from "../models/language";
+import { User } from '../models/user';
 
 export class ColorText {
   text: string;
@@ -340,6 +341,10 @@ export class SongService {
 
   getAllInReviewSongsByLanguage(selectedLanguage: Language) {
     return this.api.getAll(Song, 'api/songTitlesInReview/language/' + selectedLanguage.uuid);
+  }
+
+  getAllSongTitlesReviewedByUser(user: User) {
+    return this.api.getAll(Song, 'admin/api/songTitlesReviewed/user/' + user.uuid);
   }
 
   deleteById(role: string, songId) {
