@@ -61,6 +61,11 @@
                 </mat-form-field>
                 <button *ngIf="reviewLanguagesDiffers()" mat-button color="accent"
                     (click)="onApplyReviewLanguagesButtonClick()">Apply</button>
+                <a href="/#/admin/reviewer-statistics/{{user.uuid}}">
+                    <button mat-button>
+                        Review statistics
+                    </button>
+                </a>
             </div>
         </mat-card-content>
     </mat-card>

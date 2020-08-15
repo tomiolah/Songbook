@@ -573,4 +573,11 @@ public class SongResource {
         List<Song> allContainingYoutubeUrl = songService.findAllContainingYoutubeUrl();
         return songTitleAssembler.createDtoList(allContainingYoutubeUrl);
     }
+
+    @RequestMapping(method = RequestMethod.GET, value = "admin/api/songTitlesReviewed/user/{userId}")
+    public List<SongTitleDTO> getSongTitlesReviewedByUser(@PathVariable String userId) {
+        User user = userService.findOne(userId);
+        List<Song> songs = songService.findAllReviewedByUser(user);
+        return songTitleAssembler.createDtoList(songs);
+    }
 }

@@ -3,6 +3,7 @@ package com.bence.projector.server.backend.service.impl;
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
+import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.ServiceException;
@@ -287,12 +288,31 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     @Override
     public List<Song> findAllInReviewByLanguage(Language language) {
         List<Song> inReviewByLanguage = new LinkedList<>();
-        for (Song song : getAllServiceSongs(language.getSongs())) {
+        for (Song song : getAllServiceSongsByLanguage(language)) {
             if (song.isUploaded() && song.isDeleted() && !song.isReviewerErased()) {
                 inReviewByLanguage.add(song);
             }
         }
         return inReviewByLanguage;
+    }
+
+    @Override
+    public List<Song> findAllReviewedByUser(User user) {
+        List<Song> songs = new ArrayList<>();
+        for (Language languageNotInMap : user.getReviewLanguages()) {
+            Language language = languageService.findOne(languageNotInMap.getId());
+            for (Song song : getAllServiceSongsByLanguage(language)) {
+                User lastModifiedBy = song.getLastModifiedBy();
+                if (lastModifiedBy != null && lastModifiedBy.isSameId(user) && song.isPublic()) {
+                    songs.add(song);
+                }
+            }
+        }
+        return songs;
+    }
+
+    private List<Song> getAllServiceSongsByLanguage(Language language) {
+        return getAllServiceSongs(language.getSongs());
     }
 
     private HashMap<String, Song> getSongsHashMap() {
