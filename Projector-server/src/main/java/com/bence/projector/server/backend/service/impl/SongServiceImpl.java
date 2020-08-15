@@ -299,7 +299,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     @Override
     public List<Song> findAllReviewedByUser(User user) {
         List<Song> songs = new ArrayList<>();
-        for (Language language : user.getReviewLanguages()) {
+        for (Language languageNotInMap : user.getReviewLanguages()) {
+            Language language = languageService.findOne(languageNotInMap.getId());
             for (Song song : getAllServiceSongsByLanguage(language)) {
                 User lastModifiedBy = song.getLastModifiedBy();
                 if (lastModifiedBy != null && lastModifiedBy.isSameId(user) && song.isPublic()) {
