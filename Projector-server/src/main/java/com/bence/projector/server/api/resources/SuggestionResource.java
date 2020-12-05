@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -91,6 +92,9 @@ public class SuggestionResource {
 
     private List<SuggestionDTO> getSuggestionDTOBySong(@PathVariable String songId) {
         Song song = songService.findOne(songId);
+        if (song == null) {
+            return new ArrayList<>();
+        }
         List<Suggestion> allBySong = suggestionService.findAllBySong(song);
         return suggestionAssembler.createDtoList(allBySong);
     }
