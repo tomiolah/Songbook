@@ -1,6 +1,6 @@
 package com.bence.songbook.models;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.bence.projector.common.model.SectionType;
 import com.j256.ormlite.dao.ForeignCollection;
