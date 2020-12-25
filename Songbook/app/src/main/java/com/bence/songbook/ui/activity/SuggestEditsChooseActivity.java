@@ -1,13 +1,13 @@
 package com.bence.songbook.ui.activity;
 
-import android.arch.lifecycle.Lifecycle;
+import androidx.lifecycle.Lifecycle;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
