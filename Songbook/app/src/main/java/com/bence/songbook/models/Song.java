@@ -355,7 +355,7 @@ public class Song extends BaseEntity {
         List<SongVerse> songVerses = new ArrayList<>(verseOrderList.size());
         List<SongVerse> verses = getVerses();
         for (Short index : verseOrderList) {
-            if (0 <= index && index <= verses.size()) {
+            if (0 <= index && index < verses.size()) {
                 songVerses.add(verses.get(index));
             }
         }
