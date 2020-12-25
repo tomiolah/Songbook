@@ -48,9 +48,13 @@ public class SongListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_list);
         Toolbar toolbar = findViewById(R.id.toolbar);
-        songList = memory.getPassingSongList();
-        toolbar.setTitle(songList.getTitle());
-        setSupportActionBar(toolbar);
+        if (toolbar != null) {
+            songList = memory.getPassingSongList();
+            if (songList != null) {
+                toolbar.setTitle(songList.getTitle());
+            }
+            setSupportActionBar(toolbar);
+        }
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -233,13 +237,11 @@ public class SongListActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case NEW_SONG_LIST_REQUEST_CODE:
-                if (resultCode == 1) {
-                    setResult(2);
-                    finish();
-                }
-                break;
+        if (requestCode == NEW_SONG_LIST_REQUEST_CODE) {
+            if (resultCode == 1) {
+                setResult(2);
+                finish();
+            }
         }
     }
 

@@ -48,12 +48,6 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
             // Delayed display of UI elements
         }
     };
-    private final Runnable mHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            hide();
-        }
-    };
     TextView textView;
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
@@ -70,6 +64,12 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                     | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        }
+    };
+    private final Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            hide();
         }
     };
     private YouTubePlayerView youTubeView;
@@ -122,25 +122,9 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
             Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
         }
         try {
-            verseList = new ArrayList<>(song.getVerses().size());
-            final List<SongVerse> verses = song.getVerses();
-            SongVerse chorus = null;
-            int size = verses.size();
-            for (int i = 0; i < size; ++i) {
-                SongVerse songVerse = verses.get(i);
-                verseList.add(songVerse);
-                if (songVerse.isChorus()) {
-                    chorus = songVerse;
-                } else if (chorus != null) {
-                    if (i + 1 < size) {
-                        if (!verses.get(i + 1).isChorus()) {
-                            verseList.add(chorus);
-                        }
-                    } else {
-                        verseList.add(chorus);
-                    }
-                }
-            }
+            List<SongVerse> verses = song.getSongVersesByVerseOrder();
+            verseList = new ArrayList<>(verses.size());
+            verseList.addAll(verses);
             verseIndex = intent.getIntExtra("verseIndex", 0);
 
             final View mContentView = findViewById(R.id.fullscreen_content);
@@ -161,6 +145,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
 
                 @Override
                 public void performTouchLeftRight(MotionEvent event) {
+                    //noinspection IntegerDivisionInFloatingPointContext
                     if (event.getX() < mContentView.getWidth() / 2) {
                         setPreviousVerse();
                     } else {

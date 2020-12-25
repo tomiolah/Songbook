@@ -28,7 +28,7 @@ import com.bence.songbook.ui.utils.Preferences;
 
 public class SuggestEditsChooseActivity extends AppCompatActivity {
     public final static int LINKING = 2;
-    private Memory memory = Memory.getInstance();
+    private final Memory memory = Memory.getInstance();
     private Song song;
     private LinearLayout updateSongsLayout;
 
@@ -46,6 +46,9 @@ public class SuggestEditsChooseActivity extends AppCompatActivity {
         Button linkButton = findViewById(R.id.linkButton);
         updateSongsLayout = findViewById(R.id.updateSongsLayout);
         song = memory.getPassingSong();
+        if (song == null) {
+            return;
+        }
         if (song.getUuid() == null || song.getUuid().isEmpty()) {
             linkButton.setVisibility(View.GONE);
         } else {

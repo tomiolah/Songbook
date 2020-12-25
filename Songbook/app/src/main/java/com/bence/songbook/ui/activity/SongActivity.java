@@ -92,7 +92,7 @@ public class SongActivity extends AppCompatActivity {
     private PopupWindow googleSignInPopupWindow;
     private Menu menu;
     private PopupWindow saveToSongListPopupWindow;
-    private List<Song> allByVersionGroup = new ArrayList<>();
+    private final List<Song> allByVersionGroup = new ArrayList<>();
 
     public static void saveGmail(GoogleSignInAccount result, Context context) {
         String email = result.getEmail();
@@ -280,7 +280,7 @@ public class SongActivity extends AppCompatActivity {
             finish();
             setBlank();
         } else if (itemId == R.id.action_similar) {
-            List<Song> allSimilar = SongService.findAllSimilar(song, memory.getSongs());
+            List<Song> allSimilar = SongService.findAllSimilar(song, memory.getSongsOrEmptyList());
             memory.setValues(allSimilar);
             if (allSimilar.size() > 0) {
                 setResult(1);
@@ -336,7 +336,7 @@ public class SongActivity extends AppCompatActivity {
         song.setAsDeleted(!song.isAsDeleted());
         SongRepository songRepository = new SongRepositoryImpl(this);
         songRepository.save(song);
-        List<Song> songs = memory.getSongs();
+        List<Song> songs = memory.getSongsOrEmptyList();
         if (song.isAsDeleted()) {
             songs.remove(song);
             setResult(MainActivity.SONG_DELETED);

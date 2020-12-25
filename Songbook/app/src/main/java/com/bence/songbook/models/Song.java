@@ -1,5 +1,7 @@
 package com.bence.songbook.models;
 
+import android.support.annotation.NonNull;
+
 import com.bence.projector.common.model.SectionType;
 import com.j256.ormlite.dao.ForeignCollection;
 import com.j256.ormlite.field.DatabaseField;
@@ -13,7 +15,7 @@ import static com.bence.songbook.ui.utils.StringUtils.stripAccents;
 
 public class Song extends BaseEntity {
 
-    private static long currentDate = new Date().getTime();
+    private static final long currentDate = new Date().getTime();
     @DatabaseField
     private String title;
     @DatabaseField
@@ -247,8 +249,12 @@ public class Song extends BaseEntity {
         }
     }
 
+    @NonNull
     @Override
     public String toString() {
+        if (title == null) {
+            return "";
+        }
         return title;
     }
 
@@ -349,7 +355,9 @@ public class Song extends BaseEntity {
         List<SongVerse> songVerses = new ArrayList<>(verseOrderList.size());
         List<SongVerse> verses = getVerses();
         for (Short index : verseOrderList) {
-            songVerses.add(verses.get(index));
+            if (0 <= index && index <= verses.size()) {
+                songVerses.add(verses.get(index));
+            }
         }
         return songVerses;
     }
