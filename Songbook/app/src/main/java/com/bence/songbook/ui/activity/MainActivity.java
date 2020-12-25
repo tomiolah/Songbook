@@ -908,9 +908,12 @@ public class MainActivity extends AppCompatActivity
                 break;
             case 4:
                 if (resultCode == 1) {
-                    songs = memory.getSongs();
+                    songs = memory.getSongsOrEmptyList();
                     values.clear();
-                    values.add(songs.get(songs.size() - 1));
+                    int size = songs.size();
+                    if (size > 0) {
+                        values.add(songs.get(size - 1));
+                    }
                     adapter.setSongList(values);
                     if (pageAdapter != null) {
                         pageAdapter.notifyDataSetChanged();
@@ -946,7 +949,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void refreshSongs() {
-        songs = memory.getSongs();
+        songs = memory.getSongsOrEmptyList();
         values.clear();
         values.addAll(songs);
         adapter.setSongList(values);
@@ -2301,7 +2304,7 @@ public class MainActivity extends AppCompatActivity
 
     private class LanguageAdapter extends ArrayAdapter<Language> {
 
-        private List<Language> languageList;
+        private final List<Language> languageList;
 
         LanguageAdapter(Context context, int textViewResourceId,
                         List<Language> languageList) {
@@ -2357,7 +2360,7 @@ public class MainActivity extends AppCompatActivity
 
     private class SongCollectionAdapter extends ArrayAdapter<SongCollection> {
 
-        private List<SongCollection> songCollectionList;
+        private final List<SongCollection> songCollectionList;
 
         SongCollectionAdapter(Context context, int textViewResourceId,
                               List<SongCollection> songCollectionList) {
@@ -2452,7 +2455,7 @@ public class MainActivity extends AppCompatActivity
     private class SongAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
         private final OnItemClickListener listener;
-        private List<Song> songList;
+        private final List<Song> songList;
 
         SongAdapter(List<Song> songList, OnItemClickListener onItemClickListener) {
             this.songList = new ArrayList<>();

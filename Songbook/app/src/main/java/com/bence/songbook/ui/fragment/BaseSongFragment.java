@@ -130,7 +130,7 @@ public abstract class BaseSongFragment extends Fragment {
     @SuppressWarnings("ConstantConditions")
     private class MyCustomAdapter extends ArrayAdapter<SongVerse> {
 
-        private List<SongVerse> songVerses;
+        private final List<SongVerse> songVerses;
 
         MyCustomAdapter(Context context, int textViewResourceId,
                         List<SongVerse> songVerses) {

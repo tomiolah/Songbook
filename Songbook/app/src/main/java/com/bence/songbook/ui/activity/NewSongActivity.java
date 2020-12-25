@@ -253,7 +253,7 @@ public class NewSongActivity extends AppCompatActivity {
             }
         });
         thread.start();
-        Memory.getInstance().getSongs().add(song);
+        Memory.getInstance().getSongsOrEmptyList().add(song);
         setResult(1);
         finish();
     }

@@ -31,7 +31,7 @@ public class Memory {
     private List<FavouriteSong> favouriteSongs;
     private List<QueueSong> queue;
     private int queueIndex = -1;
-    private List<Listener> listeners = new ArrayList<>();
+    private final List<Listener> listeners = new ArrayList<>();
     private SongList passingSongList;
     private SongList editingSongList;
     private String lastSearchedInText;
@@ -54,6 +54,13 @@ public class Memory {
 
     public synchronized void setSongs(List<Song> songs) {
         this.songs = songs;
+    }
+
+    public List<Song> getSongsOrEmptyList() {
+        if (songs == null) {
+            return new ArrayList<>();
+        }
+        return songs;
     }
 
     public List<SongCollection> getSongCollections() {

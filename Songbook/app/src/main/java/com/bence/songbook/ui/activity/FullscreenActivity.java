@@ -35,6 +35,7 @@ import java.util.List;
  */
 public class FullscreenActivity extends AbstractFullscreenActivity {
 
+    private final Memory memory = Memory.getInstance();
     private int verseIndex;
     private List<SongVerse> verseList;
     private Song song;
@@ -45,9 +46,26 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
     private boolean sharedOnNetwork = false;
     private Date lastDatePressedAtEnd = null;
     private boolean show_title_switch;
-    private Memory memory = Memory.getInstance();
     private boolean blank_switch;
     private View mContentView;
+
+    private SongVerse getSelectedSongVerse() {
+        Intent intent = getIntent();
+        verseIndex = intent.getIntExtra("verseIndex", 0);
+        return getSongVerseByVerseIndex();
+    }
+
+    private SongVerse getSongVerseByVerseIndex() {
+        final List<SongVerse> verses = song.getVerses();
+        int size = verses.size();
+        if (verseIndex < 0) {
+            verseIndex = 0;
+        }
+        if (verseIndex >= size) {
+            verseIndex = size - 1;
+        }
+        return verses.get(verseIndex);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,28 +76,9 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                 projectionTextChangeListeners = memory.getProjectionTextChangeListeners();
             }
             song = memory.getPassingSong();
-            Intent intent = getIntent();
-            List<SongVerse> songVersesByVerseOrder = song.getSongVersesByVerseOrder();
-            verseList = new ArrayList<>(songVersesByVerseOrder.size());
-            verseList.addAll(songVersesByVerseOrder);
-            final List<SongVerse> verses = song.getVerses();
-            SongVerse chorus = null;
-            int size = verses.size();
-            verseIndex = intent.getIntExtra("verseIndex", 0);
-            if (verseIndex < 0) {
-                verseIndex = 0;
-            }
-            if (verseIndex >= size) {
-                verseIndex = size - 1;
-            }
-            SongVerse selectedVerse = verses.get(verseIndex);
-            verseIndex = 0;
-            for (SongVerse verse : verseList) {
-                if (verse.equals(selectedVerse)) {
-                    break;
-                }
-                ++verseIndex;
-            }
+            setVerseList();
+            SongVerse selectedVerse = getSelectedSongVerse();
+            calculateVerseIndexBySongVerse(selectedVerse);
 
             mContentView = findViewById(R.id.fullscreen_content);
             mContentView.setOnTouchListener(new OnSwipeTouchListener(this) {
@@ -133,7 +132,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             if (verseIndex < 0) {
                 verseIndex = 0;
             }
-            setText(verseList.get(verseIndex).getText());
+            setTextFromVerseListByVerseIndex();
             Thread thread = new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -145,6 +144,26 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
         } catch (Exception e) {
             Log.e(FullscreenActivity.class.getSimpleName(), e.getMessage());
         }
+    }
+
+    private void calculateVerseIndexBySongVerse(SongVerse songVerse) {
+        verseIndex = 0;
+        for (SongVerse verse : verseList) {
+            if (verse.equals(songVerse)) {
+                break;
+            }
+            ++verseIndex;
+        }
+    }
+
+    private void setVerseList() {
+        List<SongVerse> songVersesByVerseOrder = song.getSongVersesByVerseOrder();
+        if (verseList == null) {
+            verseList = new ArrayList<>(songVersesByVerseOrder.size());
+        } else {
+            verseList.clear();
+        }
+        verseList.addAll(songVersesByVerseOrder);
     }
 
     private void addBlankSlide() {
@@ -245,7 +264,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
     private void setPreviousVerse() {
         if (verseIndex > 0) {
             --verseIndex;
-            setText(verseList.get(verseIndex).getText());
+            setTextFromVerseListByVerseIndex();
             textView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_from_left));
         }
     }
@@ -253,7 +272,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
     private void setNextVerse() {
         if (verseIndex + 1 < verseList.size()) {
             ++verseIndex;
-            setText(verseList.get(verseIndex).getText());
+            setTextFromVerseListByVerseIndex();
             textView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.slide_from_right));
             return;
         }
@@ -289,8 +308,12 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             }
         }
         verseIndex = 0;
-        setText(verseList.get(verseIndex).getText());
+        setTextFromVerseListByVerseIndex();
         textView.startAnimation(animation);
+    }
+
+    private void setTextFromVerseListByVerseIndex() {
+        setText(verseList.get(verseIndex).getText());
     }
 
     private void setPrevInQueue() {
@@ -309,25 +332,8 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
     }
 
     private void setVerseSlides() {
-        verseList.clear();
-        final List<SongVerse> verses = song.getVerses();
-        SongVerse chorus = null;
-        int size = verses.size();
-        for (int i = 0; i < size; ++i) {
-            SongVerse songVerse = verses.get(i);
-            verseList.add(songVerse);
-            if (songVerse.isChorus()) {
-                chorus = songVerse;
-            } else if (chorus != null) {
-                if (i + 1 < size) {
-                    if (!verses.get(i + 1).isChorus()) {
-                        verseList.add(chorus);
-                    }
-                } else {
-                    verseList.add(chorus);
-                }
-            }
-        }
+        setVerseList();
+        verseIndex = 0;
     }
 
     private void checkPressTwice() {
@@ -343,7 +349,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                     verseIndex = 0;
                 }
                 try {
-                    setText(verseList.get(verseIndex).getText());
+                    setTextFromVerseListByVerseIndex();
                 } catch (IndexOutOfBoundsException e) {
                     verseIndex = 0;
                 }
