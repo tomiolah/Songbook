@@ -75,6 +75,7 @@ export class SongComponent implements OnInit, OnDestroy {
     }
     this.originalSong = new Song(song);
     this.song = song;
+    this.loadCollections(song.uuid);
     this.calculateUrlId(song.youtubeUrl);
     this.titleService.setTitle(this.song.title);
     this.songsByVersionGroup = [];
@@ -132,15 +133,19 @@ export class SongComponent implements OnInit, OnDestroy {
           this.loadVersionGroup();
           this.showSimilarOnStart();
           this.loadSuggestions();
-          this.songCollectionService.getAllBySongId(songId).subscribe(
-            (songCollections) => {
-              this.collections = songCollections
-            }
-          );
+          this.loadCollections(songId);
           this.refreshMergeSong();
         });
       }
     });
+  }
+
+  private loadCollections(songId: any) {
+    this.songCollectionService.getAllBySongId(songId).subscribe(
+      (songCollections) => {
+        this.collections = songCollections;
+      }
+    );
   }
 
   refreshMergeSong(): void {
@@ -421,4 +426,8 @@ export class SongComponent implements OnInit, OnDestroy {
     }
   }
 
+  conditionForShowingCollection() {
+    const user = this.auth.getUser();
+    return this.auth.isLoggedIn && user != undefined && (user.isAdmin() || user.hasReviewerRoleForSong(this.song));
+  }
 }

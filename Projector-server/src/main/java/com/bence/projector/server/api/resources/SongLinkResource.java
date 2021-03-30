@@ -2,10 +2,12 @@ package com.bence.projector.server.api.resources;
 
 import com.bence.projector.common.dto.SongLinkDTO;
 import com.bence.projector.server.api.assembler.SongLinkAssembler;
+import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongLink;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
+import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongLinkService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
@@ -33,6 +35,7 @@ import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringWriter;
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -49,9 +52,10 @@ public class SongLinkResource {
     private final SongRepository songRepository;
     private final UserService userService;
     private final SongService songService;
+    private final LanguageService languageService;
 
     @Autowired
-    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, @Qualifier("javaMailSender") JavaMailSender sender, SongRepository songRepository, UserService userService, SongService songService) {
+    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, @Qualifier("javaMailSender") JavaMailSender sender, SongRepository songRepository, UserService userService, SongService songService, LanguageService languageService) {
         this.statisticsService = statisticsService;
         this.songLinkService = songLinkService;
         this.songLinkAssembler = songLinkAssembler;
@@ -59,12 +63,26 @@ public class SongLinkResource {
         this.songRepository = songRepository;
         this.userService = userService;
         this.songService = songService;
+        this.languageService = languageService;
     }
 
     @RequestMapping(value = "admin/api/songLinks", method = RequestMethod.GET)
     public List<SongLinkDTO> getSongLinks() {
-        List<SongLink> all = songLinkService.findAll();
+        List<SongLink> all = songLinkService.findAllUnApplied();
         return songLinkAssembler.createDtoList(all);
+    }
+
+    @RequestMapping(value = "admin/api/songLinks/resolveApplied", method = RequestMethod.GET)
+    public List<SongLinkDTO> resolveAppliedSongLinks() {
+        songLinkService.resolveAppliedSongLinks();
+        return songLinkAssembler.createDtoList(new ArrayList<>());
+    }
+
+    @RequestMapping(value = "admin/api/songLinks/language/{languageId}", method = RequestMethod.GET)
+    public List<SongLinkDTO> getSongLinksByLanguage(@PathVariable("languageId") String languageId) {
+        Language language = languageService.findOne(languageId);
+        List<SongLink> songLinks = songLinkService.findAllByLanguage(language);
+        return songLinkAssembler.createDtoList(songLinks);
     }
 
     @RequestMapping(value = "admin/api/songLink/{id}", method = RequestMethod.GET)
@@ -78,7 +96,7 @@ public class SongLinkResource {
     public SongLinkDTO songLink(@RequestBody final SongLinkDTO songLinkDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         SongLink model = songLinkAssembler.createModel(songLinkDTO);
-        if (model != null && !model.getSongId1().equals(model.getSongId2())) {
+        if (model != null && !model.alreadyTheSameVersionGroup(songService)) {
             SongLink songLink = songLinkService.save(model);
             Thread thread = new Thread(() -> {
                 try {
@@ -92,6 +110,30 @@ public class SongLinkResource {
         return songLinkAssembler.createDto(model);
     }
 
+    @RequestMapping(value = "admin/api/songLink/{id}", method = RequestMethod.PUT)
+    public ResponseEntity<Object> updateSongLink(@PathVariable final String id,
+                                                 @RequestBody final SongLinkDTO songLinkDTO,
+                                                 Principal principal) {
+        if (principal != null) {
+            String email = principal.getName();
+            User user = userService.findByEmail(email);
+            if (user != null) {
+                SongLink songLink = songLinkService.findOne(id);
+                if (songLink != null) {
+                    Date modifiedDate = songLink.getModifiedDate();
+                    if (modifiedDate != null && modifiedDate.compareTo(songLinkDTO.getModifiedDate()) != 0) {
+                        return new ResponseEntity<>("Already modified", HttpStatus.CONFLICT);
+                    }
+                    songLinkAssembler.updateModel(songLink, songLinkDTO);
+                    songLink.setModifiedDate(new Date());
+                    songLinkService.save(songLink);
+                    return new ResponseEntity<>(songLinkAssembler.createDto(songLink), HttpStatus.ACCEPTED);
+                }
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
+    }
+
     @RequestMapping(value = "user/api/songVersionGroup/{songId1}/{songId2}", method = RequestMethod.POST)
     public ResponseEntity<Object> userSongLink(@PathVariable("songId1") String songId1, @PathVariable("songId2") String songId2, HttpServletRequest httpServletRequest, Principal principal) {
         if (songId1.equals(songId2)) {
@@ -99,7 +141,7 @@ public class SongLinkResource {
         }
         Song song1 = songService.findOne(songId1);
         Song song2 = songService.findOne(songId2);
-        if (song1 == null || song2 == null) {
+        if (song1 == null || song2 == null || song1.isSameVersionGroup(song2)) {
             return new ResponseEntity<>("Null", HttpStatus.NO_CONTENT);
         }
         saveStatistics(httpServletRequest, statisticsService);

@@ -5,7 +5,7 @@
       <h3 class="title">{{song.title}}
       </h3>
       <div
-        *ngIf="auth.isLoggedIn && auth.getUser() != undefined && (auth.getUser().isAdmin() || auth.getUser().hasReviewerRoleForSong(song))">
+        *ngIf="conditionForShowingCollection()">
         <div *ngIf="collections != undefined">
           <div *ngFor="let collection of collections">
             <p *ngFor="let collectionElement of collection.songCollectionElements">

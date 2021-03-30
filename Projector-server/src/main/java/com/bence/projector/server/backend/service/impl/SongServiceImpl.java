@@ -515,6 +515,9 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public Song findOne(String id) {
+        if (id == null) {
+            return null;
+        }
         HashMap<String, Song> songsHashMap = getSongsHashMap();
         Song song;
         if (songsHashMap.containsKey(id)) {
