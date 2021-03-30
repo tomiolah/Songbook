@@ -296,4 +296,19 @@ public class Song extends BaseEntity {
     public boolean isPublic() {
         return !isReviewerErased() && !isDeleted() && !isBackUp();
     }
+
+    private String idOrVersionGroup() {
+        String versionGroup = getVersionGroup();
+        if (versionGroup != null) {
+            return versionGroup;
+        }
+        return getId();
+    }
+
+    public boolean isSameVersionGroup(Song other) {
+        if (other == null) {
+            return false;
+        }
+        return idOrVersionGroup().equals(other.idOrVersionGroup());
+    }
 }
