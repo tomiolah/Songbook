@@ -1,12 +1,21 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import java.util.Date;
 import java.util.List;
 
-public class Suggestion extends BaseEntity {
+@Entity
+public class Suggestion extends AbstractModel {
 
-    private String songId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Song song;
     private String title;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "suggestion")
     private List<SongVerse> verses;
     private Date createdDate;
     private Boolean applied;
@@ -15,7 +24,10 @@ public class Suggestion extends BaseEntity {
     private String youtubeUrl;
     private Boolean reviewed;
     private Date modifiedDate;
+    @ManyToOne(fetch = FetchType.LAZY)
     private User lastModifiedBy;
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "suggestionStack")
+    private List<NotificationByLanguage> notificationByLanguages;
 
     public Suggestion() {
     }
@@ -33,6 +45,11 @@ public class Suggestion extends BaseEntity {
     }
 
     public void setVerses(List<SongVerse> verses) {
+        if (verses != null) {
+            for (SongVerse songVerse : verses) {
+                songVerse.setSuggestion(this);
+            }
+        }
         this.verses = verses;
     }
 
@@ -68,12 +85,12 @@ public class Suggestion extends BaseEntity {
         this.description = description;
     }
 
-    public String getSongId() {
-        return songId;
+    public Song getSong() {
+        return song;
     }
 
-    public void setSongId(String songId) {
-        this.songId = songId;
+    public void setSong(Song song) {
+        this.song = song;
     }
 
     public String getYoutubeUrl() {

@@ -1,9 +1,14 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.OneToMany;
 import java.util.List;
 
+@Entity
 public class UserProperties extends BaseEntity {
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "userProperties")
     private List<NotificationByLanguage> notifications;
 
     public List<NotificationByLanguage> getNotifications() {
@@ -15,8 +20,8 @@ public class UserProperties extends BaseEntity {
     }
 
     public NotificationByLanguage getNotificationByLanguage(Language language) {
-        for (NotificationByLanguage notification: getNotifications()) {
-            if (notification.getLanguage().getId().equals(language.getId())) {
+        for (NotificationByLanguage notification : getNotifications()) {
+            if (notification.getLanguage().getUuid().equals(language.getUuid())) {
                 return notification;
             }
         }

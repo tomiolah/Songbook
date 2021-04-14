@@ -1,12 +1,17 @@
 package com.bence.projector.server.backend.model;
 
-import org.springframework.data.mongodb.core.mapping.DBRef;
-
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class User extends BaseEntity {
+@Entity
+public class User extends AbstractModel {
 
     private String password;
     private String email;
@@ -19,12 +24,17 @@ public class User extends BaseEntity {
     private String surname;
     private String firstName;
     private String activationCode;
-    private Boolean banned;
     private Date modifiedDate;
     private Date createdDate;
-    @DBRef(lazy = true)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "REVIEW_LANGUAGES")
     private List<Language> reviewLanguages;
+    @ManyToOne(fetch = FetchType.LAZY)
     private UserProperties userProperties;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "lastModifiedBy")
+    private List<Suggestion> lastModifiedSuggestions;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "lastModifiedBy")
+    private List<Song> lastModifiedSongs;
 
     public User() {
         super();
@@ -95,12 +105,8 @@ public class User extends BaseEntity {
         this.preferredLanguage = preferredLanguage;
     }
 
-    public Boolean getActivated() {
-        return activated;
-    }
-
     public boolean isActivated() {
-        return activated == null ? false : activated;
+        return activated != null && activated;
     }
 
     public void setActivated(Boolean activated) {
@@ -129,14 +135,6 @@ public class User extends BaseEntity {
 
     public void setActivationCode(String activationCode) {
         this.activationCode = activationCode;
-    }
-
-    public Boolean isBanned() {
-        return banned != null && banned;
-    }
-
-    public void setBanned(Boolean banned) {
-        this.banned = banned;
     }
 
     public Date getModifiedDate() {
@@ -170,9 +168,9 @@ public class User extends BaseEntity {
         if (role == Role.ROLE_ADMIN) {
             return true;
         }
-        String id = language.getId();
+        String id = language.getUuid();
         for (Language reviewLanguage : getReviewLanguages()) {
-            if (reviewLanguage.getId().equals(id)) {
+            if (reviewLanguage.getUuid().equals(id)) {
                 return true;
             }
         }

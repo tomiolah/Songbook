@@ -1,17 +1,20 @@
 package com.bence.projector.server.backend.model;
 
-import org.springframework.data.mongodb.core.mapping.DBRef;
-
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import java.util.Date;
 import java.util.List;
 
-public class Bible extends BaseEntity {
+@Entity
+public class Bible extends AbstractModel {
 
     private String name;
     private String shortName;
-    @DBRef(lazy = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "bible")
     private List<Book> books;
-    @DBRef(lazy = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Language language;
     private Date createdDate;
     private Date modifiedDate;
@@ -37,7 +40,14 @@ public class Bible extends BaseEntity {
     }
 
     public void setBooks(List<Book> books) {
+        setBibleToBooks(books);
         this.books = books;
+    }
+
+    private void setBibleToBooks(List<Book> books) {
+        for (Book book: books) {
+            book.setBible(this);
+        }
     }
 
     public Language getLanguage() {
@@ -62,5 +72,11 @@ public class Bible extends BaseEntity {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    public void linkToVerseIndices() {
+        for (Book book : getBooks()) {
+            book.linkBibleToVerseIndices(this);
+        }
     }
 }

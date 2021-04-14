@@ -1,11 +1,17 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
 import java.util.Date;
 
+@Entity
 public class Statistics extends BaseEntity {
     private Date accessedDate;
+    @Column(length = 15)
     private String remoteAddress;
+    @Column(length = 100)
     private String uri;
+    @Column(length = 10)
     private String method;
 
     public Date getAccessedDate() {

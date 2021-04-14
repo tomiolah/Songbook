@@ -1,8 +1,10 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Entity;
 import java.util.Date;
 
-public class ProjectorVersion extends BaseEntity {
+@Entity
+public class ProjectorVersion extends AbstractModel {
     private int versionId;
     private String version;
     private String description;

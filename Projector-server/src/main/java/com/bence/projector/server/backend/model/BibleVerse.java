@@ -1,11 +1,21 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 import java.util.List;
 
-public class BibleVerse {
+@Entity
+public class BibleVerse extends BaseEntity {
 
+    @Column(length = 1000)
     private String text;
-    private List<Long> verseIndices;
+    @Transient
+    private List<VerseIndex> verseIndices;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Chapter chapter;
 
     public String getText() {
         return text;
@@ -20,11 +30,28 @@ public class BibleVerse {
         return text;
     }
 
-    public List<Long> getVerseIndices() {
+    public List<VerseIndex> getVerseIndices() {
         return verseIndices;
     }
 
-    public void setVerseIndices(List<Long> verseIndices) {
+    public void setVerseIndices(List<VerseIndex> verseIndices) {
+        for (VerseIndex verseIndex : verseIndices) {
+            verseIndex.setBibleVerse(this);
+        }
         this.verseIndices = verseIndices;
+    }
+
+    public Chapter getChapter() {
+        return chapter;
+    }
+
+    public void setChapter(Chapter chapter) {
+        this.chapter = chapter;
+    }
+
+    public void linkBibleToVerseIndices(Bible bible) {
+        for (VerseIndex verseIndex : getVerseIndices()) {
+            verseIndex.setBible(bible);
+        }
     }
 }

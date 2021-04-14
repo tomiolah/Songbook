@@ -1,21 +1,25 @@
 package com.bence.projector.server.backend.model;
 
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-
-import java.util.ArrayList;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 import java.util.Date;
 import java.util.List;
 
-public class Song extends BaseEntity {
+@Entity
+public class Song extends AbstractModel {
 
     private String originalId;
     private String title;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<SongVerse> verses;
     private Date createdDate;
     private Date modifiedDate;
     private boolean deleted = false;
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
     private Language language;
     private Boolean uploaded;
     private long views;
@@ -25,21 +29,23 @@ public class Song extends BaseEntity {
     private String createdByEmail;
     @Transient
     transient private double percentage;
-    private String versionGroup;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Song versionGroup;
     private String youtubeUrl;
     private String verseOrder;
     private String author;
-    private List<Short> verseOrderList;
-    @DBRef
+    @Transient
+    private List<Short> verseOrderList; // TODO save with verseOrder
+    @ManyToOne(fetch = FetchType.LAZY)
     private User lastModifiedBy;
-    @DBRef
+    @ManyToOne(fetch = FetchType.LAZY)
     private Song backUp;
     private Boolean isBackUp;
     private Boolean reviewerErased;
     @Transient
-    private List<Language> previousLanguages;
-    @Transient
     private String beforeId;
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "newSongStack")
+    private List<NotificationByLanguage> notificationByLanguages;
 
     public Song() {
     }
@@ -72,7 +78,8 @@ public class Song extends BaseEntity {
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        int MAX_TITLE_LENGTH = 255;
+        this.title = title.substring(0, Math.min(title.length(), MAX_TITLE_LENGTH));
     }
 
     public List<SongVerse> getVerses() {
@@ -80,6 +87,9 @@ public class Song extends BaseEntity {
     }
 
     public void setVerses(List<SongVerse> verses) {
+        for (SongVerse songVerse : verses) {
+            songVerse.setSong(this);
+        }
         this.verses = verses;
     }
 
@@ -112,9 +122,6 @@ public class Song extends BaseEntity {
     }
 
     public void setLanguage(Language language) {
-        if (this.language != null && (language == null || !this.language.getId().equals(language.getId()))) {
-            getPreviousLanguages().add(this.language);
-        }
         this.language = language;
     }
 
@@ -171,11 +178,11 @@ public class Song extends BaseEntity {
         this.percentage = percentage;
     }
 
-    public String getVersionGroup() {
+    public Song getVersionGroup() {
         return versionGroup;
     }
 
-    public void setVersionGroup(String versionGroup) {
+    public void setVersionGroup(Song versionGroup) {
         this.versionGroup = versionGroup;
     }
 
@@ -183,7 +190,7 @@ public class Song extends BaseEntity {
         return uploaded != null && uploaded;
     }
 
-    public void setUploaded(boolean uploaded) {
+    public void setUploaded(Boolean uploaded) {
         this.uploaded = uploaded;
     }
 
@@ -278,13 +285,6 @@ public class Song extends BaseEntity {
         this.reviewerErased = reviewerErased;
     }
 
-    public List<Language> getPreviousLanguages() {
-        if (previousLanguages == null) {
-            previousLanguages = new ArrayList<>();
-        }
-        return previousLanguages;
-    }
-
     public String getBeforeId() {
         return beforeId;
     }
@@ -295,5 +295,9 @@ public class Song extends BaseEntity {
 
     public boolean isPublic() {
         return !isReviewerErased() && !isDeleted() && !isBackUp();
+    }
+
+    public void setNotificationByLanguages(List<NotificationByLanguage> notificationByLanguages) {
+        this.notificationByLanguages = notificationByLanguages;
     }
 }

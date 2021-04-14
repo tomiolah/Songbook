@@ -1,29 +1,27 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
 import java.util.Date;
 
-public class SongLink extends BaseEntity {
+@Entity
+public class SongLink extends AbstractModel {
 
-    private String songId1;
-    private String songId2;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Song song1;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Song song2;
     private Date createdDate;
     private Boolean applied;
     private String createdByEmail;
 
-    public String getSongId1() {
-        return songId1;
+    public void setSong1(Song song1) {
+        this.song1 = song1;
     }
 
-    public void setSongId1(String songId1) {
-        this.songId1 = songId1;
-    }
-
-    public String getSongId2() {
-        return songId2;
-    }
-
-    public void setSongId2(String songId2) {
-        this.songId2 = songId2;
+    public void setSong2(Song song2) {
+        this.song2 = song2;
     }
 
     public Date getCreatedDate() {

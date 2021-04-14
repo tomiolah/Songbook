@@ -1,8 +1,10 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Entity;
 import java.util.Date;
 
-public class Stack extends BaseEntity {
+@Entity
+public class Stack extends AbstractModel {
 
     private String stackTrace;
     private String message;
