@@ -4,6 +4,8 @@ import com.bence.projector.common.dto.SongListDTO;
 import com.bence.projector.common.dto.SongListElementDTO;
 import com.bence.projector.server.backend.model.SongList;
 import com.bence.projector.server.backend.model.SongListElement;
+import com.bence.projector.server.backend.service.SongService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -11,6 +13,8 @@ import java.util.Date;
 
 @Component
 public class SongListAssembler implements GeneralAssembler<SongList, SongListDTO> {
+    @Autowired
+    private SongService songService;
 
     @Override
     public SongListDTO createDto(SongList songList) {
@@ -18,7 +22,7 @@ public class SongListAssembler implements GeneralAssembler<SongList, SongListDTO
             return null;
         }
         SongListDTO songListDTO = new SongListDTO();
-        songListDTO.setUuid(songList.getId());
+        songListDTO.setUuid(songList.getUuid());
         songListDTO.setCreatedDate(songList.getCreatedDate());
         songListDTO.setModifiedDate(songList.getModifiedDate());
         songListDTO.setCreatedByEmail(songList.getCreatedByEmail());
@@ -38,7 +42,7 @@ public class SongListAssembler implements GeneralAssembler<SongList, SongListDTO
     @Override
     public SongList createModel(SongListDTO songListDTO) {
         final SongList songList = new SongList();
-        songList.setId(songListDTO.getUuid());
+        songList.setUuid(songListDTO.getUuid());
         Date createdDate = songListDTO.getCreatedDate();
         if (createdDate == null || createdDate.getTime() < 1000) {
             songList.setCreatedDate(new Date());
@@ -56,7 +60,7 @@ public class SongListAssembler implements GeneralAssembler<SongList, SongListDTO
         for (SongListElementDTO dto : songListDTO.getSongListElements()) {
             SongListElement element = new SongListElement();
             element.setNumber(dto.getNumber());
-            element.setSongUuid(dto.getSongUuid());
+            element.setSong(songService.findOneByUuid(dto.getSongUuid()));
             songListElements.add(element);
         }
         songList.setSongListElements(songListElements);

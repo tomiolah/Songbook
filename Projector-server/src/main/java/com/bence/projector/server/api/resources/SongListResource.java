@@ -8,7 +8,6 @@ import com.bence.projector.server.backend.model.SongListElement;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.SongListService;
 import com.bence.projector.server.backend.service.StatisticsService;
-import com.bence.projector.server.mailsending.FreemarkerConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,7 +29,7 @@ public class SongListResource {
     private final SongRepository songRepository;
 
     @Autowired
-    public SongListResource(StatisticsService statisticsService, SongListService songListService, SongListAssembler songListAssembler, FreemarkerConfiguration freemarkerConfiguration, SongRepository songRepository) {
+    public SongListResource(StatisticsService statisticsService, SongListService songListService, SongListAssembler songListAssembler, SongRepository songRepository) {
         this.statisticsService = statisticsService;
         this.songListService = songListService;
         this.songListAssembler = songListAssembler;
@@ -46,7 +45,7 @@ public class SongListResource {
     @RequestMapping(value = "api/songList/{id}", method = RequestMethod.GET)
     public SongListDTO getSongList(@PathVariable final String id, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        SongList songList = songListService.findOne(id);
+        SongList songList = songListService.findOneByUuid(id);
         return songListAssembler.createDto(songList);
     }
 
@@ -58,7 +57,7 @@ public class SongListResource {
             List<SongListElement> needToRemove = new ArrayList<>();
             List<SongListElement> songListElements = model.getSongListElements();
             for (SongListElement element : songListElements) {
-                Song one = songRepository.findOne(element.getSongUuid());
+                Song one = songRepository.findOneByUuid(element.getSongUuid());
                 if (one == null) {
                     needToRemove.add(element);
                 }

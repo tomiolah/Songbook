@@ -26,11 +26,11 @@ public class SetLanguages {
 
     public static void setLanguagesForUnknown(SongRepository songRepository, SongService songService, LanguageService languageService) {
         List<Language> languages = languageService.findAll();
-        List<Song> songs = songRepository.findAll();
+        Iterable<Song> songs = songRepository.findAll();
         List<Song> allWithLanguage = songService.findAll();
         HashMap<String, Song> songHashMap = new HashMap<>();
         for (Song song : allWithLanguage) {
-            songHashMap.put(song.getId(), song);
+            songHashMap.put(song.getUuid(), song);
         }
 
         Map<Language, Collection<String>> languageMap = new HashMap<>();
@@ -39,7 +39,7 @@ public class SetLanguages {
             languageMap.put(language, value);
         }
         for (Song song : songs) {
-            Song song1 = songHashMap.get(song.getId());
+            Song song1 = songHashMap.get(song.getUuid());
             if (song1 != null) {
                 Language language = song1.getLanguage();
                 Collection<String> words = languageMap.get(language);

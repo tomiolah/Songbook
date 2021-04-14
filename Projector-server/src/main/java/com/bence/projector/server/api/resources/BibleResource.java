@@ -53,7 +53,7 @@ public class BibleResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/bible/{uuid}")
     public BibleDTO getBible(@PathVariable String uuid, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final Bible bible = bibleService.findOne(uuid);
+        final Bible bible = bibleService.findOneByUuid(uuid);
         return bibleAssembler.createDto(bible);
     }
 

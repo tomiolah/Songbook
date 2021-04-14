@@ -5,15 +5,19 @@ import com.bence.projector.server.backend.model.BaseEntity;
 import java.util.List;
 
 public interface BaseService<M extends BaseEntity> {
-    M findOne(String id);
+    M findOne(Long id);
+
+    M findOneByUuid(String uuid);
 
     List<M> findAll();
 
-    void delete(String id);
+    void delete(Long id);
 
-    void delete(List<String> ids);
+    void delete(List<Long> ids);
 
     M save(M model);
 
-    Iterable save(List<M> models);
+    Iterable<M> save(List<M> models);
+
+    void deleteByUuid(String uuid);
 }

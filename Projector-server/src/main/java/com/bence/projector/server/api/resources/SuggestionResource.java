@@ -60,7 +60,7 @@ public class SuggestionResource {
     }
 
     private List<SuggestionDTO> getSuggestionDTOS(@PathVariable("languageId") String languageId) {
-        Language language = languageService.findOne(languageId);
+        Language language = languageService.findOneByUuid(languageId);
         List<Suggestion> allByLanguage = suggestionService.findAllByLanguage(language);
         return suggestionAssembler.createDtoList(allByLanguage);
     }
@@ -76,7 +76,7 @@ public class SuggestionResource {
     }
 
     private SuggestionDTO getSuggestionDTO(@PathVariable String id) {
-        Suggestion suggestion = suggestionService.findOne(id);
+        Suggestion suggestion = suggestionService.findOneByUuid(id);
         return suggestionAssembler.createDto(suggestion);
     }
 
@@ -91,7 +91,7 @@ public class SuggestionResource {
     }
 
     private List<SuggestionDTO> getSuggestionDTOBySong(@PathVariable String songId) {
-        Song song = songService.findOne(songId);
+        Song song = songService.findOneByUuid(songId);
         if (song == null) {
             return new ArrayList<>();
         }
@@ -122,7 +122,7 @@ public class SuggestionResource {
     }
 
     private void sendEmail(Suggestion suggestion) {
-        Song song = songService.findOne(suggestion.getSongId());
+        Song song = songService.findOneByUuid(suggestion.getSongUuid());
         List<User> reviewers = userService.findAllReviewersByLanguage(song.getLanguage());
         for (User user : reviewers) {
             NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(song.getLanguage());
@@ -144,9 +144,9 @@ public class SuggestionResource {
             String email = principal.getName();
             User user = userService.findByEmail(email);
             if (user != null) {
-                Suggestion suggestion = suggestionService.findOne(suggestionId);
+                Suggestion suggestion = suggestionService.findOneByUuid(suggestionId);
                 if (suggestion != null) {
-                    Song song = songService.findOne(suggestion.getSongId());
+                    Song song = songService.findOneByUuid(suggestion.getSongUuid());
                     if (song != null && songInReviewLanguages(user, song)) {
                         Date modifiedDate = suggestion.getModifiedDate();
                         if ((modifiedDate != null && modifiedDate.compareTo(suggestionDTO.getModifiedDate()) != 0) || (modifiedDate == null && suggestionDTO.getModifiedDate() != null)) {

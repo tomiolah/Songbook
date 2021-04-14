@@ -30,7 +30,7 @@ public class UserAssembler implements GeneralAssembler<User, UserDTO> {
             return null;
         }
         UserDTO userDTO = new UserDTO();
-        userDTO.setUuid(user.getId());
+        userDTO.setUuid(user.getUuid());
         userDTO.setEmail(user.getEmail());
         userDTO.setPreferredLanguage(user.getPreferredLanguage());
         userDTO.setRole(user.getRole().getValue());
@@ -65,7 +65,7 @@ public class UserAssembler implements GeneralAssembler<User, UserDTO> {
             user.setFirstName(userDTO.getFirstName());
             List<Language> reviewLanguages = new ArrayList<>(userDTO.getReviewLanguages().size());
             for (LanguageDTO languageDTO : userDTO.getReviewLanguages()) {
-                Language language = languageService.findOne(languageDTO.getUuid());
+                Language language = languageService.findOneByUuid(languageDTO.getUuid());
                 if (language != null) {
                     reviewLanguages.add(language);
                 }

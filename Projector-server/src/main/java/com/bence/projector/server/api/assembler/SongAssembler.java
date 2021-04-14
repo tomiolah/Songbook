@@ -5,6 +5,7 @@ import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.service.LanguageService;
+import com.bence.projector.server.backend.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -17,12 +18,14 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
     private final SongVerseAssembler songVerseAssembler;
     private final LanguageAssembler languageAssembler;
     private final LanguageService languageService;
+    private final SongService songService;
 
     @Autowired
-    public SongAssembler(SongVerseAssembler songVerseAssembler, LanguageAssembler languageAssembler, LanguageService languageService) {
+    public SongAssembler(SongVerseAssembler songVerseAssembler, LanguageAssembler languageAssembler, LanguageService languageService, SongService songService) {
         this.songVerseAssembler = songVerseAssembler;
         this.languageAssembler = languageAssembler;
         this.languageService = languageService;
+        this.songService = songService;
     }
 
     @Override
@@ -31,7 +34,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             return null;
         }
         SongDTO songDTO = new SongDTO();
-        songDTO.setUuid(song.getId());
+        songDTO.setUuid(song.getUuid());
         songDTO.setOriginalId(song.getOriginalId());
         songDTO.setTitle(song.getTitle());
         songDTO.setCreatedDate(song.getCreatedDate());
@@ -43,7 +46,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         songDTO.setViews(song.getViews());
         songDTO.setFavourites(song.getFavourites());
         songDTO.setCreatedByEmail(song.getCreatedByEmail());
-        songDTO.setVersionGroup(song.getVersionGroup());
+        songDTO.setVersionGroup(song.getVersionGroupUuid());
         songDTO.setYoutubeUrl(song.getYoutubeUrl());
         String verseOrder = song.getVerseOrder();
         songDTO.setVerseOrder(verseOrder);
@@ -84,7 +87,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         songDTO.setAuthor(song.getAuthor());
         Song backUp = song.getBackUp();
         if (backUp != null) {
-            songDTO.setBackUpSongId(backUp.getId());
+            songDTO.setBackUpSongId(backUp.getUuid());
         } else {
             songDTO.setBackUpSongId(null);
         }
@@ -109,7 +112,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
 
     @Override
     public Song updateModel(Song song, SongDTO songDTO) {
-        if (song.getId() != null && song.getId().equals(songDTO.getOriginalId())) {
+        if (song.getUuid() != null && song.getUuid().equals(songDTO.getOriginalId())) {
             song.setOriginalId(null);
         } else {
             song.setOriginalId(songDTO.getOriginalId());
@@ -125,10 +128,10 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         song.setVerses(songVerses);
         song.setDeleted(songDTO.isDeleted());
         if (songDTO.getLanguageDTO() != null) {
-            song.setLanguage(languageService.findOne(songDTO.getLanguageDTO().getUuid()));
+            song.setLanguage(languageService.findOneByUuid(songDTO.getLanguageDTO().getUuid()));
         }
         song.setCreatedByEmail(songDTO.getCreatedByEmail());
-        song.setVersionGroup(songDTO.getVersionGroup());
+        song.setVersionGroup(songService.findOneByUuid(songDTO.getVersionGroup()));
         song.setYoutubeUrl(songDTO.getYoutubeUrl());
         song.setVerseOrder(null);
         song.setVerseOrderList(songDTO.getVerseOrderList());

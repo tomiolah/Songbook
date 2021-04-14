@@ -1,7 +1,8 @@
 package com.bence.projector.server.backend.repository;
 
 import com.bence.projector.server.backend.model.SongLink;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.repository.CrudRepository;
 
-public interface SongLinkRepository extends MongoRepository<SongLink, String> {
+public interface SongLinkRepository extends CrudRepository<SongLink, Long> {
+    SongLink findOneByUuid(String uuid);
 }

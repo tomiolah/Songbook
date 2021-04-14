@@ -34,7 +34,7 @@ public class QueueResourceSeo {
         String[] split = ids.split(",");
         List<Song> songs = new ArrayList<>(split.length);
         for (String s : split) {
-            Song song = songService.findOne(s);
+            Song song = songService.findOneByUuid(s);
             if (song != null) {
                 song.setBeforeId("song/");
                 songs.add(song);
@@ -54,11 +54,11 @@ public class QueueResourceSeo {
 
     @GetMapping("/songList/{id}")
     public String songList(Model model, @PathVariable("id") String id) {
-        SongList songList = songListService.findOne(id);
+        SongList songList = songListService.findOneByUuid(id);
         List<SongListElement> songListElements = songList.getSongListElements();
         List<Song> songs = new ArrayList<>(songListElements.size());
         for (SongListElement element : songListElements) {
-            Song song = songRepository.findOne(element.getSongUuid());
+            Song song = songRepository.findOneByUuid(element.getSongUuid());
             if (song != null) {
                 song.setBeforeId("../song/");
                 songs.add(song);

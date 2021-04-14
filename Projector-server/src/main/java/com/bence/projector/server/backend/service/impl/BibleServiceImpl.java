@@ -18,30 +18,31 @@ public class BibleServiceImpl extends BaseServiceImpl<Bible> implements BibleSer
     }
 
     @Override
+    public Bible findOneByUuid(String uuid) {
+        return null;
+    }
+
+    @Override
     public Bible save(Bible model) {
         bookRepository.save(model.getBooks());
         return super.save(model);
     }
 
     @Override
-    public Iterable save(List<Bible> models) {
+    public Iterable<Bible> save(List<Bible> models) {
         for (Bible bible : models) {
             save(bible);
         }
         return models;
     }
 
-    @Override
-    public void delete(String id) {
-        Bible bible = findOne(id);
+    public void deleteByUuid(String id) {
+        Bible bible = findOneByUuid(id);
+        if (bible == null) {
+            return;
+        }
         bookRepository.delete(bible.getBooks());
-        super.delete(id);
+        super.delete(bible.getId());
     }
 
-    @Override
-    public void delete(List<String> ids) {
-        for (String id : ids) {
-            delete(id);
-        }
-    }
 }

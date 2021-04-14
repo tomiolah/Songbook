@@ -1,16 +1,16 @@
 package com.bence.projector.server.backend.repository;
 
 import com.bence.projector.server.backend.model.SongCollection;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.repository.CrudRepository;
 
 import java.util.Date;
 import java.util.List;
 
-public interface SongCollectionRepository extends MongoRepository<SongCollection, String> {
-
-    SongCollection findSongCollectionBySongCollectionElements_SongUuid(String songUuid);
+public interface SongCollectionRepository extends CrudRepository<SongCollection, Long> {
 
     List<SongCollection> findAllByLanguage_IdAndAndModifiedDateGreaterThan(String language_id, Date modifiedDate);
 
-    List<SongCollection> findAllBySongCollectionElements_SongUuid(String songUuid);
+    List<SongCollection> findAllBySongCollectionElements_SongId(Long songId);
+
+    SongCollection findOneByUuid(String uuid);
 }

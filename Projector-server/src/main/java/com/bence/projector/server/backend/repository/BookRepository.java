@@ -1,7 +1,7 @@
 package com.bence.projector.server.backend.repository;
 
 import com.bence.projector.server.backend.model.Book;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.repository.CrudRepository;
 
-public interface BookRepository extends MongoRepository<Book, String> {
+public interface BookRepository extends CrudRepository<Book, Long> {
 }

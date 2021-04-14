@@ -71,11 +71,11 @@ public class SongLink extends AbstractModel {
     }
 
     public Song getSong1(SongService songService) {
-        return songService.findOne(songId1);
+        return songService.findOneByUuid(song1.getUuid());
     }
 
     public Song getSong2(SongService songService) {
-        return songService.findOne(songId2);
+        return songService.findOneByUuid(song1.getUuid());
     }
 
     public boolean hasLanguage(Language language, SongService songService) {

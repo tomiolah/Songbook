@@ -66,7 +66,7 @@ public class SongCollectionResource {
     @RequestMapping(method = RequestMethod.GET, value = "api/songCollections/song/{id}")
     public List<SongCollectionDTO> findAllBySong(@PathVariable("id") String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        Song song = songService.findOne(songId);
+        Song song = songService.findOneByUuid(songId);
         List<SongCollection> all;
         if (song != null) {
             all = songCollectionService.findAllBySong(song);
@@ -74,7 +74,7 @@ public class SongCollectionResource {
             for (SongCollection songCollection : all) {
                 SongCollection collection = new SongCollection(songCollection);
                 ArrayList<SongCollectionElement> songCollectionElements = new ArrayList<>();
-                for (SongCollectionElement collectionElement: songCollection.getSongCollectionElements()) {
+                for (SongCollectionElement collectionElement : songCollection.getSongCollectionElements()) {
                     if (collectionElement.getSongUuid().equals(songId)) {
                         songCollectionElements.add(collectionElement);
                     }
@@ -92,7 +92,7 @@ public class SongCollectionResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/songCollection/{id}")
     public SongCollectionDTO find(@PathVariable final String id, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final SongCollection songCollectionDTO = songCollectionService.findOne(id);
+        final SongCollection songCollectionDTO = songCollectionService.findOneByUuid(id);
         return songCollectionAssembler.createDto(songCollectionDTO);
     }
 
@@ -106,7 +106,7 @@ public class SongCollectionResource {
     @RequestMapping(method = RequestMethod.PUT, value = "admin/api/songCollection/{songCollectionUuid}/songCollectionElement")
     public ResponseEntity<Object> addToSongCollection(HttpServletRequest httpServletRequest, @PathVariable String songCollectionUuid, @RequestBody SongCollectionElementDTO elementDTO) {
         saveStatistics(httpServletRequest, statisticsService);
-        final SongCollection songCollection = songCollectionService.findOne(songCollectionUuid);
+        final SongCollection songCollection = songCollectionService.findOneByUuid(songCollectionUuid);
         if (songCollection != null) {
             List<SongCollectionElement> songCollectionElements = songCollection.getSongCollectionElements();
             SongCollectionElement elementModel = null;

@@ -13,7 +13,7 @@ public class LanguageAssembler implements GeneralAssembler<Language, LanguageDTO
             return null;
         }
         LanguageDTO languageDTO = new LanguageDTO();
-        languageDTO.setUuid(language.getId());
+        languageDTO.setUuid(language.getUuid());
         languageDTO.setEnglishName(language.getEnglishName());
         languageDTO.setNativeName(language.getNativeName());
         languageDTO.setSize(language.getSongsCount());
@@ -23,7 +23,7 @@ public class LanguageAssembler implements GeneralAssembler<Language, LanguageDTO
     @Override
     public Language createModel(LanguageDTO languageDTO) {
         final Language language = new Language();
-        language.setId(languageDTO.getUuid());
+        language.setUuid(languageDTO.getUuid());
         return updateModel(language, languageDTO);
     }
 

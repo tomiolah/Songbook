@@ -1,11 +1,11 @@
 package com.bence.projector.server.backend.repository;
 
 import com.bence.projector.server.backend.model.ProjectorVersion;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
 
-public interface ProjectorVersionRepository extends MongoRepository<ProjectorVersion, String> {
+public interface ProjectorVersionRepository extends CrudRepository<ProjectorVersion, Long> {
 
     List<ProjectorVersion> findAllByVersionIdGreaterThan(int nr);
 }

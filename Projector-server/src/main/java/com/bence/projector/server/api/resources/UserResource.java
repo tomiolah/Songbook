@@ -101,14 +101,14 @@ public class UserResource {
     @RequestMapping(value = "admin/api/user/{id}", method = RequestMethod.GET)
     public UserDTO getUser(@PathVariable final String id, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        User user = userService.findOne(id);
+        User user = userService.findOneByUuid(id);
         return userAssembler.createDto(user);
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/admin/api/user/{id}")
     public ResponseEntity<Object> updateUser(@PathVariable final String id, @RequestBody final UserDTO userDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        User user = userService.findOne(id);
+        User user = userService.findOneByUuid(id);
         if (user != null) {
             Date modifiedDate = user.getModifiedDate();
             if (modifiedDate != null && modifiedDate.compareTo(userDTO.getModifiedDate()) != 0) {

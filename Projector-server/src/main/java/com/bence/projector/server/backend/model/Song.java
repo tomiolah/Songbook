@@ -302,11 +302,11 @@ public class Song extends AbstractModel {
     }
 
     private String idOrVersionGroup() {
-        String versionGroup = getVersionGroup();
+        Song versionGroup = getVersionGroup();
         if (versionGroup != null) {
-            return versionGroup;
+            return versionGroup.getUuid();
         }
-        return getId();
+        return getUuid();
     }
 
     public boolean isSameVersionGroup(Song other) {
@@ -314,5 +314,13 @@ public class Song extends AbstractModel {
             return false;
         }
         return idOrVersionGroup().equals(other.idOrVersionGroup());
+    }
+
+    public String getVersionGroupUuid() {
+        Song versionGroup = getVersionGroup();
+        if (versionGroup == null) {
+            return null;
+        }
+        return versionGroup.getUuid();
     }
 }

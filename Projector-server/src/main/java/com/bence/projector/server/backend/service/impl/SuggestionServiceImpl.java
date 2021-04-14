@@ -19,7 +19,7 @@ import java.util.List;
 public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implements SuggestionService {
     private final SuggestionRepository suggestionRepository;
     private final SongService songService;
-    private HashMap<String, Suggestion> suggestionHashMap;
+    private final HashMap<String, Suggestion> suggestionHashMap;
     private long lastModifiedDateTime = 0;
 
     @Autowired
@@ -37,28 +37,28 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
     }
 
     @Override
-    public Suggestion findOne(String id) {
+    public Suggestion findOneByUuid(String id) {
         if (suggestionHashMap.containsKey(id)) {
             return suggestionHashMap.get(id);
         }
-        Suggestion suggestion = super.findOne(id);
+        Suggestion suggestion = super.findOneByUuid(id);
         suggestionHashMap.put(id, suggestion);
         return suggestion;
     }
 
     @Override
     public List<Suggestion> findAllByLanguage(Language language) {
-        String languageId = language.getId();
+        String languageId = language.getUuid();
         List<Suggestion> suggestions = new ArrayList<>(suggestionHashMap.size());
         for (Suggestion suggestion : getSuggestions()) {
             try {
-                String songId = suggestion.getSongId();
-                if (songId == null) {
-                    System.out.println("suggestion has null songId: " + suggestion.getId());
+                Song song1 = suggestion.getSong();
+                if (song1 == null) {
+                    System.out.println("suggestion has null song1: " + suggestion.getId());
                     continue;
                 }
-                Song song = songService.findOne(songId);
-                String id = song.getLanguage().getId();
+                Song song = songService.findOneByUuid(song1.getUuid());
+                String id = song.getLanguage().getUuid();
                 if (id.equals(languageId)) {
                     suggestions.add(suggestion);
                 }
@@ -70,10 +70,10 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
 
     @Override
     public List<Suggestion> findAllBySong(Song song) {
-        List<Suggestion> allBySongId = suggestionRepository.findAllBySongId(song.getId());
+        List<Suggestion> allBySongId = suggestionRepository.findAllBySongId(song.getUuid());
         List<Suggestion> suggestions = new ArrayList<>(allBySongId.size());
         for (Suggestion suggestion : allBySongId) {
-            suggestions.add(findOne(suggestion.getId()));
+            suggestions.add(findOneByUuid(suggestion.getUuid()));
         }
         return suggestions;
     }
@@ -85,10 +85,10 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
             }
         } else {
             for (Suggestion suggestion : suggestionRepository.findAllByModifiedDateGreaterThan(new Date(lastModifiedDateTime))) {
-                if (!suggestionHashMap.containsKey(suggestion.getId())) {
+                if (!suggestionHashMap.containsKey(suggestion.getUuid())) {
                     putInMapAndCheckLastModifiedDate(suggestion);
                 } else {
-                    suggestionHashMap.replace(suggestion.getId(), suggestion);
+                    suggestionHashMap.replace(suggestion.getUuid(), suggestion);
                     checkLastModifiedDate(suggestion);
                 }
             }
@@ -108,7 +108,7 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
     }
 
     private void putInMapAndCheckLastModifiedDate(Suggestion suggestion) {
-        suggestionHashMap.put(suggestion.getId(), suggestion);
+        suggestionHashMap.put(suggestion.getUuid(), suggestion);
         checkLastModifiedDate(suggestion);
 
     }

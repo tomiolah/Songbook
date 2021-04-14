@@ -13,8 +13,8 @@ public class UserRegisterAssembler implements GeneralAssembler<User, UserRegiste
             return null;
         }
         UserRegisterDTO userRegisterDTO = new UserRegisterDTO();
-        userRegisterDTO.setUuid(user.getId());
-        userRegisterDTO.setId(user.getId());
+        userRegisterDTO.setUuid(user.getUuid());
+        userRegisterDTO.setId(user.getUuid());
         userRegisterDTO.setEmail(user.getEmail());
         userRegisterDTO.setSurname(user.getSurname());
         userRegisterDTO.setFirstName(user.getFirstName());

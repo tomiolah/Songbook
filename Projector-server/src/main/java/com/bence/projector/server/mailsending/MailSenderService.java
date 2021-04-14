@@ -47,7 +47,7 @@ public class MailSenderService {
     private LanguageService languageService;
 
     public void sendEmailSuggestionToUser(Suggestion suggestion, User user) {
-        Language language = songService.findOne(suggestion.getSongId()).getLanguage();
+        Language language = songService.findOneByUuid(suggestion.getSongUuid()).getLanguage();
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
         notificationByLanguage.getSuggestionStack().add(suggestion);
         userService.save(user);
@@ -78,7 +78,7 @@ public class MailSenderService {
     }
 
     private void tryToSend(Language language, User user) {
-        user = userService.findOne(user.getId());
+        user = userService.findOneByUuid(user.getUuid());
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
         List<Suggestion> suggestionStack = notificationByLanguage.getSuggestionStack();
         int suggestionStackSize = suggestionStack.size();
@@ -188,7 +188,7 @@ public class MailSenderService {
         List<SuggestionRow> suggestionRows = new ArrayList<>(suggestions.size());
         for (Suggestion suggestion : suggestions) {
             SuggestionRow suggestionRow = new SuggestionRow();
-            suggestionRow.setSong(songService.findOne(suggestion.getSongId()));
+            suggestionRow.setSong(songService.findOneByUuid(suggestion.getSongUuid()));
             suggestionRow.setSuggestion(suggestion);
             String title = suggestion.getTitle();
             String suggestionType;

@@ -76,10 +76,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     private HashMap<String, Boolean> getWordsHashMap(Language language) {
         HashMap<String, HashMap<String, Boolean>> wordsHashMapByLanguage = getWordsHashMapByLanguage();
-        HashMap<String, Boolean> wordsHashMap = wordsHashMapByLanguage.get(language.getId());
+        HashMap<String, Boolean> wordsHashMap = wordsHashMapByLanguage.get(language.getUuid());
         if (wordsHashMap == null) {
             wordsHashMap = new HashMap<>(10000);
-            List<Song> allByLanguage = findAllByLanguage(language.getId());
+            List<Song> allByLanguage = findAllByLanguage(language.getUuid());
             for (Song song : allByLanguage) {
                 String text = getText(song);
                 String[] split = text.split(wordsSplit);
@@ -87,7 +87,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
                     wordsHashMap.put(s, true);
                 }
             }
-            wordsHashMapByLanguage.put(language.getId(), wordsHashMap);
+            wordsHashMapByLanguage.put(language.getUuid(), wordsHashMap);
         }
         return wordsHashMap;
     }
@@ -143,7 +143,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     @Override
     public List<Song> findAllByLanguage(String languageId) {
         final List<Song> songs = new ArrayList<>();
-        Language language = languageService.findOne(languageId);
+        Language language = languageService.findOneByUuid(languageId);
         addSongs(getAllServiceSongs(language.getSongs()), songs);
         language.setLanguageForSongs();
         return songs;
@@ -152,7 +152,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     @Override
     public List<Song> findAllByLanguageAndModifiedDate(String languageId, Date lastModifiedDate) {
         List<Song> returningSongs = new ArrayList<>();
-        Language language = languageService.findOne(languageId);
+        Language language = languageService.findOneByUuid(languageId);
         addSongs(getAllServiceSongs(language.getSongs()), lastModifiedDate, returningSongs);
         return returningSongs;
     }
@@ -174,8 +174,12 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
-    public void delete(String id) {
-        super.delete(id);
+    public void deleteByUuid(String id) {
+        Song oneByUuid = findOneByUuid(id);
+        if (oneByUuid == null) {
+            return;
+        }
+        super.delete(oneByUuid.getId());
         HashMap<String, Song> songsHashMap = getSongsHashMap();
         if (songsHashMap != null) {
             if (songsHashMap.containsKey(id)) {
@@ -191,8 +195,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
-    public void delete(List<String> ids) {
-        for (String id : ids) {
+    public void delete(List<Long> ids) {
+        for (Long id : ids) {
             delete(id);
         }
     }
@@ -202,7 +206,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         Collection<Song> all = getSongs(song.getLanguage());
         List<Song> similar = new ArrayList<>();
         String text = getText(song);
-        String songId = song.getId();
+        String songId = song.getUuid();
         String regex = wordsSplit;
         String[] split = text.split(regex);
         int wordsLength = split.length;
@@ -214,8 +218,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         HashMap<String, Boolean> hashMap = new HashMap<>(size);
         for (Song databaseSong : all) {
             try {
-                //noinspection PointlessNullCheck
-                if ((songId != null && databaseSong.getId().equals(songId)) || (databaseSong.isDeleted() && !checkDeleted)) {
+                if ((songId != null && databaseSong.getUuid().equals(songId)) || (databaseSong.isDeleted() && !checkDeleted)) {
                     continue;
                 }
             } catch (NullPointerException e) {
@@ -300,7 +303,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     public List<Song> findAllReviewedByUser(User user) {
         List<Song> songs = new ArrayList<>();
         for (Language languageNotInMap : user.getReviewLanguages()) {
-            Language language = languageService.findOne(languageNotInMap.getId());
+            Language language = languageService.findOneByUuid(languageNotInMap.getUuid());
             for (Song song : getAllServiceSongsByLanguage(language)) {
                 User lastModifiedBy = song.getLastModifiedBy();
                 if (lastModifiedBy != null && lastModifiedBy.isSameId(user) && song.isPublic()) {
@@ -330,10 +333,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             }
         } else {
             for (Song song : songRepository.findAllByModifiedDateGreaterThan(new Date(lastModifiedDateTime))) {
-                if (!songsHashMap.containsKey(song.getId())) {
+                if (!songsHashMap.containsKey(song.getUuid())) {
                     putInMapAndCheckLastModifiedDate(song);
                 } else {
-                    songsHashMap.replace(song.getId(), song);
+                    songsHashMap.replace(song.getUuid(), song);
                     checkLastModifiedDate(song);
                 }
             }
@@ -351,11 +354,11 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
                 putInMapAndCheckLastModifiedDateByLanguage(song);
             }
         } else {
-            for (Song song : findAllByLanguageAndModifiedDate(language.getId(), new Date(getLastModifiedDateTimeByLanguage(language)))) {
-                if (!songsHashMapByLanguage.containsKey(song.getId())) {
+            for (Song song : findAllByLanguageAndModifiedDate(language.getUuid(), new Date(getLastModifiedDateTimeByLanguage(language)))) {
+                if (!songsHashMapByLanguage.containsKey(song.getUuid())) {
                     putInMapAndCheckLastModifiedDateByLanguage(song);
                 } else {
-                    songsHashMapByLanguage.replace(song.getId(), song);
+                    songsHashMapByLanguage.replace(song.getUuid(), song);
                     checkLastModifiedDateByLanguage(song);
                 }
             }
@@ -387,18 +390,18 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         long lastModifiedDateTime = getLastModifiedDateTimeByLanguage(language);
         if (time > lastModifiedDateTime) {
             HashMap<String, Long> map = getLastModifiedDateTimeByLanguage();
-            map.put(language.getId(), lastModifiedDateTime);
+            map.put(language.getUuid(), lastModifiedDateTime);
         }
     }
 
     private void putInMapAndCheckLastModifiedDateByLanguage(Song song) {
-        getSongsHashMap().put(song.getId(), song);
+        getSongsHashMap().put(song.getUuid(), song);
         putInLanguageMap(song);
         checkLastModifiedDateByLanguage(song);
     }
 
     private void putInMapAndCheckLastModifiedDate(Song song) {
-        getSongsHashMap().put(song.getId(), song);
+        getSongsHashMap().put(song.getUuid(), song);
         putInLanguageMap(song);
         checkLastModifiedDate(song);
     }
@@ -430,10 +433,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
                 songs.add(song);
             }
         }
-        Song one = findOne(versionGroup);
+        Song one = findOneByUuid(versionGroup);
         if (one != null && !one.isDeleted()) {
-            String group = one.getVersionGroup();
-            if (group == null || !group.equals(versionGroup)) {
+            Song group = one.getVersionGroup();
+            if (group == null || !group.getUuid().equals(versionGroup)) {
                 songs.add(one);
             }
         }
@@ -514,7 +517,15 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
-    public Song findOne(String id) {
+    public Song findOne(Long id) {
+        Song song = super.findOne(id);
+        if (song == null) {
+            return null;
+        }
+        return findOneByUuid(song.getUuid());
+    }
+
+    public Song findOneByUuid(String id) {
         if (id == null) {
             return null;
         }
@@ -523,9 +534,9 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         if (songsHashMap.containsKey(id)) {
             song = songsHashMap.get(id);
         } else {
-            song = super.findOne(id);
+            song = songRepository.findOneByUuid(id);
             if (song != null) {
-                getSongsHashMap().put(song.getId(), song);
+                getSongsHashMap().put(song.getUuid(), song);
             }
         }
         if (song != null) {
@@ -544,7 +555,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             return;
         }
         HashMap<String, Song> songsHashMapByLanguage = getSongsHashMapByLanguage(language);
-        String key = song.getId();
+        String key = song.getUuid();
         if (songsHashMapByLanguage.containsKey(key)) {
             songsHashMapByLanguage.replace(key, song);
         } else {
@@ -554,7 +565,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     private Song getFromMapOrAddToMap(Song song) {
         HashMap<String, Song> songsHashMap = getSongsHashMap();
-        String id = song.getId();
+        String id = song.getUuid();
         if (songsHashMap.containsKey(id)) {
             return songsHashMap.get(id);
         }
@@ -573,24 +584,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         if (song.getLanguage() == null) {
             throw new ServiceException("No language", HttpStatus.PRECONDITION_FAILED);
         }
-        Language language = languageService.findOne(song.getLanguage().getId());
-        List<Language> previousLanguages = song.getPreviousLanguages();
-        for (Language previousLanguage : previousLanguages) {
-            removeSongFromLanguage(song, previousLanguage);
-        }
-        previousLanguages.clear();
-        boolean was = false;
-        for (Song song1 : language.getSongs()) {
-            if (song1.getId().equals(song.getId())) {
-                was = true;
-                break;
-            }
-        }
         songRepository.save(song);
-        if (!was) {
-            language.getSongs().add(song);
-            languageService.save(language);
-        }
         return song;
     }
 
@@ -598,7 +592,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     public void removeSongFromLanguage(Song song, Language oldLanguage) {
         Song songToRemove = null;
         for (Song song1 : oldLanguage.getSongs()) {
-            if (song1 != null && song1.getId().equals(song.getId())) {
+            if (song1 != null && song1.getUuid().equals(song.getUuid())) {
                 songToRemove = song1;
                 break;
             }
@@ -616,7 +610,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public List<Song> findAllByLanguageContainingViews(String languageId) {
-        Language language = languageService.findOne(languageId);
+        Language language = languageService.findOneByUuid(languageId);
         List<Song> songs = new ArrayList<>(language.getSongs().size());
         for (Song song : language.getSongs()) {
             if (song.isDeleted() || song.getViews() == 0) {
@@ -629,7 +623,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public List<Song> findAllByLanguageContainingFavourites(String languageId) {
-        Language language = languageService.findOne(languageId);
+        Language language = languageService.findOneByUuid(languageId);
         List<Song> songs = new ArrayList<>(language.getSongs().size());
         for (Song song : language.getSongs()) {
             if (song.isDeleted() || song.getFavourites() == 0) {
@@ -649,7 +643,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
-    public Iterable save(List<Song> songs) {
+    public Iterable<Song> save(List<Song> songs) {
         for (Song song : songs) {
             save(song);
         }
@@ -672,7 +666,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     private HashMap<String, Song> getSongsHashMapByLanguage(Language language) {
         HashMap<String, HashMap<String, Song>> songsHashMapByLanguage = getSongsHashMapByLanguage();
-        String key = language.getId();
+        String key = language.getUuid();
         if (!songsHashMapByLanguage.containsKey(key)) {
             int songsCount = Math.toIntExact(language.getSongsCount());
             HashMap<String, Song> songHashMap = new HashMap<>(songsCount);
@@ -693,7 +687,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             return 0L;
         }
         HashMap<String, Long> lastModifiedDateTimeByLanguage = getLastModifiedDateTimeByLanguage();
-        String key = language.getId();
+        String key = language.getUuid();
         if (lastModifiedDateTimeByLanguage.containsKey(key)) {
             return lastModifiedDateTimeByLanguage.get(key);
         }

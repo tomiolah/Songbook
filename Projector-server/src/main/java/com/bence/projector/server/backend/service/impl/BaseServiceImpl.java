@@ -9,10 +9,10 @@ import java.util.List;
 
 public abstract class BaseServiceImpl<M extends BaseEntity> implements BaseService<M> {
     @Autowired
-    private CrudRepository<M, String> repository;
+    private CrudRepository<M, Long> repository;
 
     @Override
-    public M findOne(String id) {
+    public M findOne(Long id) {
         return repository.findOne(id);
     }
 
@@ -22,12 +22,12 @@ public abstract class BaseServiceImpl<M extends BaseEntity> implements BaseServi
     }
 
     @Override
-    public void delete(String id) {
+    public void delete(Long id) {
         repository.delete(id);
     }
 
     @Override
-    public void delete(final List<String> ids) {
+    public void delete(final List<Long> ids) {
         ids.forEach(id -> repository.delete(id));
     }
 
@@ -37,7 +37,16 @@ public abstract class BaseServiceImpl<M extends BaseEntity> implements BaseServi
     }
 
     @Override
-    public Iterable save(final List<M> models) {
+    public Iterable<M> save(final List<M> models) {
         return repository.save(models);
+    }
+
+    @Override
+    public M findOneByUuid(String uuid) {
+        return null;
+    }
+
+    @Override
+    public void deleteByUuid(String uuid) {
     }
 }

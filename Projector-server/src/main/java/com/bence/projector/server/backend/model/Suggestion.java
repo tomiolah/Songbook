@@ -2,7 +2,6 @@ package com.bence.projector.server.backend.model;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
@@ -126,5 +125,13 @@ public class Suggestion extends AbstractModel {
 
     public void setLastModifiedBy(User lastModifiedBy) {
         this.lastModifiedBy = lastModifiedBy;
+    }
+
+    public String getSongUuid() {
+        Song song = getSong();
+        if (song == null) {
+            return null;
+        }
+        return song.getUuid();
     }
 }

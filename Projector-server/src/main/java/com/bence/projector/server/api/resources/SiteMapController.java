@@ -26,7 +26,7 @@ public class SiteMapController {
         List<Song> all = songService.findAll();
         for (Song song : all) {
             if (!song.isDeleted()) {
-                create(xmlUrlSet, song.getId(), song.getModifiedDate());
+                create(xmlUrlSet, song.getUuid(), song.getModifiedDate());
             }
         }
         return xmlUrlSet;

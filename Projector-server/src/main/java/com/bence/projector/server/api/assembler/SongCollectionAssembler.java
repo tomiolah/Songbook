@@ -4,6 +4,8 @@ import com.bence.projector.common.dto.SongCollectionDTO;
 import com.bence.projector.common.dto.SongCollectionElementDTO;
 import com.bence.projector.server.backend.model.SongCollection;
 import com.bence.projector.server.backend.model.SongCollectionElement;
+import com.bence.projector.server.backend.service.SongService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -12,13 +14,16 @@ import java.util.Date;
 @Component
 public class SongCollectionAssembler implements GeneralAssembler<SongCollection, SongCollectionDTO> {
 
+    @Autowired
+    private SongService songService;
+
     @Override
     public SongCollectionDTO createDto(SongCollection songCollection) {
         if (songCollection == null) {
             return null;
         }
         SongCollectionDTO songCollectionDTO = new SongCollectionDTO();
-        songCollectionDTO.setUuid(songCollection.getId());
+        songCollectionDTO.setUuid(songCollection.getUuid());
         songCollectionDTO.setCreatedDate(songCollection.getCreatedDate());
         songCollectionDTO.setModifiedDate(songCollection.getModifiedDate());
         ArrayList<SongCollectionElementDTO> songCollectionElements = new ArrayList<>();
@@ -27,7 +32,7 @@ public class SongCollectionAssembler implements GeneralAssembler<SongCollection,
         }
         songCollectionDTO.setSongCollectionElements(songCollectionElements);
         songCollectionDTO.setName(songCollection.getName());
-        songCollectionDTO.setLanguageUuid(songCollection.getId());
+        songCollectionDTO.setLanguageUuid(songCollection.getLanguage().getUuid());
         return songCollectionDTO;
     }
 
@@ -41,7 +46,7 @@ public class SongCollectionAssembler implements GeneralAssembler<SongCollection,
     public SongCollectionElement createElementModel(SongCollectionElementDTO songCollectionElementDTO) {
         SongCollectionElement songCollectionElement = new SongCollectionElement();
         songCollectionElement.setOrdinalNumber(songCollectionElementDTO.getOrdinalNumber());
-        songCollectionElement.setSongUuid(songCollectionElementDTO.getSongUuid());
+        songCollectionElement.setSong(songService.findOneByUuid(songCollectionElementDTO.getSongUuid()));
         return songCollectionElement;
     }
 
@@ -60,7 +65,7 @@ public class SongCollectionAssembler implements GeneralAssembler<SongCollection,
         for (SongCollectionElementDTO dto : songCollectionDTO.getSongCollectionElements()) {
             SongCollectionElement songCollectionElement = new SongCollectionElement();
             songCollectionElement.setOrdinalNumber(dto.getOrdinalNumber());
-            songCollectionElement.setSongUuid(dto.getSongUuid());
+            songCollectionElement.setSong(songService.findOneByUuid(dto.getSongUuid()));
             songCollectionElements.add(songCollectionElement);
         }
         songCollection.setSongCollectionElements(songCollectionElements);
