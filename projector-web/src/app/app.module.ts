@@ -89,6 +89,9 @@ import { ForgottenPasswordComponent } from './ui/forgotten-password/forgotten-pa
 import { ChangePasswordByTokenComponent } from './ui/forgotten-password/change-password-by-token/change-password-by-token.component';
 import { ReviewerStatisticsComponent } from './ui/reviewer-statistics/reviewer-statistics.component';
 import { ReviewerStatisticsListComponent } from './ui/reviewer-statistics-list/reviewer-statistics-list.component';
+import { VersionLinkListComponent } from './ui/version-link-list/version-link-list.component';
+import { SongLinkDataService } from './services/song-link-data.service';
+import { VersionLinkComponent } from './ui/version-link/version-link.component';
 
 @NgModule({
   exports: [
@@ -169,6 +172,8 @@ export class PlunkerMaterialModule {
     ChangePasswordByTokenComponent,
     ReviewerStatisticsComponent,
     ReviewerStatisticsListComponent,
+    VersionLinkListComponent,
+    VersionLinkComponent,
   ],
   imports: [
     BrowserModule,
@@ -202,6 +207,7 @@ export class PlunkerMaterialModule {
     SongCollectionDataService,
     UserPropertiesDataService,
     Title,
+    SongLinkDataService,
   ],
   bootstrap: [AppComponent]
 })

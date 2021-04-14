@@ -12,7 +12,8 @@
       <ng-container class="container" *ngIf="isAdmin()">
         <a mat-tab-link *ngFor="let tab of adminMenuTabs" [routerLink]="tab.link" routerLinkActive
           #rla="routerLinkActive" [active]="rla.isActive">
-          <mat-icon>{{tab.icon}}</mat-icon>
+          <mat-icon *ngIf="tab.icon !== undefined">{{tab.icon}}</mat-icon>
+          <mat-icon *ngIf="tab.iconSvg !== undefined" svgIcon="thumbs-up">{{tab.icon}}</mat-icon>
           <span>{{tab.title}}</span>
         </a>
       </ng-container>

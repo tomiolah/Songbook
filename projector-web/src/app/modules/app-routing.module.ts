@@ -18,6 +18,8 @@ import { ProjectorComponent } from '../ui/projector/projector.component';
 import { ForgottenPasswordComponent } from '../ui/forgotten-password/forgotten-password.component';
 import { ChangePasswordByTokenComponent } from '../ui/forgotten-password/change-password-by-token/change-password-by-token.component';
 import { ReviewerStatisticsComponent } from '../ui/reviewer-statistics/reviewer-statistics.component';
+import { VersionLinkListComponent } from '../ui/version-link-list/version-link-list.component';
+import { VersionLinkComponent } from '../ui/version-link/version-link.component';
 
 export const appRoutes: Routes = [
   {
@@ -48,6 +50,8 @@ export const appRoutes: Routes = [
   { path: 'admin/statistics', component: StatisticsListComponent },
   { path: 'admin/reviewer-statistics/:userId', component: ReviewerStatisticsComponent },
   { path: 'suggestions', component: SuggestionListComponent },
+  { path: 'versionLinks', component: VersionLinkListComponent },
+  { path: 'songLink/:id', component: VersionLinkComponent },
   { path: 'songs', component: SongListComponent },
   { path: '', redirectTo: 'songs', pathMatch: 'full' },
   { path: 'registration', component: UserRegisterComponent },
