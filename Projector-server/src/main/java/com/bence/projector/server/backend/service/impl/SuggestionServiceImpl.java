@@ -41,36 +41,28 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
         if (suggestionHashMap.containsKey(id)) {
             return suggestionHashMap.get(id);
         }
-        Suggestion suggestion = super.findOneByUuid(id);
+        Suggestion suggestion = suggestionRepository.findOneByUuid(id);
         suggestionHashMap.put(id, suggestion);
         return suggestion;
     }
 
     @Override
     public List<Suggestion> findAllByLanguage(Language language) {
-        String languageId = language.getUuid();
-        List<Suggestion> suggestions = new ArrayList<>(suggestionHashMap.size());
-        for (Suggestion suggestion : getSuggestions()) {
-            try {
-                Song song1 = suggestion.getSong();
-                if (song1 == null) {
-                    System.out.println("suggestion has null song1: " + suggestion.getId());
-                    continue;
-                }
-                Song song = songService.findOneByUuid(song1.getUuid());
-                String id = song.getLanguage().getUuid();
-                if (id.equals(languageId)) {
-                    suggestions.add(suggestion);
-                }
-            } catch (NullPointerException ignored) {
-            }
+        List<Suggestion> suggestionsByLanguage = suggestionRepository.findAllBySongLanguageId(language.getId());
+        return getSuggestionsFromMap(suggestionsByLanguage);
+    }
+
+    private List<Suggestion> getSuggestionsFromMap(List<Suggestion> suggestionsByLanguage) {
+        ArrayList<Suggestion> suggestions = new ArrayList<>();
+        for (Suggestion suggestion : suggestionsByLanguage) {
+            suggestions.add(findOneByUuid(suggestion.getUuid()));
         }
         return suggestions;
     }
 
     @Override
     public List<Suggestion> findAllBySong(Song song) {
-        List<Suggestion> allBySongId = suggestionRepository.findAllBySongId(song.getUuid());
+        List<Suggestion> allBySongId = song.getSuggestions();
         List<Suggestion> suggestions = new ArrayList<>(allBySongId.size());
         for (Suggestion suggestion : allBySongId) {
             suggestions.add(findOneByUuid(suggestion.getUuid()));

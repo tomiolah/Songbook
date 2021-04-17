@@ -8,6 +8,7 @@ import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.ServiceException;
 import com.bence.projector.server.backend.service.SongService;
+import com.bence.projector.server.backend.service.SongVerseService;
 import com.bence.projector.server.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,8 +27,10 @@ import static com.bence.projector.server.utils.StringUtils.longestCommonSubStrin
 
 @Service
 public class SongServiceImpl extends BaseServiceImpl<Song> implements SongService {
+
     private final SongRepository songRepository;
     private final LanguageService languageService;
+    private final SongVerseService songVerseService;
     private final String wordsSplit = "[.,;?_\"'\\n!:/|\\\\ ]";
     private HashMap<String, Song> songsHashMap;
     private long lastModifiedDateTime = 0;
@@ -36,9 +39,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private HashMap<String, HashMap<String, Boolean>> wordsHashMapByLanguage;
 
     @Autowired
-    public SongServiceImpl(SongRepository songRepository, LanguageService languageService) {
+    public SongServiceImpl(SongRepository songRepository, LanguageService languageService, SongVerseService songVerseService) {
         this.songRepository = songRepository;
         this.languageService = languageService;
+        this.songVerseService = songVerseService;
     }
 
     @Override
@@ -179,7 +183,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         if (oneByUuid == null) {
             return;
         }
-        super.delete(oneByUuid.getId());
+        delete(oneByUuid.getId());
         HashMap<String, Song> songsHashMap = getSongsHashMap();
         if (songsHashMap != null) {
             if (songsHashMap.containsKey(id)) {
@@ -425,19 +429,22 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
-    public List<Song> findAllByVersionGroup(String versionGroup) {
-        List<Song> allByVersionGroup = getAllServiceSongs(songRepository.findAllByVersionGroup(versionGroup));
+    public List<Song> findAllByVersionGroup(String versionGroupUuid) {
+        Song versionGroupSong = findOneByUuid(versionGroupUuid);
         ArrayList<Song> songs = new ArrayList<>();
+        if (versionGroupSong == null) {
+            return songs;
+        }
+        List<Song> allByVersionGroup = getAllServiceSongs(songRepository.findAllByVersionGroup(versionGroupSong));
         for (Song song : allByVersionGroup) {
             if (!song.isDeleted() && !song.isBackUp()) {
                 songs.add(song);
             }
         }
-        Song one = findOneByUuid(versionGroup);
-        if (one != null && !one.isDeleted()) {
-            Song group = one.getVersionGroup();
-            if (group == null || !group.getUuid().equals(versionGroup)) {
-                songs.add(one);
+        if (!versionGroupSong.isDeleted()) {
+            Song group = versionGroupSong.getVersionGroup();
+            if (group == null || !group.getUuid().equals(versionGroupUuid)) {
+                songs.add(versionGroupSong);
             }
         }
         return songs;
@@ -585,6 +592,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             throw new ServiceException("No language", HttpStatus.PRECONDITION_FAILED);
         }
         songRepository.save(song);
+        songVerseService.deleteBySong(song);
+        songVerseService.save(song.getVerses());
         return song;
     }
 

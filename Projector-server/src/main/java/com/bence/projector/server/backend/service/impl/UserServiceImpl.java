@@ -101,4 +101,9 @@ public class UserServiceImpl extends BaseServiceImpl<User> implements UserServic
         }
         return admins;
     }
+
+    @Override
+    public User findOneByUuid(String uuid) {
+        return userRepository.findOneByUuid(uuid);
+    }
 }

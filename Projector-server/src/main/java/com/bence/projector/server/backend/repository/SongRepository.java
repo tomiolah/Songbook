@@ -9,7 +9,7 @@ import java.util.List;
 public interface SongRepository extends CrudRepository<Song, Long> {
     List<Song> findAllByModifiedDateGreaterThan(Date modifiedDate);
 
-    List<Song> findAllByVersionGroup(String versionGroup);
+    List<Song> findAllByVersionGroup(Song versionGroup);
 
     List<Song> findAllByYoutubeUrlNotNull();
 

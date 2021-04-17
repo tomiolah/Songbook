@@ -9,7 +9,7 @@ import java.util.List;
 public interface SuggestionRepository extends CrudRepository<Suggestion, Long> {
     List<Suggestion> findAllByModifiedDateGreaterThan(Date createdDate);
 
-    List<Suggestion> findAllBySongId(String songId);
-
     Suggestion findOneByUuid(String uuid);
+
+    List<Suggestion> findAllBySongLanguageId(Long languageId);
 }
