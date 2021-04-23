@@ -1,13 +1,18 @@
 package com.bence.projector.server.backend.model;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.ManyToOne;
 import com.bence.projector.server.backend.service.SongService;
 
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Index;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.util.Date;
 
 @Entity
+@Table(
+        indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
+)
 public class SongLink extends AbstractModel {
 
     @ManyToOne(fetch = FetchType.LAZY)

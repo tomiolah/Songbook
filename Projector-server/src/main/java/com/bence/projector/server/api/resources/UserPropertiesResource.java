@@ -6,6 +6,7 @@ import com.bence.projector.server.backend.model.Role;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.model.UserProperties;
 import com.bence.projector.server.backend.service.LanguageService;
+import com.bence.projector.server.backend.service.UserPropertiesService;
 import com.bence.projector.server.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,12 +23,14 @@ public class UserPropertiesResource {
     private final UserPropertiesAssembler userPropertiesAssembler;
     private final UserService userService;
     private final LanguageService languageService;
+    private final UserPropertiesService userPropertiesService;
 
     @Autowired
-    public UserPropertiesResource(UserPropertiesAssembler userPropertiesAssembler, UserService userService, LanguageService languageService) {
+    public UserPropertiesResource(UserPropertiesAssembler userPropertiesAssembler, UserService userService, LanguageService languageService, UserPropertiesService userPropertiesService) {
         this.userPropertiesAssembler = userPropertiesAssembler;
         this.userService = userService;
         this.languageService = languageService;
+        this.userPropertiesService = userPropertiesService;
     }
 
     @RequestMapping(value = "user/api/userProperties", method = RequestMethod.GET)
@@ -64,7 +67,7 @@ public class UserPropertiesResource {
         if (user != null) {
             UserProperties userProperties = getUserProperties(user);
             userPropertiesAssembler.updateModel(userProperties, userPropertiesDTO);
-            userService.save(user);
+            userPropertiesService.save(userProperties);
             return new ResponseEntity<>(userPropertiesAssembler.createDto(userProperties), HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);

@@ -2,15 +2,20 @@ package com.bence.projector.server.backend.model;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.Index;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 @Entity
+@Table(
+        indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
+)
 public class User extends AbstractModel {
 
     private String password;

@@ -75,7 +75,7 @@ public class SongCollectionResource {
                 SongCollection collection = new SongCollection(songCollection);
                 ArrayList<SongCollectionElement> songCollectionElements = new ArrayList<>();
                 for (SongCollectionElement collectionElement : songCollection.getSongCollectionElements()) {
-                    if (collectionElement.getSongUuid().equals(songId)) {
+                    if (songId.equals(collectionElement.getSongUuid())) {
                         songCollectionElements.add(collectionElement);
                     }
                 }

@@ -217,6 +217,9 @@ public class SongResource {
     public SongDTO eraseSong(@PathVariable final String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         final Song song = songService.findOneByUuid(songId);
+        if (song == null) {
+            return null;
+        }
         if (song.isDeleted()) {
             Language language = song.getLanguage();
             if (language != null) {

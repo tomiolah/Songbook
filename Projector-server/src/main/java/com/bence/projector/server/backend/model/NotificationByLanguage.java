@@ -129,4 +129,8 @@ public class NotificationByLanguage extends BaseEntity {
     public void setNewSongStack(List<Song> newSongStack) {
         this.newSongStack = newSongStack;
     }
+
+    public void setUserProperties(UserProperties userProperties) {
+        this.userProperties = userProperties;
+    }
 }
