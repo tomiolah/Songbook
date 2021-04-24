@@ -62,6 +62,7 @@ export class AddToCollectionComponent implements OnInit {
   private updateSongCollectionElement() {
     this.songCollectionDataService.putInCollection(this.selectedSongCollection, this.songCollectionElement).subscribe(() => {
       this.dialogRef.close('ok');
+      window.location.reload();
     }, (err) => {
       if (err.status === 405) {
         this.openAuthenticateDialog();
