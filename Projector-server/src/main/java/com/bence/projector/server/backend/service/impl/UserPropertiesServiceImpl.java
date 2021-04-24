@@ -1,5 +1,6 @@
 package com.bence.projector.server.backend.service.impl;
 
+import com.bence.projector.server.backend.model.NotificationByLanguage;
 import com.bence.projector.server.backend.model.UserProperties;
 import com.bence.projector.server.backend.service.NotificationByLanguageService;
 import com.bence.projector.server.backend.service.UserPropertiesService;
@@ -18,7 +19,10 @@ public class UserPropertiesServiceImpl extends BaseServiceImpl<UserProperties> i
     public UserProperties save(UserProperties userProperties) {
         UserProperties save = super.save(userProperties);
         notificationByLanguageService.deleteAllByUserProperties(userProperties);
-        notificationByLanguageService.save(userProperties.getNotifications());
+        List<NotificationByLanguage> notificationsAsIs = userProperties.getNotificationsAsIs();
+        if (notificationsAsIs != null) {
+            notificationByLanguageService.save(notificationsAsIs);
+        }
         return save;
     }
 

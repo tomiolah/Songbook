@@ -3,7 +3,6 @@ package com.bence.projector.server.backend.model;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.OneToMany;
-import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,8 +19,7 @@ public class UserProperties extends BaseEntity {
         return notifications;
     }
 
-    @Transactional
-    public void setNotifications(List<NotificationByLanguage> notifications) {
+    public final void setNotifications(List<NotificationByLanguage> notifications) {
         if (notifications != null) {
             for (NotificationByLanguage notificationByLanguage : notifications) {
                 notificationByLanguage.setUserProperties(this);
@@ -35,6 +33,10 @@ public class UserProperties extends BaseEntity {
         } else {
             this.notifications = null;
         }
+    }
+
+    public final List<NotificationByLanguage> getNotificationsAsIs() {
+        return notifications;
     }
 
     public NotificationByLanguage getNotificationByLanguage(Language language) {
