@@ -6,6 +6,7 @@ import com.bence.projector.server.api.assembler.SongCollectionAssembler;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongCollection;
 import com.bence.projector.server.backend.model.SongCollectionElement;
+import com.bence.projector.server.backend.service.SongCollectionElementService;
 import com.bence.projector.server.backend.service.SongCollectionService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
@@ -42,14 +43,16 @@ import static com.bence.projector.server.api.resources.StatisticsResource.saveSt
 public class SongCollectionResource {
 
     private final SongCollectionService songCollectionService;
+    private final SongCollectionElementService songCollectionElementService;
     private final SongCollectionAssembler songCollectionAssembler;
     private final StatisticsService statisticsService;
     private final JavaMailSender sender;
     private final SongService songService;
 
     @Autowired
-    public SongCollectionResource(SongCollectionService songCollectionService, SongCollectionAssembler songCollectionAssembler, StatisticsService statisticsService, JavaMailSender sender, SongService songService) {
+    public SongCollectionResource(SongCollectionService songCollectionService, SongCollectionElementService songCollectionElementService, SongCollectionAssembler songCollectionAssembler, StatisticsService statisticsService, JavaMailSender sender, SongService songService) {
         this.songCollectionService = songCollectionService;
+        this.songCollectionElementService = songCollectionElementService;
         this.songCollectionAssembler = songCollectionAssembler;
         this.statisticsService = statisticsService;
         this.sender = sender;
@@ -118,11 +121,13 @@ public class SongCollectionResource {
             }
             if (elementModel == null) {
                 elementModel = songCollectionAssembler.createElementModel(elementDTO);
+                elementModel.setSongCollection(songCollection);
                 songCollectionElements.add(elementModel);
             } else {
                 elementModel.setOrdinalNumber(elementDTO.getOrdinalNumber());
             }
             songCollection.setModifiedDate(new Date());
+            songCollectionElementService.save(elementModel);
             songCollectionService.save(songCollection);
             return new ResponseEntity<>(songCollectionAssembler.createDto(songCollection), HttpStatus.ACCEPTED);
         }

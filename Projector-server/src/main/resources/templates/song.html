@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8"></meta>
   <meta name="viewport" content="width=device-width, initial-scale=1"></meta>
-  <meta name="description" th:attr="content=${song.verses.get(0).text}"></meta>
+  <meta name="description" th:attr="content=${description}"></meta>
   <meta name="keywords" th:attr="content=${keywords}"></meta>
   <meta th:if="${song.youtubeUrl!=null}" property="og:image" th:attr="content=${youtubeUrl}"/>
   <title th:text="${title}">Song</title>
@@ -34,7 +34,9 @@
   <br></br>
   <br></br>
   <br></br>
-  <a th:href="${randomSongUrl}">Next song</a>
+  <div th:if="${randomSongUrl != null}">
+    <a th:href="${randomSongUrl}">Next song</a>
+  </div>
 </div>
 </body>
 </html>

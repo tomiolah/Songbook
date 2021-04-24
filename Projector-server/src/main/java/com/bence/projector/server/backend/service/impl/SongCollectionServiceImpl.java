@@ -47,7 +47,7 @@ public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> i
 
     @Override
     public SongCollection findOneByUuid(String uuid) {
-        return null;
+        return songCollectionRepository.findOneByUuid(uuid);
     }
 
     @Override

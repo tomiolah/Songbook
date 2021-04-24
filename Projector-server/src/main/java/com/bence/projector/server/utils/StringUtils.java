@@ -17,6 +17,14 @@ public class StringUtils {
     }
 
     public synchronized static int highestCommonStringInt(String a, String b) {
+        int aLength = a.length();
+        if (aLength <= 0) {
+            return 0;
+        }
+        int bLength = b.length();
+        if (bLength <= 0) {
+            return 0;
+        }
         int i;
         int j = 0;
         if (t == null) {
@@ -30,11 +38,9 @@ public class StringUtils {
             }
         }
         char c;
-        int aLength = a.length();
         if (aLength >= N - 1) {
             aLength = N - 2;
         }
-        int bLength = b.length();
         if (bLength >= N - 1) {
             bLength = N - 2;
         }

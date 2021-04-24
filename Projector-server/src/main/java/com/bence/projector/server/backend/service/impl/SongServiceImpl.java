@@ -3,14 +3,17 @@ package com.bence.projector.server.backend.service.impl;
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
+import com.bence.projector.server.backend.model.SongVerseOrderListItem;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
+import com.bence.projector.server.backend.repository.SongVerseOrderListItemRepository;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.ServiceException;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.SongVerseService;
 import com.bence.projector.server.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
@@ -31,6 +33,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private final SongRepository songRepository;
     private final LanguageService languageService;
     private final SongVerseService songVerseService;
+    private final SongVerseOrderListItemRepository songVerseOrderListItemRepository;
     private final String wordsSplit = "[.,;?_\"'\\n!:/|\\\\ ]";
     private HashMap<String, Song> songsHashMap;
     private long lastModifiedDateTime = 0;
@@ -39,10 +42,11 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private HashMap<String, HashMap<String, Boolean>> wordsHashMapByLanguage;
 
     @Autowired
-    public SongServiceImpl(SongRepository songRepository, LanguageService languageService, SongVerseService songVerseService) {
+    public SongServiceImpl(SongRepository songRepository, LanguageService languageService, SongVerseService songVerseService, SongVerseOrderListItemRepository songVerseOrderListItemRepository) {
         this.songRepository = songRepository;
         this.languageService = languageService;
         this.songVerseService = songVerseService;
+        this.songVerseOrderListItemRepository = songVerseOrderListItemRepository;
     }
 
     @Override
@@ -453,28 +457,22 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     @Override
     public Song getRandomSong(Language language) {
         Random random = new Random();
-        Collection<Song> songs = getSongs(language);
-        int n = random.nextInt(songs.size());
-        Iterator<Song> iterator = songs.iterator();
-        for (int i = 0; i < n && iterator.hasNext(); ++i) {
-            iterator.next();
+        int size = (int) songRepository.countByLanguage(language);
+        int n = random.nextInt(size);
+        PageRequest pageRequest = new PageRequest(n, 1);
+        List<Song> songs = songRepository.findAllByLanguage(language, pageRequest);
+        if (songs.size() > 0) {
+            return songs.get(0);
         }
-        if (!iterator.hasNext()) {
-            return songs.iterator().next();
-        }
-        Song song = iterator.next();
-        while (song.isDeleted() && iterator.hasNext()) {
-            song = iterator.next();
-        }
-        return song;
+        return null;
     }
 
     @SuppressWarnings("Duplicates")
     private String getText(Song song) {
         try {
-            ArrayList<SongVerse> verseList = new ArrayList<>(song.getVerses().size());
             final List<SongVerse> verses = song.getVerses();
             int size = verses.size();
+            ArrayList<SongVerse> verseList = new ArrayList<>(size);
             List<Short> verseOrderList = song.getVerseOrderList();
             if (verseOrderList == null) {
                 SongVerse chorus = null;
@@ -591,9 +589,15 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         if (song.getLanguage() == null) {
             throw new ServiceException("No language", HttpStatus.PRECONDITION_FAILED);
         }
+        List<SongVerse> verses = new ArrayList<>(song.getVerses());
+        List<SongVerseOrderListItem> songVerseOrderListItems = new ArrayList<>(song.getSongVerseOrderListItems());
         songRepository.save(song);
         songVerseService.deleteBySong(song);
-        songVerseService.save(song.getVerses());
+        songVerseService.save(verses);
+        song.setVerses(verses);
+        songVerseOrderListItemRepository.deleteBySong(song);
+        songVerseOrderListItemRepository.save(songVerseOrderListItems);
+        song.setSongVerseOrderListItems(songVerseOrderListItems);
         return song;
     }
 

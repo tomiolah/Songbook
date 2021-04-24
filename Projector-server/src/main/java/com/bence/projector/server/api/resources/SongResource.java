@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
@@ -462,6 +463,7 @@ public class SongResource {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs/similar/song/{songId}")
+    @Transactional
     public ResponseEntity<Object> similarSongs(@PathVariable("songId") String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         Song song = songService.findOneByUuid(songId);

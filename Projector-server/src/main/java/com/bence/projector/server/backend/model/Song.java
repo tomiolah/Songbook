@@ -1,6 +1,5 @@
 package com.bence.projector.server.backend.model;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Index;
@@ -9,6 +8,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -20,7 +20,7 @@ public class Song extends AbstractModel {
 
     private String originalId;
     private String title;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song", cascade = CascadeType.REMOVE)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<SongVerse> verses;
     private Date createdDate;
     private Date modifiedDate;
@@ -40,8 +40,8 @@ public class Song extends AbstractModel {
     private String youtubeUrl;
     private String verseOrder;
     private String author;
-    @Transient
-    private List<Short> verseOrderList; // TODO save with verseOrder
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
+    private List<SongVerseOrderListItem> verseOrderList;
     @ManyToOne(fetch = FetchType.LAZY)
     private User lastModifiedBy;
     @ManyToOne(fetch = FetchType.LAZY)
@@ -249,16 +249,57 @@ public class Song extends AbstractModel {
     public List<Short> getVerseOrderList() {
         if (verses != null && verseOrderList != null) {
             for (short index = 0; index < verses.size(); ++index) {
-                if (!verseOrderList.contains(index)) {
-                    verseOrderList.add(index);
+                if (!containsIndex(index)) {
+                    addToVerseOrderList(index, verseOrderList);
                 }
             }
         }
-        return verseOrderList;
+        return getShortOrderList();
     }
 
     public void setVerseOrderList(List<Short> verseOrderList) {
-        this.verseOrderList = verseOrderList;
+        this.verseOrderList = getVerseOrderFromShorts(verseOrderList);
+    }
+
+    private List<SongVerseOrderListItem> getVerseOrderFromShorts(List<Short> verseOrderList) {
+        if (verseOrderList == null) {
+            return null;
+        }
+        ArrayList<SongVerseOrderListItem> songVerseOrderListItems = new ArrayList<>();
+        for (Short aShort : verseOrderList) {
+            addToVerseOrderList(aShort, songVerseOrderListItems);
+        }
+        return songVerseOrderListItems;
+    }
+
+    private List<Short> getShortOrderList() {
+        if (verseOrderList == null) {
+            return null;
+        }
+        ArrayList<Short> shorts = new ArrayList<>();
+        for (SongVerseOrderListItem songVerseOrderListItem : verseOrderList) {
+            shorts.add(songVerseOrderListItem.getPosition());
+        }
+        return shorts;
+    }
+
+    private boolean containsIndex(short index) {
+        if (verseOrderList == null) {
+            return false;
+        }
+        for (SongVerseOrderListItem songVerseOrderListItem : verseOrderList) {
+            if (songVerseOrderListItem.getPosition() == index) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void addToVerseOrderList(short index, List<SongVerseOrderListItem> verseOrderList) {
+        SongVerseOrderListItem songVerseOrderListItem = new SongVerseOrderListItem();
+        songVerseOrderListItem.setPosition(index);
+        songVerseOrderListItem.setSong(this);
+        verseOrderList.add(songVerseOrderListItem);
     }
 
     public User getLastModifiedBy() {
@@ -334,5 +375,13 @@ public class Song extends AbstractModel {
 
     public List<Suggestion> getSuggestions() {
         return suggestions;
+    }
+
+    public List<SongVerseOrderListItem> getSongVerseOrderListItems() {
+        return verseOrderList;
+    }
+
+    public void setSongVerseOrderListItems(List<SongVerseOrderListItem> songVerseOrderListItems) {
+        this.verseOrderList = songVerseOrderListItems;
     }
 }
