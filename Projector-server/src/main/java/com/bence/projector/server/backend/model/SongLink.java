@@ -76,11 +76,17 @@ public class SongLink extends AbstractModel {
     }
 
     public Song getSong1(SongService songService) {
+        if (song1 == null) {
+            return null;
+        }
         return songService.findOneByUuid(song1.getUuid());
     }
 
     public Song getSong2(SongService songService) {
-        return songService.findOneByUuid(song1.getUuid());
+        if (song2 == null) {
+            return null;
+        }
+        return songService.findOneByUuid(song2.getUuid());
     }
 
     public boolean hasLanguage(Language language, SongService songService) {
@@ -88,11 +94,16 @@ public class SongLink extends AbstractModel {
             return false;
         }
         Song song1 = getSong1(songService);
-        if (song1 != null && language.equals(song1.getLanguage())) {
-            return true;
+        try {
+            if (song1 != null && language.equalsById(song1.getLanguage())) {
+                return true;
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return false;
         }
         Song song2 = getSong2(songService);
-        return song2 != null && language.equals(song2.getLanguage());
+        return song2 != null && language.equalsById(song2.getLanguage());
     }
 
     public boolean alreadyTheSameVersionGroup(SongService songService) {

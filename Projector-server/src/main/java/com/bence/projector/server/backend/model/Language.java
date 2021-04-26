@@ -123,4 +123,11 @@ public class Language extends AbstractModel {
     public void setReviewers(List<User> reviewers) {
         this.reviewers = reviewers;
     }
+
+    public boolean equalsById(Language language) {
+        if (language == null) {
+            return false;
+        }
+        return getId().equals(language.getId());
+    }
 }

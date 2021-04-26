@@ -13,6 +13,7 @@ import { Subscription } from "rxjs/Subscription";
 import { Title } from "@angular/platform-browser";
 import { User } from '../../models/user';
 import { SELECTED_LANGUGAGE } from '../../util/constants';
+import { compress, decompress } from 'lz-string';
 
 @Component({
   selector: 'app-song-list',
@@ -33,7 +34,8 @@ export class SongListComponent implements OnInit {
   songsType = Song.PUBLIC;
   languages: Language[];
   selectedLanguage: Language;
-  languagesKey = 'languages_v2';
+  oldLanguagesKey = 'languages_v2';
+  languagesKey = 'languages_v3';
   private songListComponent_songsType = 'songListComponent_songsType';
   private _subscription: Subscription;
 
@@ -43,6 +45,7 @@ export class SongListComponent implements OnInit {
     private titleService: Title,
     private activatedRoute: ActivatedRoute,
     public auth: AuthService) {
+    localStorage.setItem(this.oldLanguagesKey, '');
     this.songControl = new FormControl();
     this.songTitles = [];
     this.paginatedSongs = [];
@@ -86,6 +89,9 @@ export class SongListComponent implements OnInit {
     }
     this.songControl.valueChanges.subscribe(value => {
       for (const song of this.songTitles) {
+        if (song == undefined) {
+          continue;
+        }
         if (song.title === value) {
           this.song = song;
           return;
@@ -113,9 +119,9 @@ export class SongListComponent implements OnInit {
       (languages) => {
         this.languages = languages;
         if (localStorage.getItem(this.languagesKey) == null) {
-          localStorage.setItem(this.languagesKey, JSON.stringify(languages));
+          this.saveToLocalStorage(this.languagesKey, JSON.stringify(languages));
         } else {
-          let localStorageLanguages: Language[] = JSON.parse(localStorage.getItem(this.languagesKey));
+          let localStorageLanguages: Language[] = JSON.parse(this.getFromLocalStorage(this.languagesKey));
           if (localStorageLanguages.length != languages.length) {
             let index = 0;
             for (let storageLanguage of localStorageLanguages) {
@@ -144,13 +150,26 @@ export class SongListComponent implements OnInit {
                 localStorageLanguages = localStorageLanguages.concat(language);
               }
             }
-            localStorage.setItem(this.languagesKey, JSON.stringify(localStorageLanguages));
+            this.saveToLocalStorage(this.languagesKey, JSON.stringify(localStorageLanguages));
           }
         }
         this.selectedLanguage = SongListComponent.getSelectedLanguageFromLocalStorage(languages);
         this.loadSongs();
       }
     );
+  }
+
+  saveToLocalStorage(key: string, jsonData: string) {
+    const compressedData = compress(jsonData);
+    localStorage.setItem(key, compressedData);
+  }
+
+  getFromLocalStorage(key: string): string {
+    const compressedData = localStorage.getItem(key);
+    if (compressedData == undefined) {
+      return undefined;
+    }
+    return decompress(compressedData);
   }
 
   static getSelectedLanguageFromLocalStorage(languages: Language[]) {
@@ -222,7 +241,7 @@ export class SongListComponent implements OnInit {
     if (this._subscription != undefined) {
       this._subscription.unsubscribe();
     }
-    let languages: Language[] = JSON.parse(localStorage.getItem(this.languagesKey));
+    let languages: Language[] = JSON.parse(this.getFromLocalStorage(this.languagesKey));
     for (let lang of languages) {
       if (lang.uuid === language.uuid) {
         if (lang.songTitles === undefined) {
@@ -264,7 +283,7 @@ export class SongListComponent implements OnInit {
             lang.songTitles = this.songTitles;
             this.removeFromOtherLanguages(modifiedSongs, languages, lang);
           }
-          localStorage.setItem(this.languagesKey, JSON.stringify(languages));
+          this.saveToLocalStorage(this.languagesKey, JSON.stringify(languages));
           this.sortAndUpdate();
         });
       }
@@ -288,7 +307,7 @@ export class SongListComponent implements OnInit {
     if (this._subscription != undefined) {
       this._subscription.unsubscribe();
     }
-    let languages: Language[] = JSON.parse(localStorage.getItem(this.languagesKey));
+    let languages: Language[] = JSON.parse(this.getFromLocalStorage(this.languagesKey));
     this.songTitles = [];
     for (let language of languages) {
       this.songTitles = this.songTitles.concat(language.songTitles);

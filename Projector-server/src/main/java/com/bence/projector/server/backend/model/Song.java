@@ -247,12 +247,14 @@ public class Song extends AbstractModel {
     }
 
     public List<Short> getVerseOrderList() {
-        if (verses != null && verseOrderList != null) {
+        if (verses != null && verseOrderWasSaved()) {
             for (short index = 0; index < verses.size(); ++index) {
                 if (!containsIndex(index)) {
                     addToVerseOrderList(index, verseOrderList);
                 }
             }
+        } else if (verseOrderWasNotSaved()) {
+            return null;
         }
         return getShortOrderList();
     }
@@ -383,5 +385,17 @@ public class Song extends AbstractModel {
 
     public void setSongVerseOrderListItems(List<SongVerseOrderListItem> songVerseOrderListItems) {
         this.verseOrderList = songVerseOrderListItems;
+    }
+
+    public boolean verseOrderWasNotSaved() {
+        List<SongVerseOrderListItem> songVerseOrderListItems = getSongVerseOrderListItems();
+        if (songVerseOrderListItems == null) {
+            return true;
+        }
+        return songVerseOrderListItems.size() == 0;
+    }
+
+    private boolean verseOrderWasSaved() {
+        return !verseOrderWasNotSaved();
     }
 }

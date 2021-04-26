@@ -51,7 +51,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
         String verseOrder = song.getVerseOrder();
         songDTO.setVerseOrder(verseOrder);
         songDTO.setVerseOrderList(song.getVerseOrderList());
-        if (verseOrder != null && song.getVerseOrderList() == null) {
+        if (verseOrder != null && song.verseOrderWasNotSaved()) {
             try {
                 String[] split = verseOrder.split(" ");
                 List<Short> verseOrderList = new ArrayList<>(split.length);

@@ -70,4 +70,9 @@ public class SongLinkServiceImpl extends BaseServiceImpl<SongLink> implements So
         }
         return filteredSongLinks;
     }
+
+    @Override
+    public SongLink findOneByUuid(String uuid) {
+        return songLinkRepository.findOneByUuid(uuid);
+    }
 }
