@@ -590,15 +590,25 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             throw new ServiceException("No language", HttpStatus.PRECONDITION_FAILED);
         }
         List<SongVerse> verses = new ArrayList<>(song.getVerses());
-        List<SongVerseOrderListItem> songVerseOrderListItems = new ArrayList<>(song.getSongVerseOrderListItems());
+        List<SongVerseOrderListItem> songVerseOrderListItems = getCopyOfSongVerseOrderListItems(song);
         songRepository.save(song);
         songVerseService.deleteBySong(song);
         songVerseService.save(verses);
         song.setVerses(verses);
         songVerseOrderListItemRepository.deleteBySong(song);
-        songVerseOrderListItemRepository.save(songVerseOrderListItems);
+        if (songVerseOrderListItems != null) {
+            songVerseOrderListItemRepository.save(songVerseOrderListItems);
+        }
         song.setSongVerseOrderListItems(songVerseOrderListItems);
         return song;
+    }
+
+    private ArrayList<SongVerseOrderListItem> getCopyOfSongVerseOrderListItems(Song song) {
+        List<SongVerseOrderListItem> songVerseOrderListItems = song.getSongVerseOrderListItems();
+        if (songVerseOrderListItems == null) {
+            return null;
+        }
+        return new ArrayList<>(songVerseOrderListItems);
     }
 
     @Override
