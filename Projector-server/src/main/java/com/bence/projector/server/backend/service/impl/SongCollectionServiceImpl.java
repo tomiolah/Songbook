@@ -1,5 +1,6 @@
 package com.bence.projector.server.backend.service.impl;
 
+import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongCollection;
 import com.bence.projector.server.backend.model.SongCollectionElement;
@@ -18,8 +19,8 @@ public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> i
     private SongCollectionRepository songCollectionRepository;
 
     @Override
-    public List<SongCollection> findAllByLanguage_IdAndAndModifiedDateGreaterThan(String language_id, Date lastModifiedDate) {
-        return songCollectionRepository.findAllByLanguage_IdAndAndModifiedDateGreaterThan(language_id, lastModifiedDate);
+    public List<SongCollection> findAllByLanguageAndAndModifiedDateGreaterThan(Language language, Date lastModifiedDate) {
+        return songCollectionRepository.findAllByLanguage_IdAndAndModifiedDateGreaterThan(language.getId(), lastModifiedDate);
     }
 
     @Override

@@ -69,15 +69,7 @@ public class DownloadBiblesController {
                         CheckBox checkBox = checkBoxes.get(i);
                         if (checkBox.isSelected() && !checkBox.isDisabled()) {
                             Bible bible = bibleApiBean.getBible(bibles.get(i).getUuid());
-                            try {
-                                if (thread1 != null) {
-                                    thread1.join();
-                                }
-                                thread1 = new Thread(() -> bibleService.create(bible));
-                                thread1.start();
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
+                            thread1 = saveBibleInThread(thread1, bible);
                         }
                     }
                     if (thread1 != null) {
@@ -99,6 +91,22 @@ public class DownloadBiblesController {
                 LOG.error(e.getMessage(), e);
             }
         });
+    }
+
+    private Thread saveBibleInThread(Thread thread, Bible bible) {
+        if (bible == null) {
+            return null;
+        }
+        try {
+            if (thread != null) {
+                thread.join();
+            }
+            thread = new Thread(() -> bibleService.create(bible));
+            thread.start();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return thread;
     }
 
     private void addBibleToVBox(Bible bible) {

@@ -37,7 +37,7 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import projector.Main;
+import projector.MainDesktop;
 import projector.api.ApiException;
 import projector.api.SongApiBean;
 import projector.application.ProjectionType;
@@ -559,7 +559,7 @@ public class NewSongController {
         ObservableList<Node> textAreasChildren = textAreas.getChildren();
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(Main.class.getResource("/view/song/Verse.fxml"));
+            loader.setLocation(MainDesktop.class.getResource("/view/song/Verse.fxml"));
             loader.setResources(settings.getResourceBundle());
             Pane root = loader.load();
             VerseController verseController = loader.getController();
@@ -663,7 +663,7 @@ public class NewSongController {
         if (saveSong()) {
             try {
                 FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(Main.class.getResource("/view/Login.fxml"));
+                loader.setLocation(MainDesktop.class.getResource("/view/Login.fxml"));
                 loader.setResources(settings.getResourceBundle());
                 Pane root = loader.load();
                 LoginController loginController = loader.getController();

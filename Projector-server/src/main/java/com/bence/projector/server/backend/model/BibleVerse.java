@@ -4,7 +4,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
-import javax.persistence.Transient;
+import javax.persistence.OneToMany;
 import java.util.List;
 
 @Entity
@@ -12,7 +12,7 @@ public class BibleVerse extends BaseEntity {
 
     @Column(length = 1000)
     private String text;
-    @Transient
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "bibleVerse")
     private List<VerseIndex> verseIndices;
     @ManyToOne(fetch = FetchType.LAZY)
     private Chapter chapter;

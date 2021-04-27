@@ -12,7 +12,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import projector.Main;
+import projector.MainDesktop;
 import projector.api.LanguageApiBean;
 import projector.application.Settings;
 import projector.controller.song.SongController;
@@ -73,7 +73,7 @@ public class DownloadLanguagesController {
                 }
                 languageService.create(languages);
                 FXMLLoader loader = new FXMLLoader();
-                loader.setLocation(Main.class.getResource("/view/song/DownloadSongs.fxml"));
+                loader.setLocation(MainDesktop.class.getResource("/view/song/DownloadSongs.fxml"));
                 loader.setResources(settings.getResourceBundle());
                 Pane root = loader.load();
                 Scene scene = new Scene(root);

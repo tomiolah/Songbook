@@ -69,6 +69,9 @@ public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
     }
 
     private List<Long> getVerseIndicesAsLong(List<VerseIndex> verseIndices) {
+        if (verseIndices == null) {
+            return null;
+        }
         ArrayList<Long> longs = new ArrayList<>();
         for (VerseIndex verseIndex : verseIndices) {
             longs.add(verseIndex.getIndexNumber());

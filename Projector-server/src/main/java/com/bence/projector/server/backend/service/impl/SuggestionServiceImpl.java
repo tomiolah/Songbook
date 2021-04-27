@@ -2,9 +2,10 @@ package com.bence.projector.server.backend.service.impl;
 
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
+import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.model.Suggestion;
+import com.bence.projector.server.backend.repository.SongVerseRepository;
 import com.bence.projector.server.backend.repository.SuggestionRepository;
-import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.SuggestionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,14 +19,14 @@ import java.util.List;
 @Service
 public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implements SuggestionService {
     private final SuggestionRepository suggestionRepository;
-    private final SongService songService;
+    private final SongVerseRepository songVerseRepository;
     private final HashMap<String, Suggestion> suggestionHashMap;
     private long lastModifiedDateTime = 0;
 
     @Autowired
-    public SuggestionServiceImpl(SuggestionRepository suggestionRepository, SongService songService) {
+    public SuggestionServiceImpl(SuggestionRepository suggestionRepository, SongVerseRepository songVerseRepository) {
         this.suggestionRepository = suggestionRepository;
-        this.songService = songService;
+        this.songVerseRepository = songVerseRepository;
         suggestionHashMap = new HashMap<>(500);
     }
 
@@ -102,6 +103,28 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
     private void putInMapAndCheckLastModifiedDate(Suggestion suggestion) {
         suggestionHashMap.put(suggestion.getUuid(), suggestion);
         checkLastModifiedDate(suggestion);
+    }
 
+    @Override
+    public Suggestion save(Suggestion model) {
+        List<SongVerse> verses = getCopyOfVerses(model.getVerses());
+        suggestionRepository.save(model);
+        songVerseRepository.save(verses);
+        return super.save(model);
+    }
+
+    private List<SongVerse> getCopyOfVerses(List<SongVerse> verses) {
+        if (verses == null) {
+            return null;
+        }
+        return new ArrayList<>(verses);
+    }
+
+    @Override
+    public Iterable<Suggestion> save(List<Suggestion> models) {
+        for (Suggestion suggestion : models) {
+            save(suggestion);
+        }
+        return models;
     }
 }

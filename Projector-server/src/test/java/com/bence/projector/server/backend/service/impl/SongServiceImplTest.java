@@ -21,6 +21,35 @@ public class SongServiceImplTest extends BaseServiceTest {
     @Autowired
     private LanguageService languageService;
 
+    public static Song getASong(LanguageService languageService) {
+        Song song = new Song();
+        song.setTitle("Test Title");
+        song.setAuthor("Testing");
+        song.setCreatedByEmail("test@site.com");
+        song.setCreatedDate(new Date());
+        song.setModifiedDate(song.getCreatedDate());
+        song.setVerses(getSongVerses());
+        song.setLanguage(getLanguage(languageService));
+        return song;
+    }
+
+    private static Language getLanguage(LanguageService languageService) {
+        Language language = new Language();
+        language.setEnglishName("Test language");
+        language.setNativeName("Teszt");
+        languageService.save(language);
+        return languageService.findAll().get(0);
+    }
+
+    public static List<SongVerse> getSongVerses() {
+        ArrayList<SongVerse> songVerses = new ArrayList<>();
+        SongVerse songVerse = new SongVerse();
+        songVerse.setSectionType(SectionType.CHORUS);
+        songVerse.setText("This is a test text");
+        songVerses.add(songVerse);
+        return songVerses;
+    }
+
     @Test
     public void testFindAll() {
         List<Song> songs = songService.findAll();
@@ -47,38 +76,9 @@ public class SongServiceImplTest extends BaseServiceTest {
 
     @Test
     public void testSave() {
-        Song song = getASong();
+        Song song = getASong(languageService);
         songService.save(song);
         Song song1 = songService.findAll().get(0);
         Assert.assertEquals(song.getTitle(), song1.getTitle());
-    }
-
-    private Song getASong() {
-        Song song = new Song();
-        song.setTitle("Test Title");
-        song.setAuthor("Testing");
-        song.setCreatedByEmail("test@site.com");
-        song.setCreatedDate(new Date());
-        song.setModifiedDate(song.getCreatedDate());
-        song.setVerses(getSongVerses());
-        song.setLanguage(getLanguage());
-        return song;
-    }
-
-    private Language getLanguage() {
-        Language language = new Language();
-        language.setEnglishName("Test language");
-        language.setNativeName("Teszt");
-        languageService.save(language);
-        return languageService.findAll().get(0);
-    }
-
-    private List<SongVerse> getSongVerses() {
-        ArrayList<SongVerse> songVerses = new ArrayList<>();
-        SongVerse songVerse = new SongVerse();
-        songVerse.setSectionType(SectionType.CHORUS);
-        songVerse.setText("This is a test text");
-        songVerses.add(songVerse);
-        return songVerses;
     }
 }

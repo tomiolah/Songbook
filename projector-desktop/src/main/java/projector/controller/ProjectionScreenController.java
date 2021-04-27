@@ -22,7 +22,7 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-import projector.Main;
+import projector.MainDesktop;
 import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.controller.song.SongController;
@@ -264,7 +264,7 @@ public class ProjectionScreenController {
     void duplicate() {
         if (doubleProjectionScreenController == null) {
             FXMLLoader loader2 = new FXMLLoader();
-            loader2.setLocation(Main.class.getResource("/view/ProjectionScreen.fxml"));
+            loader2.setLocation(MainDesktop.class.getResource("/view/ProjectionScreen.fxml"));
             Pane root2;
             try {
                 root2 = loader2.load();
@@ -338,7 +338,7 @@ public class ProjectionScreenController {
     void createPreview() {
         if (previewProjectionScreenController == null) {
             FXMLLoader loader2 = new FXMLLoader();
-            loader2.setLocation(Main.class.getResource("/view/ProjectionScreen.fxml"));
+            loader2.setLocation(MainDesktop.class.getResource("/view/ProjectionScreen.fxml"));
             Pane root2;
             try {
                 root2 = loader2.load();

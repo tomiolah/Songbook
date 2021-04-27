@@ -1,6 +1,7 @@
 package com.bence.projector.server.backend.service.impl;
 
 import com.bence.projector.server.backend.model.Bible;
+import com.bence.projector.server.backend.repository.BibleRepository;
 import com.bence.projector.server.backend.repository.BookRepository;
 import com.bence.projector.server.backend.service.BibleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,16 +11,15 @@ import java.util.List;
 
 @Service
 public class BibleServiceImpl extends BaseServiceImpl<Bible> implements BibleService {
-    private final BookRepository bookRepository;
 
     @Autowired
-    public BibleServiceImpl(BookRepository bookRepository) {
-        this.bookRepository = bookRepository;
-    }
+    private BibleRepository bibleRepository;
+    @Autowired
+    private BookRepository bookRepository;
 
     @Override
     public Bible findOneByUuid(String uuid) {
-        return null;
+        return bibleRepository.findOneByUuid(uuid);
     }
 
     @Override

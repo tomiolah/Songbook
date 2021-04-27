@@ -10,7 +10,7 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import projector.Main;
+import projector.MainDesktop;
 import projector.api.ProjectorVersionApiBean;
 import projector.controller.UpdateController;
 
@@ -51,7 +51,7 @@ public class Updater {
                     List<ProjectorVersionDTO> projectorVersionsAfterNr = projectorVersionApiBean.getProjectorVersionsAfterNr(projectorVersionNumber);
                     if (projectorVersionsAfterNr != null && projectorVersionsAfterNr.size() > 0) {
                         FXMLLoader loader = new FXMLLoader();
-                        loader.setLocation(Main.class.getResource("/view/UpdateAvailable.fxml"));
+                        loader.setLocation(MainDesktop.class.getResource("/view/UpdateAvailable.fxml"));
                         loader.setResources(settings.getResourceBundle());
                         Pane root = loader.load();
                         UpdateController updateController = loader.getController();

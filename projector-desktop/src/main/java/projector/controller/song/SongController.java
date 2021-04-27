@@ -49,7 +49,7 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import projector.Main;
+import projector.MainDesktop;
 import projector.api.SongApiBean;
 import projector.application.ProjectionType;
 import projector.application.Settings;
@@ -1215,7 +1215,7 @@ public class SongController {
             downloadButton.setOnAction(event -> {
                 try {
                     FXMLLoader loader = new FXMLLoader();
-                    loader.setLocation(Main.class.getResource("/view/language/DownloadLanguages.fxml"));
+                    loader.setLocation(MainDesktop.class.getResource("/view/language/DownloadLanguages.fxml"));
                     loader.setResources(Settings.getInstance().getResourceBundle());
                     Pane root = loader.load();
                     DownloadLanguagesController downloadLanguagesController = loader.getController();
@@ -1295,7 +1295,7 @@ public class SongController {
             uploadButton.setOnAction(event -> {
                 try {
                     FXMLLoader loader = new FXMLLoader();
-                    loader.setLocation(Main.class.getResource("/view/song/UploadSongs.fxml"));
+                    loader.setLocation(MainDesktop.class.getResource("/view/song/UploadSongs.fxml"));
                     loader.setResources(Settings.getInstance().getResourceBundle());
                     Pane root = loader.load();
                     Scene scene = new Scene(root);
@@ -1822,7 +1822,7 @@ public class SongController {
                     try {
                         Song selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
                         FXMLLoader loader = new FXMLLoader();
-                        loader.setLocation(Main.class.getResource("/view/song/NewSong.fxml"));
+                        loader.setLocation(MainDesktop.class.getResource("/view/song/NewSong.fxml"));
                         loader.setResources(Settings.getInstance().getResourceBundle());
                         Pane root = loader.load();
                         NewSongController newSongController = loader.getController();
@@ -1837,7 +1837,7 @@ public class SongController {
                         stage.show();
 
                         FXMLLoader loader2 = new FXMLLoader();
-                        loader2.setLocation(Main.class.getResource("/view/ProjectionScreen.fxml"));
+                        loader2.setLocation(MainDesktop.class.getResource("/view/ProjectionScreen.fxml"));
                         loader2.setResources(Settings.getInstance().getResourceBundle());
                         Pane root2 = loader2.load();
                         previewProjectionScreenController = loader2.getController();
@@ -1871,7 +1871,7 @@ public class SongController {
                     try {
                         Song selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
                         FXMLLoader loader = new FXMLLoader();
-                        loader.setLocation(Main.class.getResource("/view/song/AddToCollection.fxml"));
+                        loader.setLocation(MainDesktop.class.getResource("/view/song/AddToCollection.fxml"));
                         loader.setResources(Settings.getInstance().getResourceBundle());
                         Pane root = loader.load();
                         AddToCollectionController addToCollectionController = loader.getController();
@@ -1955,7 +1955,7 @@ public class SongController {
                 public void handle(ActionEvent event) {
                     try {
                         FXMLLoader loader = new FXMLLoader();
-                        loader.setLocation(Main.class.getResource("/view/song/SongBook.fxml"));
+                        loader.setLocation(MainDesktop.class.getResource("/view/song/SongBook.fxml"));
                         loader.setResources(Settings.getInstance().getResourceBundle());
                         Pane root = loader.load();
                         NewSongCollectionController newSongCollectionController = loader.getController();
@@ -2103,7 +2103,7 @@ public class SongController {
     public void newSongButtonOnAction() {
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(Main.class.getResource("/view/song/NewSong.fxml"));
+            loader.setLocation(MainDesktop.class.getResource("/view/song/NewSong.fxml"));
             loader.setResources(Settings.getInstance().getResourceBundle());
             Pane root = loader.load();
             NewSongController newSongController = loader.getController();
@@ -2116,7 +2116,7 @@ public class SongController {
             stage.show();
 
             FXMLLoader loader2 = new FXMLLoader();
-            loader2.setLocation(Main.class.getResource("/view/ProjectionScreen.fxml"));
+            loader2.setLocation(MainDesktop.class.getResource("/view/ProjectionScreen.fxml"));
             loader2.setResources(Settings.getInstance().getResourceBundle());
             Pane root2 = loader2.load();
             previewProjectionScreenController = loader2.getController();
@@ -2157,7 +2157,7 @@ public class SongController {
     public void newSongCollectionButtonOnAction() {
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(Main.class.getResource("/view/song/SongBook.fxml"));
+            loader.setLocation(MainDesktop.class.getResource("/view/song/SongBook.fxml"));
             loader.setResources(Settings.getInstance().getResourceBundle());
             Pane root = loader.load();
             NewSongCollectionController newSongCollectionController = loader.getController();

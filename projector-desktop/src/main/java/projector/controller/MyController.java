@@ -18,7 +18,7 @@ import javafx.stage.Stage;
 import org.jnativehook.GlobalScreen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import projector.Main;
+import projector.MainDesktop;
 import projector.application.Settings;
 import projector.controller.song.ScheduleController;
 import projector.controller.song.SongController;
@@ -80,7 +80,7 @@ public class MyController {
     private Tab bibleTab;
     @FXML
     private Tab recentTab;
-    private Main main;
+    private MainDesktop mainDesktop;
     private Stage settingsStage;
 
     public void setPrimaryStage(Stage primaryStage) {
@@ -314,14 +314,14 @@ public class MyController {
 
     public void showHideProjectionScreen() {
         if (showProjectionScreenToggleButton.isSelected()) {
-            main.setProjectionScreenStage();
+            mainDesktop.setProjectionScreenStage();
         } else {
-            main.hideProjectionScreen();
+            mainDesktop.hideProjectionScreen();
         }
     }
 
-    public void setMain(Main main) {
-        this.main = main;
+    public void setMain(MainDesktop mainDesktop) {
+        this.mainDesktop = mainDesktop;
     }
 
     public EventHandler<KeyEvent> globalKeyEventHandler() {

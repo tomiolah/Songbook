@@ -50,6 +50,9 @@ public class Bible extends AbstractModel {
     }
 
     private void setBibleToBooks(List<Book> books) {
+        if (books == null) {
+            return;
+        }
         for (Book book : books) {
             book.setBible(this);
         }

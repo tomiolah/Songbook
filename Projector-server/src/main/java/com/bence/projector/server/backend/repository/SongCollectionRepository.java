@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface SongCollectionRepository extends CrudRepository<SongCollection, Long> {
 
-    List<SongCollection> findAllByLanguage_IdAndAndModifiedDateGreaterThan(String language_id, Date modifiedDate);
+    List<SongCollection> findAllByLanguage_IdAndAndModifiedDateGreaterThan(Long language_id, Date modifiedDate);
 
     List<SongCollection> findAllBySongCollectionElements_SongId(Long songId);
 

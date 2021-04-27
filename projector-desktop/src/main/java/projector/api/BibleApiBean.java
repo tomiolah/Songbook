@@ -14,8 +14,8 @@ import java.util.List;
 
 public class BibleApiBean {
     private static final Logger LOG = LoggerFactory.getLogger(BibleApiBean.class);
-    private BibleApi bibleApi;
-    private BibleAssembler bibleAssembler;
+    private final BibleApi bibleApi;
+    private final BibleAssembler bibleAssembler;
 
     public BibleApiBean() {
         bibleApi = ApiManager.getClient().create(BibleApi.class);
@@ -40,7 +40,9 @@ public class BibleApiBean {
     private List<Bible> executeBiblesCall(Call<List<BibleDTO>> call) {
         try {
             List<BibleDTO> bibleDTOs = call.execute().body();
-            return bibleAssembler.createModelList(bibleDTOs);
+            if (bibleDTOs != null) {
+                return bibleAssembler.createModelList(bibleDTOs);
+            }
         } catch (UnknownHostException e) {
             return null;
         } catch (Exception e) {
@@ -52,7 +54,9 @@ public class BibleApiBean {
     private Bible doCallBible(Call<BibleDTO> call) {
         try {
             BibleDTO bibleDTO = call.execute().body();
-            return bibleAssembler.createModel(bibleDTO);
+            if (bibleDTO != null) {
+                return bibleAssembler.createModel(bibleDTO);
+            }
         } catch (UnknownHostException e) {
             return null;
         } catch (Exception e) {

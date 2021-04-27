@@ -8,7 +8,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import projector.Main;
+import projector.MainDesktop;
 import projector.api.BibleApiBean;
 import projector.application.Settings;
 import projector.controller.IndicesForBibleController;
@@ -337,7 +337,7 @@ public class BibleImport {
     private static void setIndicesForBible(Bible otherBible) {
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(Main.class.getResource("/view/IndicesForBibleView.fxml"));
+            loader.setLocation(MainDesktop.class.getResource("/view/IndicesForBibleView.fxml"));
             loader.setResources(settings.getResourceBundle());
             Pane root = loader.load();
             IndicesForBibleController controller = loader.getController();

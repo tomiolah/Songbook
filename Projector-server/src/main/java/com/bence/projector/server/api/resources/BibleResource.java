@@ -22,16 +22,12 @@ import static com.bence.projector.server.api.resources.StatisticsResource.saveSt
 @RestController
 public class BibleResource {
 
-    private final BibleService bibleService;
-    private final BibleAssembler bibleAssembler;
-    private final StatisticsService statisticsService;
-
     @Autowired
-    public BibleResource(BibleService bibleService, BibleAssembler bibleAssembler, StatisticsService statisticsService) {
-        this.bibleService = bibleService;
-        this.bibleAssembler = bibleAssembler;
-        this.statisticsService = statisticsService;
-    }
+    private BibleService bibleService;
+    @Autowired
+    private BibleAssembler bibleAssembler;
+    @Autowired
+    private StatisticsService statisticsService;
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/bibles")
     public List<BibleDTO> findAll(HttpServletRequest httpServletRequest) {

@@ -3,9 +3,11 @@ package com.bence.projector.server.api.resources;
 import com.bence.projector.common.dto.SongCollectionDTO;
 import com.bence.projector.common.dto.SongCollectionElementDTO;
 import com.bence.projector.server.api.assembler.SongCollectionAssembler;
+import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongCollection;
 import com.bence.projector.server.backend.model.SongCollectionElement;
+import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongCollectionElementService;
 import com.bence.projector.server.backend.service.SongCollectionService;
 import com.bence.projector.server.backend.service.SongService;
@@ -48,15 +50,17 @@ public class SongCollectionResource {
     private final StatisticsService statisticsService;
     private final JavaMailSender sender;
     private final SongService songService;
+    private final LanguageService languageService;
 
     @Autowired
-    public SongCollectionResource(SongCollectionService songCollectionService, SongCollectionElementService songCollectionElementService, SongCollectionAssembler songCollectionAssembler, StatisticsService statisticsService, JavaMailSender sender, SongService songService) {
+    public SongCollectionResource(SongCollectionService songCollectionService, SongCollectionElementService songCollectionElementService, SongCollectionAssembler songCollectionAssembler, StatisticsService statisticsService, JavaMailSender sender, SongService songService, LanguageService languageService) {
         this.songCollectionService = songCollectionService;
         this.songCollectionElementService = songCollectionElementService;
         this.songCollectionAssembler = songCollectionAssembler;
         this.statisticsService = statisticsService;
         this.sender = sender;
         this.songService = songService;
+        this.languageService = languageService;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "api/songCollections")
@@ -99,10 +103,14 @@ public class SongCollectionResource {
         return songCollectionAssembler.createDto(songCollectionDTO);
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "api/songCollections/language/{languageId}/lastModifiedDate/{lastModifiedDate}")
-    public List<SongCollectionDTO> findAllByLanguage(@PathVariable("languageId") String languageId, @PathVariable("lastModifiedDate") Long lastModifiedDate, HttpServletRequest httpServletRequest) {
+    @RequestMapping(method = RequestMethod.GET, value = "api/songCollections/language/{languageUuid}/lastModifiedDate/{lastModifiedDate}")
+    public List<SongCollectionDTO> findAllByLanguage(@PathVariable("languageUuid") String languageUuid, @PathVariable("lastModifiedDate") Long lastModifiedDate, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final List<SongCollection> all = songCollectionService.findAllByLanguage_IdAndAndModifiedDateGreaterThan(languageId, new Date(lastModifiedDate));
+        Language language = languageService.findOneByUuid(languageUuid);
+        if (language == null) {
+            return new ArrayList<>();
+        }
+        final List<SongCollection> all = songCollectionService.findAllByLanguageAndAndModifiedDateGreaterThan(language, new Date(lastModifiedDate));
         return songCollectionAssembler.createDtoList(all);
     }
 
