@@ -37,7 +37,6 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private final String wordsSplit = "[.,;?_\"'\\n!:/|\\\\ ]";
     private HashMap<String, Song> songsHashMap;
     private long lastModifiedDateTime = 0;
-    private HashMap<String, Long> lastModifiedDateTimeByLanguage;
     private HashMap<String, HashMap<String, Song>> songsHashMapByLanguage;
     private HashMap<String, HashMap<String, Boolean>> wordsHashMapByLanguage;
 
@@ -344,7 +343,6 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
                 if (!songsHashMap.containsKey(song.getUuid())) {
                     putInMapAndCheckLastModifiedDate(song);
                 } else {
-                    songsHashMap.replace(song.getUuid(), song);
                     checkLastModifiedDate(song);
                 }
             }
@@ -356,22 +354,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         if (language == null) {
             return getSongs();
         }
-        HashMap<String, Song> songsHashMapByLanguage = getSongsHashMapByLanguage(language);
-        if (songsHashMapByLanguage.isEmpty()) {
-            for (Song song : language.getSongs()) {
-                putInMapAndCheckLastModifiedDateByLanguage(song);
-            }
-        } else {
-            for (Song song : findAllByLanguageAndModifiedDate(language.getUuid(), new Date(getLastModifiedDateTimeByLanguage(language)))) {
-                if (!songsHashMapByLanguage.containsKey(song.getUuid())) {
-                    putInMapAndCheckLastModifiedDateByLanguage(song);
-                } else {
-                    songsHashMapByLanguage.replace(song.getUuid(), song);
-                    checkLastModifiedDateByLanguage(song);
-                }
-            }
-        }
-        return songsHashMapByLanguage.values();
+        return language.getSongs();
     }
 
     private void checkLastModifiedDate(Song song) {
@@ -385,32 +368,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         }
     }
 
-    private void checkLastModifiedDateByLanguage(Song song) {
-        Date modifiedDate = song.getModifiedDate();
-        if (modifiedDate == null) {
-            return;
-        }
-        long time = modifiedDate.getTime();
-        Language language = song.getLanguage();
-        if (language == null) {
-            return;
-        }
-        long lastModifiedDateTime = getLastModifiedDateTimeByLanguage(language);
-        if (time > lastModifiedDateTime) {
-            HashMap<String, Long> map = getLastModifiedDateTimeByLanguage();
-            map.put(language.getUuid(), lastModifiedDateTime);
-        }
-    }
-
-    private void putInMapAndCheckLastModifiedDateByLanguage(Song song) {
-        getSongsHashMap().put(song.getUuid(), song);
-        putInLanguageMap(song);
-        checkLastModifiedDateByLanguage(song);
-    }
-
     private void putInMapAndCheckLastModifiedDate(Song song) {
-        getSongsHashMap().put(song.getUuid(), song);
-        putInLanguageMap(song);
         checkLastModifiedDate(song);
     }
 
@@ -540,12 +498,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             song = songsHashMap.get(id);
         } else {
             song = songRepository.findOneByUuid(id);
-            if (song != null) {
-                getSongsHashMap().put(song.getUuid(), song);
-            }
         }
         if (song != null) {
-            putInLanguageMap(song);
             if (song.getLanguage() == null) {
                 Language languageBySongsContaining = languageService.findLanguageBySongsContaining(song);
                 song.setLanguage(languageBySongsContaining);
@@ -554,27 +508,12 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return song;
     }
 
-    private void putInLanguageMap(Song song) {
-        Language language = song.getLanguage();
-        if (language == null) {
-            return;
-        }
-        HashMap<String, Song> songsHashMapByLanguage = getSongsHashMapByLanguage(language);
-        String key = song.getUuid();
-        if (songsHashMapByLanguage.containsKey(key)) {
-            songsHashMapByLanguage.replace(key, song);
-        } else {
-            songsHashMapByLanguage.put(key, song);
-        }
-    }
-
     private Song getFromMapOrAddToMap(Song song) {
         HashMap<String, Song> songsHashMap = getSongsHashMap();
         String id = song.getUuid();
         if (songsHashMap.containsKey(id)) {
             return songsHashMap.get(id);
         }
-        songsHashMap.put(id, song);
         return song;
     }
 
@@ -698,22 +637,4 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return songsHashMapByLanguage.get(key);
     }
 
-    private HashMap<String, Long> getLastModifiedDateTimeByLanguage() {
-        if (lastModifiedDateTimeByLanguage == null) {
-            lastModifiedDateTimeByLanguage = new HashMap<>(20);
-        }
-        return lastModifiedDateTimeByLanguage;
-    }
-
-    private Long getLastModifiedDateTimeByLanguage(Language language) {
-        if (language == null) {
-            return 0L;
-        }
-        HashMap<String, Long> lastModifiedDateTimeByLanguage = getLastModifiedDateTimeByLanguage();
-        String key = language.getUuid();
-        if (lastModifiedDateTimeByLanguage.containsKey(key)) {
-            return lastModifiedDateTimeByLanguage.get(key);
-        }
-        return 0L;
-    }
 }
