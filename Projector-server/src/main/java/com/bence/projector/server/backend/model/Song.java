@@ -61,7 +61,7 @@ public class Song extends AbstractModel {
     public Song(Song song) {
         originalId = song.originalId;
         title = song.title;
-        verses = song.verses;
+        setVerses(createCopy(song.verses));
         createdDate = song.createdDate;
         modifiedDate = song.modifiedDate;
         language = song.language;
@@ -76,9 +76,25 @@ public class Song extends AbstractModel {
         youtubeUrl = song.youtubeUrl;
         verseOrder = song.verseOrder;
         author = song.author;
-        verseOrderList = song.verseOrderList;
+        setSongVerseOrderListItems(createCopyOfVerseOrderList(song.verseOrderList));
         lastModifiedBy = song.lastModifiedBy;
         backUp = song.backUp;
+    }
+
+    private List<SongVerseOrderListItem> createCopyOfVerseOrderList(List<SongVerseOrderListItem> verseOrderList) {
+        ArrayList<SongVerseOrderListItem> songVerseOrderListItems = new ArrayList<>();
+        for (SongVerseOrderListItem item : verseOrderList) {
+            songVerseOrderListItems.add(new SongVerseOrderListItem(item));
+        }
+        return songVerseOrderListItems;
+    }
+
+    private List<SongVerse> createCopy(List<SongVerse> verses) {
+        ArrayList<SongVerse> songVerses = new ArrayList<>();
+        for (SongVerse songVerse : verses) {
+            songVerses.add(new SongVerse(songVerse));
+        }
+        return songVerses;
     }
 
     public String getTitle() {
@@ -123,6 +139,10 @@ public class Song extends AbstractModel {
 
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
+    }
+
+    public boolean isJustUploaded() {
+        return deleted && !isBackUp() || !isReviewerErased();
     }
 
     public Language getLanguage() {
@@ -384,6 +404,11 @@ public class Song extends AbstractModel {
     }
 
     public void setSongVerseOrderListItems(List<SongVerseOrderListItem> songVerseOrderListItems) {
+        if (songVerseOrderListItems != null) {
+            for (SongVerseOrderListItem songVerseOrderListItem : songVerseOrderListItems) {
+                songVerseOrderListItem.setSong(this);
+            }
+        }
         this.verseOrderList = songVerseOrderListItems;
     }
 

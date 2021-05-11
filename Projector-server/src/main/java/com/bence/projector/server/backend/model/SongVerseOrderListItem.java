@@ -11,6 +11,15 @@ public class SongVerseOrderListItem extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Song song;
 
+    public SongVerseOrderListItem() {
+
+    }
+
+    public SongVerseOrderListItem(SongVerseOrderListItem item) {
+        this.position = item.position;
+        this.song = item.song;
+    }
+
     @Override
     public String toString() {
         return position + "";

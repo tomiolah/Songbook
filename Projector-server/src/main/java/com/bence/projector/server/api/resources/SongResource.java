@@ -373,7 +373,7 @@ public class SongResource {
                     songDTO.setModifiedDate(new Date());
                     Song backUpSong = new Song(song);
                     backUpSong.setIsBackUp(true);
-                    songRepository.save(backUpSong);
+                    songService.save(backUpSong);
                     song.setBackUp(backUpSong);
                     song.setLastModifiedBy(user);
                     songAssembler.updateModel(song, songDTO);
