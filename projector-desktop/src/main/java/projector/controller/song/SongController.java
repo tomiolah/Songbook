@@ -199,6 +199,7 @@ public class SongController {
     private SongReadRemoteListener songReadRemoteListener;
     private boolean initialized = false;
     private boolean synchronizingVerseOrderListSelection = false;
+    private final String vowels = "aeiouAEIOUéáőúöüóűíÉÁŰŐÚÜÓÖÍâÂăĂîÎ";
 
     public SongController() {
         songService = ServiceManager.getSongService();
@@ -441,13 +442,13 @@ public class SongController {
                             times = new double[songListViewItems.size() - 1];
                             for (int j = 0; j < times.length; ++j) {
                                 String i = songListViewItems.get(j).getRawText();
-                                i = i.replaceAll("[^aeiouAEIOUéáőúöüóűíÉÁŰŐÚÜÓÖÍâÂăĂîÎ]", "");
+                                i = i.replaceAll("[^" + vowels + "]", "");
                                 times[j] = i.length() * 0.72782;
                             }
                         } else {
                             for (int j = 0; j < times.length && j < songListViewItems.size(); ++j) {
                                 String i = songListViewItems.get(j).getRawText();
-                                i = i.replaceAll("[^aeiouAEIOUéáőúöüóűíÉÁŰŐÚÜÓÖÍâÂăĂîÎ]", "");
+                                i = i.replaceAll("[^" + vowels + "]", "");
                                 double v = i.length() * 0.72782;
                                 if (2 * v < times[j]) {
                                     times[j] = 2 * v;

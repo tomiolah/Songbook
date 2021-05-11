@@ -68,6 +68,8 @@
                                             vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
                                             vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
+                                            vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="677.0" minHeight="100.0" prefHeight="677.0" vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="50.0" minHeight="50.0" prefHeight="50.0" vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
@@ -100,8 +102,8 @@
                         <CheckBox fx:id="showReferenceOnlyCheckBox" mnemonicParsing="false" text="%Show reference only"
                                   GridPane.columnIndex="1" GridPane.rowIndex="14"/>
                         <ListView fx:id="listView" prefHeight="163.0" prefWidth="438.0" GridPane.columnIndex="1"
-                                  GridPane.rowIndex="18"/>
-                        <Label text="%Font" GridPane.rowIndex="18"/>
+                                  GridPane.rowIndex="19"/>
+                        <Label text="%Font" GridPane.rowIndex="19"/>
                         <Label text="%Color" GridPane.rowIndex="6"/>
                         <ColorPicker fx:id="colorPicker" prefHeight="31.0" prefWidth="134.0" GridPane.columnIndex="1"
                                      GridPane.rowIndex="6"/>
@@ -155,20 +157,23 @@
                                   text="%Reference chapter sorting" GridPane.columnIndex="1" GridPane.rowIndex="16"/>
                         <CheckBox fx:id="referenceVerseSorting" mnemonicParsing="false" text="%Reference verse sorting"
                                   GridPane.columnIndex="1" GridPane.rowIndex="17"/>
-                        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="19">
+                        <TextField fx:id="customCanvasWidthTextField"  GridPane.rowIndex="18"/>
+                        <TextField fx:id="customCanvasHeightTextField"
+                                   GridPane.columnIndex="1" GridPane.rowIndex="18"/>
+                        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="20">
                             <center>
                                 <Button fx:id="shareOnLocalNetworkButton" text="%Share on local network"
                                         BorderPane.alignment="CENTER"/>
                             </center>
                         </BorderPane>
                         <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1"
-                                    GridPane.rowIndex="19">
+                                    GridPane.rowIndex="20">
                             <center>
                                 <Button fx:id="connectToSharedButton" text="%Connect to shared"
                                         BorderPane.alignment="CENTER"/>
                             </center>
                         </BorderPane>
-                        <HBox GridPane.columnSpan="2" GridPane.rowIndex="20">
+                        <HBox GridPane.columnSpan="2" GridPane.rowIndex="21">
                             <ToggleButton fx:id="allowRemoteButton" onAction="#allowRemoteButtonOnAction"
                                           text="%Allow remote"/>
                         </HBox>

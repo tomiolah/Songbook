@@ -78,6 +78,8 @@ public class Settings {
     private boolean checkLanguages = false;
     private boolean allowRemote = false;
     private String sceneStyleFile = "application.css";
+    private int customCanvasWidth = 400;
+    private int customCanvasHeight = 300;
 
     protected Settings() {
         load();
@@ -341,6 +343,10 @@ public class Settings {
             bw.write(allowRemote + System.lineSeparator());
             bw.write("sceneStyleFile" + System.lineSeparator());
             bw.write(sceneStyleFile + System.lineSeparator());
+            bw.write("customCanvasWidth" + System.lineSeparator());
+            bw.write(customCanvasWidth + System.lineSeparator());
+            bw.write("customCanvasHeight" + System.lineSeparator());
+            bw.write(customCanvasHeight + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -467,6 +473,10 @@ public class Settings {
             if (sceneStyleFile != null) {
                 this.sceneStyleFile = sceneStyleFile;
             }
+            br.readLine();
+            customCanvasWidth = Integer.parseInt(br.readLine());
+            br.readLine();
+            customCanvasHeight = Integer.parseInt(br.readLine());
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -756,5 +766,21 @@ public class Settings {
 
     public void setSceneStyleFile(String sceneStyleFile) {
         this.sceneStyleFile = sceneStyleFile;
+    }
+
+    public int getCustomCanvasWidth() {
+        return customCanvasWidth;
+    }
+
+    public void setCustomCanvasWidth(int customCanvasWidth) {
+        this.customCanvasWidth = customCanvasWidth;
+    }
+
+    public int getCustomCanvasHeight() {
+        return customCanvasHeight;
+    }
+
+    public void setCustomCanvasHeight(int customCanvasHeight) {
+        this.customCanvasHeight = customCanvasHeight;
     }
 }

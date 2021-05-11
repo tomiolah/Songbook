@@ -1,4 +1,5 @@
 /* JavaFX CSS - Leave this comment until you have at least create one rule which uses -fx-Property */
+
 .uj {
     -fx-background-color: radial-gradient(focus-angle 0.0deg, focus-distance 0.0%, center 50.0% 50.0%, radius 100.0%, rgb(255, 255, 255) 0.0, rgb(128, 153, 255) 100.0);
     -fx-text-fill: red;
@@ -10,6 +11,7 @@
 	-fx-cursor: hand;
 	-fx-wrap-text: true;
 }*/
+
 #fancytext {
     -fx-fill: linear-gradient(from 0% 0% to 100% 200%, repeat, aqua 0%, red 50%);
     -fx-stroke: black;
@@ -18,7 +20,11 @@
 
 /*
 
-.list-cell:even { *//* <=== changed to even *//*
+.list-cell:even { */
+
+/* <=== changed to even */
+
+/*
     -fx-background-color: white;
 }
 
@@ -32,12 +38,13 @@
     -fx-text-fill: white;
 }
 
-.list-view:focused > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
+.list-view:focused>.virtual-flow>.clipped-container>.sheet>.list-cell:filled:selected {
     -fx-background-color: -fx-selection-bar;
     -fx-table-cell-border-color: derive(-fx-selection-bar, 20%);
 }
 
 /* Selected when control is not focused */
+
 .list-cell:filled:selected {
     -fx-background-color: -fx-selection-bar-non-focused;
     -fx-table-cell-border-color: derive(-fx-selection-bar-non-focused, 20%);
