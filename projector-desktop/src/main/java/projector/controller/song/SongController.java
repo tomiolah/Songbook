@@ -2208,55 +2208,66 @@ public class SongController {
             if (previousLineThread != null) {
                 previousLineThread.interrupt();
             }
-            try {
-                FileOutputStream fileOutputStream = new FileOutputStream("songVersTimes", true);
-                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
-                Date date = new Date();
-                boolean wasSong = false;
-                if (activeSongVersTime != null) {
-                    previousSongVersTimeList.add(activeSongVersTime);
+            saveSongVerseTimes();
+            saveSomethingsInSettings();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void saveSongVerseTimes() {
+        if (previousSongVersTimeList == null) {
+            return;
+        }
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream("songVersTimes", true);
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
+            Date date = new Date();
+            boolean wasSong = false;
+            if (activeSongVersTime != null) {
+                previousSongVersTimeList.add(activeSongVersTime);
+            }
+            int minSec = 10;
+            for (SongVersTime tmp : previousSongVersTimeList) {
+                double x = 0;
+                for (double j : tmp.getVersTimes()) {
+                    x += j;
                 }
-                int minSec = 10;
+                if (x > minSec) {
+                    wasSong = true;
+                    break;
+                }
+            }
+            if (wasSong) {
+                bw.write(date + System.lineSeparator());
                 for (SongVersTime tmp : previousSongVersTimeList) {
                     double x = 0;
                     for (double j : tmp.getVersTimes()) {
                         x += j;
                     }
                     if (x > minSec) {
-                        wasSong = true;
-                        break;
-                    }
-                }
-                if (wasSong) {
-                    bw.write(date + System.lineSeparator());
-                    for (SongVersTime tmp : previousSongVersTimeList) {
-                        double x = 0;
+                        bw.write(tmp.getSongTitle() + System.lineSeparator());
                         for (double j : tmp.getVersTimes()) {
-                            x += j;
+                            bw.write(j + " ");
                         }
-                        if (x > minSec) {
-                            bw.write(tmp.getSongTitle() + System.lineSeparator());
-                            for (double j : tmp.getVersTimes()) {
-                                bw.write(j + " ");
-                            }
-                            bw.write(System.lineSeparator());
-                        }
+                        bw.write(System.lineSeparator());
                     }
-                    bw.write(System.lineSeparator());
-                    bw.write(System.lineSeparator());
                 }
-                bw.close();
-            } catch (IOException e) {
-                LOG.error(e.getMessage(), e);
+                bw.write(System.lineSeparator());
+                bw.write(System.lineSeparator());
             }
-            Settings settings = Settings.getInstance();
-            settings.setSongTabHorizontalSplitPaneDividerPosition(horizontalSplitPane.getDividerPositions()[0]);
-            settings.setSongTabVerticalSplitPaneDividerPosition(verticalSplitPane.getDividerPositions()[0]);
-            settings.setSongHeightSliderValue(songHeightSlider.getValue());
-            settings.save();
-        } catch (Exception e) {
+            bw.close();
+        } catch (IOException e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void saveSomethingsInSettings() {
+        Settings settings = Settings.getInstance();
+        settings.setSongTabHorizontalSplitPaneDividerPosition(horizontalSplitPane.getDividerPositions()[0]);
+        settings.setSongTabVerticalSplitPaneDividerPosition(verticalSplitPane.getDividerPositions()[0]);
+        settings.setSongHeightSliderValue(songHeightSlider.getValue());
+        settings.save();
     }
 
     public void setNext() {
