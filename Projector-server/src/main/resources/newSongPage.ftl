@@ -83,7 +83,7 @@
                                         </#if>
                                       </td>
                                       <td>
-                                        <a href="${baseUrl}/#/song/${song.id}" target="_blank"
+                                        <a href="${baseUrl}/#/song/${song.uuid}" target="_blank"
                                           style="color: #2BAADF;font-weight: normal;text-decoration: underline;">Open</a>
                                       </td>
                                       <td>
