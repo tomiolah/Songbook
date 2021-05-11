@@ -1,15 +1,19 @@
 package com.bence.projector.server.backend.model;
 
-import org.springframework.data.mongodb.core.mapping.DBRef;
-
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class NotificationByLanguage {
+@Entity
+public class NotificationByLanguage extends BaseEntity {
 
     private static final int INITIAL_DELAY = 15 * 60 * 1000;
-    @DBRef(lazy = true)
+    @ManyToOne(fetch = FetchType.LAZY)
     private Language language;
     private Boolean suggestions;
     private Boolean newSongs;
@@ -17,10 +21,14 @@ public class NotificationByLanguage {
     private Integer newSongsDelay;
     private Date suggestionsLastSentDate;
     private Date newSongsLastSentDate;
-    @DBRef(lazy = true)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "SUGGESTION_STACK")
     private List<Suggestion> suggestionStack;
-    @DBRef(lazy = true)
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(name = "NEW_SONG_STACK")
     private List<Song> newSongStack;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private UserProperties userProperties;
 
     public Language getLanguage() {
         return language;
@@ -120,5 +128,9 @@ public class NotificationByLanguage {
 
     public void setNewSongStack(List<Song> newSongStack) {
         this.newSongStack = newSongStack;
+    }
+
+    public void setUserProperties(UserProperties userProperties) {
+        this.userProperties = userProperties;
     }
 }

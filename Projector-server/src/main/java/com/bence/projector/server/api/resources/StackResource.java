@@ -55,7 +55,7 @@ public class StackResource {
     @RequestMapping(value = "admin/api/stack/{id}", method = RequestMethod.GET)
     public StackDTO getStack(@PathVariable final String id, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        Stack stack = stackService.findOne(id);
+        Stack stack = stackService.findOneByUuid(id);
         return stackAssembler.createDto(stack);
     }
 

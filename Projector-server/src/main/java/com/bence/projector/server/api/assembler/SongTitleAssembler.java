@@ -10,7 +10,7 @@ public class SongTitleAssembler implements GeneralAssembler<Song, SongTitleDTO> 
     @Override
     public SongTitleDTO createDto(Song song) {
         SongTitleDTO songTitleDTO = new SongTitleDTO();
-        songTitleDTO.setId(song.getId());
+        songTitleDTO.setId(song.getUuid());
         songTitleDTO.setTitle(song.getTitle());
         songTitleDTO.setCreatedDate(song.getCreatedDate());
         songTitleDTO.setModifiedDate(song.getModifiedDate());

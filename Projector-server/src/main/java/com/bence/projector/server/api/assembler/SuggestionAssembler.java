@@ -4,6 +4,7 @@ import com.bence.projector.common.dto.SuggestionDTO;
 import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.model.User;
+import com.bence.projector.server.backend.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -13,10 +14,12 @@ import java.util.List;
 @Component
 public class SuggestionAssembler implements GeneralAssembler<Suggestion, SuggestionDTO> {
     private final SongVerseAssembler songVerseAssembler;
+    private final SongService songService;
 
     @Autowired
-    public SuggestionAssembler(SongVerseAssembler songVerseAssembler) {
+    public SuggestionAssembler(SongVerseAssembler songVerseAssembler, SongService songService) {
         this.songVerseAssembler = songVerseAssembler;
+        this.songService = songService;
     }
 
     @Override
@@ -25,7 +28,7 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
             return null;
         }
         SuggestionDTO suggestionDTO = new SuggestionDTO();
-        suggestionDTO.setUuid(suggestion.getId());
+        suggestionDTO.setUuid(suggestion.getUuid());
         suggestionDTO.setTitle(suggestion.getTitle());
         suggestionDTO.setCreatedDate(suggestion.getCreatedDate());
         suggestionDTO.setModifiedDate(suggestion.getModifiedDate());
@@ -33,7 +36,7 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
         suggestionDTO.setCreatedByEmail(suggestion.getCreatedByEmail());
         suggestionDTO.setApplied(suggestion.getApplied());
         suggestionDTO.setDescription(suggestion.getDescription());
-        suggestionDTO.setSongId(suggestion.getSongId());
+        suggestionDTO.setSongId(suggestion.getSongUuid());
         suggestionDTO.setYoutubeUrl(suggestion.getYoutubeUrl());
         suggestionDTO.setReviewed(suggestion.getReviewed());
         User lastModifiedBy = suggestion.getLastModifiedBy();
@@ -59,7 +62,7 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
         suggestion.setCreatedByEmail(suggestionDTO.getCreatedByEmail());
         suggestion.setApplied(suggestionDTO.getApplied());
         suggestion.setDescription(suggestionDTO.getDescription());
-        suggestion.setSongId(suggestionDTO.getSongId());
+        suggestion.setSong(songService.findOneByUuid(suggestionDTO.getSongId()));
         suggestion.setYoutubeUrl(suggestionDTO.getYoutubeUrl());
         suggestion.setReviewed(suggestionDTO.getReviewed());
         return suggestion;

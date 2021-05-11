@@ -1,8 +1,15 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Table;
 import java.util.Date;
 
-public class ProjectorVersion extends BaseEntity {
+@Entity
+@Table(
+        indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
+)
+public class ProjectorVersion extends AbstractModel {
     private int versionId;
     private String version;
     private String description;

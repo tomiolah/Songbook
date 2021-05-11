@@ -1,17 +1,26 @@
 package com.bence.projector.server.backend.model;
 
-import org.springframework.data.mongodb.core.mapping.DBRef;
-
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Index;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class SongCollection extends BaseEntity {
+@Entity
+@Table(
+        indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
+)
+public class SongCollection extends AbstractModel {
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "songCollection")
     private List<SongCollectionElement> songCollectionElements;
     private Date createdDate;
     private Date modifiedDate;
     private String name;
-    @DBRef
+    @ManyToOne(fetch = FetchType.LAZY)
     private Language language;
     private String originalId;
     private Boolean deleted;
@@ -40,6 +49,11 @@ public class SongCollection extends BaseEntity {
     }
 
     public void setSongCollectionElements(List<SongCollectionElement> songCollectionElements) {
+        if (songCollectionElements != null) {
+            for (SongCollectionElement songCollectionElement : songCollectionElements) {
+                songCollectionElement.setSongCollection(this);
+            }
+        }
         this.songCollectionElements = songCollectionElements;
     }
 
@@ -84,18 +98,18 @@ public class SongCollection extends BaseEntity {
     }
 
     public boolean isDeleted() {
-        return deleted == null ? false : deleted;
+        return deleted != null && deleted;
     }
 
-    public void setDeleted(boolean deleted) {
+    public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
     }
 
     public boolean isUploaded() {
-        return uploaded == null ? false : uploaded;
+        return uploaded != null && uploaded;
     }
 
-    public void setUploaded(boolean uploaded) {
+    public void setUploaded(Boolean uploaded) {
         this.uploaded = uploaded;
     }
 }

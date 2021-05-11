@@ -10,7 +10,6 @@ public class StatisticsAssembler implements GeneralAssembler<Statistics, Statist
     @Override
     public StatisticsDTO createDto(Statistics statistics) {
         StatisticsDTO statisticsDTO = new StatisticsDTO();
-        statisticsDTO.setId(statistics.getId());
         statisticsDTO.setAccessedDate(statistics.getAccessedDate());
         statisticsDTO.setMethod(statistics.getMethod());
         statisticsDTO.setRemoteAddress(statistics.getRemoteAddress());
@@ -25,7 +24,6 @@ public class StatisticsAssembler implements GeneralAssembler<Statistics, Statist
 
     @Override
     public Statistics updateModel(Statistics statistics, StatisticsDTO statisticsDTO) {
-        statistics.setId(statisticsDTO.getId());
         statistics.setAccessedDate(statisticsDTO.getAccessedDate());
         statistics.setMethod(statisticsDTO.getMethod());
         statistics.setRemoteAddress(statisticsDTO.getRemoteAddress());

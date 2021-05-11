@@ -9,6 +9,7 @@ import { NewLanguageComponent } from "../new-language/new-language.component";
 import { DomSanitizer, SafeResourceUrl, Title } from "@angular/platform-browser";
 import { AuthenticateComponent } from '../authenticate/authenticate.component';
 import { CdkDragDrop, moveItemInArray, copyArrayItem } from '@angular/cdk/drag-drop';
+import { addNewVerse_, calculateOrder_ } from '../../util/song.utils';
 
 export function replace(value: string) {
   let newValue: string = value.trim();
@@ -203,37 +204,7 @@ export class NewSongComponent implements OnInit {
   }
 
   calculateOrder() {
-    if (this.customSectionOrder) {
-      this.sectionOrder = [];
-      for (const sectionIndex of this.song.verseOrderList) {
-        for (const usedSection of this.usedSectionTypes) {
-          if (usedSection.index == sectionIndex) {
-            this.sectionOrder.push(usedSection);
-            break;
-          }
-        }
-      }
-    } else {
-      this.sectionOrder = [];
-      let chorus = null;
-      let delta = 1;
-      for (const usedSection of this.usedSectionTypes) {
-        if (usedSection.type == SectionType.Chorus) {
-          chorus = usedSection;
-          delta = 0;
-        } else {
-          if (chorus != null && delta > 0) {
-            this.sectionOrder.push(chorus);
-          }
-          ++delta;
-        }
-        this.sectionOrder.push(usedSection);
-      }
-      const type = this.sectionOrder[this.sectionOrder.length - 1].type;
-      if (chorus != null && type != SectionType.Chorus && type != SectionType.Coda && delta > 0) {
-        this.sectionOrder.push(chorus);
-      }
-    }
+    this.sectionOrder = calculateOrder_(this.customSectionOrder, this.song, this.usedSectionTypes);
   }
 
   getSectionName(chip, verse: SongVerseUI, k: number) {
@@ -290,14 +261,7 @@ export class NewSongComponent implements OnInit {
   }
 
   addNewVerse() {
-    const control = new FormControl('');
-    let section = new SongVerseUI();
-    section.type = SectionType.Verse;
-    this.verses.push(section);
-    this.verseControls.push(control);
-    const index = this.verses.length - 1;
-    this.form.addControl('verse' + (index), control);
-    this.song.verseOrderList.push(index);
+    addNewVerse_(this.verses, this.verseControls, this.form, this.song);
     this.calculateUsedSectionTypes();
   }
 

@@ -1,14 +1,24 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Index;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.util.Date;
 import java.util.List;
 
-public class SongList extends BaseEntity {
+@Entity
+@Table(
+        indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
+)
+public class SongList extends AbstractModel {
 
     private String title;
     private String description;
     private Date createdDate;
     private Date modifiedDate;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "songList")
     private List<SongListElement> songListElements;
     private String createdByEmail;
 
@@ -25,7 +35,8 @@ public class SongList extends BaseEntity {
     }
 
     public void setDescription(String description) {
-        this.description = description;
+        int DESCRIPTION_LENGTH = 255;
+        this.description = description.substring(0, Math.min(description.length(), DESCRIPTION_LENGTH));
     }
 
     public Date getCreatedDate() {
@@ -49,6 +60,11 @@ public class SongList extends BaseEntity {
     }
 
     public void setSongListElements(List<SongListElement> songListElements) {
+        if (songListElements != null) {
+            for (SongListElement songListElement : songListElements) {
+                songListElement.setSongList(this);
+            }
+        }
         this.songListElements = songListElements;
     }
 

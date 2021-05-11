@@ -6,7 +6,6 @@ import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongLink;
 import com.bence.projector.server.backend.model.User;
-import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongLinkService;
 import com.bence.projector.server.backend.service.SongService;
@@ -49,18 +48,16 @@ public class SongLinkResource {
     private final SongLinkService songLinkService;
     private final SongLinkAssembler songLinkAssembler;
     private final JavaMailSender sender;
-    private final SongRepository songRepository;
     private final UserService userService;
     private final SongService songService;
     private final LanguageService languageService;
 
     @Autowired
-    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, @Qualifier("javaMailSender") JavaMailSender sender, SongRepository songRepository, UserService userService, SongService songService, LanguageService languageService) {
+    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, @Qualifier("javaMailSender") JavaMailSender sender, UserService userService, SongService songService, LanguageService languageService) {
         this.statisticsService = statisticsService;
         this.songLinkService = songLinkService;
         this.songLinkAssembler = songLinkAssembler;
         this.sender = sender;
-        this.songRepository = songRepository;
         this.userService = userService;
         this.songService = songService;
         this.languageService = languageService;
@@ -80,7 +77,7 @@ public class SongLinkResource {
 
     @RequestMapping(value = "admin/api/songLinks/language/{languageId}", method = RequestMethod.GET)
     public List<SongLinkDTO> getSongLinksByLanguage(@PathVariable("languageId") String languageId) {
-        Language language = languageService.findOne(languageId);
+        Language language = languageService.findOneByUuid(languageId);
         List<SongLink> songLinks = songLinkService.findAllByLanguage(language);
         return songLinkAssembler.createDtoList(songLinks);
     }
@@ -88,7 +85,7 @@ public class SongLinkResource {
     @RequestMapping(value = "admin/api/songLink/{id}", method = RequestMethod.GET)
     public SongLinkDTO getSongLink(@PathVariable final String id, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        SongLink songLink = songLinkService.findOne(id);
+        SongLink songLink = songLinkService.findOneByUuid(id);
         return songLinkAssembler.createDto(songLink);
     }
 
@@ -118,7 +115,7 @@ public class SongLinkResource {
             String email = principal.getName();
             User user = userService.findByEmail(email);
             if (user != null) {
-                SongLink songLink = songLinkService.findOne(id);
+                SongLink songLink = songLinkService.findOneByUuid(id);
                 if (songLink != null) {
                     Date modifiedDate = songLink.getModifiedDate();
                     if (modifiedDate != null && modifiedDate.compareTo(songLinkDTO.getModifiedDate()) != 0) {
@@ -139,8 +136,8 @@ public class SongLinkResource {
         if (songId1.equals(songId2)) {
             return new ResponseEntity<>("Same song", HttpStatus.CONFLICT);
         }
-        Song song1 = songService.findOne(songId1);
-        Song song2 = songService.findOne(songId2);
+        Song song1 = songService.findOneByUuid(songId1);
+        Song song2 = songService.findOneByUuid(songId2);
         if (song1 == null || song2 == null || song1.isSameVersionGroup(song2)) {
             return new ResponseEntity<>("Null", HttpStatus.NO_CONTENT);
         }
@@ -156,8 +153,8 @@ public class SongLinkResource {
         SongLink model = new SongLink();
         model.setApplied(false);
         model.setCreatedDate(new Date());
-        model.setSongId1(songId1);
-        model.setSongId2(songId2);
+        model.setSong1(songService.findOneByUuid(songId1));
+        model.setSong2(songService.findOneByUuid(songId2));
         model.setCreatedByEmail(user.getEmail());
         SongLink songLink = songLinkService.save(model);
         Thread thread = new Thread(() -> {
@@ -197,8 +194,8 @@ public class SongLinkResource {
             }
             helper.getMimeMessage().setContent("<div>\n" +
                     "    <h3>Új verzió összekötés: </h3>\n" +
-                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + songLink.getSongId1() + "\">Link1</a>\n" +
-                    "<br><a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + songLink.getSongId2() + "\">Link2</a>\n" +
+                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + songLink.getSong1(songService).getUuid() + "\">Link1</a>\n" +
+                    "<br><a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + songLink.getSong2(songService).getUuid() + "\">Link2</a>\n" +
                     "  <h3>Email </h3><h4>" + createdByEmail + "</h4>" +
                     "</div>", "text/html;charset=utf-8");
         }
@@ -214,8 +211,8 @@ public class SongLinkResource {
         data.put("baseUrl", AppProperties.getInstance().baseUrl());
         data.put("id", songLink.getId());
         data.put("email", createdByEmail);
-        Song song1 = songRepository.findOne(songLink.getSongId1());
-        Song song2 = songRepository.findOne(songLink.getSongId2());
+        Song song1 = songLink.getSong1(songService);
+        Song song2 = songLink.getSong2(songService);
         data.put("song1Title", song1.getTitle());
         data.put("song2Title", song2.getTitle());
         data.put("song1", song1.getId());

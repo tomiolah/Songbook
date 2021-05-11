@@ -1,9 +1,18 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Entity;
+import javax.persistence.Index;
+import javax.persistence.Lob;
+import javax.persistence.Table;
 import java.util.Date;
 
-public class Stack extends BaseEntity {
+@Entity
+@Table(
+        indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
+)
+public class Stack extends AbstractModel {
 
+    @Lob
     private String stackTrace;
     private String message;
     private String email;

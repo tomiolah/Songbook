@@ -8,12 +8,14 @@ import com.bence.projector.server.backend.model.Bible;
 import com.bence.projector.server.backend.model.BibleVerse;
 import com.bence.projector.server.backend.model.Book;
 import com.bence.projector.server.backend.model.Chapter;
+import com.bence.projector.server.backend.model.VerseIndex;
 import com.bence.projector.server.backend.service.LanguageService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @Component
 public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
@@ -31,7 +33,7 @@ public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
             return null;
         }
         BibleDTO bibleDTO = new BibleDTO();
-        bibleDTO.setUuid(bible.getId());
+        bibleDTO.setUuid(bible.getUuid());
         bibleDTO.setCreatedDate(bible.getCreatedDate());
         bibleDTO.setModifiedDate(bible.getModifiedDate());
         ArrayList<BookDTO> bookDTOS = new ArrayList<>();
@@ -45,7 +47,7 @@ public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
                     for (BibleVerse bibleVerse : chapter.getVerses()) {
                         BibleVerseDTO verseDTO = new BibleVerseDTO();
                         verseDTO.setText(bibleVerse.getText());
-                        verseDTO.setVerseIndices(bibleVerse.getVerseIndices());
+                        verseDTO.setVerseIndices(getVerseIndicesAsLong(bibleVerse.getVerseIndices()));
                         verseDTOS.add(verseDTO);
                     }
                     chapterDTO.setVerses(verseDTOS);
@@ -61,9 +63,20 @@ public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
         bibleDTO.setName(bible.getName());
         bibleDTO.setShortName(bible.getShortName());
         if (bible.getLanguage() != null) {
-            bibleDTO.setLanguageUuid(bible.getLanguage().getId());
+            bibleDTO.setLanguageUuid(bible.getLanguage().getUuid());
         }
         return bibleDTO;
+    }
+
+    private List<Long> getVerseIndicesAsLong(List<VerseIndex> verseIndices) {
+        if (verseIndices == null) {
+            return null;
+        }
+        ArrayList<Long> longs = new ArrayList<>();
+        for (VerseIndex verseIndex : verseIndices) {
+            longs.add(verseIndex.getIndexNumber());
+        }
+        return longs;
     }
 
     @Override
@@ -89,7 +102,7 @@ public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
                 for (BibleVerseDTO bibleVerse : chapterDTO.getVerses()) {
                     BibleVerse verse = new BibleVerse();
                     verse.setText(bibleVerse.getText());
-                    verse.setVerseIndices(bibleVerse.getVerseIndices());
+                    verse.setVerseIndices(getVerseIndicesAsVerseIndex(bibleVerse.getVerseIndices()));
                     verses.add(verse);
                 }
                 chapter.setVerses(verses);
@@ -104,8 +117,18 @@ public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
         bible.setName(bibleDTO.getName());
         bible.setShortName(bibleDTO.getShortName());
         if (bibleDTO.getLanguageUuid() != null) {
-            bible.setLanguage(languageService.findOne(bibleDTO.getLanguageUuid()));
+            bible.setLanguage(languageService.findOneByUuid(bibleDTO.getLanguageUuid()));
         }
         return bible;
+    }
+
+    private List<VerseIndex> getVerseIndicesAsVerseIndex(List<Long> verseIndices) {
+        ArrayList<VerseIndex> indices = new ArrayList<>();
+        for (Long index: verseIndices) {
+            VerseIndex verseIndex = new VerseIndex();
+            verseIndex.setIndexNumber(index);
+            indices.add(verseIndex);
+        }
+        return indices;
     }
 }

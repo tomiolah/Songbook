@@ -29,14 +29,16 @@ public class SongResourceSeo {
 
     @GetMapping("/song/{id}")
     public String song(Model model, @PathVariable("id") String id) {
-        Song song = songService.findOne(id);
+        Song song = songService.findOneByUuid(id);
         if (song == null || song.isDeleted() || song.isBackUp()) {
             return "pageNotFound";
         }
         model.addAttribute("title", song.getTitle());
         model.addAttribute("song", song);
         Song randomSong = songService.getRandomSong(song.getLanguage());
-        model.addAttribute("randomSongUrl", "/song/" + randomSong.getId());
+        if (randomSong != null && randomSong.isPublic()) {
+            model.addAttribute("randomSongUrl", "/song/" + randomSong.getUuid());
+        }
         HashMap<String, Integer> hashMap = new HashMap<>();
         String regex = "[.!?,;'\\\\:\"|<>{}\\[\\]_\\-=+0-9@#$%^&*()`~\\n]+";
         for (SongVerse songVerse : song.getVerses()) {
@@ -91,7 +93,17 @@ public class SongResourceSeo {
 
         model.addAttribute("keywords", keywords.toString());
         model.addAttribute("youtubeUrl", "http://img.youtube.com/vi/" + song.getYoutubeUrl() + "/0.jpg");
+        model.addAttribute("description", getDescriptionText(song));
         return "song";
+    }
+
+    private String getDescriptionText(Song song) {
+        List<SongVerse> verses = song.getVerses();
+        if (verses == null || verses.size() <= 0) {
+            return "";
+        }
+        SongVerse songVerse = verses.get(0);
+        return songVerse.getText();
     }
 
     @GetMapping("/song")

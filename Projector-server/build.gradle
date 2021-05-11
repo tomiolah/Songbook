@@ -26,8 +26,9 @@ dependencies {
     // project dependency
     compile project(":projector-common")
 
-    compile("org.springframework.boot:spring-boot-starter-data-mongodb")
-    compile 'org.springframework.data:spring-data-mongodb:1.10.13.RELEASE'
+    compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile 'mysql:mysql-connector-java'
+    compile("com.h2database:h2")
 
     // tag::jetty[]
     compile("org.springframework.boot:spring-boot-starter-web") {

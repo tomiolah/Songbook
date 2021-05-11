@@ -34,7 +34,7 @@ public interface SongService extends BaseService<Song> {
 
     List<Song> findAllSongsLazy();
 
-    void delete(String id);
+    void deleteByUuid(String uuid);
 
     boolean isLanguageIsGood(Song song, Language language);
 

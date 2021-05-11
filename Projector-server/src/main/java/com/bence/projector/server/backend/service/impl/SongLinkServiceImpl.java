@@ -38,9 +38,8 @@ public class SongLinkServiceImpl extends BaseServiceImpl<SongLink> implements So
     }
 
     private List<SongLink> getUnAppliedSongLinks() {
-        List<SongLink> songLinks = songLinkRepository.findAll();
-        songLinks = getFilteredSongLinks(songLinks);
-        return songLinks;
+        Iterable<SongLink> songLinks = songLinkRepository.findAll();
+        return getFilteredSongLinks(songLinks);
     }
 
     @Override
@@ -62,7 +61,7 @@ public class SongLinkServiceImpl extends BaseServiceImpl<SongLink> implements So
         return getUnAppliedSongLinks();
     }
 
-    private List<SongLink> getFilteredSongLinks(List<SongLink> songLinks) {
+    private List<SongLink> getFilteredSongLinks(Iterable<SongLink> songLinks) {
         List<SongLink> filteredSongLinks = new ArrayList<>();
         for (SongLink songLink : songLinks) {
             if (songLink.isUnApplied()) {
@@ -70,5 +69,10 @@ public class SongLinkServiceImpl extends BaseServiceImpl<SongLink> implements So
             }
         }
         return filteredSongLinks;
+    }
+
+    @Override
+    public SongLink findOneByUuid(String uuid) {
+        return songLinkRepository.findOneByUuid(uuid);
     }
 }

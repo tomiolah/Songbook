@@ -17,7 +17,7 @@ public class ProjectorVersionAssembler implements GeneralAssembler<ProjectorVers
         projectorVersionDTO.setDescription(projectorVersion.getDescription());
         projectorVersionDTO.setVersion(projectorVersion.getVersion());
         projectorVersionDTO.setVersionId(projectorVersion.getVersionId());
-        projectorVersionDTO.setUuid(projectorVersion.getId());
+        projectorVersionDTO.setUuid(projectorVersion.getUuid());
         return projectorVersionDTO;
     }
 

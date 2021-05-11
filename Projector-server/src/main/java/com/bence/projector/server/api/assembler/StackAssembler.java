@@ -13,7 +13,7 @@ public class StackAssembler implements GeneralAssembler<Stack, StackDTO> {
             return null;
         }
         StackDTO stackDTO = new StackDTO();
-        stackDTO.setUuid(stack.getId());
+        stackDTO.setUuid(stack.getUuid());
         stackDTO.setCreatedDate(stack.getCreatedDate());
         stackDTO.setEmail(stack.getEmail());
         stackDTO.setMessage(stack.getMessage());

@@ -2,31 +2,34 @@ package com.bence.projector.server.backend.model;
 
 import com.bence.projector.server.backend.service.SongService;
 
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Index;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
 import java.util.Date;
 
-public class SongLink extends BaseEntity {
+@Entity
+@Table(
+        indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
+)
+public class SongLink extends AbstractModel {
 
-    private String songId1;
-    private String songId2;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Song song1;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Song song2;
     private Date createdDate;
     private Date modifiedDate;
     private Boolean applied;
     private String createdByEmail;
 
-    public String getSongId1() {
-        return songId1;
+    public void setSong1(Song song1) {
+        this.song1 = song1;
     }
 
-    public void setSongId1(String songId1) {
-        this.songId1 = songId1;
-    }
-
-    public String getSongId2() {
-        return songId2;
-    }
-
-    public void setSongId2(String songId2) {
-        this.songId2 = songId2;
+    public void setSong2(Song song2) {
+        this.song2 = song2;
     }
 
     public Date getCreatedDate() {
@@ -73,11 +76,17 @@ public class SongLink extends BaseEntity {
     }
 
     public Song getSong1(SongService songService) {
-        return songService.findOne(songId1);
+        if (song1 == null) {
+            return null;
+        }
+        return songService.findOneByUuid(song1.getUuid());
     }
 
     public Song getSong2(SongService songService) {
-        return songService.findOne(songId2);
+        if (song2 == null) {
+            return null;
+        }
+        return songService.findOneByUuid(song2.getUuid());
     }
 
     public boolean hasLanguage(Language language, SongService songService) {
@@ -85,11 +94,16 @@ public class SongLink extends BaseEntity {
             return false;
         }
         Song song1 = getSong1(songService);
-        if (song1 != null && language.equals(song1.getLanguage())) {
-            return true;
+        try {
+            if (song1 != null && language.equalsById(song1.getLanguage())) {
+                return true;
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+            return false;
         }
         Song song2 = getSong2(songService);
-        return song2 != null && language.equals(song2.getLanguage());
+        return song2 != null && language.equalsById(song2.getLanguage());
     }
 
     public boolean alreadyTheSameVersionGroup(SongService songService) {

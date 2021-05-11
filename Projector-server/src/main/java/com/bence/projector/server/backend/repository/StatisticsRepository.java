@@ -1,7 +1,7 @@
 package com.bence.projector.server.backend.repository;
 
 import com.bence.projector.server.backend.model.Statistics;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.repository.CrudRepository;
 
-public interface StatisticsRepository extends MongoRepository<Statistics, String> {
+public interface StatisticsRepository extends CrudRepository<Statistics, Long> {
 }

@@ -40,7 +40,7 @@ public class NotificationByLanguageAssembler implements GeneralAssembler<Notific
     @Override
     public NotificationByLanguage updateModel(NotificationByLanguage notificationByLanguage, NotificationByLanguageDTO notificationByLanguageDTO) {
         LanguageDTO languageDTO = notificationByLanguageDTO.getLanguage();
-        Language language = languageService.findOne(languageDTO.getUuid());
+        Language language = languageService.findOneByUuid(languageDTO.getUuid());
         notificationByLanguage.setLanguage(language);
         notificationByLanguage.setNewSongs(notificationByLanguageDTO.getNewSongs());
         notificationByLanguage.setSuggestions(notificationByLanguageDTO.getSuggestions());

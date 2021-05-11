@@ -27,7 +27,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.ListIterator;
 
-public class Main extends Application {
+public class MainDesktop extends Application {
 
     private MyController myController;
     private ProjectionScreenController projectionScreenController;
@@ -130,7 +130,7 @@ public class Main extends Application {
         System.out.println("primary stage loaded---------------");
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(Main.class.getResource("/view/ProjectionScreen.fxml"));
+            loader.setLocation(MainDesktop.class.getResource("/view/ProjectionScreen.fxml"));
             root = loader.load();
             projectionScreenController = loader.getController();
             setProjectionScreen();

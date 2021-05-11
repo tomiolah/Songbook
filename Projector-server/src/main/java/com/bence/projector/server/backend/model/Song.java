@@ -1,21 +1,31 @@
 package com.bence.projector.server.backend.model;
 
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.mongodb.core.mapping.DBRef;
-
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Index;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class Song extends BaseEntity {
+@Entity
+@Table(
+        indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
+)
+public class Song extends AbstractModel {
 
     private String originalId;
     private String title;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<SongVerse> verses;
     private Date createdDate;
     private Date modifiedDate;
     private boolean deleted = false;
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
     private Language language;
     private Boolean uploaded;
     private long views;
@@ -25,21 +35,25 @@ public class Song extends BaseEntity {
     private String createdByEmail;
     @Transient
     transient private double percentage;
-    private String versionGroup;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Song versionGroup;
     private String youtubeUrl;
     private String verseOrder;
     private String author;
-    private List<Short> verseOrderList;
-    @DBRef
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
+    private List<SongVerseOrderListItem> verseOrderList;
+    @ManyToOne(fetch = FetchType.LAZY)
     private User lastModifiedBy;
-    @DBRef
+    @ManyToOne(fetch = FetchType.LAZY)
     private Song backUp;
     private Boolean isBackUp;
     private Boolean reviewerErased;
     @Transient
-    private List<Language> previousLanguages;
-    @Transient
     private String beforeId;
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "newSongStack")
+    private List<NotificationByLanguage> notificationByLanguages;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
+    private List<Suggestion> suggestions;
 
     public Song() {
     }
@@ -72,7 +86,8 @@ public class Song extends BaseEntity {
     }
 
     public void setTitle(String title) {
-        this.title = title;
+        int MAX_TITLE_LENGTH = 255;
+        this.title = title.substring(0, Math.min(title.length(), MAX_TITLE_LENGTH));
     }
 
     public List<SongVerse> getVerses() {
@@ -80,6 +95,9 @@ public class Song extends BaseEntity {
     }
 
     public void setVerses(List<SongVerse> verses) {
+        for (SongVerse songVerse : verses) {
+            songVerse.setSong(this);
+        }
         this.verses = verses;
     }
 
@@ -112,9 +130,6 @@ public class Song extends BaseEntity {
     }
 
     public void setLanguage(Language language) {
-        if (this.language != null && (language == null || !this.language.getId().equals(language.getId()))) {
-            getPreviousLanguages().add(this.language);
-        }
         this.language = language;
     }
 
@@ -171,11 +186,11 @@ public class Song extends BaseEntity {
         this.percentage = percentage;
     }
 
-    public String getVersionGroup() {
+    public Song getVersionGroup() {
         return versionGroup;
     }
 
-    public void setVersionGroup(String versionGroup) {
+    public void setVersionGroup(Song versionGroup) {
         this.versionGroup = versionGroup;
     }
 
@@ -183,7 +198,7 @@ public class Song extends BaseEntity {
         return uploaded != null && uploaded;
     }
 
-    public void setUploaded(boolean uploaded) {
+    public void setUploaded(Boolean uploaded) {
         this.uploaded = uploaded;
     }
 
@@ -232,18 +247,61 @@ public class Song extends BaseEntity {
     }
 
     public List<Short> getVerseOrderList() {
-        if (verses != null && verseOrderList != null) {
+        if (verses != null && verseOrderWasSaved()) {
             for (short index = 0; index < verses.size(); ++index) {
-                if (!verseOrderList.contains(index)) {
-                    verseOrderList.add(index);
+                if (!containsIndex(index)) {
+                    addToVerseOrderList(index, verseOrderList);
                 }
             }
+        } else if (verseOrderWasNotSaved()) {
+            return null;
         }
-        return verseOrderList;
+        return getShortOrderList();
     }
 
     public void setVerseOrderList(List<Short> verseOrderList) {
-        this.verseOrderList = verseOrderList;
+        this.verseOrderList = getVerseOrderFromShorts(verseOrderList);
+    }
+
+    private List<SongVerseOrderListItem> getVerseOrderFromShorts(List<Short> verseOrderList) {
+        if (verseOrderList == null) {
+            return null;
+        }
+        ArrayList<SongVerseOrderListItem> songVerseOrderListItems = new ArrayList<>();
+        for (Short aShort : verseOrderList) {
+            addToVerseOrderList(aShort, songVerseOrderListItems);
+        }
+        return songVerseOrderListItems;
+    }
+
+    private List<Short> getShortOrderList() {
+        if (verseOrderList == null) {
+            return null;
+        }
+        ArrayList<Short> shorts = new ArrayList<>();
+        for (SongVerseOrderListItem songVerseOrderListItem : verseOrderList) {
+            shorts.add(songVerseOrderListItem.getPosition());
+        }
+        return shorts;
+    }
+
+    private boolean containsIndex(short index) {
+        if (verseOrderList == null) {
+            return false;
+        }
+        for (SongVerseOrderListItem songVerseOrderListItem : verseOrderList) {
+            if (songVerseOrderListItem.getPosition() == index) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void addToVerseOrderList(short index, List<SongVerseOrderListItem> verseOrderList) {
+        SongVerseOrderListItem songVerseOrderListItem = new SongVerseOrderListItem();
+        songVerseOrderListItem.setPosition(index);
+        songVerseOrderListItem.setSong(this);
+        verseOrderList.add(songVerseOrderListItem);
     }
 
     public User getLastModifiedBy() {
@@ -278,13 +336,6 @@ public class Song extends BaseEntity {
         this.reviewerErased = reviewerErased;
     }
 
-    public List<Language> getPreviousLanguages() {
-        if (previousLanguages == null) {
-            previousLanguages = new ArrayList<>();
-        }
-        return previousLanguages;
-    }
-
     public String getBeforeId() {
         return beforeId;
     }
@@ -297,12 +348,16 @@ public class Song extends BaseEntity {
         return !isReviewerErased() && !isDeleted() && !isBackUp();
     }
 
+    public void setNotificationByLanguages(List<NotificationByLanguage> notificationByLanguages) {
+        this.notificationByLanguages = notificationByLanguages;
+    }
+
     private String idOrVersionGroup() {
-        String versionGroup = getVersionGroup();
+        Song versionGroup = getVersionGroup();
         if (versionGroup != null) {
-            return versionGroup;
+            return versionGroup.getUuid();
         }
-        return getId();
+        return getUuid();
     }
 
     public boolean isSameVersionGroup(Song other) {
@@ -310,5 +365,37 @@ public class Song extends BaseEntity {
             return false;
         }
         return idOrVersionGroup().equals(other.idOrVersionGroup());
+    }
+
+    public String getVersionGroupUuid() {
+        Song versionGroup = getVersionGroup();
+        if (versionGroup == null) {
+            return null;
+        }
+        return versionGroup.getUuid();
+    }
+
+    public List<Suggestion> getSuggestions() {
+        return suggestions;
+    }
+
+    public List<SongVerseOrderListItem> getSongVerseOrderListItems() {
+        return verseOrderList;
+    }
+
+    public void setSongVerseOrderListItems(List<SongVerseOrderListItem> songVerseOrderListItems) {
+        this.verseOrderList = songVerseOrderListItems;
+    }
+
+    public boolean verseOrderWasNotSaved() {
+        List<SongVerseOrderListItem> songVerseOrderListItems = getSongVerseOrderListItems();
+        if (songVerseOrderListItems == null) {
+            return true;
+        }
+        return songVerseOrderListItems.size() == 0;
+    }
+
+    private boolean verseOrderWasSaved() {
+        return !verseOrderWasNotSaved();
     }
 }

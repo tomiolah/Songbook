@@ -1,9 +1,17 @@
 package com.bence.projector.server.backend.model;
 
-public class SongListElement {
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
+
+@Entity
+public class SongListElement extends BaseEntity {
 
     private int number;
-    private String songUuid;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Song song;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private SongList songList;
 
     public int getNumber() {
         return number;
@@ -14,10 +22,18 @@ public class SongListElement {
     }
 
     public String getSongUuid() {
-        return songUuid;
+        return song.getUuid();
     }
 
-    public void setSongUuid(String songUuid) {
-        this.songUuid = songUuid;
+    public Song getSong() {
+        return song;
+    }
+
+    public void setSong(Song song) {
+        this.song = song;
+    }
+
+    public void setSongList(SongList songList) {
+        this.songList = songList;
     }
 }

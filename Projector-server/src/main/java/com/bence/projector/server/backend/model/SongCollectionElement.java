@@ -1,14 +1,16 @@
 package com.bence.projector.server.backend.model;
 
-import org.springframework.data.annotation.Transient;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.ManyToOne;
 
-public class SongCollectionElement {
+@Entity
+public class SongCollectionElement extends BaseEntity {
 
     private String ordinalNumber;
-    private String songUuid;
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
     private Song song;
-    @Transient
+    @ManyToOne(fetch = FetchType.LAZY)
     private SongCollection songCollection;
 
     public String getOrdinalNumber() {
@@ -25,14 +27,10 @@ public class SongCollectionElement {
     }
 
     public String getSongUuid() {
-        if (songUuid == null && song != null) {
-            return song.getId();
+        if (song != null) {
+            return song.getUuid();
         }
-        return songUuid;
-    }
-
-    public void setSongUuid(String songUuid) {
-        this.songUuid = songUuid;
+        return null;
     }
 
     public boolean matches(SongCollectionElement songCollectionElement) {
@@ -42,7 +40,17 @@ public class SongCollectionElement {
         if (!ordinalNumber.equals(songCollectionElement.ordinalNumber)) {
             return false;
         }
-        return songUuid.equals(songCollectionElement.songUuid);
+        return isEquals(songCollectionElement.song, this.song);
+    }
+
+    private boolean isEquals(Song song, Song other) {
+        if (song == null) {
+            return false;
+        }
+        if (other == null) {
+            return false;
+        }
+        return other.getId().equals(song.getId());
     }
 
     public void setSong(Song song) {

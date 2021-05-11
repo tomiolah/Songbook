@@ -1,9 +1,12 @@
 package com.bence.projector.server.api.assembler;
 
 import com.bence.projector.common.dto.UserPropertiesDTO;
+import com.bence.projector.server.backend.model.NotificationByLanguage;
 import com.bence.projector.server.backend.model.UserProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class UserPropertiesAssembler implements GeneralAssembler<UserProperties, UserPropertiesDTO> {
@@ -29,7 +32,8 @@ public class UserPropertiesAssembler implements GeneralAssembler<UserProperties,
 
     @Override
     public UserProperties updateModel(UserProperties userProperties, UserPropertiesDTO userPropertiesDTO) {
-        userProperties.setNotifications(notificationByLanguageAssembler.createModelList(userPropertiesDTO.getNotificationsByLanguage()));
+        List<NotificationByLanguage> notifications = notificationByLanguageAssembler.createModelList(userPropertiesDTO.getNotificationsByLanguage());
+        userProperties.setNotifications(notifications);
         return userProperties;
     }
 }

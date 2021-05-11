@@ -21,19 +21,19 @@ public class SongLinkAssembler implements GeneralAssembler<SongLink, SongLinkDTO
             return null;
         }
         SongLinkDTO songLinkDTO = new SongLinkDTO();
-        songLinkDTO.setUuid(songLink.getId());
+        songLinkDTO.setUuid(songLink.getUuid());
         songLinkDTO.setCreatedDate(songLink.getCreatedDate());
         songLinkDTO.setModifiedDate(songLink.getModifiedDate());
         songLinkDTO.setCreatedByEmail(songLink.getCreatedByEmail());
         songLinkDTO.setApplied(songLink.getApplied());
-        songLinkDTO.setSongId1(songLink.getSongId1());
-        songLinkDTO.setSongId2(songLink.getSongId2());
         Song song1 = songLink.getSong1(songService);
         if (song1 != null) {
+            songLinkDTO.setSongId1(song1.getUuid());
             songLinkDTO.setTitle1(song1.getTitle());
         }
         Song song2 = songLink.getSong2(songService);
         if (song2 != null) {
+            songLinkDTO.setSongId2(song2.getUuid());
             songLinkDTO.setTitle2(song2.getTitle());
         }
         return songLinkDTO;
@@ -50,8 +50,8 @@ public class SongLinkAssembler implements GeneralAssembler<SongLink, SongLinkDTO
     public SongLink updateModel(SongLink songLink, SongLinkDTO songLinkDTO) {
         songLink.setCreatedByEmail(songLinkDTO.getCreatedByEmail());
         songLink.setApplied(songLinkDTO.getApplied());
-        songLink.setSongId1(songLinkDTO.getSongId1());
-        songLink.setSongId2(songLinkDTO.getSongId2());
+        songLink.setSong1(songService.findOneByUuid(songLinkDTO.getSongId1()));
+        songLink.setSong2(songService.findOneByUuid(songLinkDTO.getSongId2()));
         return songLink;
     }
 }

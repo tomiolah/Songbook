@@ -39,7 +39,7 @@ import javafx.stage.Stage;
 import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import projector.Main;
+import projector.MainDesktop;
 import projector.application.ProjectionType;
 import projector.application.Reader;
 import projector.application.Settings;
@@ -1509,7 +1509,7 @@ public class BibleController {
     public void downloadBibles() {
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(Main.class.getResource("/view/DownloadBibles.fxml"));
+            loader.setLocation(MainDesktop.class.getResource("/view/DownloadBibles.fxml"));
             loader.setResources(Settings.getInstance().getResourceBundle());
             Pane root = loader.load();
             DownloadBiblesController controller = loader.getController();
@@ -1529,7 +1529,7 @@ public class BibleController {
     public void parallelBibles() {
         try {
             FXMLLoader loader = new FXMLLoader();
-            loader.setLocation(Main.class.getResource("/view/ParallelBibles.fxml"));
+            loader.setLocation(MainDesktop.class.getResource("/view/ParallelBibles.fxml"));
             loader.setResources(Settings.getInstance().getResourceBundle());
             Pane root = loader.load();
             ParallelBiblesController controller = loader.getController();

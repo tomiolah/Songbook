@@ -2,7 +2,6 @@ import { Component, Input, OnInit, ChangeDetectorRef } from '@angular/core';
 import { Song, SongService, SongVerseDTO, SongVerseUI, SectionType } from '../../services/song-service.service';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { Language } from "../../models/language";
 import { LanguageDataService } from "../../services/language-data.service";
 import { NewLanguageComponent } from "../new-language/new-language.component";
 import { MatDialog, MatIconRegistry, MatSnackBar } from "@angular/material";
@@ -11,6 +10,7 @@ import { replace } from "../new-song/new-song.component";
 import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { CdkDragDrop, moveItemInArray, copyArrayItem } from '@angular/cdk/drag-drop';
 import { AuthService } from '../../services/auth.service';
+import { addNewVerse_, calculateOrder_ } from '../../util/song.utils';
 
 @Component({
   selector: 'app-edit-song',
@@ -158,37 +158,7 @@ export class EditSongComponent implements OnInit {
   }
 
   calculateOrder() {
-    if (this.customSectionOrder) {
-      this.sectionOrder = [];
-      for (const sectionIndex of this.song.verseOrderList) {
-        for (const usedSection of this.usedSectionTypes) {
-          if (usedSection.index == sectionIndex) {
-            this.sectionOrder.push(usedSection);
-            break;
-          }
-        }
-      }
-    } else {
-      this.sectionOrder = [];
-      let chorus = null;
-      let delta = 1;
-      for (const usedSection of this.usedSectionTypes) {
-        if (usedSection.type == SectionType.Chorus) {
-          chorus = usedSection;
-          delta = 0;
-        } else {
-          if (chorus != null && delta > 0) {
-            this.sectionOrder.push(chorus);
-          }
-          ++delta;
-        }
-        this.sectionOrder.push(usedSection);
-      }
-      const type = this.sectionOrder[this.sectionOrder.length - 1].type;
-      if (chorus != null && type != SectionType.Chorus && type != SectionType.Coda && delta > 0) {
-        this.sectionOrder.push(chorus);
-      }
-    }
+    this.sectionOrder = calculateOrder_(this.customSectionOrder, this.song, this.usedSectionTypes);
   }
 
   getSectionName(chip, verse: SongVerseUI, k: number) {
@@ -277,14 +247,7 @@ export class EditSongComponent implements OnInit {
   }
 
   addNewVerse() {
-    const control = new FormControl('');
-    let section = new SongVerseUI();
-    section.type = SectionType.Verse;
-    this.verses.push(section);
-    this.verseControls.push(control);
-    const index = this.verses.length - 1;
-    this.form.addControl('verse' + (index), control);
-    this.song.verseOrderList.push(index);
+    addNewVerse_(this.verses, this.verseControls, this.form, this.song);
     this.calculateUsedSectionTypes();
   }
 

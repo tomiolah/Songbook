@@ -1,18 +1,27 @@
 package com.bence.projector.server.backend.model;
 
-import org.springframework.data.mongodb.core.mapping.DBRef;
-
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Index;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Language extends BaseEntity {
+@Entity
+@Table(
+        indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
+)
+public class Language extends AbstractModel {
     private String englishName;
     private String nativeName;
-    @DBRef(lazy = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "language")
     private List<Song> songs;
     private long songsCount;
-
     private double percentage;
+    @ManyToMany(mappedBy = "reviewLanguages")
+    private List<User> reviewers;
 
     public Language() {
     }
@@ -68,7 +77,7 @@ public class Language extends BaseEntity {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((this.getId() == null) ? 0 : this.getId().hashCode());
+        result = prime * result + ((this.getUuid() == null) ? 0 : this.getUuid().hashCode());
         return result;
     }
 
@@ -84,10 +93,10 @@ public class Language extends BaseEntity {
             return false;
         }
         Language other = (Language) obj;
-        if (this.getId() == null) {
-            return other.getId() == null;
+        if (this.getUuid() == null) {
+            return other.getUuid() == null;
         } else {
-            return this.getId().equals(other.getId());
+            return this.getUuid().equals(other.getUuid());
         }
     }
 
@@ -105,5 +114,20 @@ public class Language extends BaseEntity {
 
     public void setPercentage(double percentage) {
         this.percentage = percentage;
+    }
+
+    public List<User> getReviewers() {
+        return reviewers;
+    }
+
+    public void setReviewers(List<User> reviewers) {
+        this.reviewers = reviewers;
+    }
+
+    public boolean equalsById(Language language) {
+        if (language == null) {
+            return false;
+        }
+        return getId().equals(language.getId());
     }
 }

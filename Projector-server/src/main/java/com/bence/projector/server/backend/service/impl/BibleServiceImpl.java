@@ -1,6 +1,7 @@
 package com.bence.projector.server.backend.service.impl;
 
 import com.bence.projector.server.backend.model.Bible;
+import com.bence.projector.server.backend.repository.BibleRepository;
 import com.bence.projector.server.backend.repository.BookRepository;
 import com.bence.projector.server.backend.service.BibleService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,11 +11,15 @@ import java.util.List;
 
 @Service
 public class BibleServiceImpl extends BaseServiceImpl<Bible> implements BibleService {
-    private final BookRepository bookRepository;
 
     @Autowired
-    public BibleServiceImpl(BookRepository bookRepository) {
-        this.bookRepository = bookRepository;
+    private BibleRepository bibleRepository;
+    @Autowired
+    private BookRepository bookRepository;
+
+    @Override
+    public Bible findOneByUuid(String uuid) {
+        return bibleRepository.findOneByUuid(uuid);
     }
 
     @Override
@@ -24,24 +29,20 @@ public class BibleServiceImpl extends BaseServiceImpl<Bible> implements BibleSer
     }
 
     @Override
-    public Iterable save(List<Bible> models) {
+    public Iterable<Bible> save(List<Bible> models) {
         for (Bible bible : models) {
             save(bible);
         }
         return models;
     }
 
-    @Override
-    public void delete(String id) {
-        Bible bible = findOne(id);
+    public void deleteByUuid(String id) {
+        Bible bible = findOneByUuid(id);
+        if (bible == null) {
+            return;
+        }
         bookRepository.delete(bible.getBooks());
-        super.delete(id);
+        super.delete(bible.getId());
     }
 
-    @Override
-    public void delete(List<String> ids) {
-        for (String id : ids) {
-            delete(id);
-        }
-    }
 }
