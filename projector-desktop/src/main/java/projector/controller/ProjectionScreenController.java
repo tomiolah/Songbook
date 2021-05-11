@@ -341,7 +341,7 @@ public class ProjectionScreenController {
     void createCustomStage(int width, int height) {
         if (customStageController == null) {
             FXMLLoader loader2 = new FXMLLoader();
-            loader2.setLocation(Main.class.getResource("/view/ProjectionScreen.fxml"));
+            loader2.setLocation(MainDesktop.class.getResource("/view/ProjectionScreen.fxml"));
             Pane root2;
             try {
                 root2 = loader2.load();

@@ -78,6 +78,7 @@ import projector.service.ServiceException;
 import projector.service.ServiceManager;
 import projector.service.SongCollectionService;
 import projector.service.SongService;
+import projector.utils.CustomProperties;
 import projector.utils.scene.text.MyTextFlow;
 
 import java.io.BufferedReader;
@@ -90,6 +91,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.ArrayList;
@@ -115,11 +117,16 @@ public class SongController {
     private final Settings settings = Settings.getInstance();
     private final String BASE_URL = "localhost";
     private final String link = "http://" + BASE_URL;
+    @SuppressWarnings("FieldCanBeLocal")
     private final String link2 = "https://" + BASE_URL;
+    @SuppressWarnings("FieldCanBeLocal")
     private final String link3 = "http://www." + BASE_URL;
+    @SuppressWarnings("FieldCanBeLocal")
     private final String link4 = "https://www." + BASE_URL;
     private final String prefix = "id:";
     private final SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
+    private final String vowels = CustomProperties.getInstance().vowels();
+    private final SongController songController = this;
     @FXML
     private ListView<SongVerse> verseOrderListView;
     @FXML
@@ -178,7 +185,6 @@ public class SongController {
     private ScheduleController scheduleController;
     private List<Song> songs = new ArrayList<>();
     private String lastSearchText = "";
-    private SongController songController = this;
     private SongVersTime activeSongVersTime;
     private long timeStart;
     private List<SongVersTime> previousSongVersTimeList;
@@ -199,7 +205,6 @@ public class SongController {
     private SongReadRemoteListener songReadRemoteListener;
     private boolean initialized = false;
     private boolean synchronizingVerseOrderListSelection = false;
-    private final String vowels = "aeiouAEIOUéáőúöüóűíÉÁŰŐÚÜÓÖÍâÂăĂîÎ";
 
     public SongController() {
         songService = ServiceManager.getSongService();
@@ -899,9 +904,10 @@ public class SongController {
                 versionGroup = uuid;
             }
             List<Song> allByVersionGroup = songService.findAllByVersionGroup(versionGroup);
-            final List<Song> songs = new ArrayList<>(allByVersionGroup.size());
-            HashMap<String, Song> hashMap = new HashMap<>(songs.size());
-            HashMap<String, Song> songHashMap = new HashMap<>(songs.size());
+            int initialCapacity = allByVersionGroup.size();
+            final List<Song> songs = new ArrayList<>(initialCapacity);
+            HashMap<String, Song> hashMap = new HashMap<>(initialCapacity);
+            HashMap<String, Song> songHashMap = new HashMap<>(initialCapacity);
             for (Song song : allByVersionGroup) {
                 hashMap.put(song.getUuid(), song);
                 songHashMap.put(song.getUuid(), song);
@@ -981,7 +987,7 @@ public class SongController {
                 tmp.append(c);
             }
         }
-        return s.append(tmp.toString()).toString();
+        return s.append(tmp).toString();
     }
 
     private void initializeSortComboBox() {
@@ -1116,10 +1122,6 @@ public class SongController {
                     }
                 }
                 if (max.getKey() != null) {
-//                    System.out.println("Language:   " + max.getKey().getEnglishName());
-//                    System.out.println("Ratio:  " + max.getValue().getRatio());
-//                    System.out.println("Match count:  " + max.getValue().getCount());
-//                    System.out.println("Words:  " + max.getValue().getWordCount());
                     song.setLanguage(max.getKey());
                     songService.create(song);
                     addWordsInCollection(song, languageMap.get(song.getLanguage()));
@@ -1221,7 +1223,10 @@ public class SongController {
                     Pane root = loader.load();
                     DownloadLanguagesController downloadLanguagesController = loader.getController();
                     Scene scene = new Scene(root);
-                    scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                    URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+                    if (resource != null) {
+                        scene.getStylesheets().add(resource.toExternalForm());
+                    }
                     Stage stage = new Stage();
                     stage.setScene(scene);
                     stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download languages"));
@@ -1300,7 +1305,10 @@ public class SongController {
                     loader.setResources(Settings.getInstance().getResourceBundle());
                     Pane root = loader.load();
                     Scene scene = new Scene(root);
-                    scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                    URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+                    if (resource != null) {
+                        scene.getStylesheets().add(resource.toExternalForm());
+                    }
                     Stage stage = new Stage();
                     stage.setScene(scene);
                     stage.setTitle(Settings.getInstance().getResourceBundle().getString("Upload songs"));
@@ -1545,7 +1553,7 @@ public class SongController {
                     boolean containsInCollectionName = isContainsInCollectionName(collectionName, songCollectionElement);
                     String number = songCollectionElement.getOrdinalNumber();
                     boolean equals = number.equals(ordinalNumber);
-                    boolean contains2 = number.contains(ordinalNumber) || equals || ordinalNumberInt == songCollectionElement.getOrdinalNumberInt();
+                    boolean contains2 = number.contains(ordinalNumber) || ordinalNumberInt == songCollectionElement.getOrdinalNumberInt();
                     boolean b = remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText);
                     if (containsInCollectionName && contains2 && b) {
                         contains = true;
@@ -1831,7 +1839,10 @@ public class SongController {
                         newSongController.setSelectedSong(listView.getSelectionModel().getSelectedItem());
                         newSongController.setTitleTextFieldText(selectedSong.getTitle());
                         Scene scene = new Scene(root);
-                        scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                        URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+                        if (resource != null) {
+                            scene.getStylesheets().add(resource.toExternalForm());
+                        }
                         Stage stage = new Stage();
                         stage.setScene(scene);
                         stage.setTitle(Settings.getInstance().getResourceBundle().getString("Song Edit"));
@@ -1844,8 +1855,10 @@ public class SongController {
                         previewProjectionScreenController = loader2.getController();
                         newSongController.setPreviewProjectionScreenController(previewProjectionScreenController);
                         Scene scene2 = new Scene(root2, 400, 300);
-                        scene2.getStylesheets()
-                                .add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                        URL resource1 = getClass().getResource("/view/" + settings.getSceneStyleFile());
+                        if (resource1 != null) {
+                            scene2.getStylesheets().add(resource1.toExternalForm());
+                        }
                         scene2.widthProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                         scene2.heightProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                         Stage stage2 = new Stage();
@@ -1879,7 +1892,10 @@ public class SongController {
                         addToCollectionController.setSongController(songController);
                         addToCollectionController.setSelectedSong(selectedSong);
                         Scene scene = new Scene(root);
-                        scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                        URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+                        if (resource != null) {
+                            scene.getStylesheets().add(resource.toExternalForm());
+                        }
                         Stage stage = new Stage();
                         stage.setScene(scene);
                         stage.setTitle(Settings.getInstance().getResourceBundle().getString("Add to collection"));
@@ -1964,7 +1980,7 @@ public class SongController {
                         newSongCollectionController.setEditing(true, songCollectionListView.getSelectionModel().getSelectedItem());
                         newSongCollectionController.setSongs(songs);
                         Scene scene = new Scene(root);
-                        scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                        setSceneStyleFile(scene);
                         Stage stage = new Stage();
                         stage.setScene(scene);
                         stage.setTitle(Settings.getInstance().getResourceBundle().getString("SongBook Edit"));
@@ -1972,6 +1988,13 @@ public class SongController {
                         newSongCollectionController.setStage(stage);
                     } catch (Exception e) {
                         LOG.error(e.getMessage(), e);
+                    }
+                }
+
+                private void setSceneStyleFile(Scene scene) {
+                    URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+                    if (resource != null) {
+                        scene.getStylesheets().add(resource.toExternalForm());
                     }
                 }
             });
@@ -2064,10 +2087,6 @@ public class SongController {
         return songListView;
     }
 
-    List<Song> getSongs() {
-        return songs;
-    }
-
     private void deleteSong(SearchedSong selectedSong) {
         try {
             final Song song = removeSongFromList(selectedSong);
@@ -2110,7 +2129,7 @@ public class SongController {
             NewSongController newSongController = loader.getController();
             newSongController.setSongController(songController);
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+            setSceneStyleFile2(scene);
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Song Edit"));
@@ -2123,7 +2142,7 @@ public class SongController {
             previewProjectionScreenController = loader2.getController();
             newSongController.setPreviewProjectionScreenController(previewProjectionScreenController);
             Scene scene2 = new Scene(root2, 400, 300);
-            scene2.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+            setSceneStyleFile2(scene2);
 
             scene2.widthProperty().addListener((observable, oldValue, newValue) -> {
                 try {
@@ -2155,6 +2174,14 @@ public class SongController {
         }
     }
 
+    private void setSceneStyleFile2(Scene scene) {
+        URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+        if (resource != null) {
+            scene.getStylesheets().add(resource.toExternalForm());
+        }
+    }
+
+    @SuppressWarnings("unused")
     public void newSongCollectionButtonOnAction() {
         try {
             FXMLLoader loader = new FXMLLoader();
@@ -2164,7 +2191,7 @@ public class SongController {
             NewSongCollectionController newSongCollectionController = loader.getController();
             newSongCollectionController.setSongs(songs);
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+            setSceneStyleFile2(scene);
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("New song book"));
@@ -2320,12 +2347,6 @@ public class SongController {
             projectionTextChangeListeners = new ArrayList<>();
         }
         projectionTextChangeListeners.add(projectionTextChangeListener);
-    }
-
-    public synchronized void removeProjectionTextChangeListener(ProjectionTextChangeListener projectionTextChangeListener) {
-        if (projectionTextChangeListeners != null) {
-            Platform.runLater(() -> projectionTextChangeListeners.remove(projectionTextChangeListener));
-        }
     }
 
     private void exportButtonOnAction() {
