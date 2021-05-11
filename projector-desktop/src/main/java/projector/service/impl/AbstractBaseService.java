@@ -47,6 +47,9 @@ public class AbstractBaseService<T extends BaseEntity> implements CrudService<T>
 
     @Override
     public T findByUuid(String uuid) {
+        if (uuid == null) {
+            return null;
+        }
         return crudDAO.findByUuid(uuid);
     }
 

@@ -20,4 +20,6 @@ public interface SongRepository extends CrudRepository<Song, Long> {
     long countByLanguage(Language language);
 
     List<Song> findAllByLanguage(Language language, Pageable pageable);
+
+    List<Song> findAllByModifiedDateGreaterThanAndLanguage(Date lastModifiedDate, Language language);
 }

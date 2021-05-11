@@ -46,6 +46,9 @@ public class AbstractService<T> implements CrudService<T> {
 
     @Override
     public T findByUuid(String uuid) {
+        if (uuid == null) {
+            return null;
+        }
         return crudDAO.findByUuid(uuid);
     }
 

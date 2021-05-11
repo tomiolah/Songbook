@@ -160,7 +160,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     public List<Song> findAllByLanguageAndModifiedDate(String languageId, Date lastModifiedDate) {
         List<Song> returningSongs = new ArrayList<>();
         Language language = languageService.findOneByUuid(languageId);
-        addSongs(getAllServiceSongs(language.getSongs()), lastModifiedDate, returningSongs);
+        List<Song> allByModifiedDateGreaterThanAndLanguage = songRepository.findAllByModifiedDateGreaterThanAndLanguage(lastModifiedDate, language);
+        addSongs(allByModifiedDateGreaterThanAndLanguage, lastModifiedDate, returningSongs);
         return returningSongs;
     }
 
