@@ -53,7 +53,7 @@ public class MailSenderService {
         Language language = songService.findOneByUuid(suggestion.getSongUuid()).getLanguage();
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
         notificationByLanguage.getSuggestionStack().add(suggestion);
-        userService.save(user);
+        notificationByLanguageService.save(notificationByLanguage);
         tryToSendAllPrevious();
     }
 
@@ -61,7 +61,7 @@ public class MailSenderService {
         Language language = song.getLanguage();
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
         notificationByLanguage.getNewSongStack().add(song);
-        userService.save(user);
+        notificationByLanguageService.save(notificationByLanguage);
         tryToSendAllPrevious();
     }
 

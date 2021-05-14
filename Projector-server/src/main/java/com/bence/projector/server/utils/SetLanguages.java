@@ -42,10 +42,10 @@ public class SetLanguages {
         return languageMap;
     }
 
-    public static void setLanguagesForUnknown(SongRepository songRepository, SongService songService, LanguageService languageService) {
+    public static void setLanguagesForUnknown(SongRepository songRepository, LanguageService languageService) {
         List<Language> languages = languageService.findAll();
         Iterable<Song> songs = songRepository.findAll();
-        List<Song> allWithLanguage = songService.findAll();
+        List<Song> allWithLanguage = filterSongsContainingLanguage(songs);
         HashMap<String, Song> songHashMap = getStringSongHashMap(allWithLanguage);
         Map<Language, Collection<String>> languageMap = getLanguageCollectionMap(languages);
         setLanguagesForUnknownSongs(songRepository, languages, songs, songHashMap, languageMap);
@@ -84,7 +84,7 @@ public class SetLanguages {
     private static List<Song> filterSongsContainingLanguage(Iterable<Song> songs) {
         ArrayList<Song> songArrayList = new ArrayList<>();
         for (Song song : songs) {
-            if (song.getLanguage() != null) {
+            if (song.getLanguage() != null && !song.isDeleted()) {
                 songArrayList.add(song);
             }
         }
@@ -97,7 +97,7 @@ public class SetLanguages {
             if (song1 != null) {
                 addWordByAlreadySettedLanguage(languageMap, song1);
             } else {
-                if (!song.isJustUploaded()) {
+                if (!song.isJustUploaded() || song.getLanguage() != null) {
                     continue;
                 }
                 List<String> words = new ArrayList<>();
@@ -105,23 +105,28 @@ public class SetLanguages {
                 Map<Language, ContainsResult> countMap = new HashMap<>(languages.size());
                 for (Language language1 : languages) {
                     Collection<String> wordsByLanguage = languageMap.get(language1);
-                    Integer count = 0;
-                    Integer wordCount = 0;
-                    for (String word : words) {
-                        if (wordsByLanguage.contains(word)) {
-                            ++count;
-                        }
-                        ++wordCount;
-                    }
-                    ContainsResult containsResult = new ContainsResult();
-                    containsResult.setCount(count);
-                    containsResult.setWordCount(wordCount);
+                    ContainsResult containsResult = getContainsResult(words, wordsByLanguage);
                     countMap.put(language1, containsResult);
                 }
                 Map.Entry<Language, ContainsResult> max = getMax(countMap);
                 printDetailsToConsoleAndSetLanguage(songRepository, languages, languageMap, song, max);
             }
         }
+    }
+
+    private static ContainsResult getContainsResult(List<String> words, Collection<String> wordsByLanguage) {
+        Integer count = 0;
+        Integer wordCount = 0;
+        for (String word : words) {
+            if (wordsByLanguage.contains(word)) {
+                ++count;
+            }
+            ++wordCount;
+        }
+        ContainsResult containsResult = new ContainsResult();
+        containsResult.setCount(count);
+        containsResult.setWordCount(wordCount);
+        return containsResult;
     }
 
     private static Map.Entry<Language, ContainsResult> getMax(Map<Language, ContainsResult> countMap) {
@@ -137,11 +142,14 @@ public class SetLanguages {
 
     private static void printDetailsToConsoleAndSetLanguage(SongRepository songRepository, List<Language> languages, Map<Language, Collection<String>> languageMap, Song song, Map.Entry<Language, ContainsResult> max) {
         System.out.println(song.getTitle());
+        System.out.println(song.getUuid());
+        Integer wordCount = null;
         if (max.getKey() != null) {
             System.out.println("Language:   " + max.getKey().getEnglishName());
             System.out.println("Ratio:  " + max.getValue().getRatio());
             System.out.println("Match count:  " + max.getValue().getCount());
-            System.out.println("Words:  " + max.getValue().getWordCount());
+            wordCount = max.getValue().getWordCount();
+            System.out.println("Words:  " + wordCount);
         }
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         System.out.print(">");
@@ -151,7 +159,11 @@ public class SetLanguages {
             if ((maxValue.getRatio() > 0.5 && maxValue.getCount() > 40) || (maxValue.getRatio() > 0.7 && maxValue.getCount() > 15)) {
                 s = "yes";
             } else {
-                s = br.readLine();
+                if (wordCount != null && wordCount > 200) {
+                    s = br.readLine();
+                } else {
+                    s = "x";
+                }
             }
             System.out.println(s);
             setLanguageFromConsole(songRepository, languages, languageMap, song, max, s);

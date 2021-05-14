@@ -52,20 +52,6 @@ public class Language extends AbstractModel {
         if (songs == null) {
             songs = new ArrayList<>();
         }
-        List<Integer> removingIndexList = new ArrayList<>();
-        int i = 0;
-        for (Song song : songs) {
-            if (song == null) {
-                removingIndexList.add(i);
-            } else {
-                song.setLanguage(this);
-            }
-            ++i;
-        }
-        for (i = removingIndexList.size() - 1; i >= 0; --i) {
-            int index = removingIndexList.get(i);
-            songs.remove(index);
-        }
         return songs;
     }
 

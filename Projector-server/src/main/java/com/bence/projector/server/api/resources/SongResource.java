@@ -222,10 +222,6 @@ public class SongResource {
             return null;
         }
         if (song.isDeleted()) {
-            Language language = song.getLanguage();
-            if (language != null) {
-                songService.removeSongFromLanguage(song, language);
-            }
             songService.deleteByUuid(songId);
         }
         return songAssembler.createDto(song);
