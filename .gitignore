@@ -38,3 +38,5 @@ Projector-server/src/main/java/com/bence/projector/server/Import.java
 *.zip
 *.png
 *.json
+/Songbook/*.pem
+/Songbook/*.jks
