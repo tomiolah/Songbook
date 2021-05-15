@@ -7,6 +7,7 @@ import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.repository.SongVerseRepository;
 import com.bence.projector.server.backend.repository.SuggestionRepository;
 import com.bence.projector.server.backend.service.SuggestionService;
+import com.bence.projector.server.utils.AppProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -43,7 +44,9 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
             return suggestionHashMap.get(id);
         }
         Suggestion suggestion = suggestionRepository.findOneByUuid(id);
-        suggestionHashMap.put(id, suggestion);
+        if (AppProperties.getInstance().useMoreMemory()) {
+            suggestionHashMap.put(id, suggestion);
+        }
         return suggestion;
     }
 
@@ -101,7 +104,9 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
     }
 
     private void putInMapAndCheckLastModifiedDate(Suggestion suggestion) {
-        suggestionHashMap.put(suggestion.getUuid(), suggestion);
+        if (AppProperties.getInstance().useMoreMemory()) {
+            suggestionHashMap.put(suggestion.getUuid(), suggestion);
+        }
         checkLastModifiedDate(suggestion);
     }
 

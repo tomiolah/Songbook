@@ -7,6 +7,7 @@ import com.bence.projector.server.backend.model.SongVerseOrderListItem;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.repository.SongVerseOrderListItemRepository;
+import com.bence.projector.server.backend.repository.SongVerseRepository;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.ServiceException;
 import com.bence.projector.server.backend.service.SongService;
@@ -30,23 +31,21 @@ import static com.bence.projector.server.utils.StringUtils.longestCommonSubStrin
 @Service
 public class SongServiceImpl extends BaseServiceImpl<Song> implements SongService {
 
-    private final SongRepository songRepository;
-    private final LanguageService languageService;
-    private final SongVerseService songVerseService;
-    private final SongVerseOrderListItemRepository songVerseOrderListItemRepository;
     private final String wordsSplit = "[.,;?_\"'\\n!:/|\\\\ ]";
+    @Autowired
+    private SongRepository songRepository;
+    @Autowired
+    private LanguageService languageService;
+    @Autowired
+    private SongVerseService songVerseService;
+    @Autowired
+    private SongVerseRepository songVerseRepository;
+    @Autowired
+    private SongVerseOrderListItemRepository songVerseOrderListItemRepository;
     private HashMap<String, Song> songsHashMap;
     private long lastModifiedDateTime = 0;
     private HashMap<String, HashMap<String, Song>> songsHashMapByLanguage;
     private HashMap<String, HashMap<String, Boolean>> wordsHashMapByLanguage;
-
-    @Autowired
-    public SongServiceImpl(SongRepository songRepository, LanguageService languageService, SongVerseService songVerseService, SongVerseOrderListItemRepository songVerseOrderListItemRepository) {
-        this.songRepository = songRepository;
-        this.languageService = languageService;
-        this.songVerseService = songVerseService;
-        this.songVerseOrderListItemRepository = songVerseOrderListItemRepository;
-    }
 
     @Override
     public boolean isLanguageIsGood(Song song, Language language) {
@@ -160,7 +159,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     public List<Song> findAllByLanguageAndModifiedDate(String languageId, Date lastModifiedDate) {
         List<Song> returningSongs = new ArrayList<>();
         Language language = languageService.findOneByUuid(languageId);
-        addSongs(getAllServiceSongs(language.getSongs()), lastModifiedDate, returningSongs);
+        List<Song> allByModifiedDateGreaterThanAndLanguage = songRepository.findAllByModifiedDateGreaterThanAndLanguage(lastModifiedDate, language);
+        addSongs(allByModifiedDateGreaterThanAndLanguage, lastModifiedDate, returningSongs);
         return returningSongs;
     }
 
@@ -297,13 +297,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public List<Song> findAllInReviewByLanguage(Language language) {
-        List<Song> inReviewByLanguage = new LinkedList<>();
-        for (Song song : getAllServiceSongsByLanguage(language)) {
-            if (song.isUploaded() && song.isDeleted() && !song.isReviewerErased()) {
-                inReviewByLanguage.add(song);
-            }
-        }
-        return inReviewByLanguage;
+        return songRepository.findAllByLanguageAndUploadedIsTrueAndBackUpIsNullAndDeletedIsTrueAndReviewerErasedIsNull(language);
     }
 
     @Override
@@ -548,21 +542,6 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             return null;
         }
         return new ArrayList<>(songVerseOrderListItems);
-    }
-
-    @Override
-    public void removeSongFromLanguage(Song song, Language oldLanguage) {
-        Song songToRemove = null;
-        for (Song song1 : oldLanguage.getSongs()) {
-            if (song1 != null && song1.getUuid().equals(song.getUuid())) {
-                songToRemove = song1;
-                break;
-            }
-        }
-        if (songToRemove != null) {
-            oldLanguage.getSongs().remove(songToRemove);
-            languageService.save(oldLanguage);
-        }
     }
 
     @Override

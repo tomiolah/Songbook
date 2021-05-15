@@ -6,7 +6,6 @@ import projector.model.Song;
 import projector.model.SongVerse;
 import projector.repository.RepositoryException;
 import projector.repository.SongDAO;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -22,10 +21,10 @@ public class SongDAOImpl implements SongDAO {
 
     @Override
     public List<Song> findAll() throws RepositoryException {
-        FileInputStream fstream;
+        FileInputStream fStream;
         try {
-            fstream = new FileInputStream(path);
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream, StandardCharsets.UTF_8));
+            fStream = new FileInputStream(path);
+            BufferedReader br = new BufferedReader(new InputStreamReader(fStream, StandardCharsets.UTF_8));
             LinkedList<Song> songs = new LinkedList<>();
             br.mark(4);
             if ('\ufeff' != br.read()) {
@@ -123,27 +122,27 @@ public class SongDAOImpl implements SongDAO {
 
     @Override
     public Song findById(Long id) throws RepositoryException {
-        throw new NotImplementedException();
+        return null;
     }
 
     @Override
     public Song create(Song song) throws RepositoryException {
-        throw new NotImplementedException();
+        return song;
     }
 
     @Override
     public List<Song> create(List<Song> models) throws RepositoryException {
-        throw new NotImplementedException();
+        return models;
     }
 
     @Override
     public Song update(Song song) throws RepositoryException {
-        throw new NotImplementedException();
+        return song;
     }
 
     @Override
     public boolean delete(Song song) throws RepositoryException {
-        throw new NotImplementedException();
+        return false;
     }
 
     @Override

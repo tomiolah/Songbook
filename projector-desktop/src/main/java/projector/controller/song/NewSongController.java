@@ -55,9 +55,9 @@ import projector.service.ServiceManager;
 import projector.service.SongService;
 import projector.service.SongVerseService;
 import projector.utils.DraggableEntity;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -73,6 +73,9 @@ public class NewSongController {
     private static final Logger LOG = LoggerFactory.getLogger(NewSongController.class);
     private final Settings settings = Settings.getInstance();
     private final String prefix = "verseOrderListView:move:";
+    private final ArrayList<VerseController> verseControllers = new ArrayList<>();
+    private final SongService songService = ServiceManager.getSongService();
+    private final SongVerseService songVerseService = ServiceManager.getSongVerseService();
     @FXML
     private ListView<DraggableEntity<SongVerse>> verseOrderListView;
     @FXML
@@ -112,12 +115,9 @@ public class NewSongController {
     private ProjectionScreenController previewProjectionScreenController;
     private Stage stage2;
     private SearchedSong selectedSong;
-    private ArrayList<VerseController> verseControllers = new ArrayList<>();
     private Song editingSong;
     private Song newSong;
-    private SongService songService = ServiceManager.getSongService();
     private VerseController lastFocusedVerse;
-    private SongVerseService songVerseService = ServiceManager.getSongVerseService();
     private List<Language> languages;
     private boolean sameAsCalculatedOrder = false;
 
@@ -501,8 +501,6 @@ public class NewSongController {
         newSong.setPublish(uploadCheckBox.isSelected());
         if (verseEditorRadioButton.isSelected()) {
             newSong.setVerses(getVerses());
-        } else {
-            throw new NotImplementedException();
         }
         try {
             songService.create(newSong);
@@ -668,7 +666,10 @@ public class NewSongController {
                 Pane root = loader.load();
                 LoginController loginController = loader.getController();
                 Scene scene = new Scene(root);
-                scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+                if (resource != null) {
+                    scene.getStylesheets().add(resource.toExternalForm());
+                }
                 Stage stage = new Stage();
                 stage.setScene(scene);
                 stage.show();

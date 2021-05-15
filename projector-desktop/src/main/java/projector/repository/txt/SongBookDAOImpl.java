@@ -6,7 +6,6 @@ import projector.repository.RepositoryException;
 import projector.repository.SongBookDAO;
 import projector.service.ServiceManager;
 import projector.service.SongService;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -16,6 +15,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -30,7 +30,7 @@ public class SongBookDAOImpl implements SongBookDAO {
     public List<SongBook> findAll() throws RepositoryException {
         try {
             FileInputStream inputStream = new FileInputStream(path);
-            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             LinkedList<SongBook> songBooks = new LinkedList<>();
             br.mark(4);
             if ('\ufeff' != br.read()) {
@@ -96,7 +96,7 @@ public class SongBookDAOImpl implements SongBookDAO {
 
     @Override
     public SongBook findById(Long id) throws RepositoryException {
-        throw new NotImplementedException();
+        return null;
     }
 
     @Override
@@ -115,7 +115,7 @@ public class SongBookDAOImpl implements SongBookDAO {
                 }
             }
             outputStream = new FileOutputStream(path, true);
-            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, "UTF-8"));
+            BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(outputStream, StandardCharsets.UTF_8));
             writer.write("qqqqqqq" + System.lineSeparator());
             writer.write(songBook.getUuid() + System.lineSeparator());
             writer.write(songBook.getTitle() + System.lineSeparator());
@@ -156,7 +156,7 @@ public class SongBookDAOImpl implements SongBookDAO {
                     return null;
                 }
             } catch (SecurityException x) {
-                System.err.println(x);
+                x.printStackTrace();
             }
             for (SongBook book : songBooks) {
                 create(book);
@@ -184,7 +184,7 @@ public class SongBookDAOImpl implements SongBookDAO {
                     return false;
                 }
             } catch (SecurityException x) {
-                System.err.println(x);
+                x.printStackTrace();
             }
             for (SongBook book : songBooks) {
                 create(book);

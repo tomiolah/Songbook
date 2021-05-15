@@ -32,6 +32,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static projector.controller.MyController.calculateSizeByScale;
+
 public class ProjectionScreenController {
 
     @FXML
@@ -65,6 +67,7 @@ public class ProjectionScreenController {
     private boolean bringedToFront;
     private Scene scene;
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
+    private ProjectionScreenController customStageController;
 
     public void initialize() {
         settings = Settings.getInstance();
@@ -332,6 +335,78 @@ public class ProjectionScreenController {
             }
         } else {
             doubleProjectionScreenController.duplicate();
+        }
+    }
+
+    void createCustomStage(int width, int height) {
+        if (customStageController == null) {
+            FXMLLoader loader2 = new FXMLLoader();
+            loader2.setLocation(MainDesktop.class.getResource("/view/ProjectionScreen.fxml"));
+            Pane root2;
+            try {
+                root2 = loader2.load();
+
+                customStageController = loader2.getController();
+                Scene scene2 = new Scene(root2, calculateSizeByScale(width), calculateSizeByScale(height));
+                scene2.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+
+                scene2.widthProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
+                scene2.heightProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
+                Stage stage2 = new Stage();
+                stage2.setTitle("Custom Canvas");
+                stage2.initStyle(StageStyle.TRANSPARENT);
+                scene2.setFill(Color.TRANSPARENT);
+                stage2.setScene(scene2);
+
+                stage2.setX(0);
+                stage2.setY(0);
+                customStageController.setStage(stage2);
+                scene2.setOnKeyPressed(event -> {
+                    if (event.getCode() == KeyCode.F11) {
+                        stage2.setMaximized(!stage2.isMaximized());
+                    } else if (event.getCode().equals(KeyCode.ESCAPE)) {
+                        stage2.setMaximized(false);
+                    }
+                });
+                stage2.show();
+                stage2.maximizedProperty().addListener((observable, oldValue, newValue) -> {
+                    if (newValue) {
+                        scene2.setCursor(Cursor.NONE);
+                    } else {
+                        scene2.setCursor(Cursor.DEFAULT);
+                    }
+                });
+                scene2.setOnMousePressed(event -> {
+                    xOffset = event.getSceneX();
+                    yOffset = event.getSceneY();
+                });
+                scene2.setOnMouseDragged(event -> {
+                    if (!stage2.isMaximized()) {
+                        stage2.setX(event.getScreenX() - xOffset);
+                        stage2.setY(event.getScreenY() - yOffset);
+                    }
+                });
+
+                stage2.fullScreenProperty().addListener((observable, oldValue, newValue) -> {
+                    if (!newValue) {
+                        stage2.setMaximized(false);
+                    }
+                });
+                stage2.setOnCloseRequest(we -> {
+                    stage2.close();
+                    customStageController = null;
+                    doubleProjectionScreenController = null;
+                });
+                customStageController.setBlank(isBlank);
+                doubleProjectionScreenController = customStageController;
+                doubleProjectionScreenController.setParentProjectionScreenController(doubleProjectionScreenController);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Stage stage = customStageController.getStage();
+            stage.setWidth(calculateSizeByScale(width));
+            stage.setHeight(calculateSizeByScale(height));
         }
     }
 

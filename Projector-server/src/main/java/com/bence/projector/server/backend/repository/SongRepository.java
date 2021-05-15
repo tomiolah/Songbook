@@ -5,6 +5,7 @@ import com.bence.projector.server.backend.model.Song;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 
+import javax.transaction.Transactional;
 import java.util.Date;
 import java.util.List;
 
@@ -20,4 +21,12 @@ public interface SongRepository extends CrudRepository<Song, Long> {
     long countByLanguage(Language language);
 
     List<Song> findAllByLanguage(Language language, Pageable pageable);
+
+    long countAllByLanguage(Language language);
+
+    @Transactional
+    List<Song> findAllByModifiedDateGreaterThanAndLanguage(Date lastModifiedDate, Language language);
+
+    List<Song> findAllByLanguageAndUploadedIsTrueAndBackUpIsNullAndDeletedIsTrueAndReviewerErasedIsNull(Language language);
+
 }

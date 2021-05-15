@@ -8,6 +8,7 @@ import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.service.LanguageService;
+import com.bence.projector.server.backend.service.NotificationByLanguageService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.utils.AppProperties;
@@ -45,12 +46,14 @@ public class MailSenderService {
     private UserService userService;
     @Autowired
     private LanguageService languageService;
+    @Autowired
+    private NotificationByLanguageService notificationByLanguageService;
 
     public void sendEmailSuggestionToUser(Suggestion suggestion, User user) {
         Language language = songService.findOneByUuid(suggestion.getSongUuid()).getLanguage();
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
         notificationByLanguage.getSuggestionStack().add(suggestion);
-        userService.save(user);
+        notificationByLanguageService.save(notificationByLanguage);
         tryToSendAllPrevious();
     }
 
@@ -58,7 +61,7 @@ public class MailSenderService {
         Language language = song.getLanguage();
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
         notificationByLanguage.getNewSongStack().add(song);
-        userService.save(user);
+        notificationByLanguageService.save(notificationByLanguage);
         tryToSendAllPrevious();
     }
 
@@ -88,7 +91,7 @@ public class MailSenderService {
                 sendSuggestionsInThread(user, suggestionStack);
                 notificationByLanguage.setSuggestionsLastSentDate(now);
                 suggestionStack.clear();
-                userService.save(user);
+                notificationByLanguageService.save(notificationByLanguage);
             }
         }
         List<Song> newSongStack = notificationByLanguage.getNewSongStack();
@@ -99,7 +102,7 @@ public class MailSenderService {
                 sendNewSongsInThread(user, newSongStack);
                 notificationByLanguage.setNewSongsLastSentDate(now);
                 newSongStack.clear();
-                userService.save(user);
+                notificationByLanguageService.save(notificationByLanguage);
             }
         }
     }

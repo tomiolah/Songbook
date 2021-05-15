@@ -29,7 +29,7 @@ public class Updater {
     private static final Logger LOG = LoggerFactory.getLogger(Updater.class);
     private static Updater instance;
     @SuppressWarnings("FieldCanBeLocal")
-    private final int projectorVersionNumber = 17;
+    private final int projectorVersionNumber = 19;
     private final Settings settings = Settings.getInstance();
 
     private Updater() {
@@ -92,30 +92,23 @@ public class Updater {
                 try {
                     website = new URL("http://localhost/projector.exe");
                     ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-                    File dir = new File("utils");
-                    if (!dir.mkdir()) {
-                        alert2.close();
-                        Alert alert = new Alert(AlertType.INFORMATION);
-                        alert.setTitle("Error");
-                        alert.setHeaderText("Could not create utils directory!");
-                        alert.setContentText("If you see this message several times, then you should report it!");
-                        alert.showAndWait();
+                    File dir = new File("data");
+                    if (!dir.isDirectory()) {
+                        Platform.runLater(() -> {
+                            alert2.close();
+                            Alert alert = new Alert(AlertType.INFORMATION);
+                            alert.setTitle("Error");
+                            alert.setHeaderText("Try to create data directory in the application folder.");
+                            alert.setContentText("If you see this message several times, then you should report it!");
+                            alert.showAndWait();
+                        });
                         return;
                     }
-                    FileOutputStream fos = new FileOutputStream("utils\\projector.exe");
+                    FileOutputStream fos = new FileOutputStream("data\\projector.exe");
                     fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
                     fos.close();
-                    String command = "cmd /c copy /Y utils\\projector.exe projector.exe && del utils\\projector.exe && rmdir utils";
-                    // Process child =
+                    String command = "cmd /c copy /Y data\\projector.exe projector.exe && del data\\projector.exe";
                     Runtime.getRuntime().exec(command);
-                    // Runtime.getRuntime().exec("cmd /c del
-                    // utils\\projector.exe");
-                    // Runtime.getRuntime().exec("cmd /c rmdir utils");
-                    // OutputStream out = child.getOutputStream();
-                    // out.write("copy /Y utils\\projector.exe projector.exe
-                    // /r/n".getBytes());
-                    // out.flush();
-                    // out.close();
                     Platform.runLater(() -> {
                         alert2.close();
                         Alert alert = new Alert(AlertType.INFORMATION);

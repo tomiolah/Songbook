@@ -100,6 +100,9 @@ public class MainDesktop extends Application {
 //                if (event.getCode() == KeyCode.F3) {
 //                    setCanvasToSecondScreen();
 //                }
+                if (keyCode == KeyCode.F7) {
+                    myController.createCustomCanvas();
+                }
                 if (keyCode == KeyCode.F8) {
                     myController.duplicateCanvas();
                 }

@@ -42,6 +42,10 @@ import java.util.Objects;
 
 public class SettingsController {
     @FXML
+    private TextField customCanvasWidthTextField;
+    @FXML
+    private TextField customCanvasHeightTextField;
+    @FXML
     private ComboBox<String> appearanceComboBox;
     @FXML
     private ToggleButton allowRemoteButton;
@@ -171,6 +175,8 @@ public class SettingsController {
         initializeNetworkButtons();
         progressLineThicknessSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, settings.getProgressLineThickness()));
         bibleShortNameCheckBox.setSelected(settings.getBibleShortName());
+        customCanvasWidthTextField.setText(settings.getCustomCanvasWidth() + "");
+        customCanvasHeightTextField.setText(settings.getCustomCanvasHeight() + "");
         switch (settings.getSceneStyleFile()) {
             case "application.css":
                 appearanceComboBox.getSelectionModel().select(0);
@@ -245,11 +251,13 @@ public class SettingsController {
         projectionScreenController.reload();
     }
 
-    private void addFonts(FontWeight fontWeight1) {
-        for (java.awt.Font i : GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts()) {
-            Text tmp = new Text(i.getFontName());
-            tmp.setFont(Font.font(i.getFontName(), fontWeight1, 20));
-            if (!Objects.equals(tmp.getFont().getFamily(), "System") && !i.getFontName().equals("System")) {
+    private void addFonts(FontWeight fontWeight) {
+        java.awt.Font[] allFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+        for (java.awt.Font font : allFonts) {
+            String fontName = font.getFontName();
+            Text tmp = new Text(fontName);
+            tmp.setFont(Font.font(fontName, fontWeight, 20));
+            if (!Objects.equals(tmp.getFont().getFamily(), "System") && !fontName.equals("System")) {
                 listView.getItems().add(tmp);
             }
         }
@@ -299,6 +307,11 @@ public class SettingsController {
                 settings.setSceneStyleFile("applicationDark.css");
                 break;
         }
+        try {
+            settings.setCustomCanvasWidth(getCustomCanvasSize(customCanvasWidthTextField));
+            settings.setCustomCanvasHeight(getCustomCanvasSize(customCanvasHeightTextField));
+        } catch (Exception ignored) {
+        }
         settings.save();
         projectionScreenController.setBackGroundColor(backgroundColorPicker.getValue());
         if (listeners != null) {
@@ -307,6 +320,10 @@ public class SettingsController {
             }
         }
         stage.hide();
+    }
+
+    private int getCustomCanvasSize(TextField textField) {
+        return Integer.parseInt(textField.getText().trim());
     }
 
     public synchronized void setSettings(Settings settings) {

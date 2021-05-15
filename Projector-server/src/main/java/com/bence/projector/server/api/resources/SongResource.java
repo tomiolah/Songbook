@@ -222,10 +222,6 @@ public class SongResource {
             return null;
         }
         if (song.isDeleted()) {
-            Language language = song.getLanguage();
-            if (language != null) {
-                songService.removeSongFromLanguage(song, language);
-            }
             songService.deleteByUuid(songId);
         }
         return songAssembler.createDto(song);
@@ -373,7 +369,7 @@ public class SongResource {
                     songDTO.setModifiedDate(new Date());
                     Song backUpSong = new Song(song);
                     backUpSong.setIsBackUp(true);
-                    songRepository.save(backUpSong);
+                    songService.save(backUpSong);
                     song.setBackUp(backUpSong);
                     song.setLastModifiedBy(user);
                     songAssembler.updateModel(song, songDTO);

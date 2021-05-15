@@ -198,7 +198,7 @@ public class MyController {
             Pane root = loader.load();
             GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
             int height = gd.getDisplayMode().getHeight();
-            Scene scene = new Scene(root, 850, height - 100);
+            Scene scene = new Scene(root, 850, calculateSizeByScale(height - 100));
             scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
             settingsStage = new Stage();
             settingsStage.setScene(scene);
@@ -207,6 +207,16 @@ public class MyController {
             settingsController.setStage(settingsStage);
         } catch (IOException ignored) {
         }
+    }
+
+    public static double calculateSizeByScale(int size) {
+        double screenScale = screenScale();
+        return size / screenScale;
+    }
+
+    private static double screenScale() {
+        double screenResolution = Toolkit.getDefaultToolkit().getScreenResolution();
+        return screenResolution / 96;
     }
 
     public void setBlank() {
@@ -353,5 +363,9 @@ public class MyController {
 
     public SongController getSongController() {
         return songController;
+    }
+
+    public void createCustomCanvas() {
+        projectionScreenController.createCustomStage(settings.getCustomCanvasWidth(), settings.getCustomCanvasHeight());
     }
 }

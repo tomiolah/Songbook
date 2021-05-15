@@ -30,4 +30,8 @@ public class AppProperties {
     public String shortBaseUrl() {
         return (String) properties.get("shortBaseUrl");
     }
+
+    public boolean useMoreMemory() {
+        return properties.get("useMoreMemory").equals("true");
+    }
 }

@@ -79,7 +79,7 @@
                                     <tr>
                                       <td>${suggestionRow.suggestionType}</td>
                                       <td>
-                                        <a href="${baseUrl}/#/suggestion/${suggestionRow.suggestion.id}" target="_blank"
+                                        <a href="${baseUrl}/#/suggestion/${suggestionRow.suggestion.uuid}" target="_blank"
                                           style="color: #2BAADF;font-weight: normal;text-decoration: underline;">Open</a>
                                       </td>
                                       <td>

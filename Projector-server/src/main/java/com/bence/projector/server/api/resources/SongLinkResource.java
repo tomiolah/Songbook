@@ -175,7 +175,7 @@ public class SongLinkResource {
         config.setDefaultEncoding("UTF-8");
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(new InternetAddress("bakobence@yahoo.com"));
+        helper.setTo(new InternetAddress("name@domain.com"));
         helper.setFrom(new InternetAddress("noreply@songbook"));
         helper.setSubject("Új verzió összekötés");
 
@@ -209,14 +209,14 @@ public class SongLinkResource {
             createdByEmail = "";
         }
         data.put("baseUrl", AppProperties.getInstance().baseUrl());
-        data.put("id", songLink.getId());
+        data.put("id", songLink.getUuid());
         data.put("email", createdByEmail);
         Song song1 = songLink.getSong1(songService);
         Song song2 = songLink.getSong2(songService);
         data.put("song1Title", song1.getTitle());
         data.put("song2Title", song2.getTitle());
-        data.put("song1", song1.getId());
-        data.put("song2", song2.getId());
+        data.put("song1", song1.getUuid());
+        data.put("song2", song2.getUuid());
         return data;
     }
 }
