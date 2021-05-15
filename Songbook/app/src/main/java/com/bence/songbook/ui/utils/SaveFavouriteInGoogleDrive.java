@@ -116,7 +116,7 @@ public class SaveFavouriteInGoogleDrive extends FavouriteInGoogleDrive {
         }).addOnFailureListener(activity, new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception e) {
-
+                Log.e(TAG, "mDriveResourceClient.query failure", e);
             }
         });
     }
