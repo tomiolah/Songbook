@@ -384,9 +384,6 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     private Collection<Song> getSongsByLanguageForSimilar(Language language) {
-        if (language == null) {
-            return filterSongsForSimilar(getSongs());
-        }
         return getAllByLanguageAndBackUpIsNullAndDeletedIsFalseAndReviewerErasedIsNull(language);
     }
 
@@ -447,8 +444,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     private String getConditionSqlByLanguage(Language language, String sql) {
-        sql += " where language_id = " + language.getId();
-        sql += " and deleted = 0";
+        sql += " where deleted = 0";
+        if (language != null) {
+            sql += " and language_id = " + language.getId();
+        }
         sql += " and is_back_up is null";
         sql += " and reviewer_erased is null";
         return sql;
