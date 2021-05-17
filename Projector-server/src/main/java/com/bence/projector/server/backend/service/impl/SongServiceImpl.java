@@ -1,5 +1,6 @@
 package com.bence.projector.server.backend.service.impl;
 
+import com.bence.projector.common.model.SectionType;
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
@@ -7,17 +8,22 @@ import com.bence.projector.server.backend.model.SongVerseOrderListItem;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.repository.SongVerseOrderListItemRepository;
-import com.bence.projector.server.backend.repository.SongVerseRepository;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.ServiceException;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.SongVerseService;
+import com.bence.projector.server.utils.ApplicationProperties;
 import com.bence.projector.server.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -26,6 +32,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import static com.bence.projector.server.utils.ListUtil.twoListMatches;
 import static com.bence.projector.server.utils.StringUtils.longestCommonSubString;
 
 @Service
@@ -38,8 +45,6 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private LanguageService languageService;
     @Autowired
     private SongVerseService songVerseService;
-    @Autowired
-    private SongVerseRepository songVerseRepository;
     @Autowired
     private SongVerseOrderListItemRepository songVerseOrderListItemRepository;
     private HashMap<String, Song> songsHashMap;
@@ -210,22 +215,42 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public List<Song> findAllSimilar(Song song, boolean checkDeleted) {
-        Collection<Song> all = getSongs(song.getLanguage());
-        List<Song> similar = new ArrayList<>();
+        Collection<Song> songs = getSongsByLanguageForSimilar(song.getLanguage());
+        if (songs == null) {
+            return null;
+        }
         String text = getText(song);
         String songId = song.getUuid();
-        String regex = wordsSplit;
-        String[] split = text.split(regex);
+        HashMap<String, Boolean> wordHashMap = getWordHashMap(text);
+        List<Song> similarSongsForSong = getSimilarSongsForSong(checkDeleted, songs, text, songId, wordHashMap);
+        return getSongsFromRepository(similarSongsForSong);
+    }
+
+    private List<Song> getSongsFromRepository(List<Song> similarSongsForSong) {
+        ArrayList<Song> songs = new ArrayList<>();
+        for (Song song : similarSongsForSong) {
+            songs.add(songRepository.findOne(song.getId()));
+        }
+        return songs;
+    }
+
+    private HashMap<String, Boolean> getWordHashMap(String text) {
+        String[] split = text.split(wordsSplit);
         int wordsLength = split.length;
         HashMap<String, Boolean> wordHashMap = new HashMap<>(wordsLength);
         for (String word : split) {
             wordHashMap.put(word.toLowerCase(), true);
         }
-        int size = wordHashMap.keySet().size();
-        HashMap<String, Boolean> hashMap = new HashMap<>(size);
-        for (Song databaseSong : all) {
+        return wordHashMap;
+    }
+
+    private List<Song> getSimilarSongsForSong(boolean checkDeleted, Collection<Song> songs, String text, String songUuid, HashMap<String, Boolean> wordHashMap) {
+        List<Song> similar = new ArrayList<>();
+        int wordCount = wordHashMap.keySet().size();
+        HashMap<String, Boolean> hashMap = new HashMap<>(wordCount);
+        for (Song databaseSong : songs) {
             try {
-                if ((songId != null && databaseSong.getUuid().equals(songId)) || (databaseSong.isDeleted() && !checkDeleted)) {
+                if ((songUuid != null && databaseSong.getUuid().equals(songUuid)) || (databaseSong.isDeleted() && !checkDeleted)) {
                     continue;
                 }
             } catch (NullPointerException e) {
@@ -234,51 +259,65 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
                 }
                 continue;
             }
-            String secondText = getText(databaseSong);
-            String[] words = secondText.split(regex);
-            hashMap.clear();
-            int count = 0;
-            for (String word : words) {
-                hashMap.put(word.toLowerCase(), true);
-            }
-            for (String word : hashMap.keySet()) {
-                if (wordHashMap.containsKey(word)) {
-                    ++count;
-                }
-            }
-            double x = count;
-            x /= size;
-            if (x > 0.5) {
-                boolean wasSimilar = false;
-                int highestCommonStringInt = StringUtils.highestCommonStringInt(text, secondText);
-                x = highestCommonStringInt;
-                x = x / text.length();
-                if (x > 0.55) {
-                    double y;
-                    y = highestCommonStringInt;
-                    y = y / secondText.length();
-                    if (y > 0.55) {
-                        int i = 0;
-                        x = (x + y) / 2;
-                        databaseSong.setPercentage(x);
-                        for (; i < similar.size(); ++i) {
-                            if (similar.get(i).getPercentage() < x) {
-                                break;
-                            }
-                        }
-                        similar.add(i, databaseSong);
-                        wasSimilar = true;
-                    }
-                }
-                if (!wasSimilar) {
-                    if (longestCommonSubString(text, secondText) > 50) {
-                        databaseSong.setPercentage(0);
-                        similar.add(databaseSong);
-                    }
-                }
+            if (songsIsSimilar(text, wordHashMap, wordCount, hashMap, databaseSong)) {
+                similar.add(databaseSong);
             }
         }
+        sortSimilar(similar);
         return similar;
+    }
+
+    private void sortSimilar(List<Song> similar) {
+        similar.sort((o1, o2) -> Double.compare(o2.getPercentage(), o1.getPercentage()));
+    }
+
+    private boolean songsIsSimilar(String text, HashMap<String, Boolean> wordHashMap, int wordCount, HashMap<String, Boolean> hashMap, Song databaseSong) {
+        String secondText = getText(databaseSong);
+        String[] words = secondText.split(wordsSplit);
+        hashMap.clear();
+        int count = 0;
+        for (String word : words) {
+            hashMap.put(word.toLowerCase(), true);
+        }
+        for (String word : hashMap.keySet()) {
+            if (wordHashMap.containsKey(word)) {
+                ++count;
+            }
+        }
+        return isSimilarByCountAndSetPercentage(text, wordCount, databaseSong, secondText, count);
+    }
+
+    private boolean isSimilarByCountAndSetPercentage(String text, int wordCount, Song databaseSong, String secondText, int count) {
+        double x = count;
+        x /= wordCount;
+        if (x > 0.5) {
+            int highestCommonStringInt = StringUtils.highestCommonStringInt(text, secondText);
+            x = highestCommonStringInt;
+            x = x / text.length();
+            if (x > 0.55) {
+                double y;
+                y = highestCommonStringInt;
+                y = y / secondText.length();
+                if (y > 0.55) {
+                    x = (x + y) / 2;
+                    databaseSong.setPercentage(x);
+                    return true;
+                }
+            }
+            int longestCommonSubStringLength = longestCommonSubString(text, secondText);
+            if (longestCommonSubStringLength > 50) {
+                setPercentage(text, databaseSong, secondText, longestCommonSubStringLength);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void setPercentage(String text, Song databaseSong, String secondText, int longestCommonSubStringLength) {
+        double percentage = text.length() + secondText.length();
+        percentage /= 2;
+        percentage /= longestCommonSubStringLength;
+        databaseSong.setPercentage(percentage);
     }
 
     @Override
@@ -344,11 +383,138 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return songsHashMap.values();
     }
 
-    private Collection<Song> getSongs(Language language) {
+    private Collection<Song> getSongsByLanguageForSimilar(Language language) {
         if (language == null) {
-            return getSongs();
+            return filterSongsForSimilar(getSongs());
         }
-        return language.getSongs();
+        return getAllByLanguageAndBackUpIsNullAndDeletedIsFalseAndReviewerErasedIsNull(language);
+    }
+
+    private List<Song> getAllByLanguageAndBackUpIsNullAndDeletedIsFalseAndReviewerErasedIsNull(Language language) {
+        try {
+            List<Song> songsFromResultSet = getSongsByLanguageFromResultSet(language);
+            setVerseOrderListForSongsFromResultSet(songsFromResultSet, language);
+            return songsFromResultSet;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private void setVerseOrderListForSongsFromResultSet(List<Song> songs, Language language) throws SQLException {
+        if (songs.size() <= 0) {
+            return;
+        }
+        ResultSet resultSet = getResultSet2(language);
+        int index = 0;
+        Song lastSong = null;
+        Long lastSongId = null;
+        List<SongVerseOrderListItem> songVerseOrderListItems = null;
+        while (resultSet.next()) {
+            long song_id = resultSet.getLong("song_id");
+            if (lastSongId == null || lastSongId != song_id) {
+                while (index < songs.size()) {
+                    lastSong = songs.get(index++);
+                    if (lastSong.getId().equals(song_id)) {
+                        break;
+                    }
+                }
+                if (lastSong != null) {
+                    lastSongId = song_id;
+                    songVerseOrderListItems = new ArrayList<>();
+                    lastSong.setSongVerseOrderListItems(songVerseOrderListItems);
+                }
+            }
+            if (songVerseOrderListItems != null) {
+                SongVerseOrderListItem songVerseOrderListItem = new SongVerseOrderListItem();
+                songVerseOrderListItems.add(songVerseOrderListItem);
+                songVerseOrderListItem.setPosition(resultSet.getShort("position"));
+            }
+        }
+    }
+
+    private List<Song> getSongsByLanguageFromResultSet(Language language) throws SQLException {
+        ResultSet resultSet = getResultSet(language);
+        return getSongsFromResultSet(resultSet);
+    }
+
+    private ResultSet getResultSet(Language language) throws SQLException {
+        Statement statement = getStatement();
+        String sql = "select uuid, title, deleted, is_back_up, reviewer_erased, text, section_type, song_id from song";
+        sql += " join song_verse on (song.id = song_verse.song_id)";
+        sql = getConditionSqlByLanguage(language, sql);
+        return statement.executeQuery(sql);
+    }
+
+    private String getConditionSqlByLanguage(Language language, String sql) {
+        sql += " where language_id = " + language.getId();
+        sql += " and deleted = 0";
+        sql += " and is_back_up is null";
+        sql += " and reviewer_erased is null";
+        return sql;
+    }
+
+    private ResultSet getResultSet2(Language language) throws SQLException {
+        Statement statement = getStatement();
+        String sql = "select song_id, position from song_verse_order_list_item";
+        sql += " join song on (song.id = song_verse_order_list_item.song_id)";
+        sql = getConditionSqlByLanguage(language, sql);
+        return statement.executeQuery(sql);
+    }
+
+    private Statement getStatement() throws SQLException {
+        ApplicationProperties properties = ApplicationProperties.getInstance();
+        Connection connection = DriverManager.getConnection(properties.springDatasourceUrl(), properties.springDatasourceUsername(), properties.springDatasourcePassword());
+        return connection.createStatement(
+                ResultSet.TYPE_FORWARD_ONLY, //or ResultSet.TYPE_FORWARD_ONLY
+                ResultSet.CONCUR_READ_ONLY);
+    }
+
+    private List<Song> getSongsFromResultSet(ResultSet resultSet) throws SQLException {
+        List<Song> songs = new ArrayList<>();
+        Long lastSongId = null;
+        Song lastSong;
+        ArrayList<SongVerse> songVerses = new ArrayList<>();
+        while (resultSet.next()) {
+            long song_id = resultSet.getLong("song_id");
+            if (lastSongId == null || lastSongId != song_id) {
+                lastSongId = song_id;
+                Song song = new Song();
+                songs.add(song);
+                song.setId(song_id);
+                song.setUuid(resultSet.getString("uuid"));
+                song.setTitle(resultSet.getString("title"));
+                song.setDeleted(resultSet.getBoolean("deleted"));
+                song.setIsBackUp(getBooleanFromResultSet(resultSet, "is_back_up"));
+                song.setReviewerErased(getBooleanFromResultSet(resultSet, "reviewer_erased"));
+                lastSong = song;
+                songVerses = new ArrayList<>();
+                lastSong.setVerses(songVerses);
+            }
+            SongVerse songVerse = new SongVerse();
+            songVerses.add(songVerse);
+            songVerse.setText(resultSet.getString("text"));
+            songVerse.setSectionType(SectionType.getInstance(resultSet.getInt("section_type")));
+        }
+        return songs;
+    }
+
+    private Boolean getBooleanFromResultSet(ResultSet resultSet, String columnName) throws SQLException {
+        boolean b = resultSet.getBoolean(columnName);
+        if (!resultSet.wasNull()) {
+            return b;
+        }
+        return null;
+    }
+
+    private List<Song> filterSongsForSimilar(Collection<Song> songs) {
+        ArrayList<Song> filteredSongs = new ArrayList<>();
+        for (Song song : songs) {
+            if (!song.isDeleted()) {
+                filteredSongs.add(song);
+            }
+        }
+        return filteredSongs;
     }
 
     private void checkLastModifiedDate(Song song) {
@@ -373,15 +539,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         }
         List<SongVerse> songVerses = song.getVerses();
         List<SongVerse> song2Verses = song2.getVerses();
-        if (songVerses.size() != song2Verses.size()) {
-            return false;
-        }
-        for (int i = 0; i < songVerses.size(); ++i) {
-            if (!songVerses.get(i).matches(song2Verses.get(i))) {
-                return false;
-            }
-        }
-        return true;
+        return twoListMatches(songVerses, song2Verses);
     }
 
     @Override
@@ -482,22 +640,16 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return findOneByUuid(song.getUuid());
     }
 
-    public Song findOneByUuid(String id) {
-        if (id == null) {
+    public Song findOneByUuid(String uuid) {
+        if (uuid == null) {
             return null;
         }
         HashMap<String, Song> songsHashMap = getSongsHashMap();
         Song song;
-        if (songsHashMap.containsKey(id)) {
-            song = songsHashMap.get(id);
+        if (songsHashMap.containsKey(uuid)) {
+            song = songsHashMap.get(uuid);
         } else {
-            song = songRepository.findOneByUuid(id);
-        }
-        if (song != null) {
-            if (song.getLanguage() == null) {
-                Language languageBySongsContaining = languageService.findLanguageBySongsContaining(song);
-                song.setLanguage(languageBySongsContaining);
-            }
+            song = songRepository.findOneByUuid(uuid);
         }
         return song;
     }

@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.bence.projector.server.utils.ListUtil.twoListMatches;
+
 @Service
 public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> implements SongCollectionService {
     @Autowired
@@ -30,15 +32,7 @@ public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> i
         }
         List<SongCollectionElement> songCollectionElements = songCollection.getSongCollectionElements();
         List<SongCollectionElement> songCollectionElements2 = songCollection2.getSongCollectionElements();
-        if (songCollectionElements.size() != songCollectionElements2.size()) {
-            return false;
-        }
-        for (int i = 0; i < songCollectionElements.size(); ++i) {
-            if (!songCollectionElements.get(i).matches(songCollectionElements2.get(i))) {
-                return false;
-            }
-        }
-        return true;
+        return twoListMatches(songCollectionElements, songCollectionElements2);
     }
 
     @Override

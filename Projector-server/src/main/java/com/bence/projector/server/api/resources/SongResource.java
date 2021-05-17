@@ -465,7 +465,9 @@ public class SongResource {
         Song song = songService.findOneByUuid(songId);
         if (song != null) {
             final List<Song> similar = songService.findAllSimilar(song);
-            return new ResponseEntity<>(songAssembler.createDtoList(similar), HttpStatus.ACCEPTED);
+            if (similar != null) {
+                return new ResponseEntity<>(songAssembler.createDtoList(similar), HttpStatus.ACCEPTED);
+            }
         }
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
@@ -475,7 +477,10 @@ public class SongResource {
         saveStatistics(httpServletRequest, statisticsService);
         Song song = songAssembler.createModel(songDTO);
         final List<Song> similar = songService.findAllSimilar(song);
-        return new ResponseEntity<>(songAssembler.createDtoList(similar), HttpStatus.ACCEPTED);
+        if (similar != null) {
+            return new ResponseEntity<>(songAssembler.createDtoList(similar), HttpStatus.ACCEPTED);
+        }
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/api/song/{songId}/incViews")

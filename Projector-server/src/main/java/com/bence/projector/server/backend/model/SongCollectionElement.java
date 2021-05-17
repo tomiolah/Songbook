@@ -1,11 +1,13 @@
 package com.bence.projector.server.backend.model;
 
+import com.bence.projector.server.utils.interfaces.MatchesInterface;
+
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class SongCollectionElement extends BaseEntity {
+public class SongCollectionElement extends BaseEntity implements MatchesInterface<SongCollectionElement> {
 
     private String ordinalNumber;
     @ManyToOne(fetch = FetchType.LAZY)
