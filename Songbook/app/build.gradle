@@ -11,13 +11,13 @@ android {
         minSdkVersion 16
         //noinspection OldTargetApi
         targetSdkVersion 29
-        versionCode 82
-        versionName "2.8.7"
+        versionCode 86
+        versionName "2.8.10"
         vectorDrawables.useSupportLibrary = true
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled false // if it's true app from play store doesn't open
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

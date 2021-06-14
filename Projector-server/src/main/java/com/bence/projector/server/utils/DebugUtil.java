@@ -1,12 +1,19 @@
 package com.bence.projector.server.utils;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
 
+@SuppressWarnings("unused")
 public class DebugUtil {
-    private static Date previousDate;
     private static final HashMap<String, TimeSpentAtLine> hashMap = new HashMap<>();
+    private static Date previousDate;
     private static Date previousDateForGatherTime;
 
+    @SuppressWarnings("unused")
     public static void printDate() {
         if (previousDate == null) {
             previousDate = new Date();
@@ -32,34 +39,36 @@ public class DebugUtil {
         return null;
     }
 
+    @SuppressWarnings("unused")
     public static void gatherTime() {
-//        Throwable throwable = new Throwable();
-//        if (previousDateForGatherTime == null) {
-//            previousDateForGatherTime = new Date();
-//        } else {
-//            Date newDate = new Date();
-//            double time = newDate.getTime() - previousDateForGatherTime.getTime();
-//            StackTraceElement[] stackTrace = throwable.getStackTrace();
-//            if (stackTrace.length > 1) {
-//                StackTraceElement stackTraceElement = stackTrace[1];
-//                int currentLine = stackTraceElement.getLineNumber();
-//                String className = stackTraceElement.getClassName();
-//                String key = className + "_" + currentLine;
-//                TimeSpentAtLine timeSpentAtLine = hashMap.get(key);
-//                if (timeSpentAtLine == null) {
-//                    timeSpentAtLine = new TimeSpentAtLine();
-//                    timeSpentAtLine.setTimeSpent(time);
-//                    timeSpentAtLine.setLineNumber(currentLine);
-//                    timeSpentAtLine.setClassName(className);
-//                } else {
-//                    timeSpentAtLine.addTimeSpent(time);
-//                }
-//                hashMap.put(key, timeSpentAtLine);
-//            }
-//            previousDateForGatherTime = newDate;
-//        }
+        Throwable throwable = new Throwable();
+        if (previousDateForGatherTime == null) {
+            previousDateForGatherTime = new Date();
+        } else {
+            Date newDate = new Date();
+            double time = newDate.getTime() - previousDateForGatherTime.getTime();
+            StackTraceElement[] stackTrace = throwable.getStackTrace();
+            if (stackTrace.length > 1) {
+                StackTraceElement stackTraceElement = stackTrace[1];
+                int currentLine = stackTraceElement.getLineNumber();
+                String className = stackTraceElement.getClassName();
+                String key = className + "_" + currentLine;
+                TimeSpentAtLine timeSpentAtLine = hashMap.get(key);
+                if (timeSpentAtLine == null) {
+                    timeSpentAtLine = new TimeSpentAtLine();
+                    timeSpentAtLine.setTimeSpent(time);
+                    timeSpentAtLine.setLineNumber(currentLine);
+                    timeSpentAtLine.setClassName(className);
+                } else {
+                    timeSpentAtLine.addTimeSpent(time);
+                }
+                hashMap.put(key, timeSpentAtLine);
+            }
+            previousDateForGatherTime = newDate;
+        }
     }
 
+    @SuppressWarnings("unused")
     public static void summaryGatheredTime() {
         Collection<TimeSpentAtLine> values = hashMap.values();
         List<TimeSpentAtLine> timeSpentAtLines = new ArrayList<>(values);

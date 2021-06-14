@@ -2,6 +2,7 @@ package projector.network;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.application.Settings;
 import projector.controller.ProjectionScreenController;
 import projector.controller.song.SongController;
 
@@ -17,10 +18,11 @@ public class TCPServer {
     private static final Logger LOG = LoggerFactory.getLogger(TCPServer.class);
     private static Thread thread;
     private static boolean closed = false;
-    private static List<Sender> senders = new ArrayList<>();
+    private static final List<Sender> senders = new ArrayList<>();
     private static ServerSocket welcomeSocket;
 
     public synchronized static void startShareNetwork(ProjectionScreenController projectionScreenController, SongController songController) {
+        Settings.getInstance().setShareOnNetwork(true);
         if (thread == null) {
             thread = new Thread(() -> {
                 try {
@@ -32,7 +34,7 @@ public class TCPServer {
                     }
                 } catch (SocketException e) {
                     try {
-                        if (e.getMessage().toLowerCase().equals("socket closed")) {
+                        if (e.getMessage().equalsIgnoreCase("socket closed")) {
                             return;
                         }
                     } catch (Exception e1) {

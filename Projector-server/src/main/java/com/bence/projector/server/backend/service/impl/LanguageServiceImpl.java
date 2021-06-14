@@ -1,7 +1,6 @@
 package com.bence.projector.server.backend.service.impl;
 
 import com.bence.projector.server.backend.model.Language;
-import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.repository.LanguageRepository;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
@@ -36,15 +35,6 @@ public class LanguageServiceImpl extends BaseServiceImpl<Language> implements La
             language.setSongsCount(countSongsByLanguage(language));
         }
         languages.sort((o1, o2) -> Long.compare(o2.getSongsCount(), o1.getSongsCount()));
-    }
-
-    @Override
-    public Language findLanguageBySongsContaining(Song song) {
-        Language languageBySongsContaining = languageRepository.findLanguageBySongsContaining(song);
-        if (languageBySongsContaining == null) {
-            return null;
-        }
-        return findOneByUuid(languageBySongsContaining.getUuid());
     }
 
     @Override

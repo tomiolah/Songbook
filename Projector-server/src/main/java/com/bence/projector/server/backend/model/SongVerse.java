@@ -1,6 +1,7 @@
 package com.bence.projector.server.backend.model;
 
 import com.bence.projector.common.model.SectionType;
+import com.bence.projector.server.utils.interfaces.MatchesInterface;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,7 +9,7 @@ import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
 
 @Entity
-public class SongVerse extends BaseEntity {
+public class SongVerse extends BaseEntity implements MatchesInterface<SongVerse> {
     private static final int MAX_TEXT_LENGTH = 1000;
     @Column(length = MAX_TEXT_LENGTH)
     private String text;
@@ -28,14 +29,6 @@ public class SongVerse extends BaseEntity {
         this.sectionType = songVerse.sectionType;
         this.song = songVerse.song;
         this.suggestion = songVerse.suggestion;
-    }
-
-    public static SongVerse[] cloneList(SongVerse[] songVerses) {
-        SongVerse[] clonedSongVerses = new SongVerse[songVerses.length];
-        for (int i = 0; i < songVerses.length; ++i) {
-            clonedSongVerses[i] = new SongVerse(songVerses[i]);
-        }
-        return clonedSongVerses;
     }
 
     public String getText() {

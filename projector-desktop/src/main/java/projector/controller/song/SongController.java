@@ -226,7 +226,7 @@ public class SongController {
         for (SongCollection songCollection : songCollections) {
             for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
                 String songUuid = songCollectionElement.getSongUuid();
-                if (hashMap.containsKey(songUuid)) {
+                if (songUuid != null && hashMap.containsKey(songUuid)) {
                     Song song = hashMap.get(songUuid);
                     song.addToSongCollections(songCollection);
                     song.addToSongCollectionElements(songCollectionElement);
@@ -1937,7 +1937,7 @@ public class SongController {
                 try {
                     if (event.getButton() == MouseButton.SECONDARY) {
                         Song selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
-                        boolean hasSongCollection = selectedSong.getSongCollectionElements() != null;
+                        boolean hasSongCollection = selectedSong.hasSongCollection();
                         if (hasSongCollection) {
                             cm.getItems().remove(addToCollectionMenuItem);
                             cm.getItems().add(1, removeFromCollectionMenuItem);

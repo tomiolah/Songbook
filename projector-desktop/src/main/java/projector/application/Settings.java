@@ -9,6 +9,7 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.paint.Color;
 import javafx.scene.text.FontWeight;
+import projector.controller.SettingsController;
 import projector.controller.song.util.OrderMethod;
 import projector.model.Language;
 import projector.service.ServiceManager;
@@ -80,6 +81,8 @@ public class Settings {
     private String sceneStyleFile = "application.css";
     private int customCanvasWidth = 400;
     private int customCanvasHeight = 300;
+    private boolean shareOnLocalNetworkAutomatically = false;
+    private boolean connectToSharedAutomatically = false;
 
     protected Settings() {
         load();
@@ -181,37 +184,7 @@ public class Settings {
     }
 
     public synchronized FontWeight getFontWeight() {
-        FontWeight tmp;
-        switch (fontWeight) {
-            case "BOLD":
-                tmp = FontWeight.BOLD;
-                break;
-            case "BLACK":
-                tmp = FontWeight.BLACK;
-                break;
-            case "EXTRA_BOLD":
-                tmp = FontWeight.EXTRA_BOLD;
-                break;
-            case "EXTRA_LIGHT":
-                tmp = FontWeight.EXTRA_LIGHT;
-                break;
-            case "LIGHT":
-                tmp = FontWeight.LIGHT;
-                break;
-            case "MEDIUM":
-                tmp = FontWeight.MEDIUM;
-                break;
-            case "SEMI_BOLD":
-                tmp = FontWeight.SEMI_BOLD;
-                break;
-            case "THIN":
-                tmp = FontWeight.THIN;
-                break;
-            default:
-                tmp = FontWeight.NORMAL;
-                break;
-        }
-        return tmp;
+        return SettingsController.getFontWeightByString(fontWeight);
     }
 
     public synchronized void setFontWeight(String fontWeight) {
@@ -347,6 +320,10 @@ public class Settings {
             bw.write(customCanvasWidth + System.lineSeparator());
             bw.write("customCanvasHeight" + System.lineSeparator());
             bw.write(customCanvasHeight + System.lineSeparator());
+            bw.write("shareOnLocalNetworkAutomatically" + System.lineSeparator());
+            bw.write(shareOnLocalNetworkAutomatically + System.lineSeparator());
+            bw.write("connectToSharedAutomatically" + System.lineSeparator());
+            bw.write(connectToSharedAutomatically + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -477,6 +454,10 @@ public class Settings {
             customCanvasWidth = Integer.parseInt(br.readLine());
             br.readLine();
             customCanvasHeight = Integer.parseInt(br.readLine());
+            br.readLine();
+            shareOnLocalNetworkAutomatically = parseBoolean(br.readLine());
+            br.readLine();
+            connectToSharedAutomatically = parseBoolean(br.readLine());
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -782,5 +763,21 @@ public class Settings {
 
     public void setCustomCanvasHeight(int customCanvasHeight) {
         this.customCanvasHeight = customCanvasHeight;
+    }
+
+    public boolean isShareOnLocalNetworkAutomatically() {
+        return shareOnLocalNetworkAutomatically;
+    }
+
+    public void setShareOnLocalNetworkAutomatically(boolean shareOnLocalNetworkAutomatically) {
+        this.shareOnLocalNetworkAutomatically = shareOnLocalNetworkAutomatically;
+    }
+
+    public boolean isConnectToSharedAutomatically() {
+        return connectToSharedAutomatically;
+    }
+
+    public void setConnectToSharedAutomatically(boolean connectToSharedAutomatically) {
+        this.connectToSharedAutomatically = connectToSharedAutomatically;
     }
 }

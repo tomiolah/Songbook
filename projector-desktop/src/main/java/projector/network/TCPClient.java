@@ -14,6 +14,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -35,13 +36,13 @@ public class TCPClient {
         }
         thread = new Thread(() -> {
             try {
-                Enumeration enumeration = NetworkInterface.getNetworkInterfaces();
+                Enumeration<NetworkInterface> enumeration = NetworkInterface.getNetworkInterfaces();
                 List<String> ips = new ArrayList<>();
                 while (enumeration.hasMoreElements()) {
-                    NetworkInterface n = (NetworkInterface) enumeration.nextElement();
-                    Enumeration ee = n.getInetAddresses();
+                    NetworkInterface n = enumeration.nextElement();
+                    Enumeration<InetAddress> ee = n.getInetAddresses();
                     while (ee.hasMoreElements()) {
-                        InetAddress i = (InetAddress) ee.nextElement();
+                        InetAddress i = ee.nextElement();
                         String hostAddress = i.getHostAddress();
                         if (hostAddress.matches("192.168.[12]?[0-9]{1,2}.[12]?[0-9]{1,2}")) {
                             ips.add(hostAddress);
@@ -73,13 +74,14 @@ public class TCPClient {
                 System.out.println("openIp = " + openIp);
                 if (openIp != null) {
                     clientSocket = new Socket(openIp, PORT);
-                    inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
+                    inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
                     outToServer = new DataOutputStream(clientSocket.getOutputStream());
 
-                    Settings.getInstance().setConnectedToShared(true);
+                    Settings settings = Settings.getInstance();
+                    settings.setConnectedToShared(true);
                     reader = new Thread(() -> {
                         String fromServer;
-                        while (true) {
+                        while (settings.isConnectedToShared()) {
                             try {
                                 fromServer = inFromServer.readLine();
                                 if (fromServer == null) {
@@ -149,9 +151,6 @@ public class TCPClient {
             }
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
-        }
-        if (reader != null) {
-            reader.stop();
         }
         thread.interrupt();
     }
