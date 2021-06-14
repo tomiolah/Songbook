@@ -108,6 +108,7 @@ public class MyController {
             RemoteServer.startRemoteServer(projectionScreenController, songController);
         }
         //initializeGlobalKeyListener(projectionScreenController);
+        automaticNetworks();
     }
 
     private void initializeGlobalKeyListener(ProjectionScreenController projectionScreenController) {
@@ -182,6 +183,15 @@ public class MyController {
 //                projectionScreenController.getStage().setOpacity(newValue.doubleValue());
 //            }
 //        });
+    }
+
+    private void automaticNetworks() {
+        if (settings.isShareOnLocalNetworkAutomatically()) {
+            TCPServer.startShareNetwork(projectionScreenController, songController);
+        }
+        if (settings.isConnectToSharedAutomatically()) {
+            TCPClient.connectToShared(projectionScreenController);
+        }
     }
 
     private void initializeSettingsController() {

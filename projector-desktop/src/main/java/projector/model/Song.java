@@ -414,4 +414,9 @@ public class Song extends BaseEntity {
         }
         return text.toString();
     }
+
+    public boolean hasSongCollection() {
+        List<SongCollectionElement> songCollectionElements = getSongCollectionElements();
+        return songCollectionElements != null && songCollectionElements.size() > 0;
+    }
 }

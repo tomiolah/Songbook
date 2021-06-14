@@ -42,6 +42,10 @@ import java.util.Objects;
 
 public class SettingsController {
     @FXML
+    private CheckBox connectToSharedAutomaticallyCheckbox;
+    @FXML
+    private CheckBox shareOnLocalNetworkAutomaticallyCheckbox;
+    @FXML
     private TextField customCanvasWidthTextField;
     @FXML
     private TextField customCanvasHeightTextField;
@@ -153,13 +157,6 @@ public class SettingsController {
         addFonts(fontWeight);
         fontWeightComboBox.getItems().add("NORMAL");
         fontWeightComboBox.getItems().add("BOLD");
-        // fontWeightComboBox.getItems().add("BLACK");
-        // fontWeightComboBox.getItems().add("EXTRA_BOLD");
-        // fontWeightComboBox.getItems().add("EXTRA_LIGHT");
-        // fontWeightComboBox.getItems().add("LIGHT");
-        // fontWeightComboBox.getItems().add("MEDIUM");
-        // fontWeightComboBox.getItems().add("SEMI_BOLD");
-        // fontWeightComboBox.getItems().add("THIN");
         fontWeightComboBox.getSelectionModel().select(settings.getFontWeightString());
         fontWeightComboBox.valueProperty().addListener((observable, oldValue, newValue) -> fontWeightValueChange(newValue));
         listView.getSelectionModel().select(0);
@@ -177,6 +174,8 @@ public class SettingsController {
         bibleShortNameCheckBox.setSelected(settings.getBibleShortName());
         customCanvasWidthTextField.setText(settings.getCustomCanvasWidth() + "");
         customCanvasHeightTextField.setText(settings.getCustomCanvasHeight() + "");
+        shareOnLocalNetworkAutomaticallyCheckbox.setSelected(settings.isShareOnLocalNetworkAutomatically());
+        connectToSharedAutomaticallyCheckbox.setSelected(settings.isConnectToSharedAutomatically());
         switch (settings.getSceneStyleFile()) {
             case "application.css":
                 appearanceComboBox.getSelectionModel().select(0);
@@ -188,8 +187,8 @@ public class SettingsController {
     }
 
     private void initializeNetworkButtons() {
+        connectToSharedButton.setDisable(settings.isShareOnNetwork());
         shareOnLocalNetworkButton.setOnAction(event -> {
-            settings.setShareOnNetwork(true);
             TCPServer.startShareNetwork(projectionScreenController, songController);
             connectToSharedButton.setDisable(true);
         });
@@ -216,39 +215,44 @@ public class SettingsController {
         Text tmpK1 = new Text(iK1);
         tmpK1.setFont(Font.font(iK1));
         listView.getItems().add(tmpK1);
-        FontWeight fontWeight1;
-        switch (newValue) {
-            case "BOLD":
-                fontWeight1 = FontWeight.BOLD;
-                break;
-            case "BLACK":
-                fontWeight1 = FontWeight.BLACK;
-                break;
-            case "EXTRA_BOLD":
-                fontWeight1 = FontWeight.EXTRA_BOLD;
-                break;
-            case "EXTRA_LIGHT":
-                fontWeight1 = FontWeight.EXTRA_LIGHT;
-                break;
-            case "LIGHT":
-                fontWeight1 = FontWeight.LIGHT;
-                break;
-            case "MEDIUM":
-                fontWeight1 = FontWeight.MEDIUM;
-                break;
-            case "SEMI_BOLD":
-                fontWeight1 = FontWeight.SEMI_BOLD;
-                break;
-            case "THIN":
-                fontWeight1 = FontWeight.THIN;
-                break;
-            default:
-                fontWeight1 = FontWeight.NORMAL;
-                break;
-        }
+        FontWeight fontWeight1 = getFontWeightByString(newValue);
         addFonts(fontWeight1);
         listView.getSelectionModel().select(0);
         projectionScreenController.reload();
+    }
+
+    public static FontWeight getFontWeightByString(String newValue) {
+        FontWeight fontWeight;
+        switch (newValue) {
+            case "BOLD":
+                fontWeight = FontWeight.BOLD;
+                break;
+            case "BLACK":
+                fontWeight = FontWeight.BLACK;
+                break;
+            case "EXTRA_BOLD":
+                fontWeight = FontWeight.EXTRA_BOLD;
+                break;
+            case "EXTRA_LIGHT":
+                fontWeight = FontWeight.EXTRA_LIGHT;
+                break;
+            case "LIGHT":
+                fontWeight = FontWeight.LIGHT;
+                break;
+            case "MEDIUM":
+                fontWeight = FontWeight.MEDIUM;
+                break;
+            case "SEMI_BOLD":
+                fontWeight = FontWeight.SEMI_BOLD;
+                break;
+            case "THIN":
+                fontWeight = FontWeight.THIN;
+                break;
+            default:
+                fontWeight = FontWeight.NORMAL;
+                break;
+        }
+        return fontWeight;
     }
 
     private void addFonts(FontWeight fontWeight) {
@@ -312,6 +316,8 @@ public class SettingsController {
             settings.setCustomCanvasHeight(getCustomCanvasSize(customCanvasHeightTextField));
         } catch (Exception ignored) {
         }
+        settings.setShareOnLocalNetworkAutomatically(shareOnLocalNetworkAutomaticallyCheckbox.isSelected());
+        settings.setConnectToSharedAutomatically(connectToSharedAutomaticallyCheckbox.isSelected());
         settings.save();
         projectionScreenController.setBackGroundColor(backgroundColorPicker.getValue());
         if (listeners != null) {
@@ -341,12 +347,6 @@ public class SettingsController {
             try {
                 imagePathTextField.setText(selectedFile.getCanonicalFile().toURI().toString());
                 imagePathTextField.positionCaret(imagePathTextField.getText().length() - 1);
-                // System.out.println(selectedFile.getAbsolutePath());
-                // System.out.println(selectedFile.getParentFile().toURI());
-                // System.out.println(selectedFile.getParentFile());
-                // System.out.println(selectedFile.getCanonicalPath());
-                // System.out.println(selectedFile.getCanonicalFile().toURI());
-                // System.out.println(selectedFile.getCanonicalFile());
             } catch (IOException e) {
                 e.printStackTrace();
             }

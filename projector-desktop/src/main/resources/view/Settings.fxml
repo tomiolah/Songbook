@@ -157,20 +157,30 @@
                                   text="%Reference chapter sorting" GridPane.columnIndex="1" GridPane.rowIndex="16"/>
                         <CheckBox fx:id="referenceVerseSorting" mnemonicParsing="false" text="%Reference verse sorting"
                                   GridPane.columnIndex="1" GridPane.rowIndex="17"/>
-                        <TextField fx:id="customCanvasWidthTextField"  GridPane.rowIndex="18"/>
-                        <TextField fx:id="customCanvasHeightTextField"
-                                   GridPane.columnIndex="1" GridPane.rowIndex="18"/>
-                        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="20">
+                        <TextField fx:id="customCanvasWidthTextField" GridPane.rowIndex="18"/>
+                        <TextField fx:id="customCanvasHeightTextField" GridPane.columnIndex="1" GridPane.rowIndex="18"/>
+                        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="20">
                             <center>
-                                <Button fx:id="shareOnLocalNetworkButton" text="%Share on local network"
-                                        BorderPane.alignment="CENTER"/>
-                            </center>
-                        </BorderPane>
-                        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1"
-                                    GridPane.rowIndex="20">
-                            <center>
-                                <Button fx:id="connectToSharedButton" text="%Connect to shared"
-                                        BorderPane.alignment="CENTER"/>
+                                <HBox alignment="CENTER_LEFT">
+                                    <Button fx:id="shareOnLocalNetworkButton" text="%Share on local network"
+                                            BorderPane.alignment="CENTER"/>
+                                    <CheckBox fx:id="shareOnLocalNetworkAutomaticallyCheckbox" text="Automatically">
+                                        <HBox.margin>
+                                            <Insets left="4.0"/>
+                                        </HBox.margin>
+                                    </CheckBox>
+                                    <Button fx:id="connectToSharedButton" text="%Connect to shared"
+                                            BorderPane.alignment="CENTER">
+                                        <HBox.margin>
+                                            <Insets left="40.0"/>
+                                        </HBox.margin>
+                                    </Button>
+                                    <CheckBox fx:id="connectToSharedAutomaticallyCheckbox" text="Automatically">
+                                        <HBox.margin>
+                                            <Insets left="4.0"/>
+                                        </HBox.margin>
+                                    </CheckBox>
+                                </HBox>
                             </center>
                         </BorderPane>
                         <HBox GridPane.columnSpan="2" GridPane.rowIndex="21">
