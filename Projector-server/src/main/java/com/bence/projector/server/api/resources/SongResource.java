@@ -215,7 +215,7 @@ public class SongResource {
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/admin/api/song/erase/{songId}")
-    public SongDTO eraseSong(@PathVariable final String songId, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Object> eraseSong(@PathVariable final String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         final Song song = songService.findOneByUuid(songId);
         if (song == null) {
@@ -224,7 +224,7 @@ public class SongResource {
         if (song.isDeleted()) {
             songService.deleteByUuid(songId);
         }
-        return songAssembler.createDto(song);
+        return new ResponseEntity<>("{}", HttpStatus.ACCEPTED);
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/reviewer/api/song/erase/{songId}")
