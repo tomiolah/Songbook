@@ -9,14 +9,6 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.tabs.TabLayout;
-import androidx.core.content.res.ResourcesCompat;
-import androidx.viewpager.widget.ViewPager;
-import androidx.appcompat.app.ActionBar;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -31,6 +23,14 @@ import android.widget.ListView;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.res.ResourcesCompat;
+import androidx.viewpager.widget.ViewPager;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
@@ -61,6 +61,8 @@ import com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,6 +82,7 @@ public class SongActivity extends AppCompatActivity {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
 
+    private final List<Song> allByVersionGroup = new ArrayList<>();
     TabLayout tabLayout;
     ViewPager viewPager;
     PageAdapter pageAdapter;
@@ -92,7 +95,6 @@ public class SongActivity extends AppCompatActivity {
     private PopupWindow googleSignInPopupWindow;
     private Menu menu;
     private PopupWindow saveToSongListPopupWindow;
-    private final List<Song> allByVersionGroup = new ArrayList<>();
 
     public static void saveGmail(GoogleSignInAccount result, Context context) {
         String email = result.getEmail();
@@ -257,7 +259,7 @@ public class SongActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         invalidateOptionsMenu();
     }
@@ -511,7 +513,7 @@ public class SongActivity extends AppCompatActivity {
                     favouriteSongRepository.save(favourite);
                     favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
                             R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
-                    syncFavouriteInGoogleDrive();
+//                    syncFavouriteInGoogleDrive();
                     return false;
                 }
             });
