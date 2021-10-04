@@ -17,12 +17,12 @@
             android:icon="@drawable/ic_folder_black_24dp"
             android:title="@string/my_library" />
     </group>
-    <group android:checkableBehavior="single">
-        <item
-            android:id="@+id/nav_sign_in"
-            android:icon="@drawable/ic_person_black_24dp"
-            android:title="@string/sign_in" />
-    </group>
+<!--    <group android:checkableBehavior="single">-->
+    <!--        <item-->
+    <!--            android:id="@+id/nav_sign_in"-->
+    <!--            android:icon="@drawable/ic_person_black_24dp"-->
+    <!--            android:title="@string/sign_in" />-->
+    <!--    </group>-->
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_privacy_policy"

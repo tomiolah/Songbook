@@ -17,20 +17,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.preference.PreferenceManager;
-import androidx.annotation.NonNull;
-import com.google.android.material.bottomsheet.BottomSheetBehavior;
-import com.google.android.material.navigation.NavigationView;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.view.GravityCompat;
-import androidx.viewpager.widget.ViewPager;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.LinearSmoothScroller;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.appcompat.widget.Toolbar;
 import android.util.Log;
 import android.util.LongSparseArray;
 import android.view.Gravity;
@@ -57,6 +43,19 @@ import android.widget.SearchView;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.LinearSmoothScroller;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager.widget.ViewPager;
 
 import com.bence.projector.common.dto.StackDTO;
 import com.bence.songbook.Memory;
@@ -95,6 +94,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.drive.Drive;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.navigation.NavigationView;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -110,7 +111,6 @@ import java.util.regex.Pattern;
 import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING;
 import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE;
 import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
-import static com.bence.songbook.ui.activity.SongActivity.showGoogleSignIn;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 
 @SuppressWarnings({"ConstantConditions", "deprecation"})
@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity
     private SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive;
     private PopupWindow googleSignInPopupWindow;
     private boolean gSignIn;
-    private MenuItem signInMenuItem;
+    //    private MenuItem signInMenuItem;
     private boolean inSongSearchSwitch = false;
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     private DynamicListView<QueueSongAdapter> queueListView;
@@ -429,12 +429,12 @@ public class MainActivity extends AppCompatActivity
         Menu menu = navigationView.getMenu();
 
         gSignIn = sharedPreferences.getBoolean("gSignIn", false);
-        signInMenuItem = menu.findItem(R.id.nav_sign_in);
-        if (gSignIn) {
-            if (signInMenuItem != null) {
-                signInMenuItem.setTitle(getString(R.string.sign_out));
-            }
-        }
+//        signInMenuItem = menu.findItem(R.id.nav_sign_in);
+//        if (gSignIn) {
+//            if (signInMenuItem != null) {
+//                signInMenuItem.setTitle(getString(R.string.sign_out));
+//            }
+//        }
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.INTERNET)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -932,9 +932,9 @@ public class MainActivity extends AppCompatActivity
                     GoogleSignInAccount result = getAccountTask.getResult();
                     saveGmail(result, getApplicationContext());
                     syncFavouriteInGoogleDrive.initializeDriveClient(result);
-                    if (signInMenuItem != null) {
-                        signInMenuItem.setTitle(getString(R.string.sign_out));
-                    }
+//                    if (signInMenuItem != null) {
+//                        signInMenuItem.setTitle(getString(R.string.sign_out));
+//                    }
                     gSignIn = true;
                 } else {
                     Log.e(TAG, "Sign-in failed.");
@@ -1603,24 +1603,24 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(loadIntent, 5);
         } else if (id == R.id.nav_privacy_policy) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://comsongbook.firebaseapp.com/privacy_policy.html")));
-        } else if (id == R.id.nav_sign_in) {
-            if (!gSignIn) {
-                googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), true);
-                if (googleSignInPopupWindow != null) {
-                    if (alreadyTried2) {
-                        View viewById = googleSignInPopupWindow.getContentView().findViewById(R.id.notWorksTextView);
-                        viewById.setVisibility(View.VISIBLE);
-                    }
-                    googleSignInPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
-                }
-            } else {
-                new SyncFavouriteInGoogleDrive(null, this, null, null).signOut();
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-                sharedPreferences.edit().putBoolean("gSignIn", false).apply();
-                if (signInMenuItem != null) {
-                    signInMenuItem.setTitle(getString(R.string.sign_in));
-                }
-            }
+//        } else if (id == R.id.nav_sign_in) {
+//            if (!gSignIn) {
+//                googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), true);
+//                if (googleSignInPopupWindow != null) {
+//                    if (alreadyTried2) {
+//                        View viewById = googleSignInPopupWindow.getContentView().findViewById(R.id.notWorksTextView);
+//                        viewById.setVisibility(View.VISIBLE);
+//                    }
+//                    googleSignInPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
+//                }
+//            } else {
+//                new SyncFavouriteInGoogleDrive(null, this, null, null).signOut();
+//                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+//                sharedPreferences.edit().putBoolean("gSignIn", false).apply();
+//                if (signInMenuItem != null) {
+//                    signInMenuItem.setTitle(getString(R.string.sign_in));
+//                }
+//            }
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -2314,7 +2314,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         @SuppressLint({"InflateParams", "SetTextI18n"})
-        @SuppressWarnings("ConstantConditions")
         @NonNull
         @Override
         public View getView(int position, View convertView, @NonNull ViewGroup parent) {
@@ -2370,7 +2369,6 @@ public class MainActivity extends AppCompatActivity
         }
 
         @SuppressLint({"InflateParams", "SetTextI18n"})
-        @SuppressWarnings("ConstantConditions")
         @NonNull
         @Override
         public View getView(int position, View convertView, @NonNull ViewGroup parent) {
