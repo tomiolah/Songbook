@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import static com.bence.projector.server.api.resources.SongResource.songInReviewLanguages;
+import static com.bence.projector.server.api.resources.SongResource.hasReviewerRoleForSong;
 import static com.bence.projector.server.api.resources.StatisticsResource.saveStatistics;
 
 @RestController
@@ -147,7 +147,7 @@ public class SuggestionResource {
                 Suggestion suggestion = suggestionService.findOneByUuid(suggestionId);
                 if (suggestion != null) {
                     Song song = songService.findOneByUuid(suggestion.getSongUuid());
-                    if (song != null && songInReviewLanguages(user, song)) {
+                    if (hasReviewerRoleForSong(user, song)) {
                         Date modifiedDate = suggestion.getModifiedDate();
                         if ((modifiedDate != null && modifiedDate.compareTo(suggestionDTO.getModifiedDate()) != 0) || (modifiedDate == null && suggestionDTO.getModifiedDate() != null)) {
                             return new ResponseEntity<>("Already modified", HttpStatus.CONFLICT);

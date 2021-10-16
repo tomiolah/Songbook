@@ -4,6 +4,7 @@ import { Observable } from 'rxjs/Observable';
 import { BaseModel } from '../models/base-model';
 import { Language } from "../models/language";
 import { User } from '../models/user';
+import { BooleanResponse } from '../models/boolean-response';
 
 export class ColorText {
   text: string;
@@ -156,6 +157,7 @@ export class Song extends BaseModel {
   commonWordsCount = 0;
   commonCharacterCount = 0;
   repeatChorus: boolean = true;
+  reviewerErased: boolean = false;
 
   constructor(values: Object = {}) {
     super(values);
@@ -389,5 +391,9 @@ export class SongService {
     song.id = song.uuid;
     song.removeCircularReference();
     return this.api.update(Song, role + '/api/changeLanguageForSong/', song);
+  }
+
+  hasReviewerRoleForSong(song: Song) {
+    return this.api.getOne(BooleanResponse, 'user/api/song/' + song.uuid + '/hasReviewerRoleForSong');
   }
 }

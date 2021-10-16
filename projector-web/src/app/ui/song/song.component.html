@@ -1,11 +1,23 @@
+<!--suppress ALL -->
 <div class="container">
+  <div *ngIf="song.reviewerErased">
+    <br>
+    <h3>
+      Song is erased.
+    </h3>
+  </div>
+  <div *ngIf="auth.getUser().isAdmin() || hasReviewerRoleForSong">
+    <br>
+    <h4 *ngIf="song.deleted && !song.reviewerErased">
+      Song is in review.
+    </h4>
+  </div>
   <br>
   <mat-card>
     <div class="title">
       <h3 class="title">{{song.title}}
       </h3>
-      <div
-        *ngIf="conditionForShowingCollection()">
+      <div *ngIf="conditionForShowingCollection()">
         <div *ngIf="collections != undefined">
           <div *ngFor="let collection of collections">
             <p *ngFor="let collectionElement of collection.songCollectionElements">
@@ -85,7 +97,7 @@
         Add to collection
       </button>
     </div>
-    <div *ngIf="auth.getUser().isAdmin() || auth.getUser().hasReviewerRoleForSong(song)">
+    <div *ngIf="auth.getUser().isAdmin() || hasReviewerRoleForSong">
       <br>
       <table>
         <tr *ngIf="song.views>0">
@@ -121,7 +133,7 @@
       <button *ngIf="!song.deleted" mat-button (click)="deleteSong()">
         Delete
       </button>
-      <button *ngIf="song.deleted && auth.getUser().hasReviewerRoleForSong(song)" mat-button (click)="eraseSong()">
+      <button *ngIf="song.deleted && hasReviewerRoleForSong && !song.reviewerErased" mat-button (click)="eraseSong()">
         Erase
       </button>
       <br>
