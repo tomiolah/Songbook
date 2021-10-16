@@ -23,6 +23,7 @@ public class SongDTO extends BaseDTO {
     private String backUpSongId;
     private String lastModifiedByUserEmail;
     private String verseOrder;
+    private Boolean reviewerErased;
 
     public SongDTO() {
     }
@@ -181,5 +182,13 @@ public class SongDTO extends BaseDTO {
 
     public void setLastModifiedByUserEmail(String lastModifiedByUserEmail) {
         this.lastModifiedByUserEmail = lastModifiedByUserEmail;
+    }
+
+    public Boolean getReviewerErased() {
+        return reviewerErased;
+    }
+
+    public void setReviewerErased(boolean reviewerErased) {
+        this.reviewerErased = reviewerErased;
     }
 }

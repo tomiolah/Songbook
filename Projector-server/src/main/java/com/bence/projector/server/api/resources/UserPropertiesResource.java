@@ -33,6 +33,14 @@ public class UserPropertiesResource {
         this.userPropertiesService = userPropertiesService;
     }
 
+    public static User getUserFromPrincipalAndUserService(Principal principal, UserService userService) {
+        if (principal != null) {
+            String email = principal.getName();
+            return userService.findByEmail(email);
+        }
+        return null;
+    }
+
     @RequestMapping(value = "user/api/userProperties", method = RequestMethod.GET)
     public ResponseEntity<Object> getUserProperties(Principal principal) {
         User user = getUserFromPrincipal(principal);
@@ -54,11 +62,7 @@ public class UserPropertiesResource {
     }
 
     private User getUserFromPrincipal(Principal principal) {
-        if (principal != null) {
-            String email = principal.getName();
-            return userService.findByEmail(email);
-        }
-        return null;
+        return getUserFromPrincipalAndUserService(principal, userService);
     }
 
     @RequestMapping(value = "user/api/userProperties", method = RequestMethod.PUT)

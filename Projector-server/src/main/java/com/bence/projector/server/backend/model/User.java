@@ -233,4 +233,13 @@ public class User extends AbstractModel {
         }
         return userProperties;
     }
+
+    public boolean hasReviewLanguage(Language language) {
+        for (Language reviewLanguage : reviewLanguages) {
+            if (reviewLanguage.getId().equals(language.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
