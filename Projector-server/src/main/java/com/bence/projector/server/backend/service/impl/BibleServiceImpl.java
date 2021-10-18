@@ -1,12 +1,21 @@
 package com.bence.projector.server.backend.service.impl;
 
 import com.bence.projector.server.backend.model.Bible;
+import com.bence.projector.server.backend.model.BibleVerse;
+import com.bence.projector.server.backend.model.Book;
+import com.bence.projector.server.backend.model.Chapter;
+import com.bence.projector.server.backend.model.VerseIndex;
 import com.bence.projector.server.backend.repository.BibleRepository;
-import com.bence.projector.server.backend.repository.BookRepository;
 import com.bence.projector.server.backend.service.BibleService;
+import com.bence.projector.server.backend.service.BibleVerseService;
+import com.bence.projector.server.backend.service.BookService;
+import com.bence.projector.server.backend.service.VerseIndexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedList;
 import java.util.List;
 
 @Service
@@ -15,7 +24,11 @@ public class BibleServiceImpl extends BaseServiceImpl<Bible> implements BibleSer
     @Autowired
     private BibleRepository bibleRepository;
     @Autowired
-    private BookRepository bookRepository;
+    private BookService bookService;
+    @Autowired
+    private BibleVerseService bibleVerseService;
+    @Autowired
+    private VerseIndexService verseIndexService;
 
     @Override
     public Bible findOneByUuid(String uuid) {
@@ -23,9 +36,27 @@ public class BibleServiceImpl extends BaseServiceImpl<Bible> implements BibleSer
     }
 
     @Override
-    public Bible save(Bible model) {
-        bookRepository.save(model.getBooks());
-        return super.save(model);
+    public Bible save(Bible bible) {
+        return saveABibleTransactional(bible);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    private Bible saveABibleTransactional(Bible bible) {
+        Bible savedBible = super.save(bible);
+        bookService.save(bible.getBooks());
+        List<BibleVerse> verses = new LinkedList<>();
+        for (Book book : bible.getBooks()) {
+            for (Chapter chapter : book.getChapters()) {
+                verses.addAll(chapter.getVerses());
+            }
+        }
+        bibleVerseService.save(verses);
+        List<VerseIndex> verseIndices = new LinkedList<>();
+        for (BibleVerse bibleVerse : verses) {
+            verseIndices.addAll(bibleVerse.getVerseIndices());
+        }
+        verseIndexService.save(verseIndices);
+        return savedBible;
     }
 
     @Override
@@ -41,7 +72,7 @@ public class BibleServiceImpl extends BaseServiceImpl<Bible> implements BibleSer
         if (bible == null) {
             return;
         }
-        bookRepository.delete(bible.getBooks());
+        bookService.deleteAll(bible.getBooks());
         super.delete(bible.getId());
     }
 
