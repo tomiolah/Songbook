@@ -1126,7 +1126,15 @@ public class BibleController {
 //                Reader.setBooksRead(false);
 //                otherBible.setBooks(Reader.getBooks("ElberfelderBibel.txt"));
 //                createIndices(otherBible);
-//                setIndicesForBible(otherBible);
+//            setIndicesForBible(bibles.get(0));
+//            Bible bible = bibles.get(0);
+//            List<Chapter> chapters = bible.getBooks().get(39).getChapters();
+//            Chapter chapter = chapters.get(16);
+//            BibleVerse bibleVerse = chapter.getVerses().get(20);
+//            bibleVerse.setText("");
+//            bibleService.delete(bible);
+//            bibleService.create(bible);
+//            uploadBible(bibles.get(0));
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
