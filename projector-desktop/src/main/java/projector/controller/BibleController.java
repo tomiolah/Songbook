@@ -77,6 +77,8 @@ public class BibleController {
 
     private static final Logger LOG = LoggerFactory.getLogger(BibleController.class);
     private static final int verseRightMargin = 37;
+    private final List<Bible> parallelBibles = new ArrayList<>();
+    private final Settings settings = Settings.getInstance();
     private MyController mainController;
     private ProjectionScreenController projectionScreenController;
     private BibleSearchController bibleSearchController;
@@ -124,9 +126,7 @@ public class BibleController {
     private Button nextButton;
     @FXML
     private ToggleButton abbreviationToggleButton;
-
     private Bible bible;
-    private List<Bible> parallelBibles = new ArrayList<>();
     private List<Integer> searchIBook;
     private Integer searchSelected = 0;
     private boolean isAllBooks;
@@ -137,13 +137,11 @@ public class BibleController {
     private int selectedPart = -1;
     private int selectedVerse = -1;
     private boolean isLastVerse = false;
-
     private Reference allReference;
     private Reference ref;
     private List<Reference> references;
     private boolean oldReplace = false;
     private boolean newReferenceAdded = false;
-    private Settings settings = Settings.getInstance();
     private Font verseFont;
     private Date lastUpdateSelected;
     private boolean initialized = false;
@@ -230,7 +228,7 @@ public class BibleController {
                     bible = newValue;
                     setAbbreviationButtonVisibility();
                     addAllBooks();
-                    bibleSearchController.setBooks(bible.getBooks());
+                    bibleSearchController.setBible(bible);
                     historyController.setBible(bible);
 
                     if (bookI > bible.getBooks().size() - 1) {
@@ -1106,7 +1104,7 @@ public class BibleController {
             if (items.size() > 0) {
                 return;
             }
-            items.clear();
+            // items.clear();
             items.addAll(bibles);
             parallelBibles.clear();
             parallelBibles.addAll(bibles);
