@@ -463,6 +463,7 @@ public class NewSongController {
     public void saveButtonOnAction() {
         if (saveSong()) {
             songController.addSong(newSong);
+            songController.refreshScheduleListView();
         }
     }
 
@@ -487,6 +488,7 @@ public class NewSongController {
         final Date createdDate = new Date();
         if (isEdit()) {
             songController.removeSongFromList(selectedSong);
+            editingSong = songService.getFromMemoryOrSong(editingSong);
             songVerseService.delete(editingSong.getVerses());
             newSong = editingSong;
         } else {

@@ -8,7 +8,7 @@ public class BaseTest extends ApplicationTest {
 
     @Before
     public void setUpClass() throws Exception {
-        ApplicationTest.launch(Main.class);
+        ApplicationTest.launch(MainDesktop.class);
     }
 
     @Override

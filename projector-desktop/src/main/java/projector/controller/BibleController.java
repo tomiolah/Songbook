@@ -61,6 +61,7 @@ import projector.utils.Triplet;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.net.URL;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Date;
@@ -1101,10 +1102,7 @@ public class BibleController {
                 return;
             }
             ObservableList<Bible> items = bibleListView.getItems();
-            if (items.size() > 0) {
-                return;
-            }
-            // items.clear();
+            items.clear();
             items.addAll(bibles);
             parallelBibles.clear();
             parallelBibles.addAll(bibles);
@@ -1126,7 +1124,15 @@ public class BibleController {
 //                Reader.setBooksRead(false);
 //                otherBible.setBooks(Reader.getBooks("ElberfelderBibel.txt"));
 //                createIndices(otherBible);
-//                setIndicesForBible(otherBible);
+//            setIndicesForBible(bibles.get(0));
+//            Bible bible = bibles.get(0);
+//            List<Chapter> chapters = bible.getBooks().get(39).getChapters();
+//            Chapter chapter = chapters.get(16);
+//            BibleVerse bibleVerse = chapter.getVerses().get(20);
+//            bibleVerse.setText("");
+//            bibleService.delete(bible);
+//            bibleService.create(bible);
+//            uploadBible(bibles.get(0));
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -1512,7 +1518,7 @@ public class BibleController {
             Pane root = loader.load();
             DownloadBiblesController controller = loader.getController();
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+            setStyleFile(scene);
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download bibles"));
@@ -1524,6 +1530,13 @@ public class BibleController {
         }
     }
 
+    private void setStyleFile(Scene scene) {
+        URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+        if (resource != null) {
+            scene.getStylesheets().add(resource.toExternalForm());
+        }
+    }
+
     public void parallelBibles() {
         try {
             FXMLLoader loader = new FXMLLoader();
@@ -1532,7 +1545,7 @@ public class BibleController {
             Pane root = loader.load();
             ParallelBiblesController controller = loader.getController();
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+            setStyleFile(scene);
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Parallel"));

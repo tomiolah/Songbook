@@ -3,15 +3,15 @@ buildscript {
         classpath group: 'de.dynamicfiles.projects.gradle.plugins', name: 'javafx-gradle-plugin', version: '8.8.2'
     }
     repositories {
-        mavenLocal()
         mavenCentral()
-
     }
+}
+plugins {
+    id 'java'
 }
 apply plugin: 'java'
 
 repositories {
-    mavenLocal()
     mavenCentral()
 }
 

@@ -2530,4 +2530,8 @@ public class SongController {
             }
         }
     }
+
+    public void refreshScheduleListView() {
+        scheduleListView.refresh();
+    }
 }
