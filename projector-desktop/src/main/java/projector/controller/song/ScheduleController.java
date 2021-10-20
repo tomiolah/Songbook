@@ -48,13 +48,11 @@ public class ScheduleController {
     private final String $id$_ = "$id$ ";
     private final String $uuid$_ = "$uuid$ ";
     private final String prefix = "scheduleListView:move:";
-
+    private final KeyCombination keyShiftUp = new KeyCodeCombination(KeyCode.UP, KeyCombination.SHIFT_DOWN);
+    private final KeyCombination keyShiftDown = new KeyCodeCombination(KeyCode.DOWN, KeyCombination.SHIFT_DOWN);
     @FXML
     private ListView<ScheduleSong> listView;
-
     private SongController songController;
-    private KeyCombination keyShiftUp = new KeyCodeCombination(KeyCode.UP, KeyCombination.SHIFT_DOWN);
-    private KeyCombination keyShiftDown = new KeyCodeCombination(KeyCode.DOWN, KeyCombination.SHIFT_DOWN);
     private int selectedIndex;
 
     int getSelectedIndex() {
@@ -145,7 +143,14 @@ public class ScheduleController {
                         if (textFlow == null) {
                             textFlow = new TextFlow();
                             ObservableList<Node> children = textFlow.getChildren();
-                            children.add(new Text(song.getTitle()));
+                            Text text = new Text(song.getTitle());
+                            children.add(text);
+                            item.setText(text);
+                        } else {
+                            Text text = item.getText();
+                            if (text != null) {
+                                text.setText(song.getTitle());
+                            }
                         }
                         setGraphic(textFlow);
                         item.setTextFlow(textFlow);
