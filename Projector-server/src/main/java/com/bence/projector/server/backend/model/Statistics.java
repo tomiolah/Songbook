@@ -2,14 +2,17 @@ package com.bence.projector.server.backend.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Transient;
 import java.util.Date;
 
 @Entity
 public class Statistics extends BaseEntity {
+    @Transient
+    private final int URI_LENGTH = 100;
     private Date accessedDate;
     @Column(length = 15)
     private String remoteAddress;
-    @Column(length = 100)
+    @Column(length = URI_LENGTH)
     private String uri;
     @Column(length = 10)
     private String method;
@@ -35,7 +38,7 @@ public class Statistics extends BaseEntity {
     }
 
     public void setUri(String uri) {
-        this.uri = uri;
+        this.uri = uri.substring(0, Math.min(uri.length(), URI_LENGTH - 1));
     }
 
     public String getMethod() {

@@ -22,12 +22,16 @@ public class StatisticsResource {
     private StatisticsAssembler statisticsAssembler;
 
     static void saveStatistics(HttpServletRequest httpServletRequest, StatisticsService statisticsService) {
-        Statistics statistics = new Statistics();
-        statistics.setAccessedDate(new Date());
-        statistics.setRemoteAddress(httpServletRequest.getRemoteAddr());
-        statistics.setUri(httpServletRequest.getRequestURI());
-        statistics.setMethod(httpServletRequest.getMethod());
-        statisticsService.save(statistics);
+        try {
+            Statistics statistics = new Statistics();
+            statistics.setAccessedDate(new Date());
+            statistics.setRemoteAddress(httpServletRequest.getRemoteAddr());
+            statistics.setUri(httpServletRequest.getRequestURI());
+            statistics.setMethod(httpServletRequest.getMethod());
+            statisticsService.save(statistics);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/admin/api/statistics")
