@@ -1,6 +1,6 @@
 [Setup]
 AppName=Projector
-AppVersion=2.5.0
+AppVersion=2.5.2
 DefaultDirName={sd}\Projector
 ; Since no icons will be created in "{group}", we don't need the wizard
 ; to ask for a Start Menu folder name:

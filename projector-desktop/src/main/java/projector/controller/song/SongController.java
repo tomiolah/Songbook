@@ -51,6 +51,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.MainDesktop;
 import projector.api.SongApiBean;
+import projector.api.retrofit.ApiManager;
 import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.application.SongVersTime;
@@ -115,7 +116,7 @@ public class SongController {
     private static final double minOpacity = 0.4;
     private final SongService songService;
     private final Settings settings = Settings.getInstance();
-    private final String BASE_URL = "localhost";
+    private final String BASE_URL = ApiManager.DOMAIN;
     private final String link = "http://" + BASE_URL;
     @SuppressWarnings("FieldCanBeLocal")
     private final String link2 = "https://" + BASE_URL;

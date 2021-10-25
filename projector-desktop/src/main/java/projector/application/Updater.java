@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.MainDesktop;
 import projector.api.ProjectorVersionApiBean;
+import projector.api.retrofit.ApiManager;
 import projector.controller.UpdateController;
 
 import java.io.File;
@@ -29,7 +30,7 @@ public class Updater {
     private static final Logger LOG = LoggerFactory.getLogger(Updater.class);
     private static Updater instance;
     @SuppressWarnings("FieldCanBeLocal")
-    private final int projectorVersionNumber = 20;
+    private final int projectorVersionNumber = 21;
     private final Settings settings = Settings.getInstance();
 
     private Updater() {
@@ -138,5 +139,9 @@ public class Updater {
             }
         };
         thread.start();
+    }
+
+    String getUrl() {
+        return ApiManager.BASE_URL + "/projector.exe";
     }
 }
