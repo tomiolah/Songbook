@@ -20,7 +20,7 @@
       <div *ngIf="conditionForShowingCollection()">
         <div *ngIf="collections != undefined">
           <div *ngFor="let collection of collections">
-            <p *ngFor="let collectionElement of collection.songCollectionElements">
+            <p *ngFor="let collectionElement of collection.songCollectionElements" (click)="onCollectionElementClick(collectionElement, collection)">
               {{collection.name + " " + collectionElement.ordinalNumber}}
             </p>
           </div>

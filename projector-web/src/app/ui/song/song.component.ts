@@ -14,6 +14,7 @@ import { SongCollection, SongCollectionElement } from '../../models/songCollecti
 import { SongCollectionDataService } from '../../services/song-collection-data.service';
 import { SuggestionDataService } from '../../services/suggestion-data.service';
 import { Suggestion } from '../../models/suggestion';
+import { SongCollectionElementComponent } from '../song-collection-element/song.collection.element';
 
 @Component({
   selector: 'app-song',
@@ -463,5 +464,24 @@ export class SongComponent implements OnInit, OnDestroy {
         }
       }
     );
+  }
+
+  onCollectionElementClick(collectionElement: SongCollectionElement, collection: SongCollection) {
+    const user = this.auth.getUser();
+    if ((this.auth.login) && (user != undefined) && user.isAdmin()) {
+      const config = {
+        data: {
+          collectionElement: collectionElement,
+          songCollection: collection,
+          song: this.song,
+        }
+      };
+      const dialogRef = this.dialog.open(SongCollectionElementComponent, config);
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result === 'ok') {
+          window.location.reload();
+        }
+      });
+    }
   }
 }
