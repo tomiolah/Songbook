@@ -1,5 +1,6 @@
 package com.bence.projector.server.api.resources;
 
+import com.bence.projector.common.dto.BooleanResponse;
 import com.bence.projector.common.dto.SongCollectionDTO;
 import com.bence.projector.common.dto.SongCollectionElementDTO;
 import com.bence.projector.server.api.assembler.SongCollectionAssembler;
@@ -140,6 +141,31 @@ public class SongCollectionResource {
             return new ResponseEntity<>(songCollectionAssembler.createDto(songCollection), HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>("Could not create", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "admin/api/songCollection/{songCollectionUuid}/song/{songUuid}/ordinalNumber/{ordinalNumber}")
+    public ResponseEntity<BooleanResponse> deleteSongCollectionElement(@PathVariable String songCollectionUuid, @PathVariable String songUuid, @PathVariable String ordinalNumber) {
+        BooleanResponse booleanResponse = new BooleanResponse();
+        booleanResponse.setResponse(deleteSongCollectionElementByData(songCollectionUuid, songUuid, ordinalNumber));
+        return new ResponseEntity<>(booleanResponse, HttpStatus.ACCEPTED);
+    }
+
+    private boolean deleteSongCollectionElementByData(String songCollectionUuid, String songUuid, String ordinalNumber) {
+        SongCollection songCollection = songCollectionService.findOneByUuid(songCollectionUuid);
+        if (songCollection == null || songUuid == null || ordinalNumber == null) {
+            return false;
+        }
+        List<SongCollectionElement> songCollectionElements = songCollection.getSongCollectionElements();
+        for (SongCollectionElement songCollectionElement : songCollectionElements) {
+            if (ordinalNumber.equals(songCollectionElement.getOrdinalNumber()) && songUuid.equals(songCollectionElement.getSongUuid())) {
+                songCollectionElementService.delete(songCollectionElement.getId());
+                songCollection.setModifiedDate(new Date());
+                songCollectionElements.remove(songCollectionElement);
+                songCollectionService.saveWithoutForeign(songCollection);
+                return true;
+            }
+        }
+        return false;
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/api/songCollection/upload")

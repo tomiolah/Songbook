@@ -1,9 +1,9 @@
-import {Component, Inject, OnInit} from '@angular/core';
-import {MAT_DIALOG_DATA, MatDialogRef, MatSnackBar} from '@angular/material';
-import {FormBuilder, FormGroup, Validators} from '@angular/forms';
-import {AuthService} from '../../services/auth.service';
-import {Router} from '@angular/router';
-import {User} from "../../models/user";
+import { Component, Inject, OnInit } from '@angular/core';
+import { MAT_DIALOG_DATA, MatDialogRef, MatSnackBar } from '@angular/material';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
+import { User } from "../../models/user";
 
 @Component({
   selector: 'app-authenticate',
@@ -25,11 +25,11 @@ export class AuthenticateComponent implements OnInit {
   };
 
   constructor(public dialogRef: MatDialogRef<AuthenticateComponent>,
-              @Inject(MAT_DIALOG_DATA) public data: any,
-              private fb: FormBuilder,
-              private authService: AuthService,
-              private router: Router,
-              private snackBar: MatSnackBar) {
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private fb: FormBuilder,
+    private authService: AuthService,
+    private router: Router,
+    private snackBar: MatSnackBar) {
   }
 
   ngOnInit() {
@@ -45,6 +45,11 @@ export class AuthenticateComponent implements OnInit {
     });
     this.loginForm.valueChanges.subscribe(() => this.onValueChanged());
     this.onValueChanged();
+    setInterval(() => {
+      if (this.authService.loginConfirmed) {
+        this.dialogRef.close('ok');
+      }
+    }, 100);
   }
 
   onValueChanged() {
@@ -79,6 +84,7 @@ export class AuthenticateComponent implements OnInit {
             localStorage.setItem('currentUser', JSON.stringify(user));
             this.authService.setUser(user);
             this.authService.isLoggedIn = true;
+            this.authService.loginConfirmed = true;
             this.dialogRef.close('ok');
           },
           () => {

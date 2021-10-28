@@ -11,6 +11,7 @@ import { User } from '../models/user';
 export class AuthService {
 
   isLoggedIn = false;
+  loginConfirmed = false;
   private FUser: User;
   private NoUser: User;
 
