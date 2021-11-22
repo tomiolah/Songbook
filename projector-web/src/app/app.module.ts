@@ -92,6 +92,7 @@ import { ReviewerStatisticsListComponent } from './ui/reviewer-statistics-list/r
 import { VersionLinkListComponent } from './ui/version-link-list/version-link-list.component';
 import { SongLinkDataService } from './services/song-link-data.service';
 import { VersionLinkComponent } from './ui/version-link/version-link.component';
+import { SongCollectionElementComponent } from './ui/song-collection-element/song.collection.element';
 
 @NgModule({
   exports: [
@@ -174,6 +175,7 @@ export class PlunkerMaterialModule {
     ReviewerStatisticsListComponent,
     VersionLinkListComponent,
     VersionLinkComponent,
+    SongCollectionElementComponent,
   ],
   imports: [
     BrowserModule,
@@ -194,6 +196,7 @@ export class PlunkerMaterialModule {
     AuthenticateComponent,
     OpenInAppComponent,
     AddToCollectionComponent,
+    SongCollectionElementComponent,
   ],
   providers: [
     ApiService,

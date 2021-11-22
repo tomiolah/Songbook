@@ -14,4 +14,6 @@ public interface SongCollectionService extends BaseService<SongCollection> {
     boolean matches(SongCollection savedSongCollection, SongCollection songCollection1);
 
     List<SongCollection> findAllBySong(Song song);
+
+    SongCollection saveWithoutForeign(SongCollection songCollection);
 }

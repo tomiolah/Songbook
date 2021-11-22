@@ -1,5 +1,6 @@
 package com.bence.projector.server.api.resources;
 
+import com.bence.projector.common.dto.BooleanResponse;
 import com.bence.projector.common.dto.LoginSongDTO;
 import com.bence.projector.common.dto.SongDTO;
 import com.bence.projector.common.dto.SongFavouritesDTO;
@@ -38,6 +39,7 @@ import java.util.Date;
 import java.util.List;
 
 import static com.bence.projector.server.api.resources.StatisticsResource.saveStatistics;
+import static com.bence.projector.server.api.resources.UserPropertiesResource.getUserFromPrincipalAndUserService;
 
 @RestController
 public class SongResource {
@@ -64,17 +66,26 @@ public class SongResource {
         this.mailSenderService = mailSenderService;
     }
 
-    static boolean songInReviewLanguages(User user, Song song) {
+    static boolean hasReviewerRoleForSong(User user, Song song) {
+        if ((song == null) || (user == null)) {
+            return false;
+        }
         if (user.getRole().equals(Role.ROLE_ADMIN)) {
             return true;
         }
-        String id = song.getLanguage().getUuid();
-        for (Language language : user.getReviewLanguages()) {
-            if (language.getUuid().equals(id)) {
-                return true;
-            }
+        if (user.getEmail().equals(song.getCreatedByEmail()) && userIsActivatedOrSongIsRecentlyCreated(user, song)) {
+            return true;
         }
-        return false;
+        return user.hasReviewLanguage(song.getLanguage());
+    }
+
+    private static boolean userIsActivatedOrSongIsRecentlyCreated(User user, Song song) {
+        if (user.isActivated()) {
+            return true;
+        }
+        Date now = new Date();
+        Date beforeOneWeak = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7);
+        return song.getCreatedDate().after(beforeOneWeak);
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs")
@@ -195,13 +206,22 @@ public class SongResource {
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/reviewer/api/song/delete/{songId}")
     public ResponseEntity<Object> deleteSongByReviewer(Principal principal, @PathVariable final String songId, HttpServletRequest httpServletRequest) {
+        return deleteSongByUser(principal, songId, httpServletRequest);
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "/user/api/song/delete/{songId}")
+    public ResponseEntity<Object> deleteSongByUserApi(Principal principal, @PathVariable final String songId, HttpServletRequest httpServletRequest) {
+        return deleteSongByUser(principal, songId, httpServletRequest);
+    }
+
+    private ResponseEntity<Object> deleteSongByUser(Principal principal, String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         if (principal != null) {
             String email = principal.getName();
             User user = userService.findByEmail(email);
             if (user != null) {
                 final Song song = songService.findOneByUuid(songId);
-                if (!songInReviewLanguages(user, song)) {
+                if (!hasReviewerRoleForSong(user, song)) {
                     return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
                 }
                 song.setDeleted(true);
@@ -215,7 +235,7 @@ public class SongResource {
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/admin/api/song/erase/{songId}")
-    public SongDTO eraseSong(@PathVariable final String songId, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Object> eraseSong(@PathVariable final String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         final Song song = songService.findOneByUuid(songId);
         if (song == null) {
@@ -224,18 +244,27 @@ public class SongResource {
         if (song.isDeleted()) {
             songService.deleteByUuid(songId);
         }
-        return songAssembler.createDto(song);
+        return new ResponseEntity<>("{}", HttpStatus.ACCEPTED);
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/reviewer/api/song/erase/{songId}")
     public ResponseEntity<Object> eraseSongByReviewer(Principal principal, @PathVariable final String songId, HttpServletRequest httpServletRequest) {
+        return eraseSongByUser(principal, songId, httpServletRequest);
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "/user/api/song/erase/{songId}")
+    public ResponseEntity<Object> eraseSongByUserApi(Principal principal, @PathVariable final String songId, HttpServletRequest httpServletRequest) {
+        return eraseSongByUser(principal, songId, httpServletRequest);
+    }
+
+    private ResponseEntity<Object> eraseSongByUser(Principal principal, String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         if (principal != null) {
             String email = principal.getName();
             User user = userService.findByEmail(email);
             if (user != null) {
                 Song song = songService.findOneByUuid(songId);
-                if (song != null && songInReviewLanguages(user, song)) {
+                if (hasReviewerRoleForSong(user, song)) {
                     song.setReviewerErased(true);
                     song.setModifiedDate(new Date());
                     song.setLastModifiedBy(user);
@@ -351,6 +380,11 @@ public class SongResource {
         return updateSongByUser(principal, songId, songDTO, httpServletRequest, false);
     }
 
+    @RequestMapping(method = RequestMethod.PUT, value = "/user/api/song/{songId}")
+    public ResponseEntity<Object> updateSongByUser(Principal principal, @PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
+        return updateSongByUser(principal, songId, songDTO, httpServletRequest, false);
+    }
+
     private ResponseEntity<Object> updateSongByUser(Principal principal, @PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest, boolean changeLanguage) {
         saveStatistics(httpServletRequest, statisticsService);
         if (principal != null) {
@@ -358,7 +392,7 @@ public class SongResource {
             User user = userService.findByEmail(email);
             if (user != null) {
                 Song song = songService.findOneByUuid(songId);
-                if (song != null && songInReviewLanguages(user, song)) {
+                if (hasReviewerRoleForSong(user, song)) {
                     if (!changeLanguage) {
                         songDTO.setLanguageDTO(null);
                     }
@@ -372,7 +406,11 @@ public class SongResource {
                     songService.save(backUpSong);
                     song.setBackUp(backUpSong);
                     song.setLastModifiedBy(user);
+                    if (!user.isActivated() && song.isDeleted()) {
+                        songDTO.setDeleted(true);
+                    }
                     songAssembler.updateModel(song, songDTO);
+                    song.setReviewerErased(false);
                     final Song savedSong = songService.save(song);
                     if (savedSong != null) {
                         return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
@@ -386,6 +424,15 @@ public class SongResource {
 
     @RequestMapping(method = RequestMethod.PUT, value = "/reviewer/api/changeLanguageForSong/{songId}")
     public ResponseEntity<Object> changeLanguageByReviewer(Principal principal, @PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
+        return changeLanguageByUser(principal, songId, songDTO, httpServletRequest);
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/user/api/changeLanguageForSong/{songId}")
+    public ResponseEntity<Object> changeLanguageByUserApi(Principal principal, @PathVariable final String songId, @RequestBody final SongDTO songDTO, HttpServletRequest httpServletRequest) {
+        return changeLanguageByUser(principal, songId, songDTO, httpServletRequest);
+    }
+
+    private ResponseEntity<Object> changeLanguageByUser(Principal principal, String songId, SongDTO songDTO, HttpServletRequest httpServletRequest) {
         ResponseEntity<Object> responseEntity = updateSongByUser(principal, songId, songDTO, httpServletRequest, true);
         if (responseEntity.getStatusCode().equals(HttpStatus.ACCEPTED)) {
             Song song = songService.findOneByUuid(songId);
@@ -594,5 +641,17 @@ public class SongResource {
         User user = userService.findOneByUuid(userId);
         List<Song> songs = songService.findAllReviewedByUser(user);
         return songTitleAssembler.createDtoList(songs);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "user/api/song/{uuid}/hasReviewerRoleForSong")
+    public ResponseEntity<BooleanResponse> hasReviewerRoleForSongApi(@PathVariable("uuid") String uuid, Principal principal) {
+        User user = getUserFromPrincipal(principal);
+        BooleanResponse booleanResponse = new BooleanResponse();
+        booleanResponse.setResponse(hasReviewerRoleForSong(user, songService.findOneByUuid(uuid)));
+        return new ResponseEntity<>(booleanResponse, HttpStatus.ACCEPTED);
+    }
+
+    private User getUserFromPrincipal(Principal principal) {
+        return getUserFromPrincipalAndUserService(principal, userService);
     }
 }

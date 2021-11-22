@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import projector.MainDesktop;
 import projector.api.ApiException;
 import projector.api.SongApiBean;
+import projector.api.retrofit.ApiManager;
 import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.controller.LoginController;
@@ -463,6 +464,7 @@ public class NewSongController {
     public void saveButtonOnAction() {
         if (saveSong()) {
             songController.addSong(newSong);
+            songController.refreshScheduleListView();
         }
     }
 
@@ -472,7 +474,7 @@ public class NewSongController {
             Alert alert = new Alert(AlertType.WARNING);
             alert.setTitle("Warning");
             alert.setHeaderText("No language!");
-            alert.setContentText("Please select a language! Or create a new one at https://projector-songbook.herokuapp.com");
+            alert.setContentText("Please select a language! Or create a new one at " + ApiManager.BASE_URL);
             alert.showAndWait();
             return false;
         }
@@ -487,6 +489,7 @@ public class NewSongController {
         final Date createdDate = new Date();
         if (isEdit()) {
             songController.removeSongFromList(selectedSong);
+            editingSong = songService.getFromMemoryOrSong(editingSong);
             songVerseService.delete(editingSong.getVerses());
             newSong = editingSong;
         } else {

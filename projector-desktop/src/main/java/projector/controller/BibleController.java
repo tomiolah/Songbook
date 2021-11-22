@@ -61,6 +61,7 @@ import projector.utils.Triplet;
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
+import java.net.URL;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Date;
@@ -77,6 +78,8 @@ public class BibleController {
 
     private static final Logger LOG = LoggerFactory.getLogger(BibleController.class);
     private static final int verseRightMargin = 37;
+    private final List<Bible> parallelBibles = new ArrayList<>();
+    private final Settings settings = Settings.getInstance();
     private MyController mainController;
     private ProjectionScreenController projectionScreenController;
     private BibleSearchController bibleSearchController;
@@ -124,9 +127,7 @@ public class BibleController {
     private Button nextButton;
     @FXML
     private ToggleButton abbreviationToggleButton;
-
     private Bible bible;
-    private List<Bible> parallelBibles = new ArrayList<>();
     private List<Integer> searchIBook;
     private Integer searchSelected = 0;
     private boolean isAllBooks;
@@ -137,13 +138,11 @@ public class BibleController {
     private int selectedPart = -1;
     private int selectedVerse = -1;
     private boolean isLastVerse = false;
-
     private Reference allReference;
     private Reference ref;
     private List<Reference> references;
     private boolean oldReplace = false;
     private boolean newReferenceAdded = false;
-    private Settings settings = Settings.getInstance();
     private Font verseFont;
     private Date lastUpdateSelected;
     private boolean initialized = false;
@@ -230,7 +229,7 @@ public class BibleController {
                     bible = newValue;
                     setAbbreviationButtonVisibility();
                     addAllBooks();
-                    bibleSearchController.setBooks(bible.getBooks());
+                    bibleSearchController.setBible(bible);
                     historyController.setBible(bible);
 
                     if (bookI > bible.getBooks().size() - 1) {
@@ -1103,9 +1102,6 @@ public class BibleController {
                 return;
             }
             ObservableList<Bible> items = bibleListView.getItems();
-            if (items.size() > 0) {
-                return;
-            }
             items.clear();
             items.addAll(bibles);
             parallelBibles.clear();
@@ -1128,7 +1124,15 @@ public class BibleController {
 //                Reader.setBooksRead(false);
 //                otherBible.setBooks(Reader.getBooks("ElberfelderBibel.txt"));
 //                createIndices(otherBible);
-//                setIndicesForBible(otherBible);
+//            setIndicesForBible(bibles.get(0));
+//            Bible bible = bibles.get(0);
+//            List<Chapter> chapters = bible.getBooks().get(39).getChapters();
+//            Chapter chapter = chapters.get(16);
+//            BibleVerse bibleVerse = chapter.getVerses().get(20);
+//            bibleVerse.setText("");
+//            bibleService.delete(bible);
+//            bibleService.create(bible);
+//            uploadBible(bibles.get(0));
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -1514,7 +1518,7 @@ public class BibleController {
             Pane root = loader.load();
             DownloadBiblesController controller = loader.getController();
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+            setStyleFile(scene);
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download bibles"));
@@ -1526,6 +1530,13 @@ public class BibleController {
         }
     }
 
+    private void setStyleFile(Scene scene) {
+        URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+        if (resource != null) {
+            scene.getStylesheets().add(resource.toExternalForm());
+        }
+    }
+
     public void parallelBibles() {
         try {
             FXMLLoader loader = new FXMLLoader();
@@ -1534,7 +1545,7 @@ public class BibleController {
             Pane root = loader.load();
             ParallelBiblesController controller = loader.getController();
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+            setStyleFile(scene);
             Stage stage = new Stage();
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Parallel"));

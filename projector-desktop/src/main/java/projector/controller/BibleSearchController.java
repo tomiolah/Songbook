@@ -13,7 +13,10 @@ import javafx.scene.text.TextFlow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.Settings;
+import projector.model.Bible;
+import projector.model.BibleVerse;
 import projector.model.Book;
+import projector.model.Chapter;
 
 import java.text.Normalizer;
 import java.util.ArrayList;
@@ -30,7 +33,6 @@ public class BibleSearchController {
     private ListView<TextFlow> searchListView;
     private BibleController bibleController;
 
-    private List<Book> books;
     private List<Integer> searchIBook;
     private List<Integer> searchIPart;
     private List<Integer> searchIVerse;
@@ -40,6 +42,7 @@ public class BibleSearchController {
     private int maxResults;
     private MyController mainController;
     private boolean initialized = false;
+    private Bible bible;
 
     private static String strip(String s) {
         s = stripAccents(s).replaceAll("[^a-zA-Z]", "").toLowerCase(Locale.US).trim();
@@ -151,19 +154,25 @@ public class BibleSearchController {
             List<Integer> tmpSearchIPart = new ArrayList<>();
             List<Integer> tmpSearchIVerse = new ArrayList<>();
             int results = 0;
+            List<Book> books = bible.getBooks();
             for (int iBook = 0; iBook < books.size() && results < maxResults; ++iBook) {
-                for (int iPart = 0; iPart < books.get(iBook).getChapters().size() && results < maxResults; ++iPart) {
-                    for (int iVerse = 0; iVerse < books.get(iBook).getChapters().get(iPart).getVerses().size(); ++iVerse) {
+                Book book = books.get(iBook);
+                List<Chapter> chapters = book.getChapters();
+                for (int iPart = 0; iPart < chapters.size() && results < maxResults; ++iPart) {
+                    Chapter chapter = chapters.get(iPart);
+                    List<BibleVerse> bibleVerses = chapter.getVerses();
+                    for (int iVerse = 0; iVerse < bibleVerses.size(); ++iVerse) {
                         String text2;
-                        String verse = books.get(iBook).getChapters().get(iPart).getVerses().get(iVerse).getText();
+                        BibleVerse bibleVerse = bibleVerses.get(iVerse);
+                        String verse = bibleVerse.getText();
                         if (Settings.getInstance().isWithAccents()) {
-                            text2 = books.get(iBook).getChapters().get(iPart).getVerses().get(iVerse).getText();
+                            text2 = bibleVerse.getText();
                         } else {
-                            text2 = books.get(iBook).getChapters().get(iPart).getVerses().get(iVerse).getStrippedText();
+                            text2 = bibleVerse.getStrippedText();
                         }
                         if (contains(text2, text3)) {
                             TextFlow textFlow = new TextFlow();
-                            Text reference = new Text(books.get(iBook).getTitle() + " " + (iPart + 1) + ":" + (iVerse + 1) + " ");
+                            Text reference = new Text(book.getTitle() + " " + (iPart + 1) + ":" + (iVerse + 1) + " ");
                             reference.setFill(Color.rgb(5, 30, 70));
                             textFlow.getChildren().add(reference);
                             char[] chars = stripAccents(verse).toLowerCase().toCharArray();
@@ -244,12 +253,8 @@ public class BibleSearchController {
         this.searchSelected = searchSelected;
     }
 
-    void setBooks(List<Book> books) {
-        this.books = books;
-    }
-
     void initializeBibles() {
-        if (books == null) {
+        if (bible == null) {
             bibleController.initializeBibles();
         }
     }
@@ -262,4 +267,7 @@ public class BibleSearchController {
         }
     }
 
+    public void setBible(Bible bible) {
+        this.bible = bible;
+    }
 }

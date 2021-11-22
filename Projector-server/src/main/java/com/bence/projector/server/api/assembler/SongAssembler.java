@@ -59,7 +59,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
                     short index = 0;
                     for (SongVerse songVerse : song.getVerses()) {
                         String type = songVerse.getType();
-                        if (type != null && type.toUpperCase().equals(s.toUpperCase())) {
+                        if (type != null && type.equalsIgnoreCase(s)) {
                             verseOrderList.add(index);
                             break;
                         }
@@ -85,6 +85,7 @@ public class SongAssembler implements GeneralAssembler<Song, SongDTO> {
             }
         }
         songDTO.setAuthor(song.getAuthor());
+        songDTO.setReviewerErased(song.isReviewerErased());
         Song backUp = song.getBackUp();
         if (backUp != null) {
             songDTO.setBackUpSongId(backUp.getUuid());

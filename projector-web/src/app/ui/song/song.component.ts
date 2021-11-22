@@ -14,6 +14,7 @@ import { SongCollection, SongCollectionElement } from '../../models/songCollecti
 import { SongCollectionDataService } from '../../services/song-collection-data.service';
 import { SuggestionDataService } from '../../services/suggestion-data.service';
 import { Suggestion } from '../../models/suggestion';
+import { SongCollectionElementComponent } from '../song-collection-element/song.collection.element';
 
 @Component({
   selector: 'app-song',
@@ -39,11 +40,13 @@ export class SongComponent implements OnInit, OnDestroy {
   mergeVersionGroupType = 2;
   copyToSongCollectionType = 3;
   loadSuggestionType = 4;
+  private checkReviewerRoleType = 5;
   public isIos = false;
   collections: SongCollection[] = [];
   unreviewedSuggestions: Suggestion[] = [];
   private markedVersionGroup_key = "markedForVersionSong";
   @ViewChild("versions", { static: false }) versionsElement: ElementRef;
+  hasReviewerRoleForSong: boolean;
 
   constructor(private activatedRoute: ActivatedRoute,
     private songService: SongService,
@@ -79,12 +82,17 @@ export class SongComponent implements OnInit, OnDestroy {
     this.calculateUrlId(song.youtubeUrl);
     this.titleService.setTitle(this.song.title);
     this.songsByVersionGroup = [];
+    this.loadSongDetails();
     this.loadVersionGroup();
     this.loadSuggestions();
     if (!song.deleted) {
       history.replaceState('data to be passed', this.song.title, window.location.href.replace('/#/song/', '/song/'));
     }
     this.refreshMergeSong();
+  }
+
+  loadSongDetails() {
+    this.checkReviewerRoleForSong();
   }
 
   // noinspection JSMethodCanBeStatic
@@ -130,6 +138,7 @@ export class SongComponent implements OnInit, OnDestroy {
           } else if (this.isIos) {
             this.showOpenInAppDialog(MobileOsTypeEnum.Ios);
           }
+          this.loadSongDetails();
           this.loadVersionGroup();
           this.showSimilarOnStart();
           this.loadSuggestions();
@@ -162,7 +171,7 @@ export class SongComponent implements OnInit, OnDestroy {
 
   showSimilarOnStart() {
     const user = this.auth.getUser();
-    if (this.auth.isLoggedIn && user != undefined && (user.hasReviewerRoleForSong(this.song) || user.isAdmin())) {
+    if (this.auth.isLoggedIn && user != undefined && (this.hasReviewerRoleForSong || user.isAdmin())) {
       this.showSimilar();
     }
   }
@@ -190,7 +199,8 @@ export class SongComponent implements OnInit, OnDestroy {
   deleteSong() {
     const role = this.auth.getUser().getRolePath();
     this.songService.deleteById(role, this.song.uuid).subscribe(() => {
-
+      this.ngOnInit();
+      history.replaceState('data to be passed', this.song.title, window.location.href.replace('/song/', '/#/song/'));
     });
   }
 
@@ -216,7 +226,7 @@ export class SongComponent implements OnInit, OnDestroy {
 
   publishSong() {
     this.songService.publishById(this.song.uuid).subscribe(() => {
-
+      window.location.reload();
     });
   }
 
@@ -398,6 +408,8 @@ export class SongComponent implements OnInit, OnDestroy {
           this.copySongCollectionElementsToSimilar();
         } else if (type == this.loadSuggestionType) {
           this.loadSuggestions();
+        } else if (type == this.checkReviewerRoleType) {
+          this.checkReviewerRoleForSong();
         }
       }
     });
@@ -406,7 +418,7 @@ export class SongComponent implements OnInit, OnDestroy {
   private loadSuggestions() {
     const user = this.auth.getUser();
     const role = user.getRolePath();
-    if (this.auth.isLoggedIn && user != undefined && (user.hasReviewerRoleForSong(this.song) || user.isAdmin())) {
+    if (this.auth.isLoggedIn && user != undefined && (this.hasReviewerRoleForSong || user.isAdmin())) {
       this.showSimilar();
       this.suggestionDataService.getAllBySong(role, this.song).subscribe(
         (suggestionList) => {
@@ -418,7 +430,7 @@ export class SongComponent implements OnInit, OnDestroy {
           }
         },
         (err) => {
-          if (err.message === 'Unexpected token < in JSON at position 0') {
+          if (this.authenticationNeeded(err)) {
             this.openAuthenticateDialog(this.loadSuggestionType);
           }
         }
@@ -426,8 +438,50 @@ export class SongComponent implements OnInit, OnDestroy {
     }
   }
 
+  private authenticationNeeded(err: any) {
+    return err.message === 'Unexpected token < in JSON at position 0';
+  }
+
   conditionForShowingCollection() {
     const user = this.auth.getUser();
-    return this.auth.isLoggedIn && user != undefined && (user.isAdmin() || user.hasReviewerRoleForSong(this.song));
+    return this.auth.isLoggedIn && user != undefined && (user.isAdmin() || this.hasReviewerRoleForSong);
+  }
+
+  private checkReviewerRoleForSong() {
+    this.hasReviewerRoleForSong = false;
+    let user = this.auth.getUser();
+    if (user == undefined || user.email == '') {
+      return;
+    }
+    this.songService.hasReviewerRoleForSong(this.song).subscribe(
+      (booleanResponse) => {
+        this.hasReviewerRoleForSong = booleanResponse.response;
+        this.showSimilarOnStart();
+      },
+      (err) => {
+        if (this.authenticationNeeded(err)) {
+          this.openAuthenticateDialog(this.checkReviewerRoleType);
+        }
+      }
+    );
+  }
+
+  onCollectionElementClick(collectionElement: SongCollectionElement, collection: SongCollection) {
+    const user = this.auth.getUser();
+    if ((this.auth.login) && (user != undefined) && user.isAdmin()) {
+      const config = {
+        data: {
+          collectionElement: collectionElement,
+          songCollection: collection,
+          song: this.song,
+        }
+      };
+      const dialogRef = this.dialog.open(SongCollectionElementComponent, config);
+      dialogRef.afterClosed().subscribe((result) => {
+        if (result === 'ok') {
+          window.location.reload();
+        }
+      });
+    }
   }
 }

@@ -1,4 +1,3 @@
-
 package projector.utils;
 
 import com.google.gson.Gson;
@@ -36,11 +35,13 @@ public class BibleImport {
 
     public static void main(String[] args) {
         //bibleImportFromJson();
+        //bibleImport();
+        bibleImporting();
     }
 
     public static void bibleImporting() {
         List<Bible> bibles = ServiceManager.getBibleService().findAll();
-        Bible bible = bibles.get(3);
+        Bible bible = bibles.get(1);
         setIndicesForBible(bible);
         //bibleImportFromJson();
     }
@@ -232,13 +233,14 @@ public class BibleImport {
             Bible bible = new Bible();
             bible.setBooks(bookArrayList);
             List<Language> languages = ServiceManager.getLanguageService().findAll();
-            bible.setLanguage(languages.get(3));
+            bible.setLanguage(languages.get(2));
             bible.setCreatedDate(new Date());
             bible.setModifiedDate(bible.getCreatedDate());
-            bible.setName("Hoffnung für Alle, 2015");
-            bible.setShortName("HFA");
+            bible.setName("New International Version");
+            bible.setShortName("NIV");
+            createIndices(bible);
 
-            verseImport(bible);
+            //verseImport(bible); // for not complete json
             ServiceManager.getBibleService().create(bible);
             //createIndices(bible);
             //setIndicesForBible(bible);
@@ -307,7 +309,7 @@ public class BibleImport {
     }
 
     @SuppressWarnings("unused")
-    private static void uploadBible(Bible bible) {
+    public static void uploadBible(Bible bible) {
         BibleApiBean bibleApiBean = new BibleApiBean();
         Bible uploadedBible = bibleApiBean.uploadBible(bible);
         System.out.println("accomplished");
@@ -317,9 +319,11 @@ public class BibleImport {
     private static void createIndices(Bible bible) {
         int k = 1;
         for (Book book : bible.getBooks()) {
+            book.setBible(bible);
             short chapterNr = 1;
             for (Chapter chapter : book.getChapters()) {
                 chapter.setNumber(chapterNr++);
+                chapter.setBook(book);
                 short verseNr = 1;
                 for (BibleVerse bibleVerse : chapter.getVerses()) {
                     bibleVerse.setNumber(verseNr++);
@@ -328,13 +332,14 @@ public class BibleImport {
                     verseIndex.setIndexNumber((long) (k++ * 1000));
                     verseIndices.add(verseIndex);
                     bibleVerse.setVerseIndices(verseIndices);
+                    bibleVerse.setChapter(chapter);
                 }
             }
         }
     }
 
     @SuppressWarnings("unused")
-    private static void setIndicesForBible(Bible otherBible) {
+    public static void setIndicesForBible(Bible otherBible) {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(MainDesktop.class.getResource("/view/IndicesForBibleView.fxml"));
@@ -342,7 +347,7 @@ public class BibleImport {
             Pane root = loader.load();
             IndicesForBibleController controller = loader.getController();
             List<Bible> bibles = ServiceManager.getBibleService().findAll();
-            controller.setLeftBible(bibles.get(0));
+            controller.setLeftBible(bibles.get(2));
             controller.setOtherBible(otherBible);
             Scene scene = new Scene(root);
             scene.getStylesheets().add(BibleImport.class.getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());

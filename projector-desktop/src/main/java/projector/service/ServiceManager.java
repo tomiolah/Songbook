@@ -12,12 +12,17 @@ import projector.service.impl.VerseIndexServiceImpl;
 
 public class ServiceManager {
 
+    private static SongServiceImpl songService;
+
     public static SongBookService getSongBookService() {
         return new SongBookServiceImpl();
     }
 
     public static SongService getSongService() {
-        return new SongServiceImpl();
+        if (songService == null) {
+            songService = new SongServiceImpl();
+        }
+        return songService;
     }
 
     public static SongVerseService getSongVerseService() {

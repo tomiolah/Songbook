@@ -5,6 +5,7 @@ import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongCollection;
 import com.bence.projector.server.backend.model.SongCollectionElement;
 import com.bence.projector.server.backend.repository.SongCollectionRepository;
+import com.bence.projector.server.backend.service.SongCollectionElementService;
 import com.bence.projector.server.backend.service.SongCollectionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,8 @@ import static com.bence.projector.server.utils.ListUtil.twoListMatches;
 public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> implements SongCollectionService {
     @Autowired
     private SongCollectionRepository songCollectionRepository;
+    @Autowired
+    private SongCollectionElementService songCollectionElementService;
 
     @Override
     public List<SongCollection> findAllByLanguageAndAndModifiedDateGreaterThan(Language language, Date lastModifiedDate) {
@@ -60,5 +63,24 @@ public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> i
     @Override
     public void deleteByUuid(String uuid) {
 
+    }
+
+    @Override
+    public SongCollection saveWithoutForeign(SongCollection songCollection) {
+        return this.songCollectionRepository.save(songCollection);
+    }
+
+    @Override
+    public SongCollection save(SongCollection songCollection) {
+        songCollectionElementService.save(songCollection.getSongCollectionElements());
+        return saveWithoutForeign(songCollection);
+    }
+
+    @Override
+    public Iterable<SongCollection> save(List<SongCollection> songCollections) {
+        for (SongCollection songCollection : songCollections) {
+            this.save(songCollection);
+        }
+        return songCollections;
     }
 }

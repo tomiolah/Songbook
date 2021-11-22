@@ -286,7 +286,19 @@ public class Song extends BaseEntity {
     }
 
     public void addToSongCollections(SongCollection songCollection) {
-        getSongCollections().add(songCollection);
+        List<SongCollection> songCollections = getSongCollections();
+        if (!containsSongCollection(songCollections, songCollection)) {
+            songCollections.add(songCollection);
+        }
+    }
+
+    private boolean containsSongCollection(List<SongCollection> songCollections, SongCollection songCollection) {
+        for (SongCollection collection : songCollections) {
+            if (collection.getId().equals(songCollection.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public List<SongCollectionElement> getSongCollectionElements() {
@@ -401,7 +413,19 @@ public class Song extends BaseEntity {
     }
 
     public void addToSongCollectionElements(SongCollectionElement songCollectionElement) {
-        getSongCollectionElements().add(songCollectionElement);
+        List<SongCollectionElement> songCollectionElements = getSongCollectionElements();
+        if (!containsSongCollectionElement(songCollectionElements, songCollectionElement)) {
+            songCollectionElements.add(songCollectionElement);
+        }
+    }
+
+    private boolean containsSongCollectionElement(List<SongCollectionElement> songCollectionElements, SongCollectionElement songCollectionElement) {
+        for (SongCollectionElement collectionElement : songCollectionElements) {
+            if (collectionElement.getId().equals(songCollectionElement.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -180,10 +180,10 @@ public class IndicesForBibleController {
 
     public void decreaseIndex() {
         BibleVerse selectedItem = otherListViewSelectionModel.getSelectedItem();
-        Long indexNumber = null;
-        if (selectedItem != null) {
-            indexNumber = selectedItem.getVerseIndices().get(0).getIndexNumber();
+        if (selectedItem == null) {
+            return;
         }
+        Long indexNumber = selectedItem.getVerseIndices().get(0).getIndexNumber();
         changeIndex(indexNumber, -1000);
         fillVerseMap();
         reloadListViews();
@@ -191,10 +191,10 @@ public class IndicesForBibleController {
 
     public void increaseIndex() {
         BibleVerse selectedItem = otherListViewSelectionModel.getSelectedItem();
-        Long indexNumber = null;
-        if (selectedItem != null) {
-            indexNumber = selectedItem.getVerseIndices().get(0).getIndexNumber();
+        if (selectedItem == null) {
+            return;
         }
+        Long indexNumber = selectedItem.getVerseIndices().get(0).getIndexNumber();
         changeIndex(indexNumber, 1000);
         fillVerseMap();
         reloadListViews();
@@ -256,7 +256,7 @@ public class IndicesForBibleController {
         }
         for (int i = 1; i < selectedItems.size() && i < 10; ++i) {
             VerseIndex verseIndex = new VerseIndex();
-            long newIndex = first.getIndexNumber() + 10 * i;
+            long newIndex = first.getIndexNumber() + 10L * i;
             verseIndex.setIndexNumber(newIndex);
             verseIndices.add(verseIndex);
             selectedItems.get(i).getVerseIndices().get(0).setIndexNumber(newIndex);
