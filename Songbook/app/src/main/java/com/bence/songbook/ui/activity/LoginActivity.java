@@ -1,5 +1,9 @@
 package com.bence.songbook.ui.activity;
 
+import static com.bence.songbook.utils.BaseURL.BASE_URL;
+
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
@@ -99,5 +103,10 @@ public class LoginActivity extends AppCompatActivity {
 
     private String getStringFromEditText(EditText editTextTextEmailAddress) {
         return editTextTextEmailAddress.getText().toString();
+    }
+
+    public void onCreateAccountClick(View view) {
+        Uri uri = Uri.parse(BASE_URL + "#/registration");
+        startActivity(new Intent(Intent.ACTION_VIEW, uri));
     }
 }

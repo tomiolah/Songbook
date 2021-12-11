@@ -132,4 +132,5 @@
     <string name="login">Bejelentkezés</string>
     <string name="try_again_later">Próbáld újra később</string>
     <string name="password_or_email_incorrect">Nem jó a jelszó vagy az e-mail cím</string>
+    <string name="create_account">Regisztráció</string>
 </resources>
