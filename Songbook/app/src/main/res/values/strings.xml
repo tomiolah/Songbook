@@ -132,4 +132,7 @@
     <string name="this_song_has_been_modified_please_update_your_songs_in_order_to_see_the_differences">This song has been modified, please update your songs in order to see the differences!</string>
     <string name="not_now">Not now</string>
     <string name="update_songs">Update songs</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="try_again_later">Try again later</string>
 </resources>

@@ -128,4 +128,7 @@
     <string name="not_now">Később</string>
     <string name="this_song_has_been_modified_please_update_your_songs_in_order_to_see_the_differences">Modosítások elérhetőek, kérjük frissítse az énekeket a különbségek megtekintéséhez!</string>
     <string name="update_songs">Frissítés</string>
+    <string name="password">Jelszó</string>
+    <string name="login">Bejelentkezés</string>
+    <string name="try_again_later">Próbáld újra később</string>
 </resources>

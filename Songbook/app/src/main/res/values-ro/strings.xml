@@ -128,4 +128,7 @@
     <string name="not_now">Nu acum</string>
     <string name="this_song_has_been_modified_please_update_your_songs_in_order_to_see_the_differences">Acest cântec a fost modificat, vă rugăm să actualizați cântecele pentru a vedea diferențele!</string>
     <string name="update_songs">Actualizare</string>
+    <string name="password">Parolă</string>
+    <string name="login">Autentificare</string>
+    <string name="try_again_later">Încercați mai târziu</string>
 </resources>

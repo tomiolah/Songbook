@@ -5,9 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -16,6 +13,10 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
+
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.bence.projector.common.dto.SongVerseDTO;
 import com.bence.projector.common.dto.SuggestionDTO;
@@ -28,6 +29,7 @@ import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.CheckSongForUpdateListener;
 import com.bence.songbook.ui.utils.Preferences;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +50,10 @@ public class SuggestEditsActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         toolbar.setTitle(R.string.suggest_edits);
         setSupportActionBar(toolbar);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        ActionBar supportActionBar = getSupportActionBar();
+        if (supportActionBar != null) {
+            supportActionBar.setDisplayHomeAsUpEnabled(true);
+            supportActionBar.setDisplayShowHomeEnabled(true);
         }
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -66,7 +69,7 @@ public class SuggestEditsActivity extends AppCompatActivity {
         textEditText = findViewById(R.id.text);
         titleEditText.setText(song.getTitle());
         textEditText.setText(getText(song));
-        if (method.equals("EDIT")) {
+        if (method != null && method.equals("EDIT")) {
             edit = true;
         } else {
             titleEditText.setKeyListener(null);
@@ -139,7 +142,7 @@ public class SuggestEditsActivity extends AppCompatActivity {
                 Toast.makeText(this, R.string.no_change, Toast.LENGTH_SHORT).show();
                 return;
             }
-            if (text.toLowerCase().equals("text")) {
+            if (text.equalsIgnoreCase("text")) {
                 Toast.makeText(this, R.string.too_short_text, Toast.LENGTH_SHORT).show();
                 return;
             }

@@ -122,6 +122,7 @@ public class MainActivity extends AppCompatActivity
     public static final int SONG_UNDO_DELETION = 11;
     private final Memory memory = Memory.getInstance();
     private final int DOWNLOAD_SONGS_REQUEST_CODE = 1;
+    private final int LOGIN_IN_ACTIVITY_REQUEST_CODE = 12;
     private List<Song> songs;
     private List<Song> values = new ArrayList<>();
     private String lastSearchedText = "";
@@ -1603,7 +1604,9 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(loadIntent, 5);
         } else if (id == R.id.nav_privacy_policy) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://comsongbook.firebaseapp.com/privacy_policy.html")));
-//        } else if (id == R.id.nav_sign_in) {
+        } else if (id == R.id.nav_sign_in) {
+            Intent loadIntent = new Intent(this, LoginActivity.class);
+            startActivityForResult(loadIntent, LOGIN_IN_ACTIVITY_REQUEST_CODE);
 //            if (!gSignIn) {
 //                googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), true);
 //                if (googleSignInPopupWindow != null) {
@@ -1620,7 +1623,6 @@ public class MainActivity extends AppCompatActivity
 //                if (signInMenuItem != null) {
 //                    signInMenuItem.setTitle(getString(R.string.sign_in));
 //                }
-//            }
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -2511,7 +2513,7 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    public class CenterLayoutManager extends LinearLayoutManager {
+    public static class CenterLayoutManager extends LinearLayoutManager {
 
         CenterLayoutManager(Context context) {
             super(context);
