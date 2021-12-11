@@ -28,7 +28,7 @@ import java.sql.SQLException;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final String TAG = DatabaseHelper.class.getSimpleName();
     private static final String DATABASE_NAME = "songbook.db";
-    private static final int DATABASE_VERSION = 21;
+    private static final int DATABASE_VERSION = 24;
 
     @SuppressLint("StaticFieldLeak")
     private static DatabaseHelper instance;
@@ -67,7 +67,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
             TableUtils.createTableIfNotExists(connectionSource, Song.class);
             sharedPreferences.edit().putInt("songVerseDataBaseVersion", 5).apply();
             TableUtils.createTableIfNotExists(connectionSource, SongVerse.class);
-            sharedPreferences.edit().putInt("languageDataBaseVersion", 4).apply();
+            sharedPreferences.edit().putInt("languageDataBaseVersion", 7).apply();
             TableUtils.createTableIfNotExists(connectionSource, Language.class);
             sharedPreferences.edit().putInt("songCollectionDataBaseVersion", 5).apply();
             TableUtils.createTableIfNotExists(connectionSource, SongCollection.class);
@@ -134,6 +134,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                 int languageDataBaseVersion = sharedPreferences.getInt("languageDataBaseVersion", 0);
                 if (languageDataBaseVersion < 4) {
                     TableUtils.dropTable(connectionSource, Language.class, true);
+                } else if (languageDataBaseVersion < 7) {
+                    getLanguageDao().executeRaw("ALTER TABLE `language` ADD COLUMN favouriteSongDate DATETIME");
                 }
                 int songCollectionDataBaseVersion = sharedPreferences.getInt("songCollectionDataBaseVersion", 0);
                 if (songCollectionDataBaseVersion < 5) {

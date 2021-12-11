@@ -5,6 +5,7 @@ import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE;
 import static com.bence.songbook.ui.activity.LoginActivity.RESULT_LOGGED_IN;
 import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
+import static com.bence.songbook.utils.BaseURL.BASE_URL;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -154,12 +155,11 @@ public class MainActivity extends AppCompatActivity
     private boolean shortCollectionName;
     private boolean light_theme_switch;
     private boolean wasOrdinalNumber;
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
     private Switch containingVideosSwitch;
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
     private Switch favouriteSwitch;
     private List<FavouriteSong> favouriteSongs;
-    private SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive;
-    private PopupWindow googleSignInPopupWindow;
-    //    private MenuItem signInMenuItem;
     private boolean inSongSearchSwitch = false;
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     private DynamicListView<QueueSongAdapter> queueListView;
@@ -208,9 +208,9 @@ public class MainActivity extends AppCompatActivity
         final StackDTO stackDTO = new StackDTO();
         stackDTO.setCreatedDate(new Date());
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String gmail = sharedPreferences.getString("gmail", "");
-        if (!gmail.isEmpty()) {
-            stackDTO.setEmail(gmail);
+        String email = UserService.getInstance().getEmailFromUserOrGmail(this);
+        if (!email.isEmpty()) {
+            stackDTO.setEmail(email);
         } else {
             stackDTO.setEmail(sharedPreferences.getString("email", ""));
         }
@@ -393,9 +393,7 @@ public class MainActivity extends AppCompatActivity
             memory.setSongCollections(songCollections);
         }
         if (favouriteSongs == null) {
-            FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(this);
-            favouriteSongs = favouriteSongRepository.findAll();
-            memory.setFavouriteSongs(favouriteSongs);
+            loadFavouriteSongsFromDatabase();
         }
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -483,6 +481,12 @@ public class MainActivity extends AppCompatActivity
         syncDatabase();
         setView();
         hideBottomSheetIfNoQueue();
+    }
+
+    private void loadFavouriteSongsFromDatabase() {
+        FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(this);
+        favouriteSongs = favouriteSongRepository.findAll();
+        memory.setFavouriteSongs(favouriteSongs);
     }
 
     private void hideBottomSheetIfNoQueue() {
@@ -779,10 +783,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setFavouritesForSongs() {
-        HashMap<String, Song> hashMap = new HashMap<>(songs.size());
-        for (Song song : songs) {
-            hashMap.put(song.getUuid(), song);
-        }
+        HashMap<String, Song> hashMap = getStringSongHashMap();
         for (FavouriteSong favouriteSong : favouriteSongs) {
             if (favouriteSong.getSong() != null) {
                 String songUuid = favouriteSong.getSong().getUuid();
@@ -823,16 +824,40 @@ public class MainActivity extends AppCompatActivity
             syncInBackground.syncYoutubeUrl(getApplicationContext());
             sharedPreferences.edit().putBoolean("YoutubeUrl", false).apply();
         }
-        FavouriteSongService.getInstance().syncFavourites(this);
+        syncFavouriteSongs();
     }
 
-    private void syncDrive() {
-        syncFavouriteInGoogleDrive = new SyncFavouriteInGoogleDrive(new GoogleSignInIntent() {
+    private void syncFavouriteSongs() {
+        FavouriteSongService.getInstance().syncFavourites(this);
+        syncFavouriteSongsFromServer();
+    }
+
+    private void syncFavouriteSongsFromServer() {
+        FavouriteSongService.getInstance().syncFavouritesFromServer(this, new FavouriteSongService.FavouriteSongUpdateListener() {
             @Override
-            public void task(Intent signInIntent) {
+            public void onUpdated() {
+                HashMap<String, Song> hashMap = getStringSongHashMap();
+                loadFavouriteSongsFromDatabase();
+                for (FavouriteSong favouriteSong : favouriteSongs) {
+                    if (favouriteSong.getSong() != null) {
+                        String songUuid = favouriteSong.getSong().getUuid();
+                        if (hashMap.containsKey(songUuid)) {
+                            Song song = hashMap.get(songUuid);
+                            song.setFavourite(favouriteSong);
+                        }
+                    }
+                }
+                search(lastSearchedText, adapter);
             }
-        }, this, songs, favouriteSongs);
-        syncFavouriteInGoogleDrive.signIn();
+        });
+    }
+
+    private HashMap<String, Song> getStringSongHashMap() {
+        HashMap<String, Song> hashMap = new HashMap<>(songs.size());
+        for (Song song : songs) {
+            hashMap.put(song.getUuid(), song);
+        }
+        return hashMap;
     }
 
     private void initPreferences() {
@@ -863,6 +888,7 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -895,7 +921,7 @@ public class MainActivity extends AppCompatActivity
                     createLoadSongVerseThread();
                     loadSongVersesThread.start();
                     filter();
-                    syncDrive();
+                    syncFavouriteSongsFromServer();
                     loadAll();
                     Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.downloaded) + " " + (resultCode - 1), Toast.LENGTH_SHORT);
                     toast.show();
@@ -951,7 +977,6 @@ public class MainActivity extends AppCompatActivity
                 if (getAccountTask.isSuccessful()) {
                     GoogleSignInAccount result = getAccountTask.getResult();
                     saveGmail(result, getApplicationContext());
-                    syncFavouriteInGoogleDrive.initializeDriveClient(result);
                 } else {
                     Log.e(TAG, "Sign-in failed.");
                     showToaster("Sign-in failed.", Toast.LENGTH_LONG);
@@ -960,7 +985,7 @@ public class MainActivity extends AppCompatActivity
             case LOGIN_IN_ACTIVITY_REQUEST_CODE:
                 if (resultCode == RESULT_LOGGED_IN) {
                     updateNavSignInTitleByLoggedIn();
-                    FavouriteSongService.getInstance().syncFavourites(this);
+                    syncFavouriteSongs();
                 }
         }
         if (adapter != null) {
@@ -1481,8 +1506,6 @@ public class MainActivity extends AppCompatActivity
             addDuplicatesPopupWindow.dismiss();
         } else if (addSongListLinkPopupWindow != null && addSongListLinkPopupWindow.isShowing()) {
             addSongListLinkPopupWindow.dismiss();
-        } else if (googleSignInPopupWindow != null && googleSignInPopupWindow.isShowing()) {
-            googleSignInPopupWindow.dismiss();
         } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else {
@@ -1701,7 +1724,7 @@ public class MainActivity extends AppCompatActivity
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT
         );
-        final Switch reverseSwitch = customView.findViewById(R.id.reverseSwitch);
+        @SuppressLint("UseSwitchCompatOrMaterialCode") final Switch reverseSwitch = customView.findViewById(R.id.reverseSwitch);
         RadioGroup radioGroup = customView.findViewById(R.id.radioSort);
         if (sortMethod == 7) {
             radioGroup.check(R.id.relevanceRadioButton);
@@ -1981,10 +2004,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void filterSongsByCollection() {
-        HashMap<String, Song> hashMap = new HashMap<>(songs.size());
-        for (Song song : songs) {
-            hashMap.put(song.getUuid(), song);
-        }
+        HashMap<String, Song> hashMap = getStringSongHashMap();
         songs.clear();
         if (ifOneSelected()) {
             for (SongCollection songCollection : songCollections) {
@@ -2126,7 +2146,6 @@ public class MainActivity extends AppCompatActivity
             }
         }, this, songs, favouriteSongs);
         syncFavouriteInGoogleDrive.signIn();
-        googleSignInPopupWindow.dismiss();
     }
 
     private void showToaster(String s, int lengthLong) {
@@ -2173,7 +2192,7 @@ public class MainActivity extends AppCompatActivity
                 ids.append(",").append(uuid);
             }
         }
-        share.putExtra(Intent.EXTRA_TEXT, "http://localhost/queue?ids=" + ids.substring(1, ids.length()));
+        share.putExtra(Intent.EXTRA_TEXT, BASE_URL + "queue?ids=" + ids.substring(1, ids.length()));
         startActivity(Intent.createChooser(share, "Share queue!"));
     }
 
@@ -2583,6 +2602,7 @@ public class MainActivity extends AppCompatActivity
             return songList.size();
         }
 
+        @SuppressLint("NotifyDataSetChanged")
         void setSongList(List<Song> songs) {
             songList.clear();
             songList.addAll(songs);

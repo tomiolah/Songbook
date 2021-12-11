@@ -85,6 +85,9 @@ fieldName=nativeName
 fieldName=selected
 # --field-end--
 # --field-start--
+fieldName=favouriteSongDate
+# --field-end--
+# --field-start--
 fieldName=songForeignCollection
 foreignCollection=true
 # --field-end--

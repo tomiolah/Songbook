@@ -1,9 +1,10 @@
 package com.bence.songbook.ui.activity;
 
+import static com.bence.songbook.utils.BaseURL.BASE_URL;
+
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.util.LongSparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -11,6 +12,9 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.bence.projector.common.dto.SongListDTO;
 import com.bence.songbook.Memory;
@@ -152,6 +156,7 @@ public class SongListActivity extends AppCompatActivity {
         return true;
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
@@ -169,7 +174,7 @@ public class SongListActivity extends AppCompatActivity {
                     newQueueSongs.add(queueSong);
                 }
                 queueSongRepository.save(newQueueSongs);
-                showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
+                showToaster(getString(R.string.added_to_queue));
                 break;
             case R.id.action_share:
                 songList.setPublish(true);
@@ -226,12 +231,12 @@ public class SongListActivity extends AppCompatActivity {
         share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
         share.putExtra(Intent.EXTRA_SUBJECT, songList.getTitle());
         share.putExtra(Intent.EXTRA_TITLE, songList.getTitle());
-        share.putExtra(Intent.EXTRA_TEXT, songList.getTitle() + ":\nhttp://192.168.100.4:8080/songList/" + songList.getUuid());
+        share.putExtra(Intent.EXTRA_TEXT, songList.getTitle() + ":\n" + BASE_URL + "songList/" + songList.getUuid());
         startActivity(Intent.createChooser(share, "Share song list!"));
     }
 
-    private void showToaster(String s, int lengthLong) {
-        Toast.makeText(this, s, lengthLong).show();
+    private void showToaster(String s) {
+        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
     }
 
     @Override

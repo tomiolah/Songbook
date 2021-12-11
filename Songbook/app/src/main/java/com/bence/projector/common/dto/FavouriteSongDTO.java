@@ -8,6 +8,7 @@ public class FavouriteSongDTO extends BaseDTO {
     private String songUuid;
     private Date modifiedDate;
     private boolean favourite;
+    private Date serverModifiedDate;
 
     public String getUserUuid() {
         return userUuid;
@@ -39,5 +40,13 @@ public class FavouriteSongDTO extends BaseDTO {
 
     public void setFavourite(boolean favourite) {
         this.favourite = favourite;
+    }
+
+    public Date getServerModifiedDate() {
+        return serverModifiedDate;
+    }
+
+    public void setServerModifiedDate(Date serverModifiedDate) {
+        this.serverModifiedDate = serverModifiedDate;
     }
 }

@@ -1,6 +1,8 @@
 package com.bence.songbook.service;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 import com.bence.projector.common.dto.LoginDTO;
 import com.bence.songbook.api.LoginApiBean;
@@ -65,5 +67,14 @@ public class UserService {
             return loginToServer(context);
         }
         return false;
+    }
+
+    public String getEmailFromUserOrGmail(Context context) {
+        LoggedInUser loggedInUser = UserService.getInstance().getLoggedInUser(context);
+        if (loggedInUser != null) {
+            return loggedInUser.getEmail();
+        }
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.getString("gmail", "");
     }
 }

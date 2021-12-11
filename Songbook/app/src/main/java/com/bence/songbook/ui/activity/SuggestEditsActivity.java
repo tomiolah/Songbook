@@ -26,6 +26,7 @@ import com.bence.songbook.R;
 import com.bence.songbook.api.SuggestionApiBean;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
+import com.bence.songbook.service.UserService;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.CheckSongForUpdateListener;
 import com.bence.songbook.ui.utils.Preferences;
@@ -116,13 +117,11 @@ public class SuggestEditsActivity extends AppCompatActivity {
     private void submit() {
         final SuggestionDTO suggestionDTO = new SuggestionDTO();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String gmail = sharedPreferences.getString("gmail", "");
-        if (!gmail.isEmpty()) {
-            suggestionDTO.setCreatedByEmail(gmail);
-        } else {
-            String email = sharedPreferences.getString("email", "");
-            suggestionDTO.setCreatedByEmail(email);
+        String email = UserService.getInstance().getEmailFromUserOrGmail(this);
+        if (email.isEmpty()) {
+            email = sharedPreferences.getString("email", "");
         }
+        suggestionDTO.setCreatedByEmail(email);
         final EditText suggestionEditText = findViewById(R.id.suggestion);
         String description = suggestionEditText.getText().toString().trim();
         if ((description.isEmpty() || description.equals("text")) && !edit) {

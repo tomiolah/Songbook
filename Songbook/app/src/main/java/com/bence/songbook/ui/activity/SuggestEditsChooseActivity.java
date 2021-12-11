@@ -1,13 +1,9 @@
 package com.bence.songbook.ui.activity;
 
-import androidx.lifecycle.Lifecycle;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -17,11 +13,17 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.Lifecycle;
+
 import com.bence.projector.common.dto.SongLinkDTO;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SongLinkApiBean;
 import com.bence.songbook.models.Song;
+import com.bence.songbook.service.UserService;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.CheckSongForUpdateListener;
 import com.bence.songbook.ui.utils.Preferences;
@@ -134,13 +136,11 @@ public class SuggestEditsChooseActivity extends AppCompatActivity {
     private void submit(Song songForLinking, Song song) {
         final SongLinkDTO songLinkDTO = new SongLinkDTO();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String gmail = sharedPreferences.getString("gmail", "");
-        if (!gmail.isEmpty()) {
-            songLinkDTO.setCreatedByEmail(gmail);
-        } else {
-            String email = sharedPreferences.getString("email", "");
-            songLinkDTO.setCreatedByEmail(email);
+        String email = UserService.getInstance().getEmailFromUserOrGmail(this);
+        if (email.isEmpty()) {
+            email = sharedPreferences.getString("email", "");
         }
+        songLinkDTO.setCreatedByEmail(email);
         songLinkDTO.setSongId1(songForLinking.getUuid());
         songLinkDTO.setSongId2(song.getUuid());
         if (songLinkDTO.getSongId1().equals(songLinkDTO.getSongId2())) {

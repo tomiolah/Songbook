@@ -1,5 +1,7 @@
 package com.bence.songbook.ui.activity;
 
+import static com.bence.songbook.ui.activity.YoutubeActivity.RECOVERY_REQUEST;
+
 import android.annotation.SuppressLint;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -8,7 +10,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -27,16 +28,16 @@ import com.bence.songbook.api.SuggestionApiBean;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.service.UserService;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.CheckSongForUpdateListener;
 import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.utils.Config;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.youtube.player.YouTubeBaseActivity;
 import com.google.android.youtube.player.YouTubeInitializationResult;
 import com.google.android.youtube.player.YouTubePlayer;
 import com.google.android.youtube.player.YouTubePlayerView;
-
-import static com.bence.songbook.ui.activity.YoutubeActivity.RECOVERY_REQUEST;
 
 public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener {
 
@@ -84,6 +85,7 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
                             public void run() {
                                 while (youtubePlayer == null) {
                                     try {
+                                        //noinspection BusyWait
                                         Thread.sleep(100);
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
@@ -159,13 +161,11 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
     private void submit() {
         final SuggestionDTO suggestionDTO = new SuggestionDTO();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String gmail = sharedPreferences.getString("gmail", "");
-        if (!gmail.isEmpty()) {
-            suggestionDTO.setCreatedByEmail(gmail);
-        } else {
-            String email = sharedPreferences.getString("email", "");
-            suggestionDTO.setCreatedByEmail(email);
+        String email = UserService.getInstance().getEmailFromUserOrGmail(this);
+        if (email.isEmpty()) {
+            email = sharedPreferences.getString("email", "");
         }
+        suggestionDTO.setCreatedByEmail(email);
         String url = youtubeEditText.getText().toString().trim();
         if (url.isEmpty()) {
             Toast.makeText(this, R.string.no_change, Toast.LENGTH_SHORT).show();
@@ -289,7 +289,6 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
             ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
             if (clipboard != null) {
                 try {
-                    @SuppressWarnings("ConstantConditions")
                     ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
                     CharSequence pasteData = item.getText();
                     if (pasteData != null) {

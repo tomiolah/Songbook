@@ -2,6 +2,7 @@ package com.bence.songbook.ui.activity;
 
 import static com.bence.songbook.ui.activity.VersionsActivity.getSongFromMemory;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
+import static com.bence.songbook.utils.BaseURL.BASE_URL;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -60,7 +61,6 @@ import com.bence.songbook.service.SongService;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.PageAdapter;
 import com.bence.songbook.ui.utils.Preferences;
-import com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.tasks.Task;
@@ -89,10 +89,7 @@ public class SongActivity extends AppCompatActivity {
     private Song song;
     private Memory memory;
     private MenuItem favouriteMenuItem;
-    private SaveFavouriteInGoogleDrive saveFavouriteInGoogleDrive;
-    private Intent signInIntent;
     private View mainLayout;
-    private PopupWindow googleSignInPopupWindow;
     private Menu menu;
     private PopupWindow saveToSongListPopupWindow;
 
@@ -101,29 +98,6 @@ public class SongActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         sharedPreferences.edit().putString("gmail", email).apply();
         sharedPreferences.edit().putBoolean("gSignIn", true).apply();
-    }
-
-    public static PopupWindow showGoogleSignIn(LayoutInflater inflater, boolean main) {
-        if (inflater != null) {
-            @SuppressLint("InflateParams") View customView = inflater.inflate(R.layout.content_ask_google_sign_in, null);
-            if (main) {
-                View viewById = customView.findViewById(R.id.dontShowButton);
-                viewById.setVisibility(View.GONE);
-            }
-            PopupWindow googleSignInPopupWindow = new PopupWindow(
-                    customView,
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            );
-            if (Build.VERSION.SDK_INT >= 21) {
-                googleSignInPopupWindow.setElevation(5.0f);
-            }
-            //noinspection deprecation
-            googleSignInPopupWindow.setBackgroundDrawable(new BitmapDrawable());
-            googleSignInPopupWindow.setOutsideTouchable(true);
-            return googleSignInPopupWindow;
-        }
-        return null;
     }
 
     @Override
@@ -207,9 +181,10 @@ public class SongActivity extends AppCompatActivity {
         viewPager.setAdapter(pageAdapter);
 
         int position = songs.indexOf(song);
+        TabLayout.Tab tabAtPosition = tabLayout.getTabAt(position);
+        tabLayout.selectTab(tabAtPosition);
         viewPager.setCurrentItem(position, true);
         tabLayout.setScrollPosition(position, 0f, true);
-
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -306,7 +281,7 @@ public class SongActivity extends AppCompatActivity {
             share.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
             share.putExtra(Intent.EXTRA_SUBJECT, song.getTitle());
             share.putExtra(Intent.EXTRA_TITLE, song.getTitle());
-            share.putExtra(Intent.EXTRA_TEXT, song.getTitle() + ":\nhttp://192.168.100.4:8080/song/" + song.getUuid());
+            share.putExtra(Intent.EXTRA_TEXT, song.getTitle() + ":\n" + BASE_URL + "song/" + song.getUuid());
             startActivity(Intent.createChooser(share, "Share song!"));
         } else if (itemId == R.id.action_youtube) {
             Intent intent = new Intent(this, YoutubeActivity.class);
@@ -435,7 +410,6 @@ public class SongActivity extends AppCompatActivity {
                     GoogleSignInAccount result = getAccountTask.getResult();
                     if (result != null) {
                         saveGmail(result, getApplicationContext());
-                        saveFavouriteInGoogleDrive.initializeDriveClient(result);
                     }
                 } else {
                     Log.e(TAG, "Sign-in failed.");
@@ -534,21 +508,11 @@ public class SongActivity extends AppCompatActivity {
     }
 
     public void onBackButtonClick(View view) {
-        if (googleSignInPopupWindow != null && googleSignInPopupWindow.isShowing()) {
-            googleSignInPopupWindow.dismiss();
-            return;
-        }
         setBlank();
         finish();
     }
 
-    public void onGoogleSignIn(View view) {
-        startActivityForResult(signInIntent, REQUEST_CODE_SIGN_IN);
-        googleSignInPopupWindow.dismiss();
-    }
-
     public void onDontShowAgain(View view) {
-        googleSignInPopupWindow.dismiss();
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.edit().putBoolean("ShowGoogleSignInWhenFavouriteChanges", false).apply();
     }

@@ -5,9 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -19,6 +16,9 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import com.bence.projector.common.model.SectionType;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
@@ -29,7 +29,9 @@ import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.repository.SongRepository;
 import com.bence.songbook.repository.impl.ormLite.LanguageRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.service.UserService;
 import com.bence.songbook.ui.utils.Preferences;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -74,9 +76,9 @@ public class NewSongActivity extends AppCompatActivity {
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         EditText emailEditText = findViewById(R.id.email);
-        String gmail = sharedPreferences.getString("gmail", "");
-        if (!gmail.isEmpty()) {
-            emailEditText.setText(gmail);
+        String email = UserService.getInstance().getEmailFromUserOrGmail(this);
+        if (!email.isEmpty()) {
+            emailEditText.setText(email);
             View email_textView = findViewById(R.id.email_textView);
             email_textView.setVisibility(View.GONE);
             emailEditText.setVisibility(View.GONE);

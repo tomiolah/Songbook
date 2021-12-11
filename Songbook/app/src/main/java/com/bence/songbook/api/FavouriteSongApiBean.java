@@ -10,6 +10,7 @@ import com.bence.songbook.api.retrofit.FavouriteSongApi;
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.service.UserService;
 
+import java.util.Date;
 import java.util.List;
 
 import retrofit2.Call;
@@ -40,6 +41,25 @@ public class FavouriteSongApiBean {
                 return favouriteSongDTOResponse.body();
             } else if (!secondTry && UserService.getInstance().loginIfNeeded(favouriteSongDTOResponse.headers(), context)) {
                 return uploadFavouriteSongs(favouriteSongs, true);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public List<FavouriteSongDTO> getFavouriteSongs(Date serverModifiedDate) {
+        return getFavouriteSongs(serverModifiedDate, false);
+    }
+
+    private List<FavouriteSongDTO> getFavouriteSongs(Date serverModifiedDate, boolean secondTry) {
+        Call<List<FavouriteSongDTO>> call = favouriteSongApi.getFavouriteSongsAfterModifiedDate(serverModifiedDate.getTime());
+        try {
+            Response<List<FavouriteSongDTO>> response = call.execute();
+            if (response.isSuccessful()) {
+                return response.body();
+            } else if (!secondTry && UserService.getInstance().loginIfNeeded(response.headers(), context)) {
+                return getFavouriteSongs(serverModifiedDate, true);
             }
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);
