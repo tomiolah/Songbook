@@ -41,18 +41,20 @@ public class FavouriteSongResource {
         User user = getUserFromPrincipalAndUserService(principal, userService);
         if (user != null) {
             List<FavouriteSong> userFavouriteSongs = user.getFavouriteSongs();
-            List<FavouriteSong> appliedFavouriteSongs = applyFavouriteSongs(userFavouriteSongs, favouriteSongDTOS);
+            List<FavouriteSong> appliedFavouriteSongs = applyFavouriteSongs(userFavouriteSongs, favouriteSongDTOS, user);
             favouriteSongService.save(appliedFavouriteSongs);
             return favouriteSongAssembler.createDtoList(appliedFavouriteSongs);
         }
         return MemoryUtil.getEmptyList();
     }
 
-    private List<FavouriteSong> applyFavouriteSongs(List<FavouriteSong> userFavouriteSongs, List<FavouriteSongDTO> favouriteSongDTOS) {
+    private List<FavouriteSong> applyFavouriteSongs(List<FavouriteSong> userFavouriteSongs, List<FavouriteSongDTO> favouriteSongDTOS, User user) {
         ArrayList<FavouriteSong> appliedFavouriteSongs = new ArrayList<>();
         HashMap<String, FavouriteSong> hashMap = getHashMapBySong(userFavouriteSongs);
         for (FavouriteSongDTO favouriteSongDTO : favouriteSongDTOS) {
-            appliedFavouriteSongs.add(createOrUploadFavouriteSong(hashMap, favouriteSongDTO));
+            FavouriteSong favouriteSong = createOrUploadFavouriteSong(hashMap, favouriteSongDTO);
+            favouriteSong.setUser(user);
+            appliedFavouriteSongs.add(favouriteSong);
         }
         return appliedFavouriteSongs;
     }

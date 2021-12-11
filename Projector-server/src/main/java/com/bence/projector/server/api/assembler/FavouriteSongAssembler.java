@@ -14,7 +14,11 @@ public class FavouriteSongAssembler implements GeneralAssembler<FavouriteSong, F
 
     @Override
     public FavouriteSongDTO createDto(FavouriteSong favouriteSong) {
-        return null;
+        FavouriteSongDTO favouriteSongDTO = new FavouriteSongDTO();
+        favouriteSongDTO.setFavourite(favouriteSong.isFavourite());
+        favouriteSongDTO.setSongUuid(favouriteSong.getSong().getUuid());
+        favouriteSongDTO.setModifiedDate(favouriteSong.getModifiedDate());
+        return favouriteSongDTO;
     }
 
     @Override
