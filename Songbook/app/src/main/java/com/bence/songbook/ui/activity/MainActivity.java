@@ -90,6 +90,8 @@ import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.service.FavouriteSongService;
+import com.bence.songbook.service.UserService;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.DynamicListView;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
@@ -480,6 +482,10 @@ public class MainActivity extends AppCompatActivity
         }
         syncDatabase();
         setView();
+        hideBottomSheetIfNoQueue();
+    }
+
+    private void hideBottomSheetIfNoQueue() {
         List<QueueSong> queue = memory.getQueue();
         if (queue != null && queue.size() < 1) {
             hideBottomSheet();
@@ -502,12 +508,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private LoggedInUser getLoggedInUser() {
-        LoggedInUserRepositoryImpl loggedInUserRepository = new LoggedInUserRepositoryImpl(this);
-        List<LoggedInUser> loggedInUsers = loggedInUserRepository.findAll();
-        if (loggedInUsers == null || loggedInUsers.size() <= 0) {
-            return null;
-        }
-        return loggedInUsers.get(0);
+        return UserService.getInstance().getLoggedInUser(this);
     }
 
     private void setBottomSheetPadding() {
@@ -822,7 +823,7 @@ public class MainActivity extends AppCompatActivity
             syncInBackground.syncYoutubeUrl(getApplicationContext());
             sharedPreferences.edit().putBoolean("YoutubeUrl", false).apply();
         }
-        syncDrive();
+        FavouriteSongService.getInstance().syncFavourites(this);
     }
 
     private void syncDrive() {
@@ -959,6 +960,7 @@ public class MainActivity extends AppCompatActivity
             case LOGIN_IN_ACTIVITY_REQUEST_CODE:
                 if (resultCode == RESULT_LOGGED_IN) {
                     updateNavSignInTitleByLoggedIn();
+                    FavouriteSongService.getInstance().syncFavourites(this);
                 }
         }
         if (adapter != null) {
@@ -1652,7 +1654,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private boolean isLoggedIn() {
-        return getLoggedInUser() != null;
+        return UserService.getInstance().isLoggedIn(this);
     }
 
     private void login() {

@@ -8,6 +8,7 @@ import com.bence.songbook.api.assembler.FavouriteSongAssembler;
 import com.bence.songbook.api.retrofit.ApiManager;
 import com.bence.songbook.api.retrofit.FavouriteSongApi;
 import com.bence.songbook.models.FavouriteSong;
+import com.bence.songbook.service.UserService;
 
 import java.util.List;
 
@@ -18,19 +19,27 @@ public class FavouriteSongApiBean {
     private static final String TAG = FavouriteSongApiBean.class.getName();
     private final FavouriteSongAssembler favouriteSongAssembler;
     private final FavouriteSongApi favouriteSongApi;
+    private final Context context;
 
     public FavouriteSongApiBean(Context context) {
+        this.context = context;
         favouriteSongApi = ApiManager.getClient().create(FavouriteSongApi.class);
         favouriteSongAssembler = FavouriteSongAssembler.getInstance(context);
     }
 
     public List<FavouriteSongDTO> uploadFavouriteSongs(List<FavouriteSong> favouriteSongs) {
+        return uploadFavouriteSongs(favouriteSongs, false);
+    }
+
+    private List<FavouriteSongDTO> uploadFavouriteSongs(List<FavouriteSong> favouriteSongs, boolean secondTry) {
         List<FavouriteSongDTO> dtos = favouriteSongAssembler.createDTOS(favouriteSongs);
         Call<List<FavouriteSongDTO>> call = favouriteSongApi.uploadFavouriteSong(dtos);
         try {
             Response<List<FavouriteSongDTO>> favouriteSongDTOResponse = call.execute();
             if (favouriteSongDTOResponse.isSuccessful()) {
                 return favouriteSongDTOResponse.body();
+            } else if (!secondTry && UserService.getInstance().loginIfNeeded(favouriteSongDTOResponse.headers(), context)) {
+                return uploadFavouriteSongs(favouriteSongs, true);
             }
         } catch (Exception e) {
             Log.e(TAG, e.getMessage(), e);

@@ -1,5 +1,8 @@
 package com.bence.songbook.ui.activity;
 
+import static com.bence.songbook.ui.activity.VersionsActivity.getSongFromMemory;
+import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -52,9 +55,9 @@ import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.service.FavouriteSongService;
 import com.bence.songbook.service.SongService;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
-import com.bence.songbook.ui.utils.GoogleSignInIntent;
 import com.bence.songbook.ui.utils.PageAdapter;
 import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive;
@@ -70,9 +73,6 @@ import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-
-import static com.bence.songbook.ui.activity.VersionsActivity.getSongFromMemory;
-import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 
 public class SongActivity extends AppCompatActivity {
     public static final int NEW_SONG_REQUEST = 4;
@@ -513,7 +513,7 @@ public class SongActivity extends AppCompatActivity {
                     favouriteSongRepository.save(favourite);
                     favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
                             R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
-//                    syncFavouriteInGoogleDrive();
+                    FavouriteSongService.getInstance().syncFavourites(SongActivity.this);
                     return false;
                 }
             });
@@ -531,25 +531,6 @@ public class SongActivity extends AppCompatActivity {
         } else {
             deleteMenuItem.setTitle(getString(R.string.delete_song));
         }
-    }
-
-    private void syncFavouriteInGoogleDrive() {
-        saveFavouriteInGoogleDrive = new SaveFavouriteInGoogleDrive(new GoogleSignInIntent() {
-            @Override
-            public void task(Intent signInIntent) {
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(SongActivity.this);
-                boolean showGoogleSignIn = sharedPreferences.getBoolean("ShowGoogleSignInWhenFavouriteChanges", true);
-                if (!showGoogleSignIn) {
-                    return;
-                }
-                SongActivity.this.signInIntent = signInIntent;
-                googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), false);
-                if (googleSignInPopupWindow != null) {
-                    googleSignInPopupWindow.showAtLocation(mainLayout, Gravity.CENTER, 0, 0);
-                }
-            }
-        }, this, song);
-        saveFavouriteInGoogleDrive.signIn();
     }
 
     public void onBackButtonClick(View view) {
