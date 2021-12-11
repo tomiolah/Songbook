@@ -62,6 +62,9 @@ fieldName=favouritePublished
 fieldName=modifiedDate
 # --field-end--
 # --field-start--
+fieldName=uploadedToServer
+# --field-end--
+# --field-start--
 fieldName=id
 generatedId=true
 # --field-end--
@@ -93,6 +96,24 @@ indexName=language_id_idx
 # --field-start--
 fieldName=uuid
 indexName=language_uuid_idx
+# --field-end--
+# --table-fields-end--
+# --table-end--
+#################################
+# --table-start--
+dataClass=com.bence.songbook.models.LoggedInUser
+tableName=loggedinuser
+# --table-fields-start--
+# --field-start--
+fieldName=email
+# --field-end--
+# --field-start--
+fieldName=password
+# --field-end--
+# --field-start--
+fieldName=id
+generatedId=true
+indexName=loggedinuser_id_idx
 # --field-end--
 # --table-fields-end--
 # --table-end--

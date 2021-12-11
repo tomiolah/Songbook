@@ -19,6 +19,9 @@ public class FavouriteSong extends Base {
     @Expose
     @DatabaseField
     private Date modifiedDate;
+    @Expose
+    @DatabaseField
+    private boolean uploadedToServer = false;
 
     public Song getSong() {
         return song;
@@ -50,5 +53,13 @@ public class FavouriteSong extends Base {
 
     public void setModifiedDate(Date modifiedDate) {
         this.modifiedDate = modifiedDate;
+    }
+
+    public boolean isUploadedToServer() {
+        return uploadedToServer;
+    }
+
+    public void setUploadedToServer(boolean uploadedToServer) {
+        this.uploadedToServer = uploadedToServer;
     }
 }

@@ -1,5 +1,11 @@
 package com.bence.songbook.ui.activity;
 
+import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING;
+import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE;
+import static com.bence.songbook.ui.activity.LoginActivity.RESULT_LOGGED_IN;
+import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
+import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -60,11 +66,13 @@ import androidx.viewpager.widget.ViewPager;
 import com.bence.projector.common.dto.StackDTO;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
+import com.bence.songbook.api.LoginApiBean;
 import com.bence.songbook.api.SongApiBean;
 import com.bence.songbook.api.SongListApiBean;
 import com.bence.songbook.api.StackApiBean;
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Language;
+import com.bence.songbook.models.LoggedInUser;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
@@ -76,6 +84,7 @@ import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
 import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.LanguageRepositoryImpl;
+import com.bence.songbook.repository.impl.ormLite.LoggedInUserRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.QueueSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
@@ -107,11 +116,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
-
-import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING;
-import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE;
-import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
-import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 
 @SuppressWarnings({"ConstantConditions", "deprecation"})
 public class MainActivity extends AppCompatActivity
@@ -153,7 +157,6 @@ public class MainActivity extends AppCompatActivity
     private List<FavouriteSong> favouriteSongs;
     private SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive;
     private PopupWindow googleSignInPopupWindow;
-    private boolean gSignIn;
     //    private MenuItem signInMenuItem;
     private boolean inSongSearchSwitch = false;
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
@@ -166,7 +169,6 @@ public class MainActivity extends AppCompatActivity
     private PopupWindow addDuplicatesPopupWindow;
     private PopupWindow addSongListLinkPopupWindow;
     private boolean alreadyTried;
-    private boolean alreadyTried2;
     private ViewPager viewPager;
     private int view_mode;
     private MainPageAdapter pageAdapter;
@@ -427,15 +429,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        Menu menu = navigationView.getMenu();
-
-        gSignIn = sharedPreferences.getBoolean("gSignIn", false);
-//        signInMenuItem = menu.findItem(R.id.nav_sign_in);
-//        if (gSignIn) {
-//            if (signInMenuItem != null) {
-//                signInMenuItem.setTitle(getString(R.string.sign_out));
-//            }
-//        }
+        updateNavSignInTitleByLoggedIn();
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.INTERNET)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -490,6 +484,30 @@ public class MainActivity extends AppCompatActivity
         if (queue != null && queue.size() < 1) {
             hideBottomSheet();
         }
+    }
+
+    private void updateNavSignInTitleByLoggedIn() {
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        Menu menu = navigationView.getMenu();
+        MenuItem signInMenuItem = menu.findItem(R.id.nav_sign_in);
+        if (signInMenuItem != null) {
+            int resId;
+            if (isLoggedIn()) {
+                resId = R.string.sign_out;
+            } else {
+                resId = R.string.sign_in;
+            }
+            signInMenuItem.setTitle(getString(resId));
+        }
+    }
+
+    private LoggedInUser getLoggedInUser() {
+        LoggedInUserRepositoryImpl loggedInUserRepository = new LoggedInUserRepositoryImpl(this);
+        List<LoggedInUser> loggedInUsers = loggedInUserRepository.findAll();
+        if (loggedInUsers == null || loggedInUsers.size() <= 0) {
+            return null;
+        }
+        return loggedInUsers.get(0);
     }
 
     private void setBottomSheetPadding() {
@@ -933,15 +951,15 @@ public class MainActivity extends AppCompatActivity
                     GoogleSignInAccount result = getAccountTask.getResult();
                     saveGmail(result, getApplicationContext());
                     syncFavouriteInGoogleDrive.initializeDriveClient(result);
-//                    if (signInMenuItem != null) {
-//                        signInMenuItem.setTitle(getString(R.string.sign_out));
-//                    }
-                    gSignIn = true;
                 } else {
                     Log.e(TAG, "Sign-in failed.");
                     showToaster("Sign-in failed.", Toast.LENGTH_LONG);
                 }
                 break;
+            case LOGIN_IN_ACTIVITY_REQUEST_CODE:
+                if (resultCode == RESULT_LOGGED_IN) {
+                    updateNavSignInTitleByLoggedIn();
+                }
         }
         if (adapter != null) {
             adapter.notifyDataSetChanged();
@@ -1605,8 +1623,11 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_privacy_policy) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://comsongbook.firebaseapp.com/privacy_policy.html")));
         } else if (id == R.id.nav_sign_in) {
-            Intent loadIntent = new Intent(this, LoginActivity.class);
-            startActivityForResult(loadIntent, LOGIN_IN_ACTIVITY_REQUEST_CODE);
+            if (!isLoggedIn()) {
+                login();
+            } else {
+                logout();
+            }
 //            if (!gSignIn) {
 //                googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), true);
 //                if (googleSignInPopupWindow != null) {
@@ -1628,6 +1649,36 @@ public class MainActivity extends AppCompatActivity
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private boolean isLoggedIn() {
+        return getLoggedInUser() != null;
+    }
+
+    private void login() {
+        Intent loadIntent = new Intent(this, LoginActivity.class);
+        startActivityForResult(loadIntent, LOGIN_IN_ACTIVITY_REQUEST_CODE);
+    }
+
+    private void logout() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                LoggedInUserRepositoryImpl loggedInUserRepository = new LoggedInUserRepositoryImpl(MainActivity.this);
+                LoggedInUser loggedInUser = getLoggedInUser();
+                loggedInUserRepository.delete(loggedInUser);
+
+                LoginApiBean loginApiBean = new LoginApiBean();
+                loginApiBean.logout();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateNavSignInTitleByLoggedIn();
+                    }
+                });
+            }
+        });
+        thread.start();
     }
 
     public void onSortButtonClick(View view) {
@@ -2074,7 +2125,6 @@ public class MainActivity extends AppCompatActivity
         }, this, songs, favouriteSongs);
         syncFavouriteInGoogleDrive.signIn();
         googleSignInPopupWindow.dismiss();
-        alreadyTried2 = true;
     }
 
     private void showToaster(String s, int lengthLong) {
@@ -2304,6 +2354,65 @@ public class MainActivity extends AppCompatActivity
         void onLongClick(Song song, int position);
     }
 
+    public static class CenterLayoutManager extends LinearLayoutManager {
+
+        CenterLayoutManager(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void smoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state, int position) {
+            RecyclerView.SmoothScroller smoothScroller = new CenterSmoothScroller(recyclerView.getContext());
+            smoothScroller.setTargetPosition(position);
+            startSmoothScroll(smoothScroller);
+        }
+
+        private static class CenterSmoothScroller extends LinearSmoothScroller {
+
+            CenterSmoothScroller(Context context) {
+                super(context);
+            }
+
+            @Override
+            public int calculateDtToFit(int viewStart, int viewEnd, int boxStart, int boxEnd, int snapPreference) {
+                return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2);
+            }
+        }
+    }
+
+    static class MyViewHolder extends RecyclerView.ViewHolder {
+
+        TextView ordinalNumberTextView;
+        TextView titleTextView;
+        View imageView;
+        View parentLayout;
+
+        MyViewHolder(View v) {
+            super(v);
+            titleTextView = v.findViewById(R.id.titleTextView);
+            ordinalNumberTextView = v.findViewById(R.id.ordinalNumberTextView);
+            titleTextView = v.findViewById(R.id.titleTextView);
+            imageView = v.findViewById(R.id.starImageView);
+            parentLayout = v.findViewById(R.id.parentLayout);
+        }
+
+        void bind(final Song song, final OnItemClickListener listener, final int position) {
+            parentLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onItemClick(song, position);
+                }
+            });
+            parentLayout.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    listener.onLongClick(song, position);
+                    return true;
+                }
+            });
+        }
+    }
+
     private class LanguageAdapter extends ArrayAdapter<Language> {
 
         private final List<Language> languageList;
@@ -2419,39 +2528,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    class MyViewHolder extends RecyclerView.ViewHolder {
-
-        TextView ordinalNumberTextView;
-        TextView titleTextView;
-        View imageView;
-        View parentLayout;
-
-        MyViewHolder(View v) {
-            super(v);
-            titleTextView = v.findViewById(R.id.titleTextView);
-            ordinalNumberTextView = v.findViewById(R.id.ordinalNumberTextView);
-            titleTextView = v.findViewById(R.id.titleTextView);
-            imageView = v.findViewById(R.id.starImageView);
-            parentLayout = v.findViewById(R.id.parentLayout);
-        }
-
-        void bind(final Song song, final OnItemClickListener listener, final int position) {
-            parentLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    listener.onItemClick(song, position);
-                }
-            });
-            parentLayout.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    listener.onLongClick(song, position);
-                    return true;
-                }
-            });
-        }
-    }
-
     private class SongAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
         private final OnItemClickListener listener;
@@ -2511,31 +2587,5 @@ public class MainActivity extends AppCompatActivity
             this.notifyDataSetChanged();
         }
 
-    }
-
-    public static class CenterLayoutManager extends LinearLayoutManager {
-
-        CenterLayoutManager(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void smoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state, int position) {
-            RecyclerView.SmoothScroller smoothScroller = new CenterSmoothScroller(recyclerView.getContext());
-            smoothScroller.setTargetPosition(position);
-            startSmoothScroll(smoothScroller);
-        }
-
-        private class CenterSmoothScroller extends LinearSmoothScroller {
-
-            CenterSmoothScroller(Context context) {
-                super(context);
-            }
-
-            @Override
-            public int calculateDtToFit(int viewStart, int viewEnd, int boxStart, int boxEnd, int snapPreference) {
-                return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2);
-            }
-        }
     }
 }

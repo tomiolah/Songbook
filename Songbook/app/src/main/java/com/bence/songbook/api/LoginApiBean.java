@@ -34,6 +34,17 @@ public class LoginApiBean {
         return false;
     }
 
+    public boolean logout() {
+        Call<Void> logoutCall = loginApi.logout();
+        try {
+            logoutCall.execute();
+            return true;
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+        }
+        return false;
+    }
+
     private void setCookie(Headers headers, Response<Void> execute) {
         List<String> cookieStrings = headers.values("Set-Cookie");
         List<Cookie> cookies = null;

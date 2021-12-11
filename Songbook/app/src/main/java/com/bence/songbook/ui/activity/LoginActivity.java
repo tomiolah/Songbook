@@ -14,10 +14,14 @@ import com.bence.projector.common.dto.UserDTO;
 import com.bence.songbook.R;
 import com.bence.songbook.api.LoginApiBean;
 import com.bence.songbook.api.UserApiBean;
+import com.bence.songbook.models.LoggedInUser;
+import com.bence.songbook.repository.impl.ormLite.LoggedInUserRepositoryImpl;
 import com.bence.songbook.ui.utils.Preferences;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class LoginActivity extends AppCompatActivity {
+
+    public static final int RESULT_LOGGED_IN = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,15 +61,23 @@ public class LoginActivity extends AppCompatActivity {
                     return;
                 }
                 UserApiBean userApiBean = new UserApiBean();
-                UserDTO loggedInUser = userApiBean.getLoggedInUser();
-                if (loggedInUser != null) {
-                    System.out.println("logged in " + loggedInUser.getEmail());
+                UserDTO userDTO = userApiBean.getLoggedInUser();
+                if (userDTO != null) {
+                    LoggedInUserRepositoryImpl loggedInUserRepository = new LoggedInUserRepositoryImpl(LoginActivity.this);
+                    LoggedInUser loggedInUser = new LoggedInUser();
+                    loggedInUser.setEmail(userDTO.getEmail());
+                    loggedInUser.setPassword(loginDTO.getPassword());
+                    loggedInUserRepository.save(loggedInUser);
+                    setResult(RESULT_LOGGED_IN);
+                    finish();
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(LoginActivity.this, R.string.password_or_email_incorrect, Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                    }
-                });
             }
         });
         thread.start();
