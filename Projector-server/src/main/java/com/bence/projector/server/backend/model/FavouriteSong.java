@@ -13,6 +13,7 @@ public class FavouriteSong extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private Song song;
     private Date modifiedDate;
+    private Date serverModifiedDate;
     private boolean favourite;
 
     public User getUser() {
@@ -39,11 +40,19 @@ public class FavouriteSong extends BaseEntity {
         this.modifiedDate = modifiedDate;
     }
 
+    public boolean isFavourite() {
+        return favourite;
+    }
+
     public void setFavourite(boolean favourite) {
         this.favourite = favourite;
     }
 
-    public boolean isFavourite() {
-        return favourite;
+    public Date getServerModifiedDate() {
+        return serverModifiedDate;
+    }
+
+    public void setServerModifiedDate(Date serverModifiedDate) {
+        this.serverModifiedDate = serverModifiedDate;
     }
 }
