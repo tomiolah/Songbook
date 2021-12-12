@@ -30,7 +30,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         httpSecurity.csrf().disable().authorizeRequests().antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/reviewer/**").hasRole("REVIEWER")
                 .antMatchers("/user/**").hasAnyRole("USER", "ADMIN", "REVIEWER").and().formLogin().loginPage("/#/login")
-                .loginProcessingUrl("/login").defaultSuccessUrl("/#/register", true).permitAll();
+                .loginProcessingUrl("/login").defaultSuccessUrl("/#/register", false).permitAll();
     }
 
     @SuppressWarnings("WeakerAccess")

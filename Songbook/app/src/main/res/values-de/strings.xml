@@ -128,4 +128,9 @@
     <string name="not_now">Nicht jetzt</string>
     <string name="this_song_has_been_modified_please_update_your_songs_in_order_to_see_the_differences">Dieser Song wurde geändert, bitte aktualisieren Sie Ihre Songs, um die Unterschiede zu sehen!</string>
     <string name="update_songs">Aktualisieren</string>
+    <string name="password">Passwort</string>
+    <string name="login">Anmeldung</string>
+    <string name="try_again_later">Versuchen Sie es später noch einmal</string>
+    <string name="password_or_email_incorrect">Passwort oder E-Mail falsch</string>
+    <string name="create_account">Konto anlegen</string>
 </resources>

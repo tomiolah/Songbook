@@ -95,8 +95,7 @@ export class LoginComponent implements OnInit, OnDestroy {
           (resp) => {
             this.authService.isLoggedIn = true;
             const user = new User(resp);
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            this.authService.setUser(user);
+            this.authService.setUserAlsoToLocalStorage(resp);
             let redirect = this.authService.redirectUrl;
             if (!redirect) {
               if (user != null) {

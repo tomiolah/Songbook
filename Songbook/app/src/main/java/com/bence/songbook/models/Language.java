@@ -5,6 +5,7 @@ import com.j256.ormlite.field.DatabaseField;
 import com.j256.ormlite.field.ForeignCollectionField;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class Language extends BaseEntity {
@@ -15,6 +16,8 @@ public class Language extends BaseEntity {
     private String nativeName;
     @DatabaseField
     private boolean selected;
+    @DatabaseField
+    private Date favouriteSongDate;
     @ForeignCollectionField
     private ForeignCollection<Song> songForeignCollection;
     private List<Song> songs;
@@ -43,7 +46,6 @@ public class Language extends BaseEntity {
         this.selected = selected;
     }
 
-    @SuppressWarnings("ConstantConditions")
     public List<Song> getSongs() {
         if (songs == null) {
             if (songForeignCollection == null) {
@@ -62,5 +64,16 @@ public class Language extends BaseEntity {
             song.setLanguage(this);
         }
         this.songs = songs;
+    }
+
+    public Date getFavouriteSongLastServerModifiedDate() {
+        if (favouriteSongDate == null) {
+            return new Date(0);
+        }
+        return favouriteSongDate;
+    }
+
+    public void setFavouriteSongLastServerModifiedDate(Date favouriteSongLastServerModifiedDate) {
+        this.favouriteSongDate = favouriteSongLastServerModifiedDate;
     }
 }

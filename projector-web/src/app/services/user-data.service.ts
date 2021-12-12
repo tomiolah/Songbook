@@ -13,12 +13,20 @@ export class UserDataService {
     return this.api.getById(User, 'admin/api/user/', userId);
   }
 
+  getLoggedInUser(): Observable<User> {
+    return this.api.getOne(User, '/api/username');
+  }
+
   addUser(user: User, language: string): Observable<User> {
     return this.api.create(User, 'api/users?language=' + language, user);
   }
 
-  activate(activationCode: string): Observable<any> {
+  activate(activationCode: string) {
     return this.api.post('user/api/user/activate?activationCode=' + activationCode);
+  }
+
+  resendActivation(): Observable<any> {
+    return this.api.post('user/api/sendActivation');
   }
 
   getAll(): Observable<User[]> {

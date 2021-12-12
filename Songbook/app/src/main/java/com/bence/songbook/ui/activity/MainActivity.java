@@ -1,5 +1,12 @@
 package com.bence.songbook.ui.activity;
 
+import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING;
+import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE;
+import static com.bence.songbook.ui.activity.LoginActivity.RESULT_LOGGED_IN;
+import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
+import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
+import static com.bence.songbook.utils.BaseURL.BASE_URL;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -60,11 +67,13 @@ import androidx.viewpager.widget.ViewPager;
 import com.bence.projector.common.dto.StackDTO;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
+import com.bence.songbook.api.LoginApiBean;
 import com.bence.songbook.api.SongApiBean;
 import com.bence.songbook.api.SongListApiBean;
 import com.bence.songbook.api.StackApiBean;
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Language;
+import com.bence.songbook.models.LoggedInUser;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollection;
@@ -76,11 +85,14 @@ import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
 import com.bence.songbook.repository.impl.ormLite.FavouriteSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.LanguageRepositoryImpl;
+import com.bence.songbook.repository.impl.ormLite.LoggedInUserRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.QueueSongRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongCollectionRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListElementRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
+import com.bence.songbook.service.FavouriteSongService;
+import com.bence.songbook.service.UserService;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.DynamicListView;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
@@ -108,11 +120,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING;
-import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE;
-import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
-import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
-
 @SuppressWarnings({"ConstantConditions", "deprecation"})
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -122,6 +129,7 @@ public class MainActivity extends AppCompatActivity
     public static final int SONG_UNDO_DELETION = 11;
     private final Memory memory = Memory.getInstance();
     private final int DOWNLOAD_SONGS_REQUEST_CODE = 1;
+    private final int LOGIN_IN_ACTIVITY_REQUEST_CODE = 12;
     private List<Song> songs;
     private List<Song> values = new ArrayList<>();
     private String lastSearchedText = "";
@@ -147,13 +155,11 @@ public class MainActivity extends AppCompatActivity
     private boolean shortCollectionName;
     private boolean light_theme_switch;
     private boolean wasOrdinalNumber;
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
     private Switch containingVideosSwitch;
+    @SuppressLint("UseSwitchCompatOrMaterialCode")
     private Switch favouriteSwitch;
     private List<FavouriteSong> favouriteSongs;
-    private SyncFavouriteInGoogleDrive syncFavouriteInGoogleDrive;
-    private PopupWindow googleSignInPopupWindow;
-    private boolean gSignIn;
-    //    private MenuItem signInMenuItem;
     private boolean inSongSearchSwitch = false;
     private BottomSheetBehavior<LinearLayout> bottomSheetBehavior;
     private DynamicListView<QueueSongAdapter> queueListView;
@@ -165,7 +171,6 @@ public class MainActivity extends AppCompatActivity
     private PopupWindow addDuplicatesPopupWindow;
     private PopupWindow addSongListLinkPopupWindow;
     private boolean alreadyTried;
-    private boolean alreadyTried2;
     private ViewPager viewPager;
     private int view_mode;
     private MainPageAdapter pageAdapter;
@@ -203,9 +208,9 @@ public class MainActivity extends AppCompatActivity
         final StackDTO stackDTO = new StackDTO();
         stackDTO.setCreatedDate(new Date());
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-        String gmail = sharedPreferences.getString("gmail", "");
-        if (!gmail.isEmpty()) {
-            stackDTO.setEmail(gmail);
+        String email = UserService.getInstance().getEmailFromUserOrGmail(this);
+        if (!email.isEmpty()) {
+            stackDTO.setEmail(email);
         } else {
             stackDTO.setEmail(sharedPreferences.getString("email", ""));
         }
@@ -388,9 +393,7 @@ public class MainActivity extends AppCompatActivity
             memory.setSongCollections(songCollections);
         }
         if (favouriteSongs == null) {
-            FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(this);
-            favouriteSongs = favouriteSongRepository.findAll();
-            memory.setFavouriteSongs(favouriteSongs);
+            loadFavouriteSongsFromDatabase();
         }
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -426,15 +429,7 @@ public class MainActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        Menu menu = navigationView.getMenu();
-
-        gSignIn = sharedPreferences.getBoolean("gSignIn", false);
-//        signInMenuItem = menu.findItem(R.id.nav_sign_in);
-//        if (gSignIn) {
-//            if (signInMenuItem != null) {
-//                signInMenuItem.setTitle(getString(R.string.sign_out));
-//            }
-//        }
+        updateNavSignInTitleByLoggedIn();
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.INTERNET)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -485,10 +480,39 @@ public class MainActivity extends AppCompatActivity
         }
         syncDatabase();
         setView();
+        hideBottomSheetIfNoQueue();
+    }
+
+    private void loadFavouriteSongsFromDatabase() {
+        FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(this);
+        favouriteSongs = favouriteSongRepository.findAll();
+        memory.setFavouriteSongs(favouriteSongs);
+    }
+
+    private void hideBottomSheetIfNoQueue() {
         List<QueueSong> queue = memory.getQueue();
         if (queue != null && queue.size() < 1) {
             hideBottomSheet();
         }
+    }
+
+    private void updateNavSignInTitleByLoggedIn() {
+        NavigationView navigationView = findViewById(R.id.nav_view);
+        Menu menu = navigationView.getMenu();
+        MenuItem signInMenuItem = menu.findItem(R.id.nav_sign_in);
+        if (signInMenuItem != null) {
+            int resId;
+            if (isLoggedIn()) {
+                resId = R.string.sign_out;
+            } else {
+                resId = R.string.sign_in;
+            }
+            signInMenuItem.setTitle(getString(resId));
+        }
+    }
+
+    private LoggedInUser getLoggedInUser() {
+        return UserService.getInstance().getLoggedInUser(this);
     }
 
     private void setBottomSheetPadding() {
@@ -759,10 +783,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void setFavouritesForSongs() {
-        HashMap<String, Song> hashMap = new HashMap<>(songs.size());
-        for (Song song : songs) {
-            hashMap.put(song.getUuid(), song);
-        }
+        HashMap<String, Song> hashMap = getStringSongHashMap();
         for (FavouriteSong favouriteSong : favouriteSongs) {
             if (favouriteSong.getSong() != null) {
                 String songUuid = favouriteSong.getSong().getUuid();
@@ -803,16 +824,40 @@ public class MainActivity extends AppCompatActivity
             syncInBackground.syncYoutubeUrl(getApplicationContext());
             sharedPreferences.edit().putBoolean("YoutubeUrl", false).apply();
         }
-        syncDrive();
+        syncFavouriteSongs();
     }
 
-    private void syncDrive() {
-        syncFavouriteInGoogleDrive = new SyncFavouriteInGoogleDrive(new GoogleSignInIntent() {
+    private void syncFavouriteSongs() {
+        FavouriteSongService.getInstance().syncFavourites(this);
+        syncFavouriteSongsFromServer();
+    }
+
+    private void syncFavouriteSongsFromServer() {
+        FavouriteSongService.getInstance().syncFavouritesFromServer(this, new FavouriteSongService.FavouriteSongUpdateListener() {
             @Override
-            public void task(Intent signInIntent) {
+            public void onUpdated() {
+                HashMap<String, Song> hashMap = getStringSongHashMap();
+                loadFavouriteSongsFromDatabase();
+                for (FavouriteSong favouriteSong : favouriteSongs) {
+                    if (favouriteSong.getSong() != null) {
+                        String songUuid = favouriteSong.getSong().getUuid();
+                        if (hashMap.containsKey(songUuid)) {
+                            Song song = hashMap.get(songUuid);
+                            song.setFavourite(favouriteSong);
+                        }
+                    }
+                }
+                search(lastSearchedText, adapter);
             }
-        }, this, songs, favouriteSongs);
-        syncFavouriteInGoogleDrive.signIn();
+        });
+    }
+
+    private HashMap<String, Song> getStringSongHashMap() {
+        HashMap<String, Song> hashMap = new HashMap<>(songs.size());
+        for (Song song : songs) {
+            hashMap.put(song.getUuid(), song);
+        }
+        return hashMap;
     }
 
     private void initPreferences() {
@@ -843,6 +888,7 @@ public class MainActivity extends AppCompatActivity
         };
     }
 
+    @SuppressLint("NotifyDataSetChanged")
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -875,7 +921,7 @@ public class MainActivity extends AppCompatActivity
                     createLoadSongVerseThread();
                     loadSongVersesThread.start();
                     filter();
-                    syncDrive();
+                    syncFavouriteSongsFromServer();
                     loadAll();
                     Toast toast = Toast.makeText(getApplicationContext(), getString(R.string.downloaded) + " " + (resultCode - 1), Toast.LENGTH_SHORT);
                     toast.show();
@@ -931,16 +977,16 @@ public class MainActivity extends AppCompatActivity
                 if (getAccountTask.isSuccessful()) {
                     GoogleSignInAccount result = getAccountTask.getResult();
                     saveGmail(result, getApplicationContext());
-                    syncFavouriteInGoogleDrive.initializeDriveClient(result);
-//                    if (signInMenuItem != null) {
-//                        signInMenuItem.setTitle(getString(R.string.sign_out));
-//                    }
-                    gSignIn = true;
                 } else {
                     Log.e(TAG, "Sign-in failed.");
                     showToaster("Sign-in failed.", Toast.LENGTH_LONG);
                 }
                 break;
+            case LOGIN_IN_ACTIVITY_REQUEST_CODE:
+                if (resultCode == RESULT_LOGGED_IN) {
+                    updateNavSignInTitleByLoggedIn();
+                    syncFavouriteSongs();
+                }
         }
         if (adapter != null) {
             adapter.notifyDataSetChanged();
@@ -1460,8 +1506,6 @@ public class MainActivity extends AppCompatActivity
             addDuplicatesPopupWindow.dismiss();
         } else if (addSongListLinkPopupWindow != null && addSongListLinkPopupWindow.isShowing()) {
             addSongListLinkPopupWindow.dismiss();
-        } else if (googleSignInPopupWindow != null && googleSignInPopupWindow.isShowing()) {
-            googleSignInPopupWindow.dismiss();
         } else if (bottomSheetBehavior.getState() == BottomSheetBehavior.STATE_EXPANDED) {
             bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
         } else {
@@ -1603,7 +1647,12 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(loadIntent, 5);
         } else if (id == R.id.nav_privacy_policy) {
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://comsongbook.firebaseapp.com/privacy_policy.html")));
-//        } else if (id == R.id.nav_sign_in) {
+        } else if (id == R.id.nav_sign_in) {
+            if (!isLoggedIn()) {
+                login();
+            } else {
+                logout();
+            }
 //            if (!gSignIn) {
 //                googleSignInPopupWindow = showGoogleSignIn((LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE), true);
 //                if (googleSignInPopupWindow != null) {
@@ -1620,12 +1669,41 @@ public class MainActivity extends AppCompatActivity
 //                if (signInMenuItem != null) {
 //                    signInMenuItem.setTitle(getString(R.string.sign_in));
 //                }
-//            }
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private boolean isLoggedIn() {
+        return UserService.getInstance().isLoggedIn(this);
+    }
+
+    private void login() {
+        Intent loadIntent = new Intent(this, LoginActivity.class);
+        startActivityForResult(loadIntent, LOGIN_IN_ACTIVITY_REQUEST_CODE);
+    }
+
+    private void logout() {
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                LoggedInUserRepositoryImpl loggedInUserRepository = new LoggedInUserRepositoryImpl(MainActivity.this);
+                LoggedInUser loggedInUser = getLoggedInUser();
+                loggedInUserRepository.delete(loggedInUser);
+
+                LoginApiBean loginApiBean = new LoginApiBean();
+                loginApiBean.logout();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateNavSignInTitleByLoggedIn();
+                    }
+                });
+            }
+        });
+        thread.start();
     }
 
     public void onSortButtonClick(View view) {
@@ -1646,7 +1724,7 @@ public class MainActivity extends AppCompatActivity
                 LayoutParams.WRAP_CONTENT,
                 LayoutParams.WRAP_CONTENT
         );
-        final Switch reverseSwitch = customView.findViewById(R.id.reverseSwitch);
+        @SuppressLint("UseSwitchCompatOrMaterialCode") final Switch reverseSwitch = customView.findViewById(R.id.reverseSwitch);
         RadioGroup radioGroup = customView.findViewById(R.id.radioSort);
         if (sortMethod == 7) {
             radioGroup.check(R.id.relevanceRadioButton);
@@ -1926,10 +2004,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void filterSongsByCollection() {
-        HashMap<String, Song> hashMap = new HashMap<>(songs.size());
-        for (Song song : songs) {
-            hashMap.put(song.getUuid(), song);
-        }
+        HashMap<String, Song> hashMap = getStringSongHashMap();
         songs.clear();
         if (ifOneSelected()) {
             for (SongCollection songCollection : songCollections) {
@@ -2071,8 +2146,6 @@ public class MainActivity extends AppCompatActivity
             }
         }, this, songs, favouriteSongs);
         syncFavouriteInGoogleDrive.signIn();
-        googleSignInPopupWindow.dismiss();
-        alreadyTried2 = true;
     }
 
     private void showToaster(String s, int lengthLong) {
@@ -2119,7 +2192,7 @@ public class MainActivity extends AppCompatActivity
                 ids.append(",").append(uuid);
             }
         }
-        share.putExtra(Intent.EXTRA_TEXT, "http://localhost/queue?ids=" + ids.substring(1, ids.length()));
+        share.putExtra(Intent.EXTRA_TEXT, BASE_URL + "queue?ids=" + ids.substring(1, ids.length()));
         startActivity(Intent.createChooser(share, "Share queue!"));
     }
 
@@ -2302,6 +2375,65 @@ public class MainActivity extends AppCompatActivity
         void onLongClick(Song song, int position);
     }
 
+    public static class CenterLayoutManager extends LinearLayoutManager {
+
+        CenterLayoutManager(Context context) {
+            super(context);
+        }
+
+        @Override
+        public void smoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state, int position) {
+            RecyclerView.SmoothScroller smoothScroller = new CenterSmoothScroller(recyclerView.getContext());
+            smoothScroller.setTargetPosition(position);
+            startSmoothScroll(smoothScroller);
+        }
+
+        private static class CenterSmoothScroller extends LinearSmoothScroller {
+
+            CenterSmoothScroller(Context context) {
+                super(context);
+            }
+
+            @Override
+            public int calculateDtToFit(int viewStart, int viewEnd, int boxStart, int boxEnd, int snapPreference) {
+                return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2);
+            }
+        }
+    }
+
+    static class MyViewHolder extends RecyclerView.ViewHolder {
+
+        TextView ordinalNumberTextView;
+        TextView titleTextView;
+        View imageView;
+        View parentLayout;
+
+        MyViewHolder(View v) {
+            super(v);
+            titleTextView = v.findViewById(R.id.titleTextView);
+            ordinalNumberTextView = v.findViewById(R.id.ordinalNumberTextView);
+            titleTextView = v.findViewById(R.id.titleTextView);
+            imageView = v.findViewById(R.id.starImageView);
+            parentLayout = v.findViewById(R.id.parentLayout);
+        }
+
+        void bind(final Song song, final OnItemClickListener listener, final int position) {
+            parentLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    listener.onItemClick(song, position);
+                }
+            });
+            parentLayout.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    listener.onLongClick(song, position);
+                    return true;
+                }
+            });
+        }
+    }
+
     private class LanguageAdapter extends ArrayAdapter<Language> {
 
         private final List<Language> languageList;
@@ -2417,39 +2549,6 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    class MyViewHolder extends RecyclerView.ViewHolder {
-
-        TextView ordinalNumberTextView;
-        TextView titleTextView;
-        View imageView;
-        View parentLayout;
-
-        MyViewHolder(View v) {
-            super(v);
-            titleTextView = v.findViewById(R.id.titleTextView);
-            ordinalNumberTextView = v.findViewById(R.id.ordinalNumberTextView);
-            titleTextView = v.findViewById(R.id.titleTextView);
-            imageView = v.findViewById(R.id.starImageView);
-            parentLayout = v.findViewById(R.id.parentLayout);
-        }
-
-        void bind(final Song song, final OnItemClickListener listener, final int position) {
-            parentLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    listener.onItemClick(song, position);
-                }
-            });
-            parentLayout.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    listener.onLongClick(song, position);
-                    return true;
-                }
-            });
-        }
-    }
-
     private class SongAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
         private final OnItemClickListener listener;
@@ -2503,37 +2602,12 @@ public class MainActivity extends AppCompatActivity
             return songList.size();
         }
 
+        @SuppressLint("NotifyDataSetChanged")
         void setSongList(List<Song> songs) {
             songList.clear();
             songList.addAll(songs);
             this.notifyDataSetChanged();
         }
 
-    }
-
-    public class CenterLayoutManager extends LinearLayoutManager {
-
-        CenterLayoutManager(Context context) {
-            super(context);
-        }
-
-        @Override
-        public void smoothScrollToPosition(RecyclerView recyclerView, RecyclerView.State state, int position) {
-            RecyclerView.SmoothScroller smoothScroller = new CenterSmoothScroller(recyclerView.getContext());
-            smoothScroller.setTargetPosition(position);
-            startSmoothScroll(smoothScroller);
-        }
-
-        private class CenterSmoothScroller extends LinearSmoothScroller {
-
-            CenterSmoothScroller(Context context) {
-                super(context);
-            }
-
-            @Override
-            public int calculateDtToFit(int viewStart, int viewEnd, int boxStart, int boxEnd, int snapPreference) {
-                return (boxStart + (boxEnd - boxStart) / 2) - (viewStart + (viewEnd - viewStart) / 2);
-            }
-        }
     }
 }

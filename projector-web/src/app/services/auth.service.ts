@@ -42,6 +42,12 @@ export class AuthService {
     this.isLoggedIn = this.FUser.email.length > 1;
   }
 
+  setUserAlsoToLocalStorage(user: User) {
+    const user2 = new User(user);
+    this.setUser(user2);
+    localStorage.setItem('currentUser', JSON.stringify(user2));
+  }
+
   logout(): void {
     this.http.get('/logout')
       .map(res => res).subscribe();
