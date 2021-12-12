@@ -20,6 +20,7 @@ import { ChangePasswordByTokenComponent } from '../ui/forgotten-password/change-
 import { ReviewerStatisticsComponent } from '../ui/reviewer-statistics/reviewer-statistics.component';
 import { VersionLinkListComponent } from '../ui/version-link-list/version-link-list.component';
 import { VersionLinkComponent } from '../ui/version-link/version-link.component';
+import { ActivateComponent } from '../ui/activate/activate.component';
 
 export const appRoutes: Routes = [
   {
@@ -56,6 +57,7 @@ export const appRoutes: Routes = [
   { path: '', redirectTo: 'songs', pathMatch: 'full' },
   { path: 'registration', component: UserRegisterComponent },
   { path: 'activation/:code', component: ActivationComponent },
+  { path: 'activate', component: ActivateComponent },
   { path: 'user/notifications', component: NotificationSettingsComponent },
   { path: 'desktop-app', component: ProjectorComponent },
   { path: 'forgottenPassword', component: ForgottenPasswordComponent },

@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import static com.bence.projector.server.api.resources.StatisticsResource.saveStatistics;
+import static com.bence.projector.server.api.resources.util.UserPrincipalUtil.getUserFromPrincipalAndUserService;
 
 @RestController
 public class UserResource {
@@ -129,7 +130,7 @@ public class UserResource {
     private void sendActivationEmail(User user) {
         try {
             logger.info("Got email: " + user.getEmail());
-            sendEmailFreemarker(user);
+            sendJustActivationEmail(user);
             logger.info("Mail sent!");
             sendNewUserEmail(user);
         } catch (MessagingException | TemplateException | IOException | MailSendException e) {
@@ -138,7 +139,7 @@ public class UserResource {
         }
     }
 
-    private void sendEmailFreemarker(User user)
+    private void sendJustActivationEmail(User user)
             throws MessagingException, IOException, TemplateException, MailSendException {
         String language = user.getPreferredLanguage();
         if (language == null || (!language.equals("hu") && !language.equals("ro") && !language.equals("en"))) {
@@ -222,6 +223,29 @@ public class UserResource {
                 } else {
                     return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
                 }
+            }
+        }
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/user/api/sendActivation")
+    public ResponseEntity<Object> sendActivation(Principal principal) {
+        User user = getUserFromPrincipalAndUserService(principal, userService);
+        if (user != null) {
+            if (!user.isActivated()) {
+                if (user.getActivationCode() == null) {
+                    user.setActivationCode(UUID.randomUUID().toString());
+                    userService.save(user);
+                }
+                Thread thread = new Thread(() -> {
+                    try {
+                        sendJustActivationEmail(user);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                });
+                thread.start();
+                return new ResponseEntity<>(HttpStatus.ACCEPTED);
             }
         }
         return new ResponseEntity<>(HttpStatus.BAD_REQUEST);

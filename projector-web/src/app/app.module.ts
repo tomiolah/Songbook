@@ -93,6 +93,7 @@ import { VersionLinkListComponent } from './ui/version-link-list/version-link-li
 import { SongLinkDataService } from './services/song-link-data.service';
 import { VersionLinkComponent } from './ui/version-link/version-link.component';
 import { SongCollectionElementComponent } from './ui/song-collection-element/song.collection.element';
+import { ActivateComponent } from './ui/activate/activate.component';
 
 @NgModule({
   exports: [
@@ -176,6 +177,7 @@ export class PlunkerMaterialModule {
     VersionLinkListComponent,
     VersionLinkComponent,
     SongCollectionElementComponent,
+    ActivateComponent,
   ],
   imports: [
     BrowserModule,
