@@ -336,7 +336,17 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public List<Song> findAllInReviewByLanguage(Language language) {
-        return songRepository.findAllByLanguageAndUploadedIsTrueAndBackUpIsNullAndDeletedIsTrueAndReviewerErasedIsNull(language);
+        return getSongsWithReviewerErasedFalse(songRepository.findAllByLanguageAndUploadedIsTrueAndIsBackUpIsNullAndDeletedIsTrue(language));
+    }
+
+    private List<Song> getSongsWithReviewerErasedFalse(List<Song> songs) {
+        List<Song> filtered = new ArrayList<>();
+        for (Song song : songs) {
+            if (!song.isReviewerErased() && song.getOriginalId() == null) {
+                filtered.add(song);
+            }
+        }
+        return filtered;
     }
 
     @Override
@@ -384,10 +394,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     private Collection<Song> getSongsByLanguageForSimilar(Language language) {
-        return getAllByLanguageAndBackUpIsNullAndDeletedIsFalseAndReviewerErasedIsNull(language);
+        return getAllByLanguageAndIsBackUpIsNullAndDeletedIsFalseAndReviewerErasedIsNull(language);
     }
 
-    private List<Song> getAllByLanguageAndBackUpIsNullAndDeletedIsFalseAndReviewerErasedIsNull(Language language) {
+    private List<Song> getAllByLanguageAndIsBackUpIsNullAndDeletedIsFalseAndReviewerErasedIsNull(Language language) {
         try {
             List<Song> songsFromResultSet = getSongsByLanguageFromResultSet(language);
             setVerseOrderListForSongsFromResultSet(songsFromResultSet, language);
@@ -449,7 +459,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
             sql += " and language_id = " + language.getId();
         }
         sql += " and is_back_up is null";
-        sql += " and reviewer_erased is null";
+        sql += " and ((reviewer_erased is null) or (reviewer_erased = 0))";
         return sql;
     }
 

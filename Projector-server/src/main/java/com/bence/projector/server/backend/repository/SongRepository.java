@@ -27,6 +27,5 @@ public interface SongRepository extends CrudRepository<Song, Long> {
     @Transactional
     List<Song> findAllByModifiedDateGreaterThanAndLanguage(Date lastModifiedDate, Language language);
 
-    List<Song> findAllByLanguageAndUploadedIsTrueAndBackUpIsNullAndDeletedIsTrueAndReviewerErasedIsNull(Language language);
-
+    List<Song> findAllByLanguageAndUploadedIsTrueAndIsBackUpIsNullAndDeletedIsTrue(Language language);
 }
