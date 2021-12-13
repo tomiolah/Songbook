@@ -50,11 +50,17 @@ public class MailSenderService {
     private NotificationByLanguageService notificationByLanguageService;
 
     public void sendEmailSuggestionToUser(Suggestion suggestion, User user) {
-        Language language = songService.findOneByUuid(suggestion.getSongUuid()).getLanguage();
-        NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
-        notificationByLanguage.getSuggestionStack().add(suggestion);
-        notificationByLanguageService.save(notificationByLanguage);
-        tryToSendAllPrevious();
+        try {
+            Language language = songService.findOneByUuid(suggestion.getSongUuid()).getLanguage();
+            NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
+            notificationByLanguage.getSuggestionStack().add(suggestion);
+            notificationByLanguageService.save(notificationByLanguage);
+            tryToSendAllPrevious();
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println(user.getEmail());
+            System.out.println(suggestion.getTitle());
+        }
     }
 
     public void sendEmailNewSongToUser(Song song, User user) {

@@ -1120,7 +1120,10 @@ public class MainActivity extends AppCompatActivity
                         if (viewPager.getCurrentItem() == position) {
                             showSongFullscreen(song);
                         } else {
-                            viewPager.setCurrentItem(position);
+                            try {
+                                viewPager.setCurrentItem(position);
+                            } catch (IllegalStateException ignored) {
+                            }
                         }
                     }
                 }
