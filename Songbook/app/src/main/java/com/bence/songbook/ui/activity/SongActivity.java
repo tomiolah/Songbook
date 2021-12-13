@@ -482,6 +482,7 @@ public class SongActivity extends AppCompatActivity {
                     song.setFavourite(!song.isFavourite());
                     FavouriteSong favourite = song.getFavourite();
                     favourite.setModifiedDate(new Date());
+                    favourite.setUploadedToServer(false);
                     favourite.setFavouritePublished(favourite.isFavouriteNotPublished());
                     FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
                     favouriteSongRepository.save(favourite);

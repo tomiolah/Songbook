@@ -62,4 +62,12 @@ public class FavouriteSong extends Base {
     public void setUploadedToServer(boolean uploadedToServer) {
         this.uploadedToServer = uploadedToServer;
     }
+
+    @Override
+    public String toString() {
+        return "FavouriteSong{" +
+                "song= " + song +
+                ", favourite= " + favourite +
+                '}';
+    }
 }
