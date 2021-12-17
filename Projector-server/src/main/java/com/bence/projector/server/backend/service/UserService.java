@@ -15,4 +15,6 @@ public interface UserService extends BaseService<User> {
     List<User> findAllReviewersByLanguage(Language language);
 
     List<User> findAllAdmins();
+
+    User findOneByUuid(String uuid);
 }

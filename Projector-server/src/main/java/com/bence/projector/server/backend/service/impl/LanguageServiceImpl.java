@@ -48,11 +48,6 @@ public class LanguageServiceImpl extends BaseServiceImpl<Language> implements La
     }
 
     @Override
-    public void deleteByUuid(String uuid) {
-
-    }
-
-    @Override
     public Language findOneByUuid(String id) {
         if (languageMap.containsKey(id)) {
             return languageMap.get(id);

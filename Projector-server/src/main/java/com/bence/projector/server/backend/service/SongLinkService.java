@@ -11,4 +11,6 @@ public interface SongLinkService extends BaseService<SongLink> {
     void resolveAppliedSongLinks();
 
     List<SongLink> findAllUnApplied();
+
+    SongLink findOneByUuid(String uuid);
 }

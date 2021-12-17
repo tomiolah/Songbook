@@ -55,6 +55,9 @@ public class QueueResourceSeo {
     @GetMapping("/songList/{id}")
     public String songList(Model model, @PathVariable("id") String id) {
         SongList songList = songListService.findOneByUuid(id);
+        if (songList == null) {
+            return "pageNotFound";
+        }
         List<SongListElement> songListElements = songList.getSongListElements();
         List<Song> songs = new ArrayList<>(songListElements.size());
         for (SongListElement element : songListElements) {

@@ -516,16 +516,6 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return null;
     }
 
-    private List<Song> filterSongsForSimilar(Collection<Song> songs) {
-        ArrayList<Song> filteredSongs = new ArrayList<>();
-        for (Song song : songs) {
-            if (!song.isDeleted()) {
-                filteredSongs.add(song);
-            }
-        }
-        return filteredSongs;
-    }
-
     private void checkLastModifiedDate(Song song) {
         Date modifiedDate = song.getModifiedDate();
         if (modifiedDate == null) {

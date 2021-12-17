@@ -45,4 +45,6 @@ public interface SongService extends BaseService<Song> {
     List<Song> findAllInReviewByLanguage(Language language);
 
     List<Song> findAllReviewedByUser(User user);
+
+    Song findOneByUuid(String uuid);
 }

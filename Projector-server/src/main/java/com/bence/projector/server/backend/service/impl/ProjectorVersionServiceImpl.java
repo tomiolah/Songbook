@@ -18,13 +18,4 @@ public class ProjectorVersionServiceImpl extends BaseServiceImpl<ProjectorVersio
         return projectorVersionRepository.findAllByVersionIdGreaterThan(nr);
     }
 
-    @Override
-    public ProjectorVersion findOneByUuid(String uuid) {
-        return null;
-    }
-
-    @Override
-    public void deleteByUuid(String uuid) {
-
-    }
 }

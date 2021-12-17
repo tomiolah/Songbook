@@ -61,11 +61,6 @@ public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> i
     }
 
     @Override
-    public void deleteByUuid(String uuid) {
-
-    }
-
-    @Override
     public SongCollection saveWithoutForeign(SongCollection songCollection) {
         return this.songCollectionRepository.save(songCollection);
     }

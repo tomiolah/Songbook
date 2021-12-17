@@ -40,13 +40,4 @@ public abstract class BaseServiceImpl<M extends BaseEntity> implements BaseServi
     public Iterable<M> save(final List<M> models) {
         return repository.save(models);
     }
-
-    @Override
-    public M findOneByUuid(String uuid) {
-        return null;
-    }
-
-    @Override
-    public void deleteByUuid(String uuid) {
-    }
 }

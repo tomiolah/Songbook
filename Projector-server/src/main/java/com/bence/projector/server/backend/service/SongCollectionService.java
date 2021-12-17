@@ -16,4 +16,6 @@ public interface SongCollectionService extends BaseService<SongCollection> {
     List<SongCollection> findAllBySong(Song song);
 
     SongCollection saveWithoutForeign(SongCollection songCollection);
+
+    SongCollection findOneByUuid(String uuid);
 }

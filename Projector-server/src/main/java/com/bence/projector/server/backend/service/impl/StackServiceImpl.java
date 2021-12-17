@@ -19,4 +19,9 @@ public class StackServiceImpl extends BaseServiceImpl<Stack> implements StackSer
     public Stack findByStackTrace(String stackTrace) {
         return stackRepository.findByStackTrace(stackTrace);
     }
+
+    @Override
+    public Stack findOneByUuid(String uuid) {
+        return stackRepository.findOneByUuid(uuid);
+    }
 }
