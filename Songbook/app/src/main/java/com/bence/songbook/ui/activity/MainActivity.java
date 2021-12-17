@@ -525,7 +525,6 @@ public class MainActivity extends AppCompatActivity
         try {
             Toast this_song_is_not_saved = Toast.makeText(this, R.string.this_song_is_not_saved, Toast.LENGTH_LONG);
             String text = appLinkData.toString();
-            String[] str = {"/#/song/", "/song/"};
             if (text != null) {
                 String prefix = "queue?ids=";
                 if (text.contains(prefix)) {
@@ -537,6 +536,7 @@ public class MainActivity extends AppCompatActivity
                     parseSongListLink(text, prefix);
                     return;
                 }
+                String[] str = {"/#/song/", "/song/"};
                 for (String s : str) {
                     if (text.contains(s)) {
                         parseSongLink(this_song_is_not_saved, text, s);
@@ -611,7 +611,12 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void parseSongListLink(String text, String prefix) {
-        final String uuid = text.substring(text.lastIndexOf(prefix) + prefix.length());
+        String substring = text.substring(text.lastIndexOf(prefix) + prefix.length());
+        String[] split = substring.split("\\?");
+        if (split.length > 0) {
+            substring = split[0];
+        }
+        final String uuid = substring;
         SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
         final SongList byUuid = songListRepository.findByUuid(uuid);
         if (byUuid == null) {
