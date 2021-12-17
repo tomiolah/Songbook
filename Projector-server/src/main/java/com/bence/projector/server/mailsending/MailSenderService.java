@@ -7,9 +7,11 @@ import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.model.User;
+import com.bence.projector.server.backend.model.UserProperties;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.NotificationByLanguageService;
 import com.bence.projector.server.backend.service.SongService;
+import com.bence.projector.server.backend.service.UserPropertiesService;
 import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
@@ -48,9 +50,12 @@ public class MailSenderService {
     private LanguageService languageService;
     @Autowired
     private NotificationByLanguageService notificationByLanguageService;
+    @Autowired
+    private UserPropertiesService userPropertiesService;
 
     public void sendEmailSuggestionToUser(Suggestion suggestion, User user) {
         try {
+            ensureUserProperties(user);
             Language language = songService.findOneByUuid(suggestion.getSongUuid()).getLanguage();
             NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
             notificationByLanguage.getSuggestionStack().add(suggestion);
@@ -63,7 +68,16 @@ public class MailSenderService {
         }
     }
 
+    private void ensureUserProperties(User user) {
+        if (!user.hasUserProperties()) {
+            UserProperties userProperties = user.getUserProperties();
+            userPropertiesService.save(userProperties);
+            userService.save(user);
+        }
+    }
+
     public void sendEmailNewSongToUser(Song song, User user) {
+        ensureUserProperties(user);
         Language language = song.getLanguage();
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
         notificationByLanguage.getNewSongStack().add(song);

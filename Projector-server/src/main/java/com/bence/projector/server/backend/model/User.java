@@ -253,4 +253,8 @@ public class User extends AbstractModel {
         }
         return favouriteSongs;
     }
+
+    public boolean hasUserProperties() {
+        return userProperties != null && userProperties.getId() != null;
+    }
 }
