@@ -22,6 +22,9 @@ public class SongListElement extends BaseEntity {
     }
 
     public String getSongUuid() {
+        if (song == null) {
+            return null;
+        }
         return song.getUuid();
     }
 

@@ -52,10 +52,15 @@ public class SongListResource {
     @RequestMapping(value = "api/songList", method = RequestMethod.POST)
     public SongListDTO songList(@RequestBody final SongListDTO songListDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        SongList model = songListAssembler.createModel(songListDTO);
-        if (model != null) {
+        SongList songList = songListService.findOneByUuid(songListDTO.getUuid());
+        if (songList == null) {
+            songList = songListAssembler.createModel(songListDTO);
+        } else {
+            songListAssembler.updateModel(songList, songListDTO);
+        }
+        if (songList != null) {
             List<SongListElement> needToRemove = new ArrayList<>();
-            List<SongListElement> songListElements = model.getSongListElements();
+            List<SongListElement> songListElements = songList.getSongListElements();
             for (SongListElement element : songListElements) {
                 Song one = songRepository.findOneByUuid(element.getSongUuid());
                 if (one == null) {
@@ -63,8 +68,8 @@ public class SongListResource {
                 }
             }
             songListElements.removeAll(needToRemove);
-            songListService.save(model);
+            songListService.save(songList);
         }
-        return songListAssembler.createDto(model);
+        return songListAssembler.createDto(songList);
     }
 }
