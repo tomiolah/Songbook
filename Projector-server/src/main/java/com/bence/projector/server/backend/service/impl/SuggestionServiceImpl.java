@@ -111,11 +111,12 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
     }
 
     @Override
-    public Suggestion save(Suggestion model) {
-        List<SongVerse> verses = getCopyOfVerses(model.getVerses());
-        suggestionRepository.save(model);
+    public Suggestion save(Suggestion suggestion) {
+        List<SongVerse> verses = getCopyOfVerses(suggestion.getVerses());
+        suggestionRepository.save(suggestion);
+        songVerseRepository.deleteAllBySuggestionId(suggestion.getId());
         songVerseRepository.save(verses);
-        return super.save(model);
+        return super.save(suggestion);
     }
 
     private List<SongVerse> getCopyOfVerses(List<SongVerse> verses) {

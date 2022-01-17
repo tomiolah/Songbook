@@ -13,4 +13,7 @@ public interface SongVerseRepository extends CrudRepository<SongVerse, Long> {
     void deleteAllBySongId(Long songId);
 
     List<SongVerse> findAllBySong_LanguageAndSong_ModifiedDateGreaterThan(Language language, Date modifiedDate);
+
+    @Transactional
+    void deleteAllBySuggestionId(Long suggestionId);
 }

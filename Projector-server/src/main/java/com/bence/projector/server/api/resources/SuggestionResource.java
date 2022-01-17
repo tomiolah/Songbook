@@ -134,11 +134,11 @@ public class SuggestionResource {
 
     @RequestMapping(method = RequestMethod.PUT, value = "/admin/api/suggestion/{suggestionId}")
     public ResponseEntity<Object> updateSongByAdmin(Principal principal, @PathVariable final String suggestionId, @RequestBody final SuggestionDTO suggestionDTO, HttpServletRequest httpServletRequest) {
-        return updateSongByReviewer(principal, suggestionId, suggestionDTO, httpServletRequest);
+        return updateSuggestionByReviewer(principal, suggestionId, suggestionDTO, httpServletRequest);
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/reviewer/api/suggestion/{suggestionId}")
-    public ResponseEntity<Object> updateSongByReviewer(Principal principal, @PathVariable final String suggestionId, @RequestBody final SuggestionDTO suggestionDTO, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Object> updateSuggestionByReviewer(Principal principal, @PathVariable final String suggestionId, @RequestBody final SuggestionDTO suggestionDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         if (principal != null) {
             String email = principal.getName();
