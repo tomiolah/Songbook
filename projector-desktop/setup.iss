@@ -2,6 +2,7 @@
 AppName=Projector
 AppVersion=2.5.2
 DefaultDirName={sd}\Projector
+DisableDirPage=no
 ; Since no icons will be created in "{group}", we don't need the wizard
 ; to ask for a Start Menu folder name:
 DisableProgramGroupPage=yes
@@ -24,3 +25,6 @@ Source: "forSetup\recent.txt"; DestDir: "{app}"
 [Icons]
 Name: "{commonprograms}\Projector"; Filename: "{app}\Projector.exe"
 Name: "{commondesktop}\Projector"; Filename: "{app}\Projector.exe"
+
+[Run]
+Filename: "{app}\projector.exe"; WorkingDir: "{app}"; Description: "{cm:LaunchProgram,Projector}"; Flags: nowait postinstall skipifsilent

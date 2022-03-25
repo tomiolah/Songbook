@@ -117,6 +117,7 @@ public class SongController {
     private final SongService songService;
     private final Settings settings = Settings.getInstance();
     private final String BASE_URL = ApiManager.DOMAIN;
+    @SuppressWarnings("FieldCanBeLocal")
     private final String link = "http://" + BASE_URL;
     @SuppressWarnings("FieldCanBeLocal")
     private final String link2 = "https://" + BASE_URL;
@@ -800,7 +801,7 @@ public class SongController {
                 s = prefix + song.getId();
                 content.putString(s);
             } else {
-                s = link + "/song/" + uuid;
+                s = link3 + "/song/" + uuid;
                 content.putUrl(s);
             }
             dragboard.setContent(content);
@@ -860,6 +861,7 @@ public class SongController {
                 url = url.replace(link3 + prefix, "");
                 url = url.replace(link4 + prefix, "");
                 url = url.replaceFirst("queue\\?ids=", "");
+                url = getFirstBy(url);
                 String[] uuids = url.split(",");
                 for (String uuid : uuids) {
                     addToSongByUuid(songs, uuid);
@@ -870,6 +872,7 @@ public class SongController {
                 url = url.replace(link2 + songPrefix, "");
                 url = url.replace(link3 + songPrefix, "");
                 url = url.replace(link4 + songPrefix, "");
+                url = getFirstBy(url);
                 addToSongByUuid(songs, url);
             }
             if (songs.size() == 0) {
@@ -889,11 +892,56 @@ public class SongController {
         return null;
     }
 
+    private String getFirstBy(String url) {
+        String[] split = url.split("\\?");
+        if (split.length > 0) {
+            return split[0];
+        }
+        return "";
+    }
+
     private void addToSongByUuid(ArrayList<Song> songs, String uuid) {
         Song byUuid = songService.findByUuid(uuid);
         if (byUuid != null) {
             songs.add(byUuid);
+        } else {
+            final Song[] song = {null};
+            Thread thread = new Thread(() -> {
+                SongApiBean songApiBean = new SongApiBean();
+                song[0] = songApiBean.getSongByUuid(uuid);
+                if (song[0] != null) {
+                    ServiceManager.getSongService().create(song[0]);
+                    addSongToLanguagesComboBox(song[0]);
+                }
+            });
+            thread.start();
+            try {
+                thread.join(500);
+            } catch (InterruptedException ignored) {
+            }
+            if (song[0] != null) {
+                songs.add(song[0]);
+            }
         }
+    }
+
+    private void addSongToLanguagesComboBox(Song song) {
+        Language language = song.getLanguage();
+        if (language != null) {
+            Language languageInComboBox = findLanguageInComboBox(language);
+            if (languageInComboBox != null) {
+                languageInComboBox.getSongs().add(song);
+            }
+        }
+    }
+
+    private Language findLanguageInComboBox(Language language) {
+        for (Language aLanguage : languageComboBox.getItems()) {
+            if (aLanguage.getId().equals(language.getId())) {
+                return aLanguage;
+            }
+        }
+        return null;
     }
 
     private void initializeShowVersionsButton() {

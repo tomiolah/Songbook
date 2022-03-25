@@ -1,5 +1,6 @@
 package projector.api;
 
+import com.bence.projector.common.dto.LanguageDTO;
 import com.bence.projector.common.dto.LoginDTO;
 import com.bence.projector.common.dto.LoginSongDTO;
 import com.bence.projector.common.dto.SongDTO;
@@ -12,6 +13,7 @@ import projector.api.retrofit.ApiManager;
 import projector.api.retrofit.SongApi;
 import projector.model.Language;
 import projector.model.Song;
+import projector.service.ServiceManager;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -22,8 +24,8 @@ import java.util.List;
 
 public class SongApiBean {
     private static final Logger LOG = LoggerFactory.getLogger(SongApiBean.class);
-    private SongApi songApi;
-    private SongAssembler songAssembler;
+    private final SongApi songApi;
+    private final SongAssembler songAssembler;
 
     public SongApiBean() {
         songApi = ApiManager.getClient().create(SongApi.class);
@@ -58,11 +60,6 @@ public class SongApiBean {
             }
             songDTOs.removeAll(toDelete);
         }
-    }
-
-    public List<Song> getSongsAfterModifiedDate(Date modifiedDate) {
-        Call<List<SongDTO>> call = songApi.getSongsAfterModifiedDate(modifiedDate.getTime());
-        return executeSongsCall(call);
     }
 
     public Song updateSong(Song song, LoginDTO loginDTO) throws ApiException {
@@ -140,6 +137,25 @@ public class SongApiBean {
         Call<List<SongFavouritesDTO>> call = songApi.getSongFavouritesByLanguage(language.getUuid());
         try {
             return call.execute().body();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public Song getSongByUuid(String uuid) {
+        Call<SongDTO> call = songApi.getSong(uuid);
+        try {
+            SongDTO songDTO = call.execute().body();
+            Song song = songAssembler.createModel(songDTO);
+            if (song == null || songDTO == null) {
+                return null;
+            }
+            LanguageDTO languageDTO = songDTO.getLanguageDTO();
+            if (languageDTO != null) {
+                song.setLanguage(ServiceManager.getLanguageService().findByUuid(languageDTO.getUuid()));
+            }
+            return song;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

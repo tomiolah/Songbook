@@ -9,6 +9,7 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.paint.Color;
 import javafx.scene.text.FontWeight;
+import projector.controller.BibleController;
 import projector.controller.SettingsController;
 import projector.controller.song.util.OrderMethod;
 import projector.model.Language;
@@ -32,6 +33,9 @@ import static java.lang.Double.parseDouble;
 public class Settings {
 
     private static Settings instance = null;
+    private final BooleanProperty connectedToShared = new SimpleBooleanProperty(false);
+    private final SimpleBooleanProperty showProgressLine = new SimpleBooleanProperty(true);
+    private final SimpleBooleanProperty progressLinePositionIsTop = new SimpleBooleanProperty(true);
     private int maxFont = 80;
     private boolean withAccents = false;
     private Color backgroundColor = Color.BLACK;
@@ -65,11 +69,7 @@ public class Settings {
     private double songHeightSliderValue = 250;
     private double verseListViewFontSize = 21;
     private boolean shareOnNetwork = false;
-    private BooleanProperty connectedToShared = new SimpleBooleanProperty(false);
-
-    private SimpleBooleanProperty showProgressLine = new SimpleBooleanProperty(true);
     private Color progressLineColor = new Color(1.0, 1.0, 1.0, 0.7);
-    private SimpleBooleanProperty progressLinePositionIsTop = new SimpleBooleanProperty(true);
     private OrderMethod songOrderMethod = OrderMethod.RELEVANCE;
     private boolean breakLines = false;
     private int breakAfter = 77;
@@ -83,6 +83,7 @@ public class Settings {
     private int customCanvasHeight = 300;
     private boolean shareOnLocalNetworkAutomatically = false;
     private boolean connectToSharedAutomatically = false;
+    private BibleController bibleController;
 
     protected Settings() {
         load();
@@ -779,5 +780,13 @@ public class Settings {
 
     public void setConnectToSharedAutomatically(boolean connectToSharedAutomatically) {
         this.connectToSharedAutomatically = connectToSharedAutomatically;
+    }
+
+    public BibleController getBibleController() {
+        return bibleController;
+    }
+
+    public void setBibleController(BibleController bibleController) {
+        this.bibleController = bibleController;
     }
 }

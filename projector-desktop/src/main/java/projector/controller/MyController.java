@@ -31,6 +31,8 @@ import java.awt.*;
 import java.io.IOException;
 import java.util.ResourceBundle;
 
+import static projector.controller.BibleController.setSceneStyleFile;
+
 public class MyController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MyController.class);
@@ -83,6 +85,16 @@ public class MyController {
     private MainDesktop mainDesktop;
     private Stage settingsStage;
 
+    public static double calculateSizeByScale(int size) {
+        double screenScale = screenScale();
+        return size / screenScale;
+    }
+
+    private static double screenScale() {
+        double screenResolution = Toolkit.getDefaultToolkit().getScreenResolution();
+        return screenResolution / 96;
+    }
+
     public void setPrimaryStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
         // primaryStage.setMaximized(true);
@@ -125,6 +137,7 @@ public class MyController {
 
     public void initialize() {
         settings = Settings.getInstance();
+        settings.setBibleController(bibleController);
         initializeSettingsController();
         bibleSearchController.setBibleController(bibleController);
         bibleSearchController.setMainController(this);
@@ -209,7 +222,7 @@ public class MyController {
             GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
             int height = gd.getDisplayMode().getHeight();
             Scene scene = new Scene(root, 850, calculateSizeByScale(height - 100));
-            scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+            setSceneStyleFile(scene);
             settingsStage = new Stage();
             settingsStage.setScene(scene);
             settingsStage.setTitle(title);
@@ -217,16 +230,6 @@ public class MyController {
             settingsController.setStage(settingsStage);
         } catch (IOException ignored) {
         }
-    }
-
-    public static double calculateSizeByScale(int size) {
-        double screenScale = screenScale();
-        return size / screenScale;
-    }
-
-    private static double screenScale() {
-        double screenResolution = Toolkit.getDefaultToolkit().getScreenResolution();
-        return screenResolution / 96;
     }
 
     public void setBlank() {

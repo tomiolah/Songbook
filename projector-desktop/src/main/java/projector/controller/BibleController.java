@@ -167,7 +167,7 @@ public class BibleController {
         return s;
     }
 
-    private static void oldReplaceScrollTo(int tmp, ListView listView) {
+    private static void oldReplaceScrollTo(int tmp, @SuppressWarnings("rawtypes") ListView listView) {
         try {
             if (tmp > listView.getItems().size()) {
                 listView.scrollTo(listView.getItems().size() - 2);
@@ -196,6 +196,10 @@ public class BibleController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    public static void setSceneStyleFile(Scene scene) {
+        Settings.getInstance().getBibleController().setStyleFile(scene);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")

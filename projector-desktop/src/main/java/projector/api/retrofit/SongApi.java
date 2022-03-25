@@ -34,4 +34,7 @@ public interface SongApi {
 
     @GET("/api/songFavourites/language/{language}")
     Call<List<SongFavouritesDTO>> getSongFavouritesByLanguage(@Path("language") String language);
+
+    @GET("/api/song/{uuid}")
+    Call<SongDTO> getSong(@Path("uuid") String uuid);
 }

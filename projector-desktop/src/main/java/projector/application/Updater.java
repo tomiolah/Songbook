@@ -25,6 +25,8 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.List;
 
+import static projector.controller.BibleController.setSceneStyleFile;
+
 public class Updater {
 
     private static final Logger LOG = LoggerFactory.getLogger(Updater.class);
@@ -44,33 +46,30 @@ public class Updater {
     }
 
     public void checkForUpdate() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ProjectorVersionApiBean projectorVersionApiBean = new ProjectorVersionApiBean();
-                    List<ProjectorVersionDTO> projectorVersionsAfterNr = projectorVersionApiBean.getProjectorVersionsAfterNr(projectorVersionNumber);
-                    if (projectorVersionsAfterNr != null && projectorVersionsAfterNr.size() > 0) {
-                        FXMLLoader loader = new FXMLLoader();
-                        loader.setLocation(MainDesktop.class.getResource("/view/UpdateAvailable.fxml"));
-                        loader.setResources(settings.getResourceBundle());
-                        Pane root = loader.load();
-                        UpdateController updateController = loader.getController();
-                        updateController.setProjectorVersions(projectorVersionsAfterNr);
-                        Scene scene = new Scene(root);
-                        scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
-                        Platform.runLater(() -> {
-                            Stage stage = new Stage();
-                            stage.setTitle("Update available");
-                            stage.setScene(scene);
-                            stage.show();
-                        });
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
+        Thread thread = new Thread(() -> {
+            try {
+                ProjectorVersionApiBean projectorVersionApiBean = new ProjectorVersionApiBean();
+                List<ProjectorVersionDTO> projectorVersionsAfterNr = projectorVersionApiBean.getProjectorVersionsAfterNr(projectorVersionNumber);
+                if (projectorVersionsAfterNr != null && projectorVersionsAfterNr.size() > 0) {
+                    FXMLLoader loader = new FXMLLoader();
+                    loader.setLocation(MainDesktop.class.getResource("/view/UpdateAvailable.fxml"));
+                    loader.setResources(settings.getResourceBundle());
+                    Pane root = loader.load();
+                    UpdateController updateController = loader.getController();
+                    updateController.setProjectorVersions(projectorVersionsAfterNr);
+                    Scene scene = new Scene(root);
+                    setSceneStyleFile(scene);
+                    Platform.runLater(() -> {
+                        Stage stage = new Stage();
+                        stage.setTitle("Update available");
+                        stage.setScene(scene);
+                        stage.show();
+                    });
                 }
-
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
             }
+
         });
         thread.start();
     }
@@ -91,7 +90,7 @@ public class Updater {
                 // alert.showAndWait();
                 URL website;
                 try {
-                    website = new URL("http://localhost/projector.exe");
+                    website = new URL(getUrl());
                     ReadableByteChannel rbc = Channels.newChannel(website.openStream());
                     File dir = new File("data");
                     if (!dir.isDirectory()) {
@@ -115,7 +114,7 @@ public class Updater {
                         Alert alert = new Alert(AlertType.INFORMATION);
                         alert.setTitle("Update file downloaded");
                         alert.setHeaderText("Restart the program!");
-                        alert.setContentText("You nead to restart the program to see the differences");
+                        alert.setContentText("You need to restart the program to see the differences");
                         alert.showAndWait();
                     });
                 } catch (MalformedURLException e) {

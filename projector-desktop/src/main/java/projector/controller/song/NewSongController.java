@@ -495,6 +495,7 @@ public class NewSongController {
         } else {
             newSong = new Song();
             newSong.setCreatedDate(createdDate);
+            selectedLanguage.getSongs().add(newSong);
         }
         newSong.setLanguage(selectedLanguage);
         newSong.setTitle(titleTextField.getText().trim());
