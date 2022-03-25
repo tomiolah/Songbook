@@ -34,4 +34,8 @@ public class AppProperties {
     public boolean useMoreMemory() {
         return properties.get("useMoreMemory").equals("true");
     }
+
+    public String adminEmail() {
+        return (String) properties.get("adminEmail");
+    }
 }

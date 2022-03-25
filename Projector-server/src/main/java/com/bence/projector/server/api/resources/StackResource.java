@@ -7,6 +7,7 @@ import com.bence.projector.server.backend.service.StackService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
+import com.bence.projector.server.mailsending.MailSenderService;
 import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +38,15 @@ public class StackResource {
     private final StackService stackService;
     private final StackAssembler stackAssembler;
     private final JavaMailSender sender;
+    private final MailSenderService mailSenderService;
 
     @Autowired
-    public StackResource(StatisticsService statisticsService, StackService stackService, StackAssembler stackAssembler, @Qualifier("javaMailSender") JavaMailSender sender) {
+    public StackResource(StatisticsService statisticsService, StackService stackService, StackAssembler stackAssembler, @Qualifier("javaMailSender") JavaMailSender sender, MailSenderService mailSenderService) {
         this.statisticsService = statisticsService;
         this.stackService = stackService;
         this.stackAssembler = stackAssembler;
         this.sender = sender;
+        this.mailSenderService = mailSenderService;
     }
 
     @RequestMapping(value = "admin/api/stacks", method = RequestMethod.GET)
@@ -90,8 +93,8 @@ public class StackResource {
         config.setDefaultEncoding("UTF-8");
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(new InternetAddress("bakobence@yahoo.com"));
-        helper.setFrom(new InternetAddress("noreply@songbook"));
+        mailSenderService.setToAdmin(helper);
+        helper.setFrom(mailSenderService.getInternetAddress());
         helper.setSubject("Stack trace");
 
         try {

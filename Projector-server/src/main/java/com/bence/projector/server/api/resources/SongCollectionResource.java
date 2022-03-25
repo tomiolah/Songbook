@@ -15,6 +15,7 @@ import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
+import com.bence.projector.server.mailsending.MailSenderService;
 import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringWriter;
@@ -52,9 +52,10 @@ public class SongCollectionResource {
     private final JavaMailSender sender;
     private final SongService songService;
     private final LanguageService languageService;
+    private final MailSenderService mailSenderService;
 
     @Autowired
-    public SongCollectionResource(SongCollectionService songCollectionService, SongCollectionElementService songCollectionElementService, SongCollectionAssembler songCollectionAssembler, StatisticsService statisticsService, JavaMailSender sender, SongService songService, LanguageService languageService) {
+    public SongCollectionResource(SongCollectionService songCollectionService, SongCollectionElementService songCollectionElementService, SongCollectionAssembler songCollectionAssembler, StatisticsService statisticsService, JavaMailSender sender, SongService songService, LanguageService languageService, MailSenderService mailSenderService) {
         this.songCollectionService = songCollectionService;
         this.songCollectionElementService = songCollectionElementService;
         this.songCollectionAssembler = songCollectionAssembler;
@@ -62,6 +63,7 @@ public class SongCollectionResource {
         this.sender = sender;
         this.songService = songService;
         this.languageService = languageService;
+        this.mailSenderService = mailSenderService;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "api/songCollections")
@@ -213,8 +215,8 @@ public class SongCollectionResource {
         config.setDefaultEncoding("UTF-8");
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(new InternetAddress("bakobence@yahoo.com"));
-        helper.setFrom(new InternetAddress("noreply@songbook"));
+        mailSenderService.setToAdmin(helper);
+        helper.setFrom(mailSenderService.getInternetAddress());
         helper.setSubject("Gyűjtemény frissítése");
         try {
             Template template = config.getTemplate(freemarkerName);

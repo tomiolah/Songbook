@@ -13,6 +13,7 @@ import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
+import com.bence.projector.server.mailsending.MailSenderService;
 import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Template;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,9 +52,10 @@ public class SongLinkResource {
     private final UserService userService;
     private final SongService songService;
     private final LanguageService languageService;
+    private final MailSenderService mailSenderService;
 
     @Autowired
-    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, @Qualifier("javaMailSender") JavaMailSender sender, UserService userService, SongService songService, LanguageService languageService) {
+    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, @Qualifier("javaMailSender") JavaMailSender sender, UserService userService, SongService songService, LanguageService languageService, MailSenderService mailSenderService) {
         this.statisticsService = statisticsService;
         this.songLinkService = songLinkService;
         this.songLinkAssembler = songLinkAssembler;
@@ -61,6 +63,7 @@ public class SongLinkResource {
         this.userService = userService;
         this.songService = songService;
         this.languageService = languageService;
+        this.mailSenderService = mailSenderService;
     }
 
     @RequestMapping(value = "admin/api/songLinks", method = RequestMethod.GET)
@@ -175,8 +178,8 @@ public class SongLinkResource {
         config.setDefaultEncoding("UTF-8");
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(new InternetAddress("name@domain.com"));
-        helper.setFrom(new InternetAddress("noreply@songbook"));
+        mailSenderService.setToAdmin(helper);
+        helper.setFrom(mailSenderService.getInternetAddress());
         helper.setSubject("Új verzió összekötés");
 
         try {

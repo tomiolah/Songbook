@@ -23,10 +23,12 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
 
 import javax.mail.MessagingException;
+import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.io.StringWriter;
+import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -150,7 +152,7 @@ public class MailSenderService {
             MimeMessageHelper helper;
             helper = new MimeMessageHelper(message, true);
             helper.setTo(new InternetAddress(user.getEmail()));
-            helper.setFrom(new InternetAddress(getHostEmail()));
+            helper.setFrom(getInternetAddress());
             if (suggestions.size() > 1) {
                 helper.setSubject("New suggestions");
             } else {
@@ -179,7 +181,7 @@ public class MailSenderService {
             MimeMessageHelper helper;
             helper = new MimeMessageHelper(message, true);
             helper.setTo(new InternetAddress(user.getEmail()));
-            helper.setFrom(new InternetAddress(getHostEmail()));
+            helper.setFrom(getInternetAddress());
             if (songs.size() > 1) {
                 helper.setSubject("New songs");
             } else {
@@ -197,6 +199,20 @@ public class MailSenderService {
         } catch (MessagingException | IOException | TemplateException e) {
             e.printStackTrace();
         }
+    }
+
+    public InternetAddress getInternetAddress() throws AddressException {
+        InternetAddress from = new InternetAddress("noreply@songpraise.com");
+        try {
+            from.setPersonal("SongPraise");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return from;
+    }
+
+    public void setToAdmin(MimeMessageHelper helper) throws MessagingException {
+        helper.setTo(new InternetAddress(AppProperties.getInstance().adminEmail()));
     }
 
     private Map<String, Object> createPatternForSongs(List<Song> songs) {
@@ -233,10 +249,6 @@ public class MailSenderService {
         return data;
     }
 
-    private String getHostEmail() {
-        return "noreply@songbook";
-    }
-
     public void sendForgottenEmail(String email, String link) {
         try {
             final String freemarkerName = FreemarkerConfiguration.TOKEN_LINK_PAGE + ".html";
@@ -246,7 +258,7 @@ public class MailSenderService {
             MimeMessageHelper helper;
             helper = new MimeMessageHelper(message, true);
             helper.setTo(new InternetAddress(email));
-            helper.setFrom(new InternetAddress(getHostEmail()));
+            helper.setFrom(getInternetAddress());
             helper.setSubject("Forgotten password");
 
             Template template = config.getTemplate(freemarkerName);

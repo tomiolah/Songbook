@@ -10,6 +10,7 @@ import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.mailsending.ConfigurationUtil;
 import com.bence.projector.server.mailsending.FreemarkerConfiguration;
+import com.bence.projector.server.mailsending.MailSenderService;
 import com.bence.projector.server.utils.AppProperties;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
@@ -48,20 +49,22 @@ import static com.bence.projector.server.api.resources.util.UserPrincipalUtil.ge
 @RestController
 public class UserResource {
 
-    private static Logger logger = LoggerFactory.getLogger(UserResource.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserResource.class);
     private final UserService userService;
     private final UserRegisterAssembler userRegisterAssembler;
     private final UserAssembler userAssembler;
     private final JavaMailSender sender;
     private final StatisticsService statisticsService;
+    private final MailSenderService mailSenderService;
 
     @Autowired
-    public UserResource(UserService userService, UserRegisterAssembler userRegisterAssembler, UserAssembler userAssembler, JavaMailSender sender, StatisticsService statisticsService) {
+    public UserResource(UserService userService, UserRegisterAssembler userRegisterAssembler, UserAssembler userAssembler, JavaMailSender sender, StatisticsService statisticsService, MailSenderService mailSenderService) {
         this.userService = userService;
         this.userRegisterAssembler = userRegisterAssembler;
         this.userAssembler = userAssembler;
         this.sender = sender;
         this.statisticsService = statisticsService;
+        this.mailSenderService = mailSenderService;
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/api/users")
@@ -156,9 +159,7 @@ public class UserResource {
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
         helper.setTo(new InternetAddress(user.getEmail()));
-        InternetAddress from = new InternetAddress("noreply@songpraise.com");
-        from.setPersonal("SongPraise");
-        helper.setFrom(from);
+        helper.setFrom(mailSenderService.getInternetAddress());
         if (language.equals("hu")) {
             helper.setSubject("Aktiválás");
         } else if (language.equals("ro")) {
@@ -187,10 +188,8 @@ public class UserResource {
 
         MimeMessage message = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(new InternetAddress("bakobence@yahoo.com"));
-        InternetAddress from = new InternetAddress("noreply@songpraise.com");
-        from.setPersonal("SongPraise");
-        helper.setFrom(from);
+        mailSenderService.setToAdmin(helper);
+        helper.setFrom(mailSenderService.getInternetAddress());
         helper.setSubject("New user");
         helper.getMimeMessage().setContent(writer.toString(), "text/html;charset=utf-8");
         sender.send(message);
