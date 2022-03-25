@@ -628,7 +628,13 @@ public class NewSongController {
             }
             songVersesByCalculatedOrder.add(songVerse);
         }
-        SectionType lastAddedVerseType = songVersesByCalculatedOrder.get(songVersesByCalculatedOrder.size() - 1).getSectionType();
+        int size = songVersesByCalculatedOrder.size();
+        SectionType lastAddedVerseType;
+        if (size > 0) {
+            lastAddedVerseType = songVersesByCalculatedOrder.get(size - 1).getSectionType();
+        } else {
+            lastAddedVerseType = null;
+        }
         if (chorus != null && lastAddedVerseType != SectionType.CHORUS && lastAddedVerseType != SectionType.CODA && delta > 0) {
             songVersesByCalculatedOrder.add(chorus);
         }

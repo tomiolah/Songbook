@@ -123,7 +123,11 @@ public class SongCollectionResource {
             List<SongCollectionElement> songCollectionElements = songCollection.getSongCollectionElements();
             SongCollectionElement elementModel = null;
             for (SongCollectionElement element : songCollectionElements) {
-                if (element.getSongUuid().equals(elementDTO.getSongUuid())) {
+                String songUuid = element.getSongUuid();
+                if (songUuid == null) {
+                    continue;
+                }
+                if (songUuid.equals(elementDTO.getSongUuid())) {
                     elementModel = element;
                     break;
                 }
