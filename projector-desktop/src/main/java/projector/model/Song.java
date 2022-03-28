@@ -15,7 +15,7 @@ import static projector.utils.StringUtils.stripAccents;
 
 public class Song extends BaseEntity {
 
-    private static long currentDate = new Date().getTime();
+    private static final long currentDate = new Date().getTime();
     @Expose
     @DatabaseField
     private String title;
@@ -62,6 +62,8 @@ public class Song extends BaseEntity {
     @DatabaseField(width = 100)
     private String verseOrder;
     private List<Short> verseOrderList;
+    @DatabaseField
+    private Boolean downloadedSeparately;
 
     public Song() {
     }
@@ -97,6 +99,7 @@ public class Song extends BaseEntity {
         this.author = song.author;
         this.verseOrder = song.verseOrder;
         this.verseOrderList = CloneUtil.cloneList(song.verseOrderList);
+        this.downloadedSeparately = song.downloadedSeparately;
     }
 
     private static long getCurrentDate() {
@@ -442,5 +445,13 @@ public class Song extends BaseEntity {
     public boolean hasSongCollection() {
         List<SongCollectionElement> songCollectionElements = getSongCollectionElements();
         return songCollectionElements != null && songCollectionElements.size() > 0;
+    }
+
+    public boolean isDownloadedSeparately() {
+        return downloadedSeparately != null && downloadedSeparately;
+    }
+
+    public void setDownloadedSeparately(boolean downloadedSeparately) {
+        this.downloadedSeparately = downloadedSeparately;
     }
 }

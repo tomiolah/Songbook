@@ -37,7 +37,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 12;
+    private final int DATABASE_VERSION = 13;
     private final ConnectionSource connectionSource;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
@@ -117,13 +117,20 @@ public class DatabaseHelper {
                     } catch (Exception ignored) {
                     }
                 }
-                //noinspection ConstantConditions
                 if (oldVersion <= 11) {
                     Dao<Song, Long> songDao = getSongDao();
                     try {
                         songDao.executeRaw("ALTER TABLE `song` MODIFY verseOrder VARCHAR(300)");
                     } catch (Exception e) {
                         e.printStackTrace();
+                    }
+                }
+                //noinspection ConstantConditions
+                if (oldVersion <= 12) {
+                    Dao<Song, Long> songDao = getSongDao();
+                    try {
+                        songDao.executeRaw("ALTER TABLE `song` ADD COLUMN downloadedSeparately BOOLEAN");
+                    } catch (Exception ignored) {
                     }
                 }
                 saveNewVersion();

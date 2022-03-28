@@ -910,6 +910,7 @@ public class SongController {
                 SongApiBean songApiBean = new SongApiBean();
                 song[0] = songApiBean.getSongByUuid(uuid);
                 if (song[0] != null) {
+                    song[0].setDownloadedSeparately(true);
                     ServiceManager.getSongService().create(song[0]);
                     addSongToLanguagesComboBox(song[0]);
                 }

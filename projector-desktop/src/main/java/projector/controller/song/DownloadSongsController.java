@@ -40,7 +40,7 @@ import java.util.ResourceBundle;
 public class DownloadSongsController {
     public static final Logger LOG = LoggerFactory.getLogger(DownloadSongsController.class);
     private final ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
-    private SongVerseService songVerseService = ServiceManager.getSongVerseService();
+    private final SongVerseService songVerseService = ServiceManager.getSongVerseService();
     @FXML
     private GridPane conflictGridPane;
     @FXML
@@ -132,12 +132,6 @@ public class DownloadSongsController {
                     } else {
                         if (songApiSongs.size() > 0) {
                             Platform.runLater(() -> downloadingLabel.setText(resourceBundle.getString("Saving") + ": " + language.getNativeName()));
-                            HashMap<String, Song> stringSongHashMap = new HashMap<>(songs.size());
-                            for (Song song : songs) {
-                                if (song.getUuid() == null) {
-                                    stringSongHashMap.put(song.getTitle(), song);
-                                }
-                            }
                             HashMap<String, Song> uuidSongHashMap = new HashMap<>(songs.size());
                             for (Song song : songs) {
                                 if (song.getUuid() != null) {
@@ -266,7 +260,7 @@ public class DownloadSongsController {
         Date lastModified = new Date(0);
         for (Song song : all) {
             Date serverModifiedDate = song.getServerModifiedDate();
-            if (serverModifiedDate != null && lastModified.compareTo(serverModifiedDate) < 0) {
+            if (serverModifiedDate != null && lastModified.compareTo(serverModifiedDate) < 0 && !song.isDownloadedSeparately()) {
                 lastModified = serverModifiedDate;
             }
         }
