@@ -428,6 +428,7 @@ public class SongController {
                             myTextFlow.setOpacity(minOpacity);
                             String text = songVerse.getText();
                             myTextFlow.setText2(getColorizedStringByLastSearchedText(text), width1, size);
+                            myTextFlow.setSecondText(songVerse.getSecondText());
                             myTextFlow.setRawText(text);
                             songListViewItems.add(myTextFlow);
                         }
@@ -545,7 +546,10 @@ public class SongController {
                             x /= 1000;
                             activeSongVersTime.getVersTimes()[previousSelectedVersIndex] = x;
                         }
-                        projectionScreenController.setText(songListViewItems.get(selectedIndex).getRawText(), ProjectionType.SONG);
+                        MyTextFlow myTextFlow = songListViewItems.get(selectedIndex);
+                        String text = myTextFlow.getRawText();
+                        text = getWithSecondText(myTextFlow, text);
+                        projectionScreenController.setText(text, ProjectionType.SONG);
                         previousSelectedVersIndex = selectedIndex;
                         if (selectedIndex + 1 == songListViewItems.size()) {
                             projectionScreenController.progressLineSetVisible(false);
@@ -705,6 +709,23 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private String getWithSecondText(MyTextFlow myTextFlow, String text) {
+        if (settings.isShowSongSecondText()) {
+            String secondText = myTextFlow.getSecondText();
+            if (secondText != null) {
+                text += "\n" + getColoredText(secondText, settings.getSongSecondTextColor());
+            }
+        }
+        return text;
+    }
+
+    private String getColoredText(String text, Color color) {
+        String coloredText = "<color=\"" + color.toString() + "\">";
+        coloredText += text;
+        coloredText += "</color>";
+        return coloredText;
     }
 
     private void synchronizedSelectVerseOrderListView(ObservableList<Integer> ob) {

@@ -40,8 +40,8 @@ public class MyTextFlow extends TextFlow {
 
     private static final Logger LOG = LoggerFactory.getLogger(MyTextFlow.class);
 
-    private static Method mGetTextLayout;
-    private static Method mGetLines;
+    private static final Method mGetTextLayout;
+    private static final Method mGetLines;
 
     static {
         Method mGetLineIndex;
@@ -66,9 +66,9 @@ public class MyTextFlow extends TextFlow {
     private String rawText;
     private int height;
     private int width;
-    private List<Text> texts = new ArrayList<>();
-    private List<Text> letters = new ArrayList<>();
-    private String colorStartTag = "<color=\"0x";
+    private final List<Text> texts = new ArrayList<>();
+    private final List<Text> letters = new ArrayList<>();
+    private final String colorStartTag = "<color=\"0x";
     private boolean tmp = false;
     private double total;
     private boolean wrapped;
@@ -77,7 +77,7 @@ public class MyTextFlow extends TextFlow {
     private Text prevText = null;
     private boolean prevItalic = false;
     private Color prevColor = null;
-    private int prefLineCount;
+    private String secondText;
 
     public MyTextFlow() {
     }
@@ -371,7 +371,7 @@ public class MyTextFlow extends TextFlow {
                 } catch (IllegalArgumentException ignored) {
                     addCharacter(italic, s, colors.peek());
                 }
-            } else if (s == '<' && text.substring(i, i + colorEndTag.length()).equals(colorEndTag)) {
+            } else if (s == '<' && text.startsWith(colorEndTag, i)) {
                 if (colors.size() > 1) {
                     colors.pop();
                 }
@@ -410,7 +410,7 @@ public class MyTextFlow extends TextFlow {
 
     private boolean isaColorStartTag(String text, int i, char s) {
         try {
-            return s == '<' && text.substring(i, i + colorStartTag.length()).equals(colorStartTag);
+            return s == '<' && text.startsWith(colorStartTag, i);
         } catch (StringIndexOutOfBoundsException e) {
             return false;
         }
@@ -435,7 +435,7 @@ public class MyTextFlow extends TextFlow {
         int a = 2, b = size;
         boolean b2 = !settings.isBreakLines();
         if (b2) {
-            prefLineCount = getLineCount();
+            int prefLineCount = getLineCount();
             do {
                 setSize(size);
                 if (trueWidth == 0) {
@@ -622,5 +622,13 @@ public class MyTextFlow extends TextFlow {
         if (tmpTextFlow == null) {
             tmpTextFlow = new MyTextFlow(true);
         }
+    }
+
+    public void setSecondText(String secondText) {
+        this.secondText = secondText;
+    }
+
+    public String getSecondText() {
+        return secondText;
     }
 }

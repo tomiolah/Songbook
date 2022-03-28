@@ -84,6 +84,8 @@ public class Settings {
     private boolean shareOnLocalNetworkAutomatically = false;
     private boolean connectToSharedAutomatically = false;
     private BibleController bibleController;
+    private boolean showSongSecondText = false;
+    private Color songSecondTextColor = new Color(0.46, 1.0, 1.0, 1.0);
 
     protected Settings() {
         load();
@@ -218,15 +220,9 @@ public class Settings {
             bw.write("withAccents" + System.lineSeparator());
             bw.write(withAccents + System.lineSeparator());
             bw.write("backgroundColor" + System.lineSeparator());
-            bw.write(backgroundColor.getRed() + System.lineSeparator());
-            bw.write(backgroundColor.getGreen() + System.lineSeparator());
-            bw.write(backgroundColor.getBlue() + System.lineSeparator());
-            bw.write(backgroundColor.getOpacity() + System.lineSeparator());
+            writeColorToFile(bw, backgroundColor);
             bw.write("color" + System.lineSeparator());
-            bw.write(color.getRed() + System.lineSeparator());
-            bw.write(color.getGreen() + System.lineSeparator());
-            bw.write(color.getBlue() + System.lineSeparator());
-            bw.write(color.getOpacity() + System.lineSeparator());
+            writeColorToFile(bw, color);
             bw.write("isImage" + System.lineSeparator());
             bw.write(isBackgroundImage + System.lineSeparator());
             bw.write("imagePath" + System.lineSeparator());
@@ -284,10 +280,7 @@ public class Settings {
             bw.write("verseListViewFontSize" + System.lineSeparator());
             bw.write(verseListViewFontSize + System.lineSeparator());
             bw.write("progressLineColor" + System.lineSeparator());
-            bw.write(progressLineColor.getRed() + System.lineSeparator());
-            bw.write(progressLineColor.getGreen() + System.lineSeparator());
-            bw.write(progressLineColor.getBlue() + System.lineSeparator());
-            bw.write(progressLineColor.getOpacity() + System.lineSeparator());
+            writeColorToFile(bw, progressLineColor);
             bw.write("showProgressLine" + System.lineSeparator());
             bw.write(showProgressLine.get() + System.lineSeparator());
             bw.write("progressLinePositionIsTop" + System.lineSeparator());
@@ -325,10 +318,21 @@ public class Settings {
             bw.write(shareOnLocalNetworkAutomatically + System.lineSeparator());
             bw.write("connectToSharedAutomatically" + System.lineSeparator());
             bw.write(connectToSharedAutomatically + System.lineSeparator());
+            bw.write("showSongSecondText" + System.lineSeparator());
+            bw.write(showSongSecondText + System.lineSeparator());
+            bw.write("songSecondTextColor" + System.lineSeparator());
+            writeColorToFile(bw, songSecondTextColor);
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void writeColorToFile(BufferedWriter bw, Color color) throws IOException {
+        bw.write(color.getRed() + System.lineSeparator());
+        bw.write(color.getGreen() + System.lineSeparator());
+        bw.write(color.getBlue() + System.lineSeparator());
+        bw.write(color.getOpacity() + System.lineSeparator());
     }
 
     private synchronized void load() {
@@ -417,8 +421,7 @@ public class Settings {
             br.readLine();
             verseListViewFontSize = parseDouble(br.readLine());
             br.readLine();
-            progressLineColor = new Color(parseDouble(br.readLine()), parseDouble(br.readLine()),
-                    parseDouble(br.readLine()), parseDouble(br.readLine()));
+            progressLineColor = getColorFromFile(br);
             br.readLine();
             showProgressLine.set(parseBoolean(br.readLine()));
             br.readLine();
@@ -459,6 +462,10 @@ public class Settings {
             shareOnLocalNetworkAutomatically = parseBoolean(br.readLine());
             br.readLine();
             connectToSharedAutomatically = parseBoolean(br.readLine());
+            br.readLine();
+            showSongSecondText = parseBoolean(br.readLine());
+            br.readLine();
+            songSecondTextColor = getColorFromFile(br);
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -469,6 +476,11 @@ public class Settings {
                 e1.printStackTrace();
             }
         }
+    }
+
+    private Color getColorFromFile(BufferedReader br) throws IOException {
+        return new Color(parseDouble(br.readLine()), parseDouble(br.readLine()),
+                parseDouble(br.readLine()), parseDouble(br.readLine()));
     }
 
     public synchronized String getFontWeightString() {
@@ -788,5 +800,21 @@ public class Settings {
 
     public void setBibleController(BibleController bibleController) {
         this.bibleController = bibleController;
+    }
+
+    public boolean isShowSongSecondText() {
+        return showSongSecondText;
+    }
+
+    public void setShowSongSecondText(boolean showSongSecondText) {
+        this.showSongSecondText = showSongSecondText;
+    }
+
+    public Color getSongSecondTextColor() {
+        return songSecondTextColor;
+    }
+
+    public void setSongSecondTextColor(Color songSecondTextColor) {
+        this.songSecondTextColor = songSecondTextColor;
     }
 }

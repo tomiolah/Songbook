@@ -42,6 +42,10 @@ import java.util.Objects;
 
 public class SettingsController {
     @FXML
+    private ColorPicker songSecondTextColorPicker;
+    @FXML
+    private CheckBox showSongSecondTextCheckBox;
+    @FXML
     private CheckBox connectToSharedAutomaticallyCheckbox;
     @FXML
     private CheckBox shareOnLocalNetworkAutomaticallyCheckbox;
@@ -121,6 +125,40 @@ public class SettingsController {
     private boolean initialized = false;
     private Stage stage;
 
+    public static FontWeight getFontWeightByString(String newValue) {
+        FontWeight fontWeight;
+        switch (newValue) {
+            case "BOLD":
+                fontWeight = FontWeight.BOLD;
+                break;
+            case "BLACK":
+                fontWeight = FontWeight.BLACK;
+                break;
+            case "EXTRA_BOLD":
+                fontWeight = FontWeight.EXTRA_BOLD;
+                break;
+            case "EXTRA_LIGHT":
+                fontWeight = FontWeight.EXTRA_LIGHT;
+                break;
+            case "LIGHT":
+                fontWeight = FontWeight.LIGHT;
+                break;
+            case "MEDIUM":
+                fontWeight = FontWeight.MEDIUM;
+                break;
+            case "SEMI_BOLD":
+                fontWeight = FontWeight.SEMI_BOLD;
+                break;
+            case "THIN":
+                fontWeight = FontWeight.THIN;
+                break;
+            default:
+                fontWeight = FontWeight.NORMAL;
+                break;
+        }
+        return fontWeight;
+    }
+
     synchronized void lazyInitialize() {
         if (initialized) {
             return;
@@ -176,6 +214,8 @@ public class SettingsController {
         customCanvasHeightTextField.setText(settings.getCustomCanvasHeight() + "");
         shareOnLocalNetworkAutomaticallyCheckbox.setSelected(settings.isShareOnLocalNetworkAutomatically());
         connectToSharedAutomaticallyCheckbox.setSelected(settings.isConnectToSharedAutomatically());
+        showSongSecondTextCheckBox.setSelected(settings.isShowSongSecondText());
+        songSecondTextColorPicker.setValue(settings.getSongSecondTextColor());
         switch (settings.getSceneStyleFile()) {
             case "application.css":
                 appearanceComboBox.getSelectionModel().select(0);
@@ -219,40 +259,6 @@ public class SettingsController {
         addFonts(fontWeight1);
         listView.getSelectionModel().select(0);
         projectionScreenController.reload();
-    }
-
-    public static FontWeight getFontWeightByString(String newValue) {
-        FontWeight fontWeight;
-        switch (newValue) {
-            case "BOLD":
-                fontWeight = FontWeight.BOLD;
-                break;
-            case "BLACK":
-                fontWeight = FontWeight.BLACK;
-                break;
-            case "EXTRA_BOLD":
-                fontWeight = FontWeight.EXTRA_BOLD;
-                break;
-            case "EXTRA_LIGHT":
-                fontWeight = FontWeight.EXTRA_LIGHT;
-                break;
-            case "LIGHT":
-                fontWeight = FontWeight.LIGHT;
-                break;
-            case "MEDIUM":
-                fontWeight = FontWeight.MEDIUM;
-                break;
-            case "SEMI_BOLD":
-                fontWeight = FontWeight.SEMI_BOLD;
-                break;
-            case "THIN":
-                fontWeight = FontWeight.THIN;
-                break;
-            default:
-                fontWeight = FontWeight.NORMAL;
-                break;
-        }
-        return fontWeight;
     }
 
     private void addFonts(FontWeight fontWeight) {
@@ -318,6 +324,8 @@ public class SettingsController {
         }
         settings.setShareOnLocalNetworkAutomatically(shareOnLocalNetworkAutomaticallyCheckbox.isSelected());
         settings.setConnectToSharedAutomatically(connectToSharedAutomaticallyCheckbox.isSelected());
+        settings.setShowSongSecondText(showSongSecondTextCheckBox.isSelected());
+        settings.setSongSecondTextColor(songSecondTextColorPicker.getValue());
         settings.save();
         projectionScreenController.setBackGroundColor(backgroundColorPicker.getValue());
         if (listeners != null) {
