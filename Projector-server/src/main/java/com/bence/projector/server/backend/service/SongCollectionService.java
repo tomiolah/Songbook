@@ -18,4 +18,6 @@ public interface SongCollectionService extends BaseService<SongCollection> {
     SongCollection saveWithoutForeign(SongCollection songCollection);
 
     SongCollection findOneByUuid(String uuid);
+
+    List<SongCollection> findAllByLanguage(Language language);
 }

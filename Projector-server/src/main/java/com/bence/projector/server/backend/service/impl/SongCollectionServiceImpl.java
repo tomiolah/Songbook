@@ -29,6 +29,11 @@ public class SongCollectionServiceImpl extends BaseServiceImpl<SongCollection> i
     }
 
     @Override
+    public List<SongCollection> findAllByLanguage(Language language) {
+        return songCollectionRepository.findAllByLanguage_Id(language.getId());
+    }
+
+    @Override
     public boolean matches(SongCollection songCollection, SongCollection songCollection2) {
         if (!songCollection.getName().equals(songCollection2.getName())) {
             return false;

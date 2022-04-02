@@ -263,7 +263,8 @@ export class SongComponent implements OnInit, OnDestroy {
   }
 
   private updateSongCollectionElement(selectedSongCollection: SongCollection, songCollectionElement: SongCollectionElement) {
-    this.songCollectionService.putInCollection(selectedSongCollection, songCollectionElement).subscribe(() => {
+    const role = this.auth.getUser().getRolePath();
+    this.songCollectionService.putInCollection(selectedSongCollection, songCollectionElement, role).subscribe(() => {
       this.snackBar.open(selectedSongCollection.name + " " + songCollectionElement.ordinalNumber + " copied.", 'Close', {
         duration: 2000
       })
@@ -468,7 +469,7 @@ export class SongComponent implements OnInit, OnDestroy {
 
   onCollectionElementClick(collectionElement: SongCollectionElement, collection: SongCollection) {
     const user = this.auth.getUser();
-    if ((this.auth.login) && (user != undefined) && user.isAdmin()) {
+    if ((this.auth.login) && (user != undefined) && this.hasPermissionToAddSongsToCollection()) {
       const config = {
         data: {
           collectionElement: collectionElement,
@@ -483,5 +484,9 @@ export class SongComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  hasPermissionToAddSongsToCollection(): Boolean {
+    return this.auth.getUser().isAdmin() || this.hasReviewerRoleForSong;
   }
 }

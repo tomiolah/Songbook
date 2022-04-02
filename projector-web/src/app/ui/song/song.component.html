@@ -93,6 +93,8 @@
           Remove deleted
         </button>
       </div>
+    </div>
+    <div *ngIf="hasPermissionToAddSongsToCollection()">
       <button mat-button (click)="addToCollectionSong()">
         Add to collection
       </button>

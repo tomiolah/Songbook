@@ -1,7 +1,7 @@
 <mat-card>
   <mat-card-content>
     <h1>Adding to collection</h1>
-    <form (ngSubmit)="onSubmit()" [formGroup]="form" class="example-form">
+    <form *ngIf="containingSongCollections()" (ngSubmit)="onSubmit()" [formGroup]="form" class="example-form">
       <div class="formLayout">
 
         <div class="example-container">
@@ -23,5 +23,8 @@
       <br>
       <button type="submit" class="btn btn-success" [disabled]="!this.form.valid">Submit</button>
     </form>
+    <div *ngIf="!containingSongCollections()">
+      <p>No song collections in current language</p>
+    </div>
   </mat-card-content>
 </mat-card>

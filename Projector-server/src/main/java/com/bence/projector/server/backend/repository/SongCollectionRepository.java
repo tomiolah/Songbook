@@ -13,4 +13,6 @@ public interface SongCollectionRepository extends CrudRepository<SongCollection,
     List<SongCollection> findAllBySongCollectionElements_SongId(Long songId);
 
     SongCollection findOneByUuid(String uuid);
+
+    List<SongCollection> findAllByLanguage_Id(Long language_id);
 }

@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit } from "@angular/core";
 import { MatDialogRef, MatSnackBar, MAT_DIALOG_DATA } from "@angular/material";
 import { SongCollection, SongCollectionElement } from "../../models/songCollection";
+import { AuthService } from "../../services/auth.service";
 import { SongCollectionDataService } from "../../services/song-collection-data.service";
 import { Song } from "../../services/song-service.service";
 
@@ -20,6 +21,7 @@ export class SongCollectionElementComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private songCollectionDataService: SongCollectionDataService,
     private snackBar: MatSnackBar,
+    private auth: AuthService,
   ) {
     this.collectionElement = data.collectionElement;
     this.songCollection = data.songCollection;
@@ -31,7 +33,8 @@ export class SongCollectionElementComponent implements OnInit {
   }
 
   onDeleteClick() {
-    this.songCollectionDataService.deleteSongCollectionElement(this.collectionElement, this.songCollection, this.song).subscribe(
+    const role = this.auth.getUser().getRolePath();
+    this.songCollectionDataService.deleteSongCollectionElement(this.collectionElement, this.songCollection, this.song, role).subscribe(
       (_response) => {
         this.dialogRef.close('ok');
       },

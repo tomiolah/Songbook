@@ -27,6 +27,7 @@ export class MenuTabsComponent implements OnInit {
   adminMenuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },
     { link: '/addNewSong', icon: 'add_box', title: 'Add song' },
+    { link: '/addNewSongCollection', icon: 'add_box', title: 'Add song collection' },
     { link: '/suggestions', icon: 'announcement', title: 'Suggestions' },
     { link: '/versionLinks', iconSvg: 'versions', title: 'Version links' },
     { link: '/admin/users', icon: 'supervised_user_circle', title: 'Users' },

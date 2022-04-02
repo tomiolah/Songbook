@@ -21,6 +21,7 @@ import { ReviewerStatisticsComponent } from '../ui/reviewer-statistics/reviewer-
 import { VersionLinkListComponent } from '../ui/version-link-list/version-link-list.component';
 import { VersionLinkComponent } from '../ui/version-link/version-link.component';
 import { ActivateComponent } from '../ui/activate/activate.component';
+import { NewSongCollectionComponent } from '../ui/new-song-collection/new-song-collection.component';
 
 export const appRoutes: Routes = [
   {
@@ -48,6 +49,7 @@ export const appRoutes: Routes = [
     component: UserComponent
   },
   { path: 'addNewSong', component: NewSongComponent },
+  { path: 'addNewSongCollection', component: NewSongCollectionComponent },
   { path: 'admin/statistics', component: StatisticsListComponent },
   { path: 'admin/reviewer-statistics/:userId', component: ReviewerStatisticsComponent },
   { path: 'suggestions', component: SuggestionListComponent },

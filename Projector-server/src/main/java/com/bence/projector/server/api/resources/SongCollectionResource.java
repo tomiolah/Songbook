@@ -107,7 +107,7 @@ public class SongCollectionResource {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "api/songCollections/language/{languageUuid}/lastModifiedDate/{lastModifiedDate}")
-    public List<SongCollectionDTO> findAllByLanguage(@PathVariable("languageUuid") String languageUuid, @PathVariable("lastModifiedDate") Long lastModifiedDate, HttpServletRequest httpServletRequest) {
+    public List<SongCollectionDTO> findAllByLanguageAndLastModifiedDate(@PathVariable("languageUuid") String languageUuid, @PathVariable("lastModifiedDate") Long lastModifiedDate, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         Language language = languageService.findOneByUuid(languageUuid);
         if (language == null) {
@@ -117,8 +117,27 @@ public class SongCollectionResource {
         return songCollectionAssembler.createDtoList(all);
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "api/songCollections/language/{languageUuid}/minimal")
+    public List<SongCollectionDTO> findAllByLanguage(@PathVariable("languageUuid") String languageUuid, HttpServletRequest httpServletRequest) {
+        Language language = languageService.findOneByUuid(languageUuid);
+        if (language == null) {
+            return new ArrayList<>();
+        }
+        final List<SongCollection> songCollections = songCollectionService.findAllByLanguage(language);
+        return songCollectionAssembler.createMinimalDtoList(songCollections);
+    }
+
     @RequestMapping(method = RequestMethod.PUT, value = "admin/api/songCollection/{songCollectionUuid}/songCollectionElement")
     public ResponseEntity<Object> addToSongCollection(HttpServletRequest httpServletRequest, @PathVariable String songCollectionUuid, @RequestBody SongCollectionElementDTO elementDTO) {
+        return addToSongCollectionByRole(httpServletRequest, songCollectionUuid, elementDTO);
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "reviewer/api/songCollection/{songCollectionUuid}/songCollectionElement")
+    public ResponseEntity<Object> addToSongCollectionReviewer(HttpServletRequest httpServletRequest, @PathVariable String songCollectionUuid, @RequestBody SongCollectionElementDTO elementDTO) {
+        return addToSongCollectionByRole(httpServletRequest, songCollectionUuid, elementDTO);
+    }
+
+    private ResponseEntity<Object> addToSongCollectionByRole(HttpServletRequest httpServletRequest, String songCollectionUuid, SongCollectionElementDTO elementDTO) {
         saveStatistics(httpServletRequest, statisticsService);
         final SongCollection songCollection = songCollectionService.findOneByUuid(songCollectionUuid);
         if (songCollection != null) {
@@ -151,6 +170,15 @@ public class SongCollectionResource {
 
     @RequestMapping(method = RequestMethod.DELETE, value = "admin/api/songCollection/{songCollectionUuid}/song/{songUuid}/ordinalNumber/{ordinalNumber}")
     public ResponseEntity<BooleanResponse> deleteSongCollectionElement(@PathVariable String songCollectionUuid, @PathVariable String songUuid, @PathVariable String ordinalNumber) {
+        return deleteSongCollectionElementByRole(songCollectionUuid, songUuid, ordinalNumber);
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "reviewer/api/songCollection/{songCollectionUuid}/song/{songUuid}/ordinalNumber/{ordinalNumber}")
+    public ResponseEntity<BooleanResponse> deleteSongCollectionElementReviewer(@PathVariable String songCollectionUuid, @PathVariable String songUuid, @PathVariable String ordinalNumber) {
+        return deleteSongCollectionElementByRole(songCollectionUuid, songUuid, ordinalNumber);
+    }
+
+    private ResponseEntity<BooleanResponse> deleteSongCollectionElementByRole(String songCollectionUuid, String songUuid, String ordinalNumber) {
         BooleanResponse booleanResponse = new BooleanResponse();
         booleanResponse.setResponse(deleteSongCollectionElementByData(songCollectionUuid, songUuid, ordinalNumber));
         return new ResponseEntity<>(booleanResponse, HttpStatus.ACCEPTED);
@@ -172,6 +200,17 @@ public class SongCollectionResource {
             }
         }
         return false;
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "admin/api/songCollection")
+    public ResponseEntity<Object> createSongCollection(@RequestBody final SongCollectionDTO songCollectionDTO) {
+        final SongCollection songCollection = songCollectionAssembler.createModel(songCollectionDTO);
+        final SongCollection savedSongCollection = songCollectionService.save(songCollection);
+        if (savedSongCollection != null) {
+            SongCollectionDTO dto = songCollectionAssembler.createDto(savedSongCollection);
+            return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
+        }
+        return new ResponseEntity<>("Could not create", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @RequestMapping(method = RequestMethod.POST, value = "/api/songCollection/upload")
