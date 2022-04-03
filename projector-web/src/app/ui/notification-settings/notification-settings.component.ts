@@ -8,7 +8,6 @@ import { UserProperties } from '../../models/userProperties';
 import { Title } from '@angular/platform-browser';
 import { MatDialog } from '@angular/material';
 import { AuthenticateComponent } from '../authenticate/authenticate.component';
-import { DayHourTimer } from '../../models/dayHourTimer';
 
 @Component({
   selector: 'app-notification-settings',
@@ -125,13 +124,13 @@ export class NotificationSettingsComponent implements OnInit {
     this.userPropertiesDataService.save(this.userProperties).subscribe((userProperties) => {
 
     },
-    (err) => {
-      if (err.status === 405) {
-        this.openAuthenticateDialog();
-      } else {
-        console.log(err);
-      }
-    });
+      (err) => {
+        if (err.status === 405) {
+          this.openAuthenticateDialog();
+        } else {
+          console.log(err);
+        }
+      });
   }
 
   private updateSuggestionDelay(languageNotification: LanguageNotification) {

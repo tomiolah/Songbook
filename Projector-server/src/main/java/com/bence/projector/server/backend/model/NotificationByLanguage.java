@@ -12,7 +12,7 @@ import java.util.List;
 @Entity
 public class NotificationByLanguage extends BaseEntity {
 
-    private static final int INITIAL_DELAY = 15 * 60 * 1000;
+    private static final int INITIAL_DELAY = 24 * 60 * 60 * 1000;
     @ManyToOne(fetch = FetchType.LAZY)
     private Language language;
     private Boolean suggestions;

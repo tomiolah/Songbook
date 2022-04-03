@@ -8,9 +8,9 @@ export class LanguageNotification extends BaseModel {
     newSongs = true;
     suggestionsDayHourTimer: DayHourTimer = new DayHourTimer();
     newSongsDayHourTimer: DayHourTimer = new DayHourTimer();
-    private static minutes15 = 15 * 60 * 1000;
-    suggestionsDelay = LanguageNotification.minutes15;
-    newSongsDelay = LanguageNotification.minutes15;
+    private static ONE_DAY = 24 * 60 * 60 * 1000;
+    suggestionsDelay = LanguageNotification.ONE_DAY;
+    newSongsDelay = LanguageNotification.ONE_DAY;
 
     constructor(values: Object = {}) {
         super(values);
