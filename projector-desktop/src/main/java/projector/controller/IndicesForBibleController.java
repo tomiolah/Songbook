@@ -174,8 +174,7 @@ public class IndicesForBibleController {
             }
         }
         selectedItem.setVerseIndices(verseIndices);
-        fillVerseMap();
-        reloadListViews();
+        reload();
     }
 
     public void decreaseIndex() {
@@ -185,8 +184,7 @@ public class IndicesForBibleController {
         }
         Long indexNumber = selectedItem.getVerseIndices().get(0).getIndexNumber();
         changeIndex(indexNumber, -1000);
-        fillVerseMap();
-        reloadListViews();
+        reload();
     }
 
     public void increaseIndex() {
@@ -196,8 +194,7 @@ public class IndicesForBibleController {
         }
         Long indexNumber = selectedItem.getVerseIndices().get(0).getIndexNumber();
         changeIndex(indexNumber, 1000);
-        fillVerseMap();
-        reloadListViews();
+        reload();
     }
 
     private void changeIndex(Long indexNumber, int shift) {
@@ -224,22 +221,80 @@ public class IndicesForBibleController {
         bibleService.create(otherBible);
     }
 
+    private void copyIndicesFromOtherBible(Bible left, Bible rightBible) {
+        BibleService bibleService = ServiceManager.getBibleService();
+//        bibleService.delete(rightBible);
+        int iBook = 0;
+        for (Book book : rightBible.getBooks()) {
+            Book otherBook = left.getBooks().get(iBook);
+            int iChapter = 0;
+            for (Chapter chapter : book.getChapters()) {
+                List<Chapter> chapters = otherBook.getChapters();
+                if (chapters.size() <= iChapter) {
+                    continue;
+                }
+                Chapter otherChapter = chapters.get(iChapter);
+                int iVerse = 0;
+                for (BibleVerse bibleVerse : chapter.getVerses()) {
+                    List<BibleVerse> verses = otherChapter.getVerses();
+                    if (verses.size() <= iVerse) {
+                        continue;
+                    }
+                    BibleVerse otherBibleVerse = verses.get(iVerse);
+                    bibleVerse.setVerseIndices(copyVerseIndices(otherBibleVerse.getVerseIndices()));
+                    ++iVerse;
+                }
+                ++iChapter;
+            }
+            ++iBook;
+        }
+//        bibleService.create(rightBible);
+        reload();
+    }
+
+    private List<VerseIndex> copyVerseIndices(List<VerseIndex> verseIndices) {
+        ArrayList<VerseIndex> copiedVerseIndices = new ArrayList<>(verseIndices.size());
+        for (VerseIndex verseIndex : verseIndices) {
+            copiedVerseIndices.add(new VerseIndex(verseIndex));
+        }
+        return copiedVerseIndices;
+    }
+
     public void task() {
+//        copyIndicesFromOtherBible(bible, otherBible); // if it's not the same then it's not good
+//        checkIndexNumbersInHashMap();
+        uploadBible();
+    }
+
+    private void checkIndexNumbersInHashMap() {
         for (Book book : bible.getBooks()) {
             for (Chapter chapter : book.getChapters()) {
                 for (BibleVerse bibleVerse : chapter.getVerses()) {
-                    Long indexNumber = bibleVerse.getVerseIndices().get(0).getIndexNumber();
+                    List<VerseIndex> verseIndices = bibleVerse.getVerseIndices();
+                    if (verseIndices.size() == 0) {
+                        System.out.println("Missing indexNumber:" + " " + book.getTitle() + " " + chapter.getNumber() + ":" + bibleVerse.getNumber() + "     " + bibleVerse.getText());
+                        continue;
+                    }
+                    Long indexNumber = verseIndices.get(0).getIndexNumber();
                     if (!verseHashMap.containsKey(indexNumber)) {
                         System.out.println(indexNumber + " " + book.getTitle() + " " + chapter.getNumber() + ":" + bibleVerse.getNumber() + "     " + bibleVerse.getText());
                     }
                 }
             }
         }
+    }
+
+    public void uploadBible() {
+        checkIndexNumbersInHashMap();
         BibleApiBean bibleApiBean = new BibleApiBean();
-        List<Language> languages = ServiceManager.getLanguageService().findAll();
-        otherBible.setLanguage(languages.get(4));
-        Bible uploadedBible = bibleApiBean.uploadBible(otherBible);
+        setLanguageForBible(otherBible);
+        bibleApiBean.uploadBible(otherBible);
         System.out.println("accomplished");
+    }
+
+    private void setLanguageForBible(Bible bible) {
+        List<Language> languages = ServiceManager.getLanguageService().findAll();
+        bible.setLanguage(languages.get(9));
     }
 
     public void merge1N() {
@@ -262,6 +317,10 @@ public class IndicesForBibleController {
             selectedItems.get(i).getVerseIndices().get(0).setIndexNumber(newIndex);
         }
         selectedItem.setVerseIndices(verseIndices);
+        reload();
+    }
+
+    private void reload() {
         fillVerseMap();
         reloadListViews();
     }
@@ -278,7 +337,6 @@ public class IndicesForBibleController {
             rightVerseVerseIndices.add(index);
         }
         rightVerse.setVerseIndices(rightVerseVerseIndices);
-        fillVerseMap();
-        reloadListViews();
+        reload();
     }
 }

@@ -59,7 +59,7 @@ public class BibleResource {
         Bible bible = bibleAssembler.createModel(bibleDTO);
         final Bible savedBible = bibleService.save(bible);
         if (savedBible != null) {
-            return new ResponseEntity<>(savedBible, HttpStatus.ACCEPTED);
+            return new ResponseEntity<>(bibleAssembler.createDto(savedBible), HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>("Could not create", HttpStatus.INTERNAL_SERVER_ERROR);
     }

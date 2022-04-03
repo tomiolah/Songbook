@@ -7,6 +7,11 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 import projector.MainDesktop;
 import projector.api.BibleApiBean;
 import projector.application.Settings;
@@ -17,9 +22,15 @@ import projector.model.Book;
 import projector.model.Chapter;
 import projector.model.Language;
 import projector.model.VerseIndex;
+import projector.service.BibleService;
 import projector.service.ServiceManager;
 
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -31,19 +42,121 @@ import java.util.List;
 
 public class BibleImport {
 
-    private static Settings settings = Settings.getInstance();
+    private static final Settings settings = Settings.getInstance();
 
     public static void main(String[] args) {
         //bibleImportFromJson();
         //bibleImport();
-        bibleImporting();
+        bibleImportFromXml("Bible_Indonesian_TB.xml");
     }
 
+    private static void bibleImportFromXml(@SuppressWarnings("SameParameterValue") String fileName) {
+        DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+        try {
+            dbf.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            DocumentBuilder db = dbf.newDocumentBuilder();
+            Document doc = db.parse(new File(fileName));
+            doc.getDocumentElement().normalize();
+            System.out.println("Root Element :" + doc.getDocumentElement().getNodeName());
+            System.out.println("------");
+            NodeList list = doc.getElementsByTagName("XMLBIBLE");
+            Bible bible = new Bible();
+            bible.setName("Indonesia Terjemahan Baru");
+            bible.setShortName("ITB");
+            List<Language> languages = ServiceManager.getLanguageService().findAll();
+            bible.setLanguage(languages.get(9));
+            for (int temp = 0; temp < list.getLength(); temp++) {
+                Node node = list.item(temp);
+                if (node.getNodeType() == Node.ELEMENT_NODE) {
+                    Element element = (Element) node;
+                    NodeList bibleBooks = element.getElementsByTagName("BIBLEBOOK");
+                    List<Book> books = readBibleBooks(bibleBooks);
+                    bible.setBooks(books);
+                }
+            }
+            bible.setCreatedDate(new Date());
+            createIndices(bible);
+            ServiceManager.getBibleService().create(bible);
+        } catch (ParserConfigurationException | SAXException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static List<Book> readBibleBooks(NodeList bibleBooks) {
+        ArrayList<Book> books = new ArrayList<>();
+        for (int i = 0; i < bibleBooks.getLength(); ++i) {
+            Node node = bibleBooks.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Book book = new Book();
+                Element element = (Element) node;
+                String bookName = element.getAttribute("bname");
+                book.setTitle(bookName);
+                System.out.println(element.getAttribute("bnumber") + " " + bookName);
+                NodeList chaptersList = element.getElementsByTagName("CHAPTER");
+                List<Chapter> chapters = readChapters(chaptersList);
+                book.setChapters(chapters);
+                books.add(book);
+            }
+        }
+        return books;
+    }
+
+    private static List<Chapter> readChapters(NodeList chaptersList) {
+        ArrayList<Chapter> chapters = new ArrayList<>();
+        for (int i = 0; i < chaptersList.getLength(); ++i) {
+            Node node = chaptersList.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                Chapter chapter = new Chapter();
+                Element element = (Element) node;
+                NodeList versesList = element.getElementsByTagName("VERS");
+                List<BibleVerse> verses = readVerses(versesList);
+                chapter.setNumber((short) (i + 1));
+                chapter.setVerses(verses);
+                chapters.add(chapter);
+            }
+        }
+        return chapters;
+    }
+
+    private static List<BibleVerse> readVerses(NodeList verses) {
+        ArrayList<BibleVerse> bibleVerses = new ArrayList<>();
+        for (int i = 0; i < verses.getLength(); ++i) {
+            Node node = verses.item(i);
+            if (node.getNodeType() == Node.ELEMENT_NODE) {
+                BibleVerse bibleVerse = new BibleVerse();
+                Element element = (Element) node;
+                String vNumber = element.getAttribute("vnumber");
+                bibleVerse.setNumber((short) (i + 1));
+                if (!((i + 1) + "").equals(vNumber)) {
+                    System.out.println("!!!" + vNumber);
+                }
+                String verse = element.getTextContent();
+                bibleVerse.setText(verse);
+                bibleVerses.add(bibleVerse);
+            }
+        }
+        return bibleVerses;
+    }
+
+    /* Should be called from the main application
+     */
     public static void bibleImporting() {
         List<Bible> bibles = ServiceManager.getBibleService().findAll();
-        Bible bible = bibles.get(1);
+        Bible bible = bibles.get(4);
+//        updateBibleWithDelete(bible);
+
         setIndicesForBible(bible);
         //bibleImportFromJson();
+    }
+
+    private static void updateBibleWithDelete(Bible bible) {
+        BibleService bibleService = ServiceManager.getBibleService();
+        try {
+            bibleService.delete(bible);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        bibleService.create(bible);
     }
 
     public static void bibleImportFromJson() {
@@ -338,7 +451,6 @@ public class BibleImport {
         }
     }
 
-    @SuppressWarnings("unused")
     public static void setIndicesForBible(Bible otherBible) {
         try {
             FXMLLoader loader = new FXMLLoader();
@@ -347,7 +459,7 @@ public class BibleImport {
             Pane root = loader.load();
             IndicesForBibleController controller = loader.getController();
             List<Bible> bibles = ServiceManager.getBibleService().findAll();
-            controller.setLeftBible(bibles.get(2));
+            controller.setLeftBible(bibles.get(0));
             controller.setOtherBible(otherBible);
             Scene scene = new Scene(root);
             scene.getStylesheets().add(BibleImport.class.getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
@@ -355,7 +467,8 @@ public class BibleImport {
             stage.setScene(scene);
             stage.setTitle("Indices");
             stage.show();
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

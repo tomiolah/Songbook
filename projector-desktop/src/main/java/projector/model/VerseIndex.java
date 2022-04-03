@@ -10,6 +10,15 @@ public class VerseIndex {
     @DatabaseField
     private Long bibleId;
 
+    public VerseIndex() {
+
+    }
+
+    @SuppressWarnings("CopyConstructorMissesField")
+    public VerseIndex(VerseIndex verseIndex) {
+        this.indexNumber = verseIndex.indexNumber;
+    }
+
     public BibleVerse getBibleVerse() {
         return bibleVerse;
     }

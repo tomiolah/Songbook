@@ -182,7 +182,7 @@ public class BibleSearchController {
                             int lastAddedIndex = 0;
                             for (int i = 0; i < chars.length; ++i) {
                                 if ('a' <= chars[i] && chars[i] <= 'z') {
-                                    if (chars[i] == searchTextChars[verseIndex]) {
+                                    if (verseIndex < searchTextChars.length && chars[i] == searchTextChars[verseIndex]) {
                                         if (verseIndex == 0) {
                                             fromIndex = i;
                                         }
