@@ -22,6 +22,7 @@ public class Language extends AbstractModel {
     private double percentage;
     @ManyToMany(mappedBy = "reviewLanguages")
     private List<User> reviewers;
+    private Boolean deleted;
 
     public Language() {
     }
@@ -115,5 +116,17 @@ public class Language extends AbstractModel {
             return false;
         }
         return getId().equals(language.getId());
+    }
+
+    public Boolean getDeleted() {
+        return deleted;
+    }
+
+    public boolean isDeleted() {
+        return deleted != null && deleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        this.deleted = deleted;
     }
 }

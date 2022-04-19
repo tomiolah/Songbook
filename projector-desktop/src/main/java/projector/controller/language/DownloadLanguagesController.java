@@ -20,6 +20,7 @@ import projector.model.Language;
 import projector.service.LanguageService;
 import projector.service.ServiceManager;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -64,6 +65,7 @@ public class DownloadLanguagesController {
                     languages.add(language);
                 }
             }
+            deleteDeletedLanguages(languageApiBean);
         });
         thread.start();
         selectButton.setOnAction(event -> {
@@ -77,7 +79,7 @@ public class DownloadLanguagesController {
                 loader.setResources(settings.getResourceBundle());
                 Pane root = loader.load();
                 Scene scene = new Scene(root);
-                scene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                setStyleFile(scene);
                 Stage stage = new Stage();
                 stage.setScene(scene);
                 stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download songs"));
@@ -91,6 +93,28 @@ public class DownloadLanguagesController {
                 LOG.error(e.getMessage(), e);
             }
         });
+    }
+
+    private void setStyleFile(Scene scene) {
+        URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+        if (resource != null) {
+            scene.getStylesheets().add(resource.toExternalForm());
+        }
+    }
+
+    private void deleteDeletedLanguages(LanguageApiBean languageApiBean) {
+        try {
+            List<Language> deletedLanguages = languageApiBean.getDeletedLanguages();
+            LanguageService languageService = ServiceManager.getLanguageService();
+            for (Language language : deletedLanguages) {
+                Language byUuid = languageService.findByUuid(language.getUuid());
+                if (byUuid != null) {
+                    languageService.delete(byUuid);
+                }
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
     private void addLanguageToVBox(Language language) {

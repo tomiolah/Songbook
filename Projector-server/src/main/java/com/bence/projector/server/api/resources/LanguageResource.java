@@ -41,6 +41,13 @@ public class LanguageResource {
         return languageAssembler.createDtoList(all);
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/api/languages/deleted")
+    public List<LanguageDTO> findAllDeletedSongs(HttpServletRequest httpServletRequest) {
+        final List<Language> all = languageService.findAllDeleted();
+        languageService.sortBySize(all);
+        return languageAssembler.createDtoList(all);
+    }
+
     @RequestMapping(method = RequestMethod.POST, value = "api/language")
     public ResponseEntity<Object> create(@RequestBody LanguageDTO languageDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);

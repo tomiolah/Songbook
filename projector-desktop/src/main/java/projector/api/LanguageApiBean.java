@@ -13,8 +13,8 @@ import java.util.List;
 
 public class LanguageApiBean {
     private static final Logger LOG = LoggerFactory.getLogger(LanguageApiBean.class);
-    private LanguageApi languageApi;
-    private LanguageAssembler languageAssembler;
+    private final LanguageApi languageApi;
+    private final LanguageAssembler languageAssembler;
 
     public LanguageApiBean() {
         languageApi = ApiManager.getClient().create(LanguageApi.class);
@@ -23,6 +23,10 @@ public class LanguageApiBean {
 
     public List<Language> getLanguages() {
         Call<List<LanguageDTO>> call = languageApi.getLanguages();
+        return getLanguages(call);
+    }
+
+    private List<Language> getLanguages(Call<List<LanguageDTO>> call) {
         try {
             List<LanguageDTO> languageDTOs = call.execute().body();
             return languageAssembler.createModelList(languageDTOs);
@@ -30,5 +34,10 @@ public class LanguageApiBean {
             LOG.error(e.getMessage(), e);
         }
         return null;
+    }
+
+    public List<Language> getDeletedLanguages() {
+        Call<List<LanguageDTO>> call = languageApi.getDeletedLanguages();
+        return getLanguages(call);
     }
 }

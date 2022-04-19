@@ -10,4 +10,6 @@ public interface LanguageService extends BaseService<Language> {
     void sortBySize(List<Language> all);
 
     Language findOneByUuid(String uuid);
+
+    List<Language> findAllDeleted();
 }

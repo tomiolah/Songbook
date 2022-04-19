@@ -42,7 +42,9 @@ public class LanguageServiceImpl extends BaseServiceImpl<Language> implements La
         Iterable<Language> languages = languageRepository.findAll();
         List<Language> allLanguages = new ArrayList<>();
         for (Language language : languages) {
-            allLanguages.add(findOneByUuid(language.getUuid()));
+            if (!language.isDeleted()) {
+                allLanguages.add(findOneByUuid(language.getUuid()));
+            }
         }
         return allLanguages;
     }
@@ -57,5 +59,17 @@ public class LanguageServiceImpl extends BaseServiceImpl<Language> implements La
             languageMap.put(id, language);
         }
         return language;
+    }
+
+    @Override
+    public List<Language> findAllDeleted() {
+        Iterable<Language> languages = languageRepository.findAll();
+        List<Language> deletedLanguages = new ArrayList<>();
+        for (Language language : languages) {
+            if (language.isDeleted()) {
+                deletedLanguages.add(findOneByUuid(language.getUuid()));
+            }
+        }
+        return deletedLanguages;
     }
 }
