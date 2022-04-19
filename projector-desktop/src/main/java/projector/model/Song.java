@@ -51,7 +51,7 @@ public class Song extends BaseEntity {
     private transient List<SongCollection> songCollections;
     private transient List<SongCollectionElement> songCollectionElements;
     @Expose
-    @DatabaseField
+    @DatabaseField(width = 36)
     private String versionGroup;
     @DatabaseField
     private long views;
@@ -76,6 +76,7 @@ public class Song extends BaseEntity {
         this.songBooks = songBooks;
     }
 
+    @SuppressWarnings("CopyConstructorMissesField")
     public Song(Song song) {
         super(song);
         this.title = song.title;
@@ -178,28 +179,8 @@ public class Song extends BaseEntity {
         strippedTitle = stripAccents(title.toLowerCase());
     }
 
-    public String getFileText() {
-        return fileText;
-    }
-
     public void setFileText(String fileText) {
         this.fileText = fileText;
-    }
-
-    public double[] getVersTimes() {
-        return versTimes == null ? null : versTimes.clone();
-    }
-
-    public void setVersTimes(double[] versTimes) {
-        this.versTimes = versTimes.clone();
-    }
-
-    public List<SongBook> getSongBooks() {
-        return songBooks;
-    }
-
-    public void setSongBooks(List<SongBook> songBooks) {
-        this.songBooks = songBooks;
     }
 
     public Date getCreatedDate() {
@@ -236,14 +217,6 @@ public class Song extends BaseEntity {
             songVerse.setMainSong(this);
         }
         this.verses = verseList;
-    }
-
-    public void fetchVerses() {
-        if (verses == null) {
-            List<SongVerse> songVerses = new ArrayList<>(songVerseForeignCollection.size());
-            songVerses.addAll(songVerseForeignCollection);
-            verses = songVerses;
-        }
     }
 
     public boolean isPublish() {
@@ -289,6 +262,9 @@ public class Song extends BaseEntity {
     }
 
     public void addToSongCollections(SongCollection songCollection) {
+        if (songCollection == null) {
+            return;
+        }
         List<SongCollection> songCollections = getSongCollections();
         if (!containsSongCollection(songCollections, songCollection)) {
             songCollections.add(songCollection);
@@ -296,6 +272,9 @@ public class Song extends BaseEntity {
     }
 
     private boolean containsSongCollection(List<SongCollection> songCollections, SongCollection songCollection) {
+        if (songCollection == null) {
+            return false;
+        }
         for (SongCollection collection : songCollections) {
             if (collection.getId().equals(songCollection.getId())) {
                 return true;
@@ -308,7 +287,7 @@ public class Song extends BaseEntity {
         if (songCollectionElements == null) {
             songCollectionElements = new ArrayList<>();
         }
-        if (ckeckNull(songCollectionElements)) {
+        if (checkNull(songCollectionElements)) {
             return withoutNullSongCollection(songCollectionElements);
         }
         return songCollectionElements;
@@ -328,7 +307,7 @@ public class Song extends BaseEntity {
         return collectionElements;
     }
 
-    private boolean ckeckNull(List<SongCollectionElement> songCollectionElements) {
+    private boolean checkNull(List<SongCollectionElement> songCollectionElements) {
         for (SongCollectionElement songCollectionElement : songCollectionElements) {
             if (songCollectionElement.getSongCollection() == null) {
                 return true;

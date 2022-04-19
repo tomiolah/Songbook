@@ -59,7 +59,9 @@ public class DownloadSongsController {
     private Button acceptBothButton;
     @FXML
     private Button keepButton;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private List<Song> conflictSongList;
+    @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
     private List<Song> conflictLocalSongList;
     private int conflictIndex = 0;
     private SongService songService;
@@ -144,7 +146,7 @@ public class DownloadSongsController {
                                 if (!containsKeyInUuid) {
                                     if (!song.isDeleted()) {
                                         newSongList.add(song);
-                                        songService.create(song);
+                                        saveSong(song);
                                     }
                                 } else {
                                     final Song localSong = uuidSongHashMap.get(song.getUuid());
@@ -164,7 +166,7 @@ public class DownloadSongsController {
                                         localSong.setFavouriteCount(song.getFavouriteCount());
                                         localSong.setAuthor(song.getAuthor());
                                         localSong.setVerseOrderList(song.getVerseOrderList());
-                                        songService.create(localSong);
+                                        saveSong(localSong);
                                     }
                                 }
                             }
@@ -202,6 +204,14 @@ public class DownloadSongsController {
         });
         thread.start();
         initializeButtons();
+    }
+
+    private void saveSong(Song song) {
+        try {
+            songService.create(song);
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
     private void showConflictSong() {

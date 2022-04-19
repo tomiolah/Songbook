@@ -37,7 +37,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 13;
+    private final int DATABASE_VERSION = 14;
     private final ConnectionSource connectionSource;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
@@ -125,12 +125,25 @@ public class DatabaseHelper {
                         e.printStackTrace();
                     }
                 }
-                //noinspection ConstantConditions
                 if (oldVersion <= 12) {
                     Dao<Song, Long> songDao = getSongDao();
                     try {
                         songDao.executeRaw("ALTER TABLE `song` ADD COLUMN downloadedSeparately BOOLEAN");
                     } catch (Exception ignored) {
+                    }
+                }
+                //noinspection ConstantConditions
+                if (oldVersion <= 13) {
+                    Dao<Song, Long> songDao = getSongDao();
+                    try {
+                        songDao.executeRaw("ALTER TABLE `SONG` ADD COLUMN versionGroup_temp VARCHAR(36);");
+                        songDao.executeRaw("UPDATE song SET versionGroup_temp = versionGroup;");
+                        songDao.executeRaw("ALTER TABLE `SONG` DROP COLUMN versionGroup;");
+                        songDao.executeRaw("ALTER TABLE `SONG` ADD COLUMN versionGroup VARCHAR(36);");
+                        songDao.executeRaw("UPDATE song SET versionGroup = versionGroup_temp;");
+                        songDao.executeRaw("ALTER TABLE `SONG` DROP COLUMN versionGroup_temp;");
+                    } catch (Exception e) {
+                        LOG.error(e.getMessage(), e);
                     }
                 }
                 saveNewVersion();
@@ -191,7 +204,7 @@ public class DatabaseHelper {
             } catch (Exception ignored) {
             }
             try {
-                getSongVerseDao().executeRaw("ALTER TABLE `SONG` ADD COLUMN versionGroup VARCHAR(25);");
+                getSongDao().executeRaw("ALTER TABLE `SONG` ADD COLUMN versionGroup VARCHAR(36);");
             } catch (Exception ignored) {
             }
         } catch (final SQLException e) {

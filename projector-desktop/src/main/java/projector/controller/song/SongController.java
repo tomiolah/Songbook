@@ -599,7 +599,7 @@ public class SongController {
                                             x /= 1000;
                                             double sum = 0.0;
                                             for (int i : songListView.getSelectionModel().getSelectedIndices()) {
-                                                if (times.length > i) {
+                                                if (times.length > i && i >= 0) {
                                                     sum += times[i];
                                                 }
                                             }
@@ -618,7 +618,12 @@ public class SongController {
                                 } catch (InterruptedException ignored) {
                                 } catch (Exception e) {
                                     LOG.error(e.getMessage(), e);
-                                    this.start();
+                                    try {
+                                        //noinspection CallToThreadRun
+                                        run();
+                                    } catch (Exception e2) {
+                                        LOG.error(e2.getMessage(), e2);
+                                    }
                                 }
                             }
                         };
@@ -862,9 +867,17 @@ public class SongController {
         scheduleListView.setOnDragDropped(dragEvent -> {
             List<Song> songsFromDragBoard = getSongsFromDragBoard(dragEvent);
             if (songsFromDragBoard != null) {
-                for (Song songFromDragBoard : songsFromDragBoard) {
-                    setSongCollection(songFromDragBoard);
-                    scheduleController.addSong(songFromDragBoard);
+                try {
+                    for (Song songFromDragBoard : songsFromDragBoard) {
+                        try {
+                            setSongCollection(songFromDragBoard);
+                            scheduleController.addSong(songFromDragBoard);
+                        } catch (Exception e) {
+                            LOG.error(e.getMessage(), e);
+                        }
+                    }
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
                 }
                 dragEvent.setDropCompleted(true);
             }
@@ -872,10 +885,10 @@ public class SongController {
     }
 
     private void setSongCollection(Song song) {
-        List<SongCollectionElement> bySong = ServiceManager.getSongCollectionElementService().findBySong(song);
-        if (bySong != null && bySong.size() > 0) {
-            song.setSongCollectionElements(bySong);
-            for (SongCollectionElement songCollectionElement : bySong) {
+        List<SongCollectionElement> songCollectionElements = ServiceManager.getSongCollectionElementService().findBySong(song);
+        if (songCollectionElements != null && songCollectionElements.size() > 0) {
+            song.setSongCollectionElements(songCollectionElements);
+            for (SongCollectionElement songCollectionElement : songCollectionElements) {
                 song.addToSongCollections(songCollectionElement.getSongCollection());
             }
         }
@@ -940,12 +953,16 @@ public class SongController {
         } else {
             final Song[] song = {null};
             Thread thread = new Thread(() -> {
-                SongApiBean songApiBean = new SongApiBean();
-                song[0] = songApiBean.getSongByUuid(uuid);
-                if (song[0] != null) {
-                    song[0].setDownloadedSeparately(true);
-                    ServiceManager.getSongService().create(song[0]);
-                    addSongToLanguagesComboBox(song[0]);
+                try {
+                    SongApiBean songApiBean = new SongApiBean();
+                    song[0] = songApiBean.getSongByUuid(uuid);
+                    if (song[0] != null) {
+                        song[0].setDownloadedSeparately(true);
+                        ServiceManager.getSongService().create(song[0]);
+                        addSongToLanguagesComboBox(song[0]);
+                    }
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
                 }
             });
             thread.start();
