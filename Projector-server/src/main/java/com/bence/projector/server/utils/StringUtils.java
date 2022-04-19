@@ -1,6 +1,10 @@
 package com.bence.projector.server.utils;
 
+import com.bence.projector.server.backend.model.Song;
+import com.bence.projector.server.backend.model.SongVerse;
+
 import java.text.Normalizer;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class StringUtils {
@@ -49,11 +53,12 @@ public class StringUtils {
             for (j = 0; j < bLength; ++j) {
                 if (c == b.charAt(j)) {
                     t[i + 1][j + 1] = t[i][j] + 1;
-                } else if (t[i + 1][j] > t[i][j + 1]) {
-                    t[i + 1][j + 1] = t[i + 1][j];
-                } else {
-                    t[i + 1][j + 1] = t[i][j + 1];
-                }
+                } else //noinspection ManualMinMaxCalculation
+                    if (t[i + 1][j] > t[i][j + 1]) {
+                        t[i + 1][j + 1] = t[i + 1][j];
+                    } else {
+                        t[i + 1][j + 1] = t[i][j + 1];
+                    }
             }
         }
         return t[i][j];
@@ -78,6 +83,25 @@ public class StringUtils {
             }
         }
         return result;
+    }
+
+    public static void formatSongs(List<Song> songs) {
+        for (Song song : songs) {
+            song.setTitle(format(song.getTitle()));
+            formatSongVerses(song.getVerses());
+        }
+    }
+
+    private static void formatSongVerses(List<SongVerse> songVerses) {
+        SongVerse lastVerse = null;
+        for (SongVerse songVerse : songVerses) {
+            songVerse.setText(format(songVerse.getText()));
+            lastVerse = songVerse;
+        }
+        if (lastVerse != null) {
+            String text = lastVerse.getText();
+            lastVerse.setText(text.replaceAll("\nEnd$", ""));
+        }
     }
 
     public static String format(String s) {
