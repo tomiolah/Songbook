@@ -1,5 +1,6 @@
 package projector.controller.song;
 
+import com.bence.projector.common.dto.SongDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
@@ -44,6 +45,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.scene.text.TextFlow;
+import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -51,6 +53,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.MainDesktop;
 import projector.api.SongApiBean;
+import projector.api.assembler.SongAssembler;
 import projector.api.retrofit.ApiManager;
 import projector.application.ProjectionType;
 import projector.application.Settings;
@@ -106,6 +109,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static com.bence.projector.common.converter.OpenLPXmlConverter.getXmlSongs;
 import static java.lang.Math.min;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
 import static projector.utils.StringUtils.stripAccents;
@@ -129,6 +133,8 @@ public class SongController {
     private final SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
     private final String vowels = CustomProperties.getInstance().vowels();
     private final SongController songController = this;
+    @FXML
+    private Button openLPImportButton;
     @FXML
     private ListView<SongVerse> verseOrderListView;
     @FXML
@@ -187,10 +193,10 @@ public class SongController {
     private ScheduleController scheduleController;
     private List<Song> songs = new ArrayList<>();
     private String lastSearchText = "";
-    private SongVersTime activeSongVersTime;
+    private SongVersTime activeSongVerseTime;
     private long timeStart;
-    private List<SongVersTime> previousSongVersTimeList;
-    private int previousSelectedVersIndex;
+    private List<SongVersTime> previousSongVerseTimeList;
+    private int previousSelectedVerseIndex;
     private ObservableList<MyTextFlow> songSelectedItems;
     private Thread previousLineThread;
     private SongVersTimes songVersTimes;
@@ -278,7 +284,7 @@ public class SongController {
         initialized = true;
         try {
             songVersTimes = SongVersTimes.getInstance();
-            previousSongVersTimeList = new LinkedList<>();
+            previousSongVerseTimeList = new LinkedList<>();
             songListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
             newSongButton.setFocusTraversable(false);
             searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -360,13 +366,13 @@ public class SongController {
                 try {
                     int index = listView.getSelectionModel().selectedIndexProperty().get();
                     if (index >= 0) {
-                        if (activeSongVersTime != null && activeSongVersTime.getVersTimes() != null
-                                && activeSongVersTime.getVersTimes().length > previousSelectedVersIndex
-                                && previousSelectedVersIndex >= 0
-                                && activeSongVersTime.getVersTimes()[previousSelectedVersIndex] == 0.0) {
+                        if (activeSongVerseTime != null && activeSongVerseTime.getVersTimes() != null
+                                && activeSongVerseTime.getVersTimes().length > previousSelectedVerseIndex
+                                && previousSelectedVerseIndex >= 0
+                                && activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] == 0.0) {
                             double x = System.currentTimeMillis() - timeStart;
                             x /= 1000;
-                            activeSongVersTime.getVersTimes()[previousSelectedVersIndex] = x;
+                            activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
                         }
                         songListViewItems.clear();
                         selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
@@ -440,11 +446,11 @@ public class SongController {
                         songListViewItems.add(myTextFlow);
                         songListView.getFocusModel().focus(0);
                         songListView.scrollTo(0);
-                        if (activeSongVersTime != null) {
-                            previousSongVersTimeList.add(activeSongVersTime);
+                        if (activeSongVerseTime != null) {
+                            previousSongVerseTimeList.add(activeSongVerseTime);
                         }
-                        activeSongVersTime = new SongVersTime(selectedSong.getTitle(), songListViewItems.size() - 1);
-                        previousSelectedVersIndex = -1;
+                        activeSongVerseTime = new SongVersTime(selectedSong.getTitle(), songListViewItems.size() - 1);
+                        previousSelectedVerseIndex = -1;
                         times = songVersTimes.getAverageTimes(selectedSong.getTitle());
                         if (times == null) {
                             times = new double[songListViewItems.size() - 1];
@@ -540,17 +546,17 @@ public class SongController {
                                 LOG.error(e.getMessage(), e);
                             }
                         }
-                        if (timeStart != 0 && previousSelectedVersIndex >= 0
-                                && previousSelectedVersIndex < activeSongVersTime.getVersTimes().length) {
+                        if (timeStart != 0 && previousSelectedVerseIndex >= 0
+                                && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
                             double x = System.currentTimeMillis() - timeStart;
                             x /= 1000;
-                            activeSongVersTime.getVersTimes()[previousSelectedVersIndex] = x;
+                            activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
                         }
                         MyTextFlow myTextFlow = songListViewItems.get(selectedIndex);
                         String text = myTextFlow.getRawText();
                         text = getWithSecondText(myTextFlow, text);
                         projectionScreenController.setText(text, ProjectionType.SONG);
-                        previousSelectedVersIndex = selectedIndex;
+                        previousSelectedVerseIndex = selectedIndex;
                         if (selectedIndex + 1 == songListViewItems.size()) {
                             projectionScreenController.progressLineSetVisible(false);
                             projectionScreenController.setLineSize(0);
@@ -573,9 +579,9 @@ public class SongController {
                         projectionScreenController.setLineSize((double) lastIndex / (songListViewItems.size() - 2));
                         projectionScreenController.setText(tmpTextBuffer.toString(), ProjectionType.SONG);
                     }
-                    if (recentController != null && !recentController.getLastItemText().equals(activeSongVersTime.getSongTitle()) &&
+                    if (recentController != null && !recentController.getLastItemText().equals(activeSongVerseTime.getSongTitle()) &&
                             ob.size() > 0) {
-                        recentController.addRecentSong(activeSongVersTime.getSongTitle(), ProjectionType.SONG);
+                        recentController.addRecentSong(activeSongVerseTime.getSongTitle(), ProjectionType.SONG);
                     }
                     timeStart = System.currentTimeMillis();
                     if (previousLineThread == null) {
@@ -587,8 +593,8 @@ public class SongController {
                                     double x;
                                     //noinspection InfiniteLoopStatement
                                     do {
-                                        if (!isBlank && timeStart != 0 && previousSelectedVersIndex >= 0
-                                                && previousSelectedVersIndex < activeSongVersTime.getVersTimes().length) {
+                                        if (!isBlank && timeStart != 0 && previousSelectedVerseIndex >= 0
+                                                && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
                                             x = System.currentTimeMillis() - timeStart;
                                             x /= 1000;
                                             double sum = 0.0;
@@ -706,9 +712,15 @@ public class SongController {
             initializeDragListeners();
             initializeSongs();
             initializeVerseOrderList();
+            hideOpenLPImportButton();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void hideOpenLPImportButton() {
+        openLPImportButton.setVisible(false);
+        openLPImportButton.setManaged(false);
     }
 
     private String getWithSecondText(MyTextFlow myTextFlow, String text) {
@@ -1074,9 +1086,9 @@ public class SongController {
             selectionModel.selectFirst();
             selectionModel.select(settings.getSongOrderMethod());
             selectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+                addSongCollections();
                 sortSongs(songs);
                 addAllSongs();
-                addSongCollections();
                 settings.setSongOrderMethod(newValue);
             });
         } catch (Exception e) {
@@ -1722,7 +1734,7 @@ public class SongController {
         }
     }
 
-    private void addAllSongs() {
+    private void addSongsToSongListView(List<Song> songs) {
         try {
             listView.getItems().clear();
             for (Song song : songs) {
@@ -1732,6 +1744,10 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void addAllSongs() {
+        addSongsToSongListView(songs);
     }
 
     private void sortSongs(List<Song> songs) {
@@ -2287,7 +2303,7 @@ public class SongController {
     }
 
     private void saveSongVerseTimes() {
-        if (previousSongVersTimeList == null) {
+        if (previousSongVerseTimeList == null) {
             return;
         }
         try {
@@ -2295,11 +2311,11 @@ public class SongController {
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
             Date date = new Date();
             boolean wasSong = false;
-            if (activeSongVersTime != null) {
-                previousSongVersTimeList.add(activeSongVersTime);
+            if (activeSongVerseTime != null) {
+                previousSongVerseTimeList.add(activeSongVerseTime);
             }
             int minSec = 10;
-            for (SongVersTime tmp : previousSongVersTimeList) {
+            for (SongVersTime tmp : previousSongVerseTimeList) {
                 double x = 0;
                 for (double j : tmp.getVersTimes()) {
                     x += j;
@@ -2311,7 +2327,7 @@ public class SongController {
             }
             if (wasSong) {
                 bw.write(date + System.lineSeparator());
-                for (SongVersTime tmp : previousSongVersTimeList) {
+                for (SongVersTime tmp : previousSongVerseTimeList) {
                     double x = 0;
                     for (double j : tmp.getVersTimes()) {
                         x += j;
@@ -2364,13 +2380,13 @@ public class SongController {
     public void onBlankButtonSelected(boolean isSelected) {
         try {
             if (isSelected) {
-                if (activeSongVersTime != null && activeSongVersTime.getVersTimes() != null
-                        && activeSongVersTime.getVersTimes().length > previousSelectedVersIndex
-                        && previousSelectedVersIndex >= 0
-                        && activeSongVersTime.getVersTimes()[previousSelectedVersIndex] == 0.0) {
+                if (activeSongVerseTime != null && activeSongVerseTime.getVersTimes() != null
+                        && activeSongVerseTime.getVersTimes().length > previousSelectedVerseIndex
+                        && previousSelectedVerseIndex >= 0
+                        && activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] == 0.0) {
                     double x = System.currentTimeMillis() - timeStart;
                     x /= 1000;
-                    activeSongVersTime.getVersTimes()[previousSelectedVersIndex] = x;
+                    activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
                 }
             } else {
                 timeStart = System.currentTimeMillis();
@@ -2604,5 +2620,23 @@ public class SongController {
 
     public void refreshScheduleListView() {
         scheduleListView.refresh();
+    }
+
+    public void importOpenLPFolderButtonOnAction() {
+        DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Select OpenLP exported folder");
+        directoryChooser.setInitialDirectory(new File(new File(".").getAbsolutePath()));
+        File selectedDirectory = directoryChooser.showDialog(null);
+        Thread thread = new Thread(() -> {
+            if (selectedDirectory != null && selectedDirectory.isDirectory()) {
+                File[] files = selectedDirectory.listFiles();
+                if (files != null) {
+                    List<SongDTO> songDTOS = getXmlSongs(files);
+                    List<Song> xmlSongs = SongAssembler.getInstance().createModelList(songDTOS);
+                    Platform.runLater(() -> addSongsToSongListView(xmlSongs));
+                }
+            }
+        });
+        thread.start();
     }
 }

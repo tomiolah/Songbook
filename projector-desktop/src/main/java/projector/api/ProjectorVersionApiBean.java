@@ -8,11 +8,12 @@ import projector.api.retrofit.ProjectorVersionApi;
 import retrofit2.Call;
 
 import java.net.ConnectException;
+import java.net.UnknownHostException;
 import java.util.List;
 
 public class ProjectorVersionApiBean {
     private static final Logger LOG = LoggerFactory.getLogger(ProjectorVersionApiBean.class);
-    private ProjectorVersionApi projectorVersionApi;
+    private final ProjectorVersionApi projectorVersionApi;
 
     public ProjectorVersionApiBean() {
         projectorVersionApi = ApiManager.getClient().create(ProjectorVersionApi.class);
@@ -22,7 +23,7 @@ public class ProjectorVersionApiBean {
         Call<List<ProjectorVersionDTO>> call = projectorVersionApi.getProjectorVersionsAfterNr(projectorVersionsAfterNr);
         try {
             return call.execute().body();
-        } catch (ConnectException ignored) {
+        } catch (ConnectException | UnknownHostException ignored) {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
