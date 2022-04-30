@@ -1097,6 +1097,7 @@ public class BibleController {
 
     void initializeBibles() {
         try {
+            Bible previouslySelectedBible = this.bible;
             lazyInitialize();
             BibleService bibleService = ServiceManager.getBibleService();
             List<Bible> bibles = bibleService.findAll();
@@ -1110,36 +1111,41 @@ public class BibleController {
             items.addAll(bibles);
             parallelBibles.clear();
             parallelBibles.addAll(bibles);
-            bibleListView.getSelectionModel().selectFirst();
-//                bible = bibles.get(1);
-
-//                bible = new Bible();
-//                Reader.setBooksRead(false);
-//                bible.setBooks(Reader.getBooks(settings.getBiblePaths().get(3)));
-            // countWords();
+            selectBibleInListView(previouslySelectedBible);
             addAllBooks();
-            // System.out.println("Ido3: " + (System.currentTimeMillis() - x));
             historyController.setBible(bible);
-
-//                uploadBible(parallelBible);
-//                uploadBible(bible);
-
-//                Bible otherBible = new Bible();
-//                Reader.setBooksRead(false);
-//                otherBible.setBooks(Reader.getBooks("ElberfelderBibel.txt"));
-//                createIndices(otherBible);
-//            setIndicesForBible(bibles.get(0));
-//            Bible bible = bibles.get(0);
-//            List<Chapter> chapters = bible.getBooks().get(39).getChapters();
-//            Chapter chapter = chapters.get(16);
-//            BibleVerse bibleVerse = chapter.getVerses().get(20);
-//            bibleVerse.setText("");
-//            bibleService.delete(bible);
-//            bibleService.create(bible);
-//            uploadBible(bibles.get(0));
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void selectBibleInListView(Bible previouslySelectedBible) {
+        MultipleSelectionModel<Bible> selectionModel = bibleListView.getSelectionModel();
+        if (selectionModel.getSelectedItem() == null) {
+            if (!tryToSelectPreviouslySelected(previouslySelectedBible, selectionModel)) {
+                selectionModel.selectFirst();
+            }
+        }
+    }
+
+    private boolean tryToSelectPreviouslySelected(Bible previouslySelectedBible, MultipleSelectionModel<Bible> selectionModel) {
+        if (previouslySelectedBible != null) {
+            Bible bibleFromList = getBibleFromList(bibleListView.getItems(), previouslySelectedBible);
+            if (bibleFromList != null) {
+                selectionModel.select(bibleFromList);
+                return selectionModel.getSelectedItem() != null;
+            }
+        }
+        return false;
+    }
+
+    private Bible getBibleFromList(ObservableList<Bible> bibles, Bible bible) {
+        for (Bible aBible : bibles) {
+            if (aBible.getId().equals(bible.getId())) {
+                return aBible;
+            }
+        }
+        return null;
     }
 
     boolean isNotAllBooks() {

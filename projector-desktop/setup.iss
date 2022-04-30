@@ -1,6 +1,6 @@
 [Setup]
 AppName=Projector
-AppVersion=2.6.2
+AppVersion=2.6.3
 DefaultDirName={sd}\Projector
 DisableDirPage=no
 ; Since no icons will be created in "{group}", we don't need the wizard

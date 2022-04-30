@@ -23,14 +23,17 @@ public class SongCollectionElement extends BaseEntity {
     }
 
     public String getOrdinalNumber() {
-        return ordinalNumber.replaceAll("^0+.$", "");
+        if (ordinalNumber.equals("0")) {
+            return ordinalNumber;
+        }
+        return ordinalNumber.replaceAll("^0+", "");
     }
 
     public void setOrdinalNumber(String ordinalNumber) {
         if (ordinalNumber == null) {
             this.ordinalNumber = null;
         } else {
-            this.ordinalNumber = ordinalNumber.replaceAll("^0+.$", "");
+            this.ordinalNumber = ordinalNumber.replaceAll("^0+", "");
         }
     }
 

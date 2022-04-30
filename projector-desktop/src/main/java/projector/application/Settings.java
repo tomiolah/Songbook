@@ -720,7 +720,7 @@ public class Settings {
     }
 
     public Language getSongSelectedLanguage() {
-        if (songSelectedLanguage == null) {
+        if (songSelectedLanguage == null || songSelectedLanguage.getSongs().size() == 0) {
             List<Language> languages = ServiceManager.getLanguageService().findAll();
             languages.sort((o1, o2) -> Integer.compare(o2.getSongs().size(), o1.getSongs().size()));
             if (languages.size() > 0) {
