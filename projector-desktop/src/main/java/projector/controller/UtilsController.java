@@ -4,7 +4,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -23,9 +23,9 @@ public class UtilsController {
     private ProjectionScreenController projectionScreenController;
 
     public void initialize() {
-        timeTextField.setOnKeyPressed(event -> {
-            KeyCode keyCode = event.getCode();
-            if (!keyCode.isDigitKey() || !keyCode.isArrowKey() || !keyCode.isNavigationKey()) {
+        timeTextField.addEventFilter(KeyEvent.KEY_TYPED, event -> {
+            String character = event.getCharacter();
+            if (!character.matches("[0-9]") && (timeTextField.getText().contains(":") && character.equals(":"))) {
                 event.consume();
             }
         });
@@ -35,7 +35,7 @@ public class UtilsController {
                 while (true) {
                     setCountDownValue();
                     //noinspection BusyWait
-                    Thread.sleep(1000);
+                    Thread.sleep(200);
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -46,7 +46,7 @@ public class UtilsController {
 
     private void setCountDownValue() {
         String timeTextFromDate = getTimeTextFromDate(getRemainedDate(getFinishDate()));
-        if (!timeTextFromDate.isEmpty()) {
+        if (!timeTextFromDate.isEmpty() && !countDownLabel.getText().equals(timeTextFromDate)) {
             Platform.runLater(() -> countDownLabel.setText(timeTextFromDate));
         }
     }

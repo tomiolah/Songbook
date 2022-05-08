@@ -204,7 +204,7 @@ public class ProjectionScreenController {
             while (countDownTimerRunning) {
                 try {
                     String timeTextFromDate = getTimeTextFromDate(getRemainedDate(finishedDate));
-                    if (!timeTextFromDate.isEmpty()) {
+                    if (!timeTextFromDate.isEmpty() && !activeText.equals(timeTextFromDate)) {
                         Platform.runLater(() -> setText(timeTextFromDate, ProjectionType.COUNTDOWN_TIMER));
                     }
                     //noinspection BusyWait
@@ -219,6 +219,9 @@ public class ProjectionScreenController {
     }
 
     public void setText(String newText, ProjectionType projectionType) {
+        if (projectionType != ProjectionType.COUNTDOWN_TIMER) {
+            countDownTimerRunning = false;
+        }
         Platform.runLater(() -> {
             this.projectionType = projectionType;
             activeText = newText;
