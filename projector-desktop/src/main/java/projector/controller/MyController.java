@@ -55,6 +55,8 @@ public class MyController {
     private RecentController recentController;
     @FXML
     private HistoryController historyController;
+    @FXML
+    private UtilsController utilsController;
     @SuppressWarnings("FieldCanBeLocal")
     @FXML
     private ScheduleController scheduleController;
@@ -108,6 +110,7 @@ public class MyController {
         songController.setProjectionScreenController(projectionScreenController);
         settingsController.setProjectionScreenController(projectionScreenController);
         settingsController.setSongController(songController);
+        utilsController.setProjectionScreenController(projectionScreenController);
         projectionScreenController.setBlank(true);
         projectionScreenController.setSongController(songController);
         projectionScreenController.setPrimaryStage(primaryStage);

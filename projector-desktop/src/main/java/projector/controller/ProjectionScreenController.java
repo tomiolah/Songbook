@@ -29,10 +29,14 @@ import projector.controller.song.SongController;
 import projector.utils.scene.text.MyTextFlow;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static projector.controller.MyController.calculateSizeByScale;
+import static projector.utils.CountDownTimerUtil.getRemainedDate;
+import static projector.utils.CountDownTimerUtil.getTimeTextFromDate;
 
 public class ProjectionScreenController {
 
@@ -68,6 +72,8 @@ public class ProjectionScreenController {
     private Scene scene;
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
     private ProjectionScreenController customStageController;
+    private boolean countDownTimerRunning = false;
+    private Thread countDownTimerThread = null;
 
     public void initialize() {
         settings = Settings.getInstance();
@@ -98,13 +104,7 @@ public class ProjectionScreenController {
         });
         progressLine.setVisible(false);
         progressLine.setStroke(settings.getProgressLineColor());
-        settings.showProgressLineProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue && projectionType == ProjectionType.SONG) {
-                progressLine.setVisible(true);
-            } else {
-                progressLine.setVisible(false);
-            }
-        });
+        settings.showProgressLineProperty().addListener((observable, oldValue, newValue) -> progressLine.setVisible(newValue && projectionType == ProjectionType.SONG));
         settings.progressLinePositionIsTopProperty().addListener((observable, oldValue, newValue) -> {
             double endY;
             if (newValue) {
@@ -191,6 +191,33 @@ public class ProjectionScreenController {
         }
     }
 
+    public void setCountDownTimer(Date finishedDate) {
+        countDownTimerRunning = false;
+        if (countDownTimerThread != null) {
+            try {
+                countDownTimerThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        countDownTimerThread = new Thread(() -> {
+            while (countDownTimerRunning) {
+                try {
+                    String timeTextFromDate = getTimeTextFromDate(getRemainedDate(finishedDate));
+                    if (!timeTextFromDate.isEmpty()) {
+                        Platform.runLater(() -> setText(timeTextFromDate, ProjectionType.COUNTDOWN_TIMER));
+                    }
+                    //noinspection BusyWait
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        countDownTimerRunning = true;
+        countDownTimerThread.start();
+    }
+
     public void setText(String newText, ProjectionType projectionType) {
         Platform.runLater(() -> {
             this.projectionType = projectionType;
@@ -264,6 +291,13 @@ public class ProjectionScreenController {
         this.bibleController = bibleController;
     }
 
+    private void setStyleFile(Scene scene) {
+        URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+        if (resource != null) {
+            scene.getStylesheets().add(resource.toExternalForm());
+        }
+    }
+
     void duplicate() {
         if (doubleProjectionScreenController == null) {
             FXMLLoader loader2 = new FXMLLoader();
@@ -274,7 +308,7 @@ public class ProjectionScreenController {
 
                 doubleProjectionScreenController = loader2.getController();
                 Scene scene2 = new Scene(root2, 400, 300);
-                scene2.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                setStyleFile(scene2);
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> doubleProjectionScreenController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> doubleProjectionScreenController.repaint());
@@ -348,7 +382,7 @@ public class ProjectionScreenController {
 
                 customStageController = loader2.getController();
                 Scene scene2 = new Scene(root2, calculateSizeByScale(width), calculateSizeByScale(height));
-                scene2.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                setStyleFile(scene2);
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
@@ -427,7 +461,7 @@ public class ProjectionScreenController {
                     size = (int) settings.getPreviewWidth();
                 }
                 Scene scene2 = new Scene(root2, size, (double) size * height / width);
-                scene2.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+                setStyleFile(scene2);
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
@@ -522,6 +556,7 @@ public class ProjectionScreenController {
             }
             previewProjectionScreenController.onClose();
         }
+        countDownTimerRunning = false;
     }
 
     private void setParentProjectionScreenController(ProjectionScreenController parentProjectionScreenController) {
@@ -620,7 +655,7 @@ public class ProjectionScreenController {
             previewProjectionScreenController.setLineSize(size);
         }
         if (!isLock) {
-            Integer progressLineThickness = settings.getProgressLineThickness();
+            double progressLineThickness = settings.getProgressLineThickness();
             progressLine.setStrokeLineCap(StrokeLineCap.BUTT);
             if (!settings.isProgressLinePositionIsTop()) {
                 double endY = scene.getHeight() - 1;

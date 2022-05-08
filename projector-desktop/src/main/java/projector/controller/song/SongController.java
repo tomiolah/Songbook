@@ -820,10 +820,10 @@ public class SongController {
 
     private void settingTheAuthor(Song selectedSong) {
         String authorName = selectedSong.getAuthor();
-        if (authorName == null || authorName.trim().isEmpty()) {
-            authorBox.setVisible(false);
-        } else {
-            authorBox.setVisible(true);
+        boolean visibleAuthor = authorName != null && !authorName.trim().isEmpty();
+        authorBox.setVisible(visibleAuthor);
+        authorBox.setManaged(visibleAuthor);
+        if (visibleAuthor) {
             authorTextField.setText(authorName);
         }
     }

@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 
 public class Sender {
 
@@ -38,7 +39,7 @@ public class Sender {
                                 + "start 'projectionType'\n"
                                 + projectionType.name() + "\n"
                                 + "end 'projectionType'\n";
-                        outToClient.write(s.getBytes("UTF-8"));
+                        outToClient.write(s.getBytes(StandardCharsets.UTF_8));
                     } catch (SocketException e) {
                         String message = e.getMessage();
                         if (message.equals("Socket closed")) {
@@ -103,6 +104,7 @@ public class Sender {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void stop() {
         reader.interrupt();
         try {
