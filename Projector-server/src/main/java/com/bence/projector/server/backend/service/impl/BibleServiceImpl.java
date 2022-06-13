@@ -55,8 +55,15 @@ public class BibleServiceImpl extends BaseServiceImpl<Bible> implements BibleSer
         for (BibleVerse bibleVerse : verses) {
             verseIndices.addAll(bibleVerse.getVerseIndices());
         }
+        setBibleToVerseIndices(bible, verseIndices);
         verseIndexService.save(verseIndices);
         return savedBible;
+    }
+
+    private void setBibleToVerseIndices(Bible bible, List<VerseIndex> verseIndices) {
+        for (VerseIndex verseIndex : verseIndices) {
+            verseIndex.setBible(bible);
+        }
     }
 
     @Override
