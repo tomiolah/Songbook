@@ -5,7 +5,6 @@ import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
-import com.bence.projector.server.backend.service.SongService;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -172,13 +171,20 @@ public class SetLanguages {
         }
     }
 
+    private static void printVerses(Song song) {
+        for (SongVerse songVerse : song.getVerses()) {
+            System.out.println(songVerse.getText());
+            System.out.println();
+        }
+    }
+
     private static void setLanguageFromConsole(SongRepository songRepository, List<Language> languages, Map<Language, Collection<String>> languageMap, Song song, Map.Entry<Language, ContainsResult> max, String s) {
         switch (s) {
             case "yes":
                 setAndSaveLanguage(songRepository, languageMap, song, max.getKey());
                 break;
             case "english":
-                Language language1 = languages.get(1);
+                Language language1 = languages.get(10);
                 if (language1.getEnglishName().equals("English")) {
                     setAndSaveLanguage(songRepository, languageMap, song, language1);
                 }
@@ -202,9 +208,15 @@ public class SetLanguages {
                 }
                 break;
             case "german":
-                Language language5 = languages.get(2);
+                Language language5 = languages.get(8);
                 if (language5.getEnglishName().equals("German")) {
                     setAndSaveLanguage(songRepository, languageMap, song, language5);
+                }
+                break;
+            case "swahili":
+                Language language6 = languages.get(18);
+                if (language6.getEnglishName().equals("Swahili")) {
+                    setAndSaveLanguage(songRepository, languageMap, song, language6);
                 }
                 break;
         }

@@ -14,7 +14,7 @@ public interface SongService extends BaseService<Song> {
 
     List<Song> findAllByLanguageAndModifiedDate(String languageId, Date date);
 
-    List<Song> findAllByUploadedTrueAndDeletedTrue();
+    List<Song> findAllByUploadedTrueAndDeletedTrueAndNotBackup();
 
     List<Song> findAllSimilar(Song song);
 

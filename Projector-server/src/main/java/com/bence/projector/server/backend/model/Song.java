@@ -54,6 +54,8 @@ public class Song extends AbstractModel {
     private List<NotificationByLanguage> notificationByLanguages;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<Suggestion> suggestions;
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "song")
+    private List<SongListElement> songListElements;
 
     public Song() {
     }
@@ -422,5 +424,12 @@ public class Song extends AbstractModel {
 
     private boolean verseOrderWasSaved() {
         return !verseOrderWasNotSaved();
+    }
+
+    public List<SongListElement> getSongListElements() {
+        if (songListElements == null) {
+            songListElements = new ArrayList<>();
+        }
+        return songListElements;
     }
 }

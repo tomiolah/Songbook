@@ -170,10 +170,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
-    public List<Song> findAllByUploadedTrueAndDeletedTrue() {
+    public List<Song> findAllByUploadedTrueAndDeletedTrueAndNotBackup() {
         List<Song> allByUploadedTrueAndDeletedTrue = new LinkedList<>();
         for (Song song : getSongs()) {
-            if (song.isUploaded() && song.isDeleted()) {
+            if (song.isUploaded() && song.isDeleted() && !song.isBackUp()) {
                 allByUploadedTrueAndDeletedTrue.add(song);
             }
         }
@@ -378,6 +378,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private Collection<Song> getSongs() {
         HashMap<String, Song> songsHashMap = getSongsHashMap();
         if (songsHashMap.isEmpty()) {
+            lastModifiedDateTime = 0;
             for (Song song : songRepository.findAll()) {
                 putInMapAndCheckLastModifiedDate(song);
             }
@@ -529,6 +530,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     private void putInMapAndCheckLastModifiedDate(Song song) {
         checkLastModifiedDate(song);
+        HashMap<String, Song> songsHashMap = getSongsHashMap();
+        songsHashMap.put(song.getUuid(), song);
     }
 
     @Override

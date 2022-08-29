@@ -15,6 +15,7 @@ import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
+import com.bence.projector.server.backend.service.SongCollectionService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
 import com.bence.projector.server.backend.service.UserService;
@@ -36,6 +37,7 @@ import javax.transaction.Transactional;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.bence.projector.server.api.resources.StatisticsResource.saveStatistics;
@@ -52,10 +54,11 @@ public class SongResource {
     private final UserService userService;
     private final LanguageService languageService;
     private final MailSenderService mailSenderService;
+    private final SongCollectionService songCollectionService;
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, LanguageService languageService, MailSenderService mailSenderService) {
+    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, LanguageService languageService, MailSenderService mailSenderService, SongCollectionService songCollectionService) {
         this.songRepository = songRepository;
         this.songService = songService;
         this.songAssembler = songAssembler;
@@ -64,6 +67,7 @@ public class SongResource {
         this.userService = userService;
         this.languageService = languageService;
         this.mailSenderService = mailSenderService;
+        this.songCollectionService = songCollectionService;
     }
 
     static boolean hasReviewerRoleForSong(User user, Song song) {
@@ -358,7 +362,7 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs/upload")
     public ResponseEntity<Object> uploadedSongs(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final List<Song> all = songService.findAllByUploadedTrueAndDeletedTrue();
+        final List<Song> all = songService.findAllByUploadedTrueAndDeletedTrueAndNotBackup();
         return new ResponseEntity<>(songTitleAssembler.createDtoList(all), HttpStatus.ACCEPTED);
     }
 
@@ -451,16 +455,34 @@ public class SongResource {
     public void removeDuplicates(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         Iterable<Song> songs = songRepository.findAll();
-        for (Song uploaded : songService.findAllByUploadedTrueAndDeletedTrue()) {
+        int exceptionCounter = 100;
+        HashMap<String, Boolean> deletedMap = new HashMap<>();
+        for (Song uploaded : songService.findAllByUploadedTrueAndDeletedTrueAndNotBackup()) {
             for (Song song : songs) {
-                if (!uploaded.getUuid().equals(song.getUuid()) && songService.matches(uploaded, song)) {
+                if (deletedMap.containsKey(song.getUuid())) {
+                    continue;
+                }
+                if (!uploaded.getUuid().equals(song.getUuid()) && songService.matches(uploaded, song) && uploaded.getSongListElements().size() == 0 && !songHasCollection(uploaded)) {
                     if (songRepository.findOneByUuid(song.getUuid()) != null) {
-                        songService.deleteByUuid(uploaded.getUuid());
+                        try {
+                            deletedMap.put(uploaded.getUuid(), true);
+                            songService.deleteByUuid(uploaded.getUuid());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            --exceptionCounter;
+                            if (exceptionCounter < 0) {
+                                return;
+                            }
+                        }
                         break;
                     }
                 }
             }
         }
+    }
+
+    private boolean songHasCollection(Song song) {
+        return songCollectionService.findAllBySong(song).size() > 0;
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/password/api/song/{songId}")
