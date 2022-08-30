@@ -4,6 +4,7 @@ import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.User;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -17,6 +18,8 @@ public interface SongService extends BaseService<Song> {
     List<Song> findAllByUploadedTrueAndDeletedTrueAndNotBackup();
 
     List<Song> findAllSimilar(Song song);
+
+    Collection<Song> getSongsByLanguageForSimilar(Language language);
 
     boolean matches(Song song, Song song2);
 
@@ -39,6 +42,8 @@ public interface SongService extends BaseService<Song> {
     Language bestLanguage(Song song, List<Language> languages);
 
     List<Song> findAllSimilar(Song song, boolean checkDeleted);
+
+    List<Song> findAllSimilar(Song song, boolean checkDeleted, Collection<Song> songs);
 
     void enrollSongInMap(Song song);
 

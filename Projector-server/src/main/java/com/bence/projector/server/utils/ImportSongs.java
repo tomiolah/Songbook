@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -32,7 +33,7 @@ public class ImportSongs {
         List<Song> songs = new ArrayList<>();
         FileInputStream inputStream;
         try {
-            inputStream = new FileInputStream("injili.json");
+            inputStream = new FileInputStream("full_song_book.json");
             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
             StringBuilder s = new StringBuilder();
             String readLine = br.readLine();
@@ -45,8 +46,8 @@ public class ImportSongs {
             Type listType = new TypeToken<ArrayList<ISong>>() {
             }.getType();
             songArrayList = gson.fromJson(s.toString(), listType);
-            Language swahiliLanguage = findSwahiliLanguage(languageService);
-            prepareSongs(songs, songArrayList, swahiliLanguage);
+            Language englishLanguage = findEnglishLanguage(languageService);
+            prepareSongs(songs, songArrayList, englishLanguage);
             songService.save(songs);
         } catch (IOException ignored) {
         }
@@ -56,9 +57,15 @@ public class ImportSongs {
     public static void markSimilarSongsAsDeleted(SongService songService, SongRepository songRepository) {
         List<Song> songs = songService.findAllSongsLazy();
         List<Song> deletedSongs = new ArrayList<>();
+        HashMap<String, Collection<Song>> hashMap = new HashMap<>();
         for (Song song : songs) {
-            if ("cfmstreaming@gmail.com".equals(song.getCreatedByEmail())) {
-                List<Song> allSimilar = songService.findAllSimilar(song);
+            if ("cfmstreaming@gmail.com".equals(song.getCreatedByEmail()) && song.getCreatedDate().after(new Date(1661803039693L))) {
+                Language language = song.getLanguage();
+                if (language == null) {
+                    continue;
+                }
+                Collection<Song> languageSongs = getLanguageSongs(language, songService, hashMap);
+                List<Song> allSimilar = songService.findAllSimilar(song, false, languageSongs);
                 if (allSimilar != null && allSimilar.size() > 0) {
                     song.setDeleted(true);
                     song.setModifiedDate(new Date());
@@ -69,8 +76,18 @@ public class ImportSongs {
         songRepository.save(deletedSongs);
     }
 
-    private static Language findSwahiliLanguage(LanguageService languageService) {
-        return languageService.findOneByUuid("6af972e9-e9b9-48a9-aaa5-ecebfbd38a95");
+    private static Collection<Song> getLanguageSongs(Language language, SongService songService, HashMap<String, Collection<Song>> hashMap) {
+        String key = language.getUuid();
+        if (hashMap.containsKey(key)) {
+            return hashMap.get(key);
+        }
+        Collection<Song> songsByLanguageForSimilar = songService.getSongsByLanguageForSimilar(language);
+        hashMap.put(language.getUuid(), songsByLanguageForSimilar);
+        return songsByLanguageForSimilar;
+    }
+
+    private static Language findEnglishLanguage(LanguageService languageService) {
+        return languageService.findOneByUuid("5a2d25458c270b37345af0c5");
     }
 
     private static void prepareSongs(List<Song> songs, ArrayList<ISong> songArrayList, Language swahiliLanguage) {
@@ -78,6 +95,7 @@ public class ImportSongs {
             Song song = new Song();
             song.setCreatedByEmail("cfmstreaming@gmail.com");
             song.setCreatedDate(new Date());
+            song.setUploaded(true);
             song.setModifiedDate(song.getCreatedDate());
             song.setTitle(iSong.title);
             ArrayList<SongVerse> verses = new ArrayList<>();
@@ -137,7 +155,7 @@ public class ImportSongs {
             String split = splitWithDelimiters.get(i);
             String s1 = split.toLowerCase();
             String s2 = capitalize(s1);
-            if ((notInExceptions(s1) || lastWord(splitWithDelimiters, i)) && !contractionWithApostrophe(splitWithDelimiters, i)) {
+            if ((notInExceptions(s1) || lastWord(splitWithDelimiters, i)) && !contractionWithApostropheOrHyphenation(splitWithDelimiters, i)) {
                 s.append(s2);
             } else {
                 s.append(s1);
@@ -146,15 +164,26 @@ public class ImportSongs {
         return capitalize(s.toString());
     }
 
-    private static boolean contractionWithApostrophe(List<String> splitWithDelimiters, int i) {
+    private static boolean contractionWithApostropheOrHyphenation(List<String> splitWithDelimiters, int i) {
         if (i < 2) {
             return false;
         }
-        return splitWithDelimiters.get(i - 1).equals("'") && splitWithDelimiters.get(i - 2).matches("[A-Za-z]*");
+        String s = splitWithDelimiters.get(i - 1);
+        return (s.equals("'") || s.equals("’") || s.equals("-")) && splitWithDelimiters.get(i - 2).matches("[A-Za-z]*");
     }
 
     private static boolean notInExceptions(String s) {
-        return !s.equals("a") && !s.equals("na") && !s.equals("ya") && !s.equals("au") && !s.equals("kwa") && !s.equals("juu");
+        return !s.equals("a") &&
+                !s.equals("an") &&
+                !s.equals("and") &&
+                !s.equals("by") &&
+                !s.equals("but") &&
+                !s.equals("for") &&
+                !s.equals("nor") &&
+                !s.equals("of") &&
+                !s.equals("or") &&
+                !s.equals("the") &&
+                !s.equals("to");
     }
 
     private static boolean lastWord(List<String> splitWithDelimiters, int index) {

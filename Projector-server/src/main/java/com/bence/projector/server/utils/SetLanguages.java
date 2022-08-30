@@ -14,6 +14,7 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,9 @@ public class SetLanguages {
     private static List<Song> filterSongsContainingLanguage(Iterable<Song> songs) {
         ArrayList<Song> songArrayList = new ArrayList<>();
         for (Song song : songs) {
+            if ("cfmstreaming@gmail.com".equals(song.getCreatedByEmail()) && song.getCreatedDate().after(new Date(1661803039693L))) {
+                song.setLanguage(null);
+            }
             if (song.getLanguage() != null && !song.isDeleted()) {
                 songArrayList.add(song);
             }
@@ -140,27 +144,28 @@ public class SetLanguages {
     }
 
     private static void printDetailsToConsoleAndSetLanguage(SongRepository songRepository, List<Language> languages, Map<Language, Collection<String>> languageMap, Song song, Map.Entry<Language, ContainsResult> max) {
+        System.out.println("======================================");
         System.out.println(song.getTitle());
         System.out.println(song.getUuid());
         Integer wordCount = null;
         if (max.getKey() != null) {
-            System.out.println("Language:   " + max.getKey().getEnglishName());
-            System.out.println("Ratio:  " + max.getValue().getRatio());
-            System.out.println("Match count:  " + max.getValue().getCount());
             wordCount = max.getValue().getWordCount();
-            System.out.println("Words:  " + wordCount);
         }
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-        System.out.print(">");
         String s;
         try {
             ContainsResult maxValue = max.getValue();
             if ((maxValue.getRatio() > 0.5 && maxValue.getCount() > 40) || (maxValue.getRatio() > 0.7 && maxValue.getCount() > 15)) {
                 s = "yes";
+                printDetails(max);
             } else {
-                if (wordCount != null && wordCount > 200) {
+                if ((wordCount != null && wordCount > 200) || "cfmstreaming@gmail.com".equals(song.getCreatedByEmail())) {
+                    printVerses(song);
+                    printDetails(max);
+                    System.out.print(">");
+                    BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
                     s = br.readLine();
                 } else {
+                    printDetails(max);
                     s = "x";
                 }
             }
@@ -168,6 +173,17 @@ public class SetLanguages {
             setLanguageFromConsole(songRepository, languages, languageMap, song, max, s);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static void printDetails(Map.Entry<Language, ContainsResult> max) {
+        Language maxKey = max.getKey();
+        if (maxKey != null) {
+            System.out.println("Language:   " + maxKey.getEnglishName());
+            ContainsResult maxValue = max.getValue();
+            System.out.println("Ratio:  " + maxValue.getRatio());
+            System.out.println("Match count:  " + maxValue.getCount());
+            System.out.println("Words:  " + maxValue.getWordCount());
         }
     }
 

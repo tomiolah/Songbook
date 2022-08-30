@@ -219,6 +219,11 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         if (songs == null) {
             return null;
         }
+        return findAllSimilar(song, checkDeleted, songs);
+    }
+
+    @Override
+    public List<Song> findAllSimilar(Song song, boolean checkDeleted, Collection<Song> songs) {
         String text = getText(song);
         String songId = song.getUuid();
         HashMap<String, Boolean> wordHashMap = getWordHashMap(text);
@@ -394,7 +399,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return songsHashMap.values();
     }
 
-    private Collection<Song> getSongsByLanguageForSimilar(Language language) {
+    @Override
+    public Collection<Song> getSongsByLanguageForSimilar(Language language) {
         return getAllByLanguageAndIsBackUpIsNullAndDeletedIsFalseAndReviewerErasedIsNull(language);
     }
 
