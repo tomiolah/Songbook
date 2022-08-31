@@ -7,7 +7,7 @@ import { UserPropertiesDataService } from '../../services/user-properties-data.s
 import { UserProperties } from '../../models/userProperties';
 import { Title } from '@angular/platform-browser';
 import { MatDialog } from '@angular/material';
-import { AuthenticateComponent } from '../authenticate/authenticate.component';
+import { checkAuthenticationError } from '../../util/error-util';
 
 @Component({
   selector: 'app-notification-settings',
@@ -53,28 +53,9 @@ export class NotificationSettingsComponent implements OnInit {
         this.initializeNotifications();
       },
       (err) => {
-        if (err.message === 'Unexpected token < in JSON at position 0') {
-          this.openAuthenticateDialog();
-        } else {
-          console.log(err);
-        }
+        checkAuthenticationError(this.loadUserProperties, this, err, this.dialog);
       }
     )
-  }
-
-  private openAuthenticateDialog() {
-    let user = JSON.parse(localStorage.getItem('currentUser'));
-    const dialogRef = this.dialog.open(AuthenticateComponent, {
-      data: {
-        email: user.email
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'ok') {
-        this.loadUserProperties();
-      }
-    });
   }
 
   initializeNotifications() {
@@ -121,15 +102,11 @@ export class NotificationSettingsComponent implements OnInit {
 
   update() {
     this.userProperties.notificationsByLanguage = this.notifications;
-    this.userPropertiesDataService.save(this.userProperties).subscribe((userProperties) => {
+    this.userPropertiesDataService.save(this.userProperties).subscribe(() => {
 
     },
       (err) => {
-        if (err.status === 405) {
-          this.openAuthenticateDialog();
-        } else {
-          console.log(err);
-        }
+        checkAuthenticationError(this.update, this, err, this.dialog);
       });
   }
 

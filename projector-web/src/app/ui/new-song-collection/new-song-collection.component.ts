@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatSnackBar, MatDialog } from '@angular/material';
+import { MatDialog } from '@angular/material';
 import { Title } from '@angular/platform-browser';
 import { Router } from '@angular/router';
 import { Language } from '../../models/language';
 import { SongCollection } from '../../models/songCollection';
 import { LanguageDataService } from '../../services/language-data.service';
 import { SongCollectionDataService } from '../../services/song-collection-data.service';
-import { AuthenticateComponent } from '../authenticate/authenticate.component';
+import { checkAuthenticationError } from '../../util/error-util';
 
 @Component({
   selector: 'app-new-song-collection',
@@ -30,7 +30,6 @@ export class NewSongCollectionComponent implements OnInit {
     private languageDataService: LanguageDataService,
     private titleService: Title,
     private router: Router,
-    private snackBar: MatSnackBar,
     private dialog: MatDialog,
   ) { }
 
@@ -71,31 +70,9 @@ export class NewSongCollectionComponent implements OnInit {
         this.router.navigate(['/songs']);
       },
       (err) => {
-        if (err.message === 'Unexpected token < in JSON at position 0') {
-          this.openAuthenticateDialog();
-        } else {
-          console.log(err);
-          this.snackBar.open(err._body, 'Close', {
-            duration: 5000
-          })
-        }
+        checkAuthenticationError(this.onSubmit, this, err, this.dialog);
       }
     );
-  }
-
-  private openAuthenticateDialog() {
-    let user = JSON.parse(localStorage.getItem('currentUser'));
-    const dialogRef = this.dialog.open(AuthenticateComponent, {
-      data: {
-        email: user.email
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'ok') {
-        this.onSubmit();
-      }
-    });
   }
 
 }

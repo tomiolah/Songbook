@@ -5,10 +5,10 @@ import { DataSource } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { UserDataService } from '../../services/user-data.service';
 import { User } from '../../models/user';
-import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { MatDialog } from "@angular/material";
 import { AuthService } from "../../services/auth.service";
 import { Title } from "@angular/platform-browser";
+import { checkAuthenticationError } from '../../util/error-util';
 
 export class UserDatabase {
   dataChange: BehaviorSubject<User[]> = new BehaviorSubject<User[]>([]);
@@ -74,9 +74,7 @@ export class UsersComponent implements OnInit {
         this.dataSource = new UserDataSource(this.userDatabase);
       },
       (err) => {
-        if (err.message === 'Unexpected token < in JSON at position 0') {
-          this.openAuthenticateDialog();
-        }
+        checkAuthenticationError(this.ngOnInit, this, err, this.dialog);
       }
     );
   }
@@ -87,18 +85,4 @@ export class UsersComponent implements OnInit {
     this.router.navigate(['/admin/user/', user.uuid]);
   }
 
-  private openAuthenticateDialog() {
-    let user = JSON.parse(localStorage.getItem('currentUser'));
-    const dialogRef = this.dialog.open(AuthenticateComponent, {
-      data: {
-        email: user.email
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'ok') {
-        this.ngOnInit();
-      }
-    });
-  }
 }

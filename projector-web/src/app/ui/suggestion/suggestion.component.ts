@@ -6,8 +6,8 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { Suggestion } from "../../models/suggestion";
 import { SuggestionDataService } from "../../services/suggestion-data.service";
 import { DomSanitizer, SafeResourceUrl, Title } from "@angular/platform-browser";
-import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { MatDialog } from "@angular/material";
+import { checkAuthenticationError } from '../../util/error-util';
 
 @Component({
   selector: 'app-suggestion',
@@ -65,9 +65,7 @@ export class SuggestionComponent implements OnInit, OnDestroy {
             });
           },
           (err) => {
-            if (err.message === 'Unexpected token < in JSON at position 0') {
-              this.openAuthenticateDialog();
-            }
+            checkAuthenticationError(this.ngOnInit, this, err, this.dialog);
           });
       }
     });
@@ -75,21 +73,6 @@ export class SuggestionComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
-  }
-
-  private openAuthenticateDialog() {
-    let user = JSON.parse(localStorage.getItem('currentUser'));
-    const dialogRef = this.dialog.open(AuthenticateComponent, {
-      data: {
-        email: user.email
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'ok') {
-        this.ngOnInit();
-      }
-    });
   }
 
   calculateUrlId(url: string) {
@@ -121,11 +104,7 @@ export class SuggestionComponent implements OnInit, OnDestroy {
         this.router.navigate(['/suggestions']);
       },
       (err) => {
-        if (err.status === 405) {
-          this.openAuthenticateDialog();
-        } else {
-          console.log(err);
-        }
+        checkAuthenticationError(this.onDoneButtonClick, this, err, this.dialog);
       }
     );
   }

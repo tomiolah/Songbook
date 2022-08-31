@@ -5,7 +5,6 @@ import { DataSource } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { SuggestionDataService } from '../../services/suggestion-data.service';
 import { Suggestion } from '../../models/suggestion';
-import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { MatDialog } from "@angular/material";
 import { AuthService } from "../../services/auth.service";
 import { Title } from "@angular/platform-browser";
@@ -14,6 +13,7 @@ import { LanguageDataService } from '../../services/language-data.service';
 import { SELECTED_LANGUGAGE } from '../../util/constants';
 import { SongListComponent } from '../song-list/song-list.component';
 import { User } from '../../models/user';
+import { checkAuthenticationError } from '../../util/error-util';
 
 export class SuggestionDatabase {
   dataChange: BehaviorSubject<Suggestion[]> = new BehaviorSubject<Suggestion[]>([]);
@@ -106,9 +106,7 @@ export class SuggestionListComponent implements OnInit {
         this.setSuggestionList(suggestionList);
       },
       (err) => {
-        if (err.message === 'Unexpected token < in JSON at position 0') {
-          this.openAuthenticateDialog();
-        }
+        checkAuthenticationError(this.loadSuggestions, this, err, this.dialog);
       }
     );
   }
@@ -143,9 +141,7 @@ export class SuggestionListComponent implements OnInit {
         this.setSuggestionList(suggestionList);
       },
       (err) => {
-        if (err.message === 'Unexpected token < in JSON at position 0') {
-          this.openAuthenticateDialog();
-        }
+        checkAuthenticationError(this.loadAllSuggestions, this, err, this.dialog);
       }
     );
   }
@@ -157,26 +153,6 @@ export class SuggestionListComponent implements OnInit {
   }
 
   openAuthenticateDialogOpened = false;
-
-  private openAuthenticateDialog() {
-    if (this.openAuthenticateDialogOpened) {
-      return;
-    }
-    this.openAuthenticateDialogOpened = true;
-    let user = JSON.parse(localStorage.getItem('currentUser'));
-    const dialogRef = this.dialog.open(AuthenticateComponent, {
-      data: {
-        email: user.email
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      this.openAuthenticateDialogOpened = false;
-      if (result === 'ok') {
-        this.ngOnInit();
-      }
-    });
-  }
 
   changeLanguage() {
     localStorage.setItem(SELECTED_LANGUGAGE, JSON.stringify(this.selectedLanguage));

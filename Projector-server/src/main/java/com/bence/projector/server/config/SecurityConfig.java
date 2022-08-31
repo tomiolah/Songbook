@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
@@ -27,15 +28,29 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
-        httpSecurity.csrf().disable().authorizeRequests().antMatchers("/admin/**").hasRole("ADMIN")
+        httpSecurity.csrf().disable()
+                .authorizeRequests()
+                .antMatchers("/admin/**").hasRole("ADMIN")
                 .antMatchers("/reviewer/**").hasRole("REVIEWER")
-                .antMatchers("/user/**").hasAnyRole("USER", "ADMIN", "REVIEWER").and().formLogin().loginPage("/#/login")
-                .loginProcessingUrl("/login").defaultSuccessUrl("/#/register", false).permitAll();
+                .antMatchers("/user/**").hasAnyRole("USER", "ADMIN", "REVIEWER")
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(authenticationEntryPoint())
+                .and()
+                .formLogin()
+                .loginPage("/#/login")
+                .loginProcessingUrl("/login")
+                .defaultSuccessUrl("/#/register", false).permitAll();
     }
 
     @SuppressWarnings("WeakerAccess")
     @Bean
     PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public AuthenticationEntryPoint authenticationEntryPoint() {
+        return new CustomAuthenticationEntryPoint();
     }
 }

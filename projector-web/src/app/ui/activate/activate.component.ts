@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { UserDataService } from '../../services/user-data.service';
 import { MatDialog, MatSnackBar } from '@angular/material';
-import { AuthenticateComponent } from '../authenticate/authenticate.component';
+import { checkAuthenticationError, ErrorUtil } from '../../util/error-util';
 
 @Component({
   selector: 'app-activate',
@@ -25,28 +25,13 @@ export class ActivateComponent implements OnInit {
     this.resendActivationEmailEnabled = false;
     this.userDataService.resendActivation().subscribe(() => {
     }, (err) => {
-      if (err.message === 'Unexpected token < in JSON at position 0') {
-        this.openAuthenticateDialog();
+      if (ErrorUtil.errorIsNeededLogin(err)) {
+        checkAuthenticationError(this.resendActivationEmail, this, err, this.dialog);
       } else {
         console.log(err);
         this.snackBar.open(err._body, 'Close', {
           duration: 5000
         });
-      }
-    });
-  }
-
-  private openAuthenticateDialog() {
-    let user = JSON.parse(localStorage.getItem('currentUser'));
-    const dialogRef = this.dialog.open(AuthenticateComponent, {
-      data: {
-        email: user.email
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'ok') {
-        this.resendActivationEmail();
       }
     });
   }
