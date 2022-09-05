@@ -224,7 +224,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public List<Song> findAllSimilar(Song song, boolean checkDeleted, Collection<Song> songs) {
-        String text = getText(song);
+        String text = getText(song).toLowerCase();
         String songId = song.getUuid();
         HashMap<String, Boolean> wordHashMap = getWordHashMap(text);
         List<Song> similarSongsForSong = getSimilarSongsForSong(checkDeleted, songs, text, songId, wordHashMap);
@@ -277,7 +277,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     private boolean songsIsSimilar(String text, HashMap<String, Boolean> wordHashMap, int wordCount, HashMap<String, Boolean> hashMap, Song databaseSong) {
-        String secondText = getText(databaseSong);
+        String secondText = getText(databaseSong).toLowerCase();
         String[] words = secondText.split(wordsSplit);
         hashMap.clear();
         int count = 0;
