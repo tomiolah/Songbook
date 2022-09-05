@@ -11,6 +11,7 @@ import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { CdkDragDrop, moveItemInArray, copyArrayItem } from '@angular/cdk/drag-drop';
 import { AuthService } from '../../services/auth.service';
 import { addNewVerse_, calculateOrder_ } from '../../util/song.utils';
+import { Language } from '../../models/language';
 
 @Component({
   selector: 'app-edit-song',
@@ -33,7 +34,7 @@ export class EditSongComponent implements OnInit {
   verses: SongVerseUI[];
   verseControls: FormControl[];
   languages = [];
-  selectedLanguage;
+  selectedLanguage: Language;
   originalLanguage;
   @Input()
   song: Song;

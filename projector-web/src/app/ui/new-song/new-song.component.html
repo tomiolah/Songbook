@@ -30,9 +30,7 @@
             </mat-form-field>
             <iframe [class]="safeUrl!=null?'embeddedVideo':'hideEmbeddedVideo'" scrolling="no" [src]='safeUrl'
               frameborder="0" allowfullscreen></iframe>
-            <mat-form-field class="example-full-width">
-              <input type="text" id="title" formControlName="title" required matInput placeholder="Title">
-            </mat-form-field>
+            <app-edit-title [selectedLanguage]="selectedLanguage" [form]="form"></app-edit-title>
             <mat-error *ngIf="formErrors.title">
               <mat-icon class="material-icon">error</mat-icon>
               {{formErrors.title}}
