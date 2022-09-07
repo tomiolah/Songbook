@@ -42,6 +42,8 @@ import java.util.List;
 
 import static com.bence.projector.server.api.resources.StatisticsResource.saveStatistics;
 import static com.bence.projector.server.api.resources.UserPropertiesResource.getUserFromPrincipalAndUserService;
+import static com.bence.projector.server.utils.SetLanguages.printLanguageWords;
+import static com.bence.projector.server.utils.SetLanguages.setLanguagesForUnknown;
 
 @RestController
 public class SongResource {
@@ -479,6 +481,22 @@ public class SongResource {
                 }
             }
         }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/admin/automaticallyReAssignLanguages")
+    public void automaticallyReAssignLanguages(HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        setLanguagesForUnknown(songRepository, languageService);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/admin/printALanguageWord/{languageId}")
+    public void printALanguageWord(HttpServletRequest httpServletRequest, @PathVariable final String languageId) {
+        Language language = languageService.findOneByUuid(languageId);
+        if (language == null) {
+            return;
+        }
+        List<Language> languages = languageService.findAll();
+        printLanguageWords(songService.findAllByLanguage(language.getUuid()), languages, language);
     }
 
     private boolean songHasCollection(Song song) {

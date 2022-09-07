@@ -14,7 +14,6 @@ import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +44,10 @@ public class SetLanguages {
     public static void setLanguagesForUnknown(SongRepository songRepository, LanguageService languageService) {
         List<Language> languages = languageService.findAll();
         Iterable<Song> songs = songRepository.findAll();
+        setLanguagesForSongs(songRepository, languages, songs);
+    }
+
+    public static void setLanguagesForSongs(SongRepository songRepository, List<Language> languages, Iterable<Song> songs) {
         List<Song> allWithLanguage = filterSongsContainingLanguage(songs);
         HashMap<String, Song> songHashMap = getStringSongHashMap(allWithLanguage);
         Map<Language, Collection<String>> languageMap = getLanguageCollectionMap(languages);
@@ -54,14 +57,18 @@ public class SetLanguages {
     public static void printLanguagesWords(SongRepository songRepository, LanguageService languageService) {
         List<Language> languages = languageService.findAll();
         Iterable<Song> songRepositoryAll = songRepository.findAll();
-        List<Song> allWithLanguage = filterSongsContainingLanguage(songRepositoryAll);
+        printLanguageWords(songRepositoryAll, languages, languages.get(10));
+    }
+
+    public static void printLanguageWords(Iterable<Song> songs, List<Language> languages, Language language) {
+        List<Song> allWithLanguage = filterSongsContainingLanguage(songs);
         Map<Language, Collection<String>> languageMap = getLanguageCollectionMap(languages);
         for (Song song : allWithLanguage) {
             if (!song.isDeleted()) {
                 addWordByAlreadySettedLanguage(languageMap, song);
             }
         }
-        printLanguageWords(languages.get(10), languageMap);
+        printLanguageWords(language, languageMap);
     }
 
     private static void printLanguageWords(Language language, Map<Language, Collection<String>> languageMap) {
@@ -84,9 +91,6 @@ public class SetLanguages {
     private static List<Song> filterSongsContainingLanguage(Iterable<Song> songs) {
         ArrayList<Song> songArrayList = new ArrayList<>();
         for (Song song : songs) {
-            if ("cfmstreaming@gmail.com".equals(song.getCreatedByEmail()) && song.getCreatedDate().after(new Date(1661803039693L))) {
-                song.setLanguage(null);
-            }
             if (song.getLanguage() != null && !song.isDeleted()) {
                 songArrayList.add(song);
             }
@@ -94,13 +98,21 @@ public class SetLanguages {
         return songArrayList;
     }
 
-    private static void setLanguagesForUnknownSongs(SongRepository songRepository, List<Language> languages, Iterable<Song> songs, HashMap<String, Song> songHashMap, Map<Language, Collection<String>> languageMap) {
+    private static void addWordByAlreadySettedLanguageSongs(Iterable<Song> songs, HashMap<String, Song> songHashMap, Map<Language, Collection<String>> languageMap) {
         for (Song song : songs) {
             Song song1 = songHashMap.get(song.getUuid());
             if (song1 != null) {
                 addWordByAlreadySettedLanguage(languageMap, song1);
-            } else {
-                if (!song.isJustUploaded() || song.getLanguage() != null) {
+            }
+        }
+    }
+
+    private static void setLanguagesForUnknownSongs(SongRepository songRepository, List<Language> languages, Iterable<Song> songs, HashMap<String, Song> songHashMap, Map<Language, Collection<String>> languageMap) {
+        addWordByAlreadySettedLanguageSongs(songs, songHashMap, languageMap);
+        for (Song song : songs) {
+            Song song1 = songHashMap.get(song.getUuid());
+            if (song1 == null) {
+                if (!(song.isUploaded() && song.isDeleted() && !song.isBackUp() && !song.isReviewerErased())) {
                     continue;
                 }
                 List<String> words = new ArrayList<>();
@@ -112,7 +124,7 @@ public class SetLanguages {
                     countMap.put(language1, containsResult);
                 }
                 Map.Entry<Language, ContainsResult> max = getMax(countMap);
-                printDetailsToConsoleAndSetLanguage(songRepository, languages, languageMap, song, max);
+                printDetailsToConsoleAndSetLanguage(songRepository, languages, languageMap, song, max, countMap);
             }
         }
     }
@@ -143,7 +155,13 @@ public class SetLanguages {
         return max;
     }
 
-    private static void printDetailsToConsoleAndSetLanguage(SongRepository songRepository, List<Language> languages, Map<Language, Collection<String>> languageMap, Song song, Map.Entry<Language, ContainsResult> max) {
+    private static void printDetailsToConsoleAndSetLanguage(
+            SongRepository songRepository,
+            List<Language> languages,
+            Map<Language, Collection<String>> languageMap,
+            Song song,
+            Map.Entry<Language, ContainsResult> max,
+            Map<Language, ContainsResult> countMap) {
         System.out.println("======================================");
         System.out.println(song.getTitle());
         System.out.println(song.getUuid());
@@ -154,11 +172,24 @@ public class SetLanguages {
         String s;
         try {
             ContainsResult maxValue = max.getValue();
-            if ((maxValue.getRatio() > 0.5 && maxValue.getCount() > 40) || (maxValue.getRatio() > 0.7 && maxValue.getCount() > 15)) {
+            if (
+                    (isGoodEnoughRatioByWordCount(maxValue, 0.5, 160) ||
+                            isGoodEnoughRatioByWordCount(maxValue, 0.6, 140) ||
+                            isGoodEnoughRatioByWordCount(maxValue, 0.7, 120) ||
+                            isGoodEnoughRatioByWordCount(maxValue, 0.8, 80) ||
+                            isGoodEnoughRatioByWordCount(maxValue, 0.9, 40) ||
+                            isGoodEnoughRatioByWordCount(maxValue, 0.98, 15) ||
+                            (
+                                    isGoodEnoughRatioByWordCount(maxValue, 0.5, 25) &&
+                                            max.getKey().isFilipino()
+                            )
+                    ) && isCzechSlovakRatioGood(max, countMap, song)) {
                 s = "yes";
                 printDetails(max);
             } else {
-                if ((wordCount != null && wordCount > 200) || "cfmstreaming@gmail.com".equals(song.getCreatedByEmail())) {
+                if (isSameLanguage(song, max)) {
+                    s = "x";
+                } else if ((wordCount != null && wordCount > 200)) {
                     printVerses(song);
                     printDetails(max);
                     System.out.print(">");
@@ -174,6 +205,59 @@ public class SetLanguages {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static boolean isSameLanguage(Song song, Map.Entry<Language, ContainsResult> max) {
+        Language songLanguage = song.getLanguage();
+        Language maxLanguage = max.getKey();
+        return songLanguage != null && songLanguage.equals(maxLanguage);
+    }
+
+    private static boolean isCzechSlovakRatioGood(Map.Entry<Language, ContainsResult> max, Map<Language, ContainsResult> countMap, Song song) {
+        Language language = max.getKey();
+        String uuid = language.getUuid();
+        String czechUuid = "5d7bbbc70ca23e000465e286";
+        String slovakUuid = "f5f2fe72-6b74-414b-a9a8-5f26451eb1a1";
+        boolean isCzech = uuid.equals(czechUuid);
+        if (!isCzech && !uuid.equals(slovakUuid)) {
+            return true;
+        }
+        Language songLanguage = song.getLanguage();
+        if (songLanguage != null && (songLanguage.isCzech() || songLanguage.isSlovak())) {
+            return true;
+        }
+        String otherUuid;
+        if (isCzech) {
+            otherUuid = slovakUuid;
+        } else {
+            otherUuid = czechUuid;
+        }
+        Map.Entry<Language, ContainsResult> entryByLanguage = findEntryByLanguage(countMap, otherUuid);
+        if (entryByLanguage == null) {
+            return true;
+        }
+        return max.getValue().getRatio() / entryByLanguage.getValue().getRatio() > 1.1;
+    }
+
+    private static boolean isCzechAndSlovak(Language songLanguage, Language maxLanguage) {
+        if (songLanguage == null || maxLanguage == null) {
+            return false;
+        }
+        return (songLanguage.isCzech() && maxLanguage.isSlovak()) || (songLanguage.isSlovak() && maxLanguage.isCzech());
+    }
+
+    private static Map.Entry<Language, ContainsResult> findEntryByLanguage(Map<Language, ContainsResult> countMap, String uuid) {
+        Set<Map.Entry<Language, ContainsResult>> entries = countMap.entrySet();
+        for (Map.Entry<Language, ContainsResult> entry : entries) {
+            if (entry.getKey().getUuid().equals(uuid)) {
+                return entry;
+            }
+        }
+        return null;
+    }
+
+    private static boolean isGoodEnoughRatioByWordCount(ContainsResult maxValue, double minRatio, int minWordCount) {
+        return maxValue.getRatio() > minRatio && maxValue.getCount() > minWordCount;
     }
 
     private static void printDetails(Map.Entry<Language, ContainsResult> max) {
@@ -197,7 +281,18 @@ public class SetLanguages {
     private static void setLanguageFromConsole(SongRepository songRepository, List<Language> languages, Map<Language, Collection<String>> languageMap, Song song, Map.Entry<Language, ContainsResult> max, String s) {
         switch (s) {
             case "yes":
-                setAndSaveLanguage(songRepository, languageMap, song, max.getKey());
+                Language songLanguage = song.getLanguage();
+                Language maxLanguage = max.getKey();
+                if (songLanguage != null && songLanguage.isCebuano()) { // because is similar to Filipino
+                    break;
+                }
+                if (isSameLanguage(song, max)) {
+                    break;
+                }
+                if (isCzechAndSlovak(songLanguage, maxLanguage)) {
+                    break;
+                }
+                setAndSaveLanguage(songRepository, languageMap, song, maxLanguage);
                 break;
             case "english":
                 Language language1 = languages.get(10);
@@ -241,7 +336,7 @@ public class SetLanguages {
     private static void setAndSaveLanguage(SongRepository songRepository, Map<Language, Collection<String>> languageMap, Song song, Language language5) {
         song.setLanguage(language5);
         songRepository.save(song);
-        addWordsInCollection(song, languageMap.get(song.getLanguage()));
+        //        addWordsInCollection(song, languageMap.get(song.getLanguage()));
     }
 
     private static void addWordByAlreadySettedLanguage(Map<Language, Collection<String>> languageMap, Song song1) {
@@ -255,6 +350,9 @@ public class SetLanguages {
             String[] split = songVerse.getText().split("[\\s\\t\\n\\r]");
             for (String word : split) {
                 word = stripAccents(word.toLowerCase());
+                if (word.isEmpty()) {
+                    continue;
+                }
                 words.add(word);
             }
         }

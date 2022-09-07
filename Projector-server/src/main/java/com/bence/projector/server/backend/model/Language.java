@@ -129,4 +129,25 @@ public class Language extends AbstractModel {
     public void setDeleted(Boolean deleted) {
         this.deleted = deleted;
     }
+
+    public boolean isCzech() {
+        return getUuid().equals("5d7bbbc70ca23e000465e286");
+    }
+
+    public boolean isSlovak() {
+        return getUuid().equals("f5f2fe72-6b74-414b-a9a8-5f26451eb1a1");
+    }
+
+    public boolean isFilipino() {
+        return getUuid().equals("5d7007d029e75400049df908");
+    }
+
+    public boolean isCebuano() {
+        return getUuid().equals("2de44fc1-8112-4700-bf85-2432e85f35f4");
+    }
+
+    @Override
+    public String toString() {
+        return englishName;
+    }
 }
