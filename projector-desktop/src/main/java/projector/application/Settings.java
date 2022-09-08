@@ -86,6 +86,7 @@ public class Settings {
     private BibleController bibleController;
     private boolean showSongSecondText = false;
     private Color songSecondTextColor = new Color(0.46, 1.0, 1.0, 1.0);
+    private boolean applicationRunning = true;
 
     protected Settings() {
         load();
@@ -816,5 +817,13 @@ public class Settings {
 
     public void setSongSecondTextColor(Color songSecondTextColor) {
         this.songSecondTextColor = songSecondTextColor;
+    }
+
+    public boolean isApplicationRunning() {
+        return applicationRunning;
+    }
+
+    public void setApplicationRunning(boolean applicationRunning) {
+        this.applicationRunning = applicationRunning;
     }
 }

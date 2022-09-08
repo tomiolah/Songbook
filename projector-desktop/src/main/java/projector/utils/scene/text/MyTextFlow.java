@@ -24,6 +24,7 @@ import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.application.ProjectionScreenSettings;
 import projector.application.Settings;
 
 import java.lang.reflect.InvocationTargetException;
@@ -60,15 +61,15 @@ public class MyTextFlow extends TextFlow {
         mGetCharCount.setAccessible(true);
     }
 
+    private final List<Text> texts = new ArrayList<>();
+    private final List<Text> letters = new ArrayList<>();
+    private final String colorStartTag = "<color=\"0x";
     private int size = 100;
     private String fontFamily;
     private FontWeight fontWeight = FontWeight.BOLD;
     private String rawText;
     private int height;
     private int width;
-    private final List<Text> texts = new ArrayList<>();
-    private final List<Text> letters = new ArrayList<>();
-    private final String colorStartTag = "<color=\"0x";
     private boolean tmp = false;
     private double total;
     private boolean wrapped;
@@ -78,11 +79,14 @@ public class MyTextFlow extends TextFlow {
     private boolean prevItalic = false;
     private Color prevColor = null;
     private String secondText;
+    private ProjectionScreenSettings projectionScreenSettings;
 
     public MyTextFlow() {
+        projectionScreenSettings = new ProjectionScreenSettings();
     }
 
     private MyTextFlow(boolean tmp) {
+        this();
         this.tmp = tmp;
         boundsReadOnlyObjectProperty = boundsInLocalProperty();
     }
@@ -550,7 +554,7 @@ public class MyTextFlow extends TextFlow {
     public void setBackGroundColor() {
         final Settings settings = Settings.getInstance();
         if (!settings.isBackgroundImage()) {
-            BackgroundFill myBF = new BackgroundFill(settings.getBackgroundColor(), new CornerRadii(1),
+            BackgroundFill myBF = new BackgroundFill(projectionScreenSettings.getBackgroundColor(), new CornerRadii(1),
                     new Insets(0.0, 0.0, 0.0, 0.0));
             // then you set to your node
             super.setBackground(new Background(myBF));
@@ -624,11 +628,15 @@ public class MyTextFlow extends TextFlow {
         }
     }
 
+    public String getSecondText() {
+        return secondText;
+    }
+
     public void setSecondText(String secondText) {
         this.secondText = secondText;
     }
 
-    public String getSecondText() {
-        return secondText;
+    public void setProjectionScreenSettings(ProjectionScreenSettings projectionScreenSettings) {
+        this.projectionScreenSettings = projectionScreenSettings;
     }
 }

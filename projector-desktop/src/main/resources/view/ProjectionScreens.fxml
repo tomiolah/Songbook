@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane prefHeight="560" prefWidth="800" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1" fx:controller="projector.controller.ProjectionScreensController">
+    <top>
+    </top>
+    <center>
+        <ScrollPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+            <content>
+                <BorderPane prefHeight="200.0" BorderPane.alignment="CENTER">
+                    <center>
+                        <VBox fx:id="vBox" alignment="CENTER" spacing="100.0" BorderPane.alignment="CENTER">
+                            <HBox alignment="CENTER" prefHeight="50.0" spacing="10.0">
+                                <Label text="Main Canvas" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                        <Button layoutX="120.0" layoutY="10.0" mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0" BorderPane.alignment="CENTER">
+                                <Label text="Preview" />
+                                <Button mnemonicParsing="false" text="Settings" />
+                            </HBox>
+                            <BorderPane.margin>
+                                <Insets bottom="10.0" top="10.0" />
+                            </BorderPane.margin>
+                        </VBox>
+                    </center>
+                </BorderPane>
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>

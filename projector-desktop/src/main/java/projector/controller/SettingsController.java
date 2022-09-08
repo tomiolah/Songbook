@@ -1,5 +1,6 @@
 package projector.controller;
 
+import javafx.application.Platform;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -159,6 +160,27 @@ public class SettingsController {
         return fontWeight;
     }
 
+    public static List<Text> getFontTexts(FontWeight fontWeight) {
+        List<Text> fontTexts = new ArrayList<>();
+        java.awt.Font[] allFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
+        for (java.awt.Font font : allFonts) {
+            String fontName = font.getFontName();
+            Text tmp = new Text(fontName);
+            tmp.setFont(Font.font(fontName, fontWeight, 20));
+            if (!Objects.equals(tmp.getFont().getFamily(), "System") && !fontName.equals("System")) {
+                fontTexts.add(tmp);
+            }
+        }
+        return fontTexts;
+    }
+
+    public static void addFonts(FontWeight fontWeight, ListView<Text> listView) {
+        new Thread(() -> {
+            List<Text> fontTexts = getFontTexts(fontWeight);
+            Platform.runLater(() -> listView.getItems().addAll(fontTexts));
+        }).start();
+    }
+
     synchronized void lazyInitialize() {
         if (initialized) {
             return;
@@ -191,13 +213,13 @@ public class SettingsController {
         Text tmpK = new Text(iK);
         tmpK.setFont(Font.font(iK));
         listView.getItems().add(tmpK);
+        listView.getSelectionModel().select(0);
         FontWeight fontWeight = Settings.getInstance().getFontWeight();
-        addFonts(fontWeight);
+        addFonts(fontWeight, listView);
         fontWeightComboBox.getItems().add("NORMAL");
         fontWeightComboBox.getItems().add("BOLD");
         fontWeightComboBox.getSelectionModel().select(settings.getFontWeightString());
         fontWeightComboBox.valueProperty().addListener((observable, oldValue, newValue) -> fontWeightValueChange(newValue));
-        listView.getSelectionModel().select(0);
         listView.getSelectionModel().selectedItemProperty().addListener(this::changed);
         slider.setMax(10);
         slider.valueChangingProperty().addListener(this::changed);
@@ -256,21 +278,9 @@ public class SettingsController {
         tmpK1.setFont(Font.font(iK1));
         listView.getItems().add(tmpK1);
         FontWeight fontWeight1 = getFontWeightByString(newValue);
-        addFonts(fontWeight1);
+        addFonts(fontWeight1, listView);
         listView.getSelectionModel().select(0);
         projectionScreenController.reload();
-    }
-
-    private void addFonts(FontWeight fontWeight) {
-        java.awt.Font[] allFonts = GraphicsEnvironment.getLocalGraphicsEnvironment().getAllFonts();
-        for (java.awt.Font font : allFonts) {
-            String fontName = font.getFontName();
-            Text tmp = new Text(fontName);
-            tmp.setFont(Font.font(fontName, fontWeight, 20));
-            if (!Objects.equals(tmp.getFont().getFamily(), "System") && !fontName.equals("System")) {
-                listView.getItems().add(tmp);
-            }
-        }
     }
 
     public synchronized void onSaveButtonAction() {
@@ -327,7 +337,7 @@ public class SettingsController {
         settings.setShowSongSecondText(showSongSecondTextCheckBox.isSelected());
         settings.setSongSecondTextColor(songSecondTextColorPicker.getValue());
         settings.save();
-        projectionScreenController.setBackGroundColor(backgroundColorPicker.getValue());
+        projectionScreenController.setBackGroundColor();
         if (listeners != null) {
             for (Listener listener : listeners) {
                 listener.onSave();

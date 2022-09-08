@@ -12,7 +12,6 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<!--suppress JavaFxUnresolvedFxIdReference -->
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="300"
             minWidth="400" prefHeight="600"
             prefWidth="800" xmlns="http://javafx.com/javafx/8.0.171"
@@ -47,6 +46,9 @@
                 </Tab>
                 <Tab text="Utils">
                     <fx:include fx:id="utils" source="Utils.fxml"/>
+                </Tab>
+                <Tab fx:id="projectionScreensTab" text="Projection screens">
+                    <fx:include fx:id="projectionScreens" source="ProjectionScreens.fxml"/>
                 </Tab>
                 <!-- Tab closable="false" text="Schedule"> <content> <fx:include fx:id="schedule"
                         source="Schedule.fxml" /> </content> </Tab -->

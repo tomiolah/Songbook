@@ -57,6 +57,8 @@ public class MyController {
     private HistoryController historyController;
     @FXML
     private UtilsController utilsController;
+    @FXML
+    private ProjectionScreensController projectionScreensController;
     @SuppressWarnings("FieldCanBeLocal")
     @FXML
     private ScheduleController scheduleController;
@@ -84,6 +86,8 @@ public class MyController {
     private Tab bibleTab;
     @FXML
     private Tab recentTab;
+    @FXML
+    private Tab projectionScreensTab;
     private MainDesktop mainDesktop;
     private Stage settingsStage;
 
@@ -183,6 +187,8 @@ public class MyController {
             } else if (newValue.equals(bibleTab)) {
                 bibleController.lazyInitialize();
                 bibleController.initializeBibles();
+            } else if (newValue.equals(projectionScreensTab)) {
+                projectionScreensController.lazyInitialize();
             }
         });
         tabPane.focusedProperty().addListener((observable, oldValue, newValue) -> {
