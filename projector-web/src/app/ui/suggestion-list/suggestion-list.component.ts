@@ -96,7 +96,6 @@ export class SuggestionListComponent implements OnInit {
         }
         this.loadSuggestions();
       });
-    this.loadSuggestions();
   }
 
   private loadSuggestions() {

@@ -53,7 +53,10 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
     @Override
     public List<Suggestion> findAllByLanguage(Language language) {
         List<Suggestion> suggestionsByLanguage = suggestionRepository.findAllBySongLanguageId(language.getId());
-        return getSuggestionsFromMap(suggestionsByLanguage);
+        if (AppProperties.getInstance().useMoreMemory()) {
+            return getSuggestionsFromMap(suggestionsByLanguage);
+        }
+        return suggestionsByLanguage;
     }
 
     private List<Suggestion> getSuggestionsFromMap(List<Suggestion> suggestionsByLanguage) {
