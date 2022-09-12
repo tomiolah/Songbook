@@ -1,5 +1,7 @@
 package com.bence.songbook.ui.activity;
 
+import static com.bence.songbook.ui.activity.LoadActivity.SERVER_IS_NOT_AVAILABLE;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
@@ -48,7 +50,7 @@ public class LanguagesActivity extends AppCompatActivity {
         languagesActivity = this;
         LanguageRepositoryImpl languageRepository = new LanguageRepositoryImpl(getApplicationContext());
         languages = languageRepository.findAll();
-        noInternetConnectionToast = Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_LONG);
+        noInternetConnectionToast = Toast.makeText(getApplicationContext(), SERVER_IS_NOT_AVAILABLE, Toast.LENGTH_LONG);
         new Downloader().execute();
 
         final SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);

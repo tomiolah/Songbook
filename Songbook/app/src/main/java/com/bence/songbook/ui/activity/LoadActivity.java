@@ -46,13 +46,14 @@ public class LoadActivity extends AppCompatActivity {
     private int startedCount = 0;
     private int downloadedSongs = 0;
     private boolean backPressed = false;
+    public static String SERVER_IS_NOT_AVAILABLE = "Server is not available";
 
     @SuppressLint({"ShowToast", "DefaultLocale", "SetTextI18n"})
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_load);
-        noInternetConnectionToast = Toast.makeText(getApplicationContext(), "No internet connection", Toast.LENGTH_LONG);
+        noInternetConnectionToast = Toast.makeText(getApplicationContext(), SERVER_IS_NOT_AVAILABLE, Toast.LENGTH_LONG);
         loadActivity = this;
         List<Language> languages = Memory.getInstance().getPassingLanguages();
         List<LanguageProgress> selectedLanguages = new ArrayList<>();

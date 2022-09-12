@@ -1,11 +1,13 @@
 package com.bence.songbook.ui.activity;
 
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
@@ -106,7 +108,13 @@ public class NewSongListActivity extends AppCompatActivity {
             songListElements.add(songListElement);
             songList.setSongListElements(songListElements);
             SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(this);
-            songListElementRepository.save(songListElements);
+            try {
+                songListElementRepository.save(songListElements);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(), "Could not save song list element", Toast.LENGTH_LONG).show();
+                return;
+            }
         }
         setResult(1);
         finish();

@@ -8,9 +8,6 @@ import android.os.Bundle;
 import android.util.LongSparseArray;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,7 +31,6 @@ import com.bence.songbook.utils.Utility;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -52,8 +48,8 @@ public class SongListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_song_list);
         Toolbar toolbar = findViewById(R.id.toolbar);
+        songList = memory.getPassingSongList();
         if (toolbar != null) {
-            songList = memory.getPassingSongList();
             if (songList != null) {
                 toolbar.setTitle(songList.getTitle());
             }
@@ -65,20 +61,9 @@ public class SongListActivity extends AppCompatActivity {
         }
         final DynamicListView<SongListElementAdapter> listView = findViewById(R.id.dListView);
         songListElements = songList.getSongListElements();
-        Collections.sort(songListElements, new Comparator<SongListElement>() {
-            @Override
-            public int compare(SongListElement o1, SongListElement o2) {
-                return Utility.compare(o1.getNumber(), o2.getNumber());
-            }
-        });
+        Collections.sort(songListElements, (o1, o2) -> Utility.compare(o1.getNumber(), o2.getNumber()));
         SongListElementAdapter songListAdapter = new SongListElementAdapter(this, R.layout.list_row, songListElements,
-                new MainActivity.Listener() {
-
-                    @Override
-                    public void onGrab(int position, LinearLayout row) {
-                        listView.onGrab(position, row);
-                    }
-                }, false);
+                listView::onGrab, false);
         fetchSongAttributes();
         final SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(this);
         songListRepository = new SongListRepositoryImpl(this);
@@ -116,14 +101,11 @@ public class SongListActivity extends AppCompatActivity {
                 listView.refreshDrawableState();
             }
         });
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Song song = songListElements.get(position).getSong();
-                Intent intent = new Intent(SongListActivity.this, SongActivity.class);
-                memory.setPassingSong(song);
-                startActivityForResult(intent, NEW_SONG_LIST_REQUEST_CODE);
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            Song song = songListElements.get(position).getSong();
+            Intent intent = new Intent(SongListActivity.this, SongActivity.class);
+            memory.setPassingSong(song);
+            startActivityForResult(intent, NEW_SONG_LIST_REQUEST_CODE);
         });
         if (getIntent().getBooleanExtra("newSongList", false)) {
             edit(2);
@@ -180,26 +162,20 @@ public class SongListActivity extends AppCompatActivity {
                 songList.setPublish(true);
                 songListRepository.save(songList);
                 if (songList.getUuid() != null) {
-                    Thread thread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            SongListApiBean songListApiBean = new SongListApiBean(SongListActivity.this);
-                            songListApiBean.uploadSongList(songList);
-                        }
+                    Thread thread = new Thread(() -> {
+                        SongListApiBean songListApiBean = new SongListApiBean(SongListActivity.this);
+                        songListApiBean.uploadSongList(songList);
                     });
                     thread.start();
                     shareSongList();
                 } else {
-                    Thread thread = new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            SongListApiBean songListApiBean = new SongListApiBean(SongListActivity.this);
-                            SongListDTO songListDTO = songListApiBean.uploadSongList(songList);
-                            if (songListDTO != null) {
-                                songList.setUuid(songListDTO.getUuid());
-                                songListRepository.save(songList);
-                                shareSongList();
-                            }
+                    Thread thread = new Thread(() -> {
+                        SongListApiBean songListApiBean = new SongListApiBean(SongListActivity.this);
+                        SongListDTO songListDTO = songListApiBean.uploadSongList(songList);
+                        if (songListDTO != null) {
+                            songList.setUuid(songListDTO.getUuid());
+                            songListRepository.save(songList);
+                            shareSongList();
                         }
                     });
                     thread.start();

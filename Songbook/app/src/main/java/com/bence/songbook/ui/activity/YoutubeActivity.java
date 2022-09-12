@@ -1,5 +1,7 @@
 package com.bence.songbook.ui.activity;
 
+import static android.graphics.text.LineBreaker.BREAK_STRATEGY_SIMPLE;
+
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -9,7 +11,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.Html;
-import android.text.Layout;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,11 +43,8 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
     protected static final int RECOVERY_REQUEST = 1;
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
-    private final Runnable mShowPart2Runnable = new Runnable() {
-        @Override
-        public void run() {
-            // Delayed display of UI elements
-        }
+    private final Runnable mShowPart2Runnable = () -> {
+        // Delayed display of UI elements
     };
     TextView textView;
     private final Runnable mHidePart2Runnable = new Runnable() {
@@ -66,12 +64,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
                     | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         }
     };
-    private final Runnable mHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            hide();
-        }
-    };
+    private final Runnable mHideRunnable = this::hide;
     private YouTubePlayerView youTubeView;
     private Song song;
     private int verseIndex;
@@ -95,8 +88,8 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
         try {
             textView = findViewById(R.id.fullscreen_content);
             textView.setSingleLine(false);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                textView.setBreakStrategy(Layout.BREAK_STRATEGY_SIMPLE);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                textView.setBreakStrategy(BREAK_STRATEGY_SIMPLE);
             }
             // Set up the user interaction to manually show or hide the system UI.
             // Upon interacting with UI controls, delay any scheduled hide()
@@ -182,12 +175,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
                 verseList.add(songVerse);
             }
             setText(verseList.get(verseIndex).getText());
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    songRepository = new SongRepositoryImpl(getApplicationContext());
-                }
-            });
+            Thread thread = new Thread(() -> songRepository = new SongRepositoryImpl(getApplicationContext()));
             thread.start();
         } catch (Exception e) {
             Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
@@ -228,7 +216,9 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
             }
         });
         if (!wasRestored) {
-            player.cueVideo(song.getYoutubeUrl());
+            if (song != null) {
+                player.cueVideo(song.getYoutubeUrl());
+            }
         }
     }
 
@@ -237,7 +227,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
         if (errorReason.isUserRecoverableError()) {
             errorReason.getErrorDialog(this, RECOVERY_REQUEST).show();
         } else {
-            String error = String.format("Error initializing YouTube player: %s", errorReason.toString());
+            String error = String.format("Error initializing YouTube player: %s", errorReason);
             Toast.makeText(this, error, Toast.LENGTH_LONG).show();
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + song.getYoutubeUrl())));
             finish();
@@ -310,21 +300,18 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
     public void onBackPressed() {
         super.onBackPressed();
         if (songRepository != null) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Song song = songRepository.findOne(YoutubeActivity.this.song.getId());
-                        Date date = new Date();
-                        long endTime = date.getTime();
-                        duration += endTime - startTime;
-                        song.setLastAccessed(date);
-                        Long accessedTimes = song.getAccessedTimes();
-                        song.setAccessedTimes(accessedTimes + 1);
-                        song.setAccessedTimeAverage((accessedTimes * song.getAccessedTimeAverage() + duration) / song.getAccessedTimes());
-                        songRepository.save(song);
-                    } catch (Exception ignored) {
-                    }
+            Thread thread = new Thread(() -> {
+                try {
+                    Song song = songRepository.findOne(YoutubeActivity.this.song.getId());
+                    Date date = new Date();
+                    long endTime = date.getTime();
+                    duration += endTime - startTime;
+                    song.setLastAccessed(date);
+                    Long accessedTimes = song.getAccessedTimes();
+                    song.setAccessedTimes(accessedTimes + 1);
+                    song.setAccessedTimeAverage((accessedTimes * song.getAccessedTimeAverage() + duration) / song.getAccessedTimes());
+                    songRepository.save(song);
+                } catch (Exception ignored) {
                 }
             });
             thread.start();
