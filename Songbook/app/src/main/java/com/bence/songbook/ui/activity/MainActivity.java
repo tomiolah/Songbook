@@ -3,6 +3,7 @@ package com.bence.songbook.ui.activity;
 import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING;
 import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE;
 import static com.bence.songbook.ui.activity.LoginActivity.RESULT_LOGGED_IN;
+import static com.bence.songbook.ui.activity.NewSongActivity.sortLanguagesByRecentlyViewedSongs;
 import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 import static com.bence.songbook.utils.BaseURL.BASE_URL;
@@ -91,6 +92,7 @@ import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.FavouriteSongService;
 import com.bence.songbook.service.UserService;
+import com.bence.songbook.ui.adapter.LanguageAdapter;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.DynamicListView;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
@@ -372,7 +374,7 @@ public class MainActivity extends AppCompatActivity
         mainActivity = this;
         linearLayout = findViewById(R.id.mainLinearLayout);
         languageRepository = new LanguageRepositoryImpl(getApplicationContext());
-        languages = languageRepository.findAllSelectedForDownload();
+        loadLanguages();
         songCollections = memory.getSongCollections();
         favouriteSongs = memory.getFavouriteSongs();
         songCollectionRepository = new SongCollectionRepositoryImpl(getApplicationContext());
@@ -884,7 +886,7 @@ public class MainActivity extends AppCompatActivity
                     if (queue.size() < 1) {
                         hideBottomSheet();
                     }
-                    languages = languageRepository.findAllSelectedForDownload();
+                    loadLanguages();
                     songCollections = songCollectionRepository.findAll();
                     setShortNamesForSongCollections(songCollections);
                     memory.setSongCollections(songCollections);
@@ -965,6 +967,11 @@ public class MainActivity extends AppCompatActivity
             adapter.notifyDataSetChanged();
         }
         queueListView.invalidateViews();
+    }
+
+    private void loadLanguages() {
+        languages = languageRepository.findAllSelectedForDownload();
+        sortLanguagesByRecentlyViewedSongs(languages, this);
     }
 
     private void refreshSongs() {
@@ -1945,7 +1952,8 @@ public class MainActivity extends AppCompatActivity
             filterPopupWindow.dismiss();
         });
         LanguageAdapter dataAdapter = new LanguageAdapter(mainActivity,
-                R.layout.activity_language_checkbox_row, languages);
+                R.layout.activity_language_checkbox_row, languages,
+                (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE));
         ListView listView = customView.findViewById(R.id.listView);
         listView.setAdapter(dataAdapter);
         selectLanguagePopupWindow.setBackgroundDrawable(new BitmapDrawable());
@@ -2285,59 +2293,6 @@ public class MainActivity extends AppCompatActivity
                 return true;
             });
         }
-    }
-
-    private class LanguageAdapter extends ArrayAdapter<Language> {
-
-        private final List<Language> languageList;
-
-        LanguageAdapter(Context context, int textViewResourceId,
-                        List<Language> languageList) {
-            super(context, textViewResourceId, languageList);
-            this.languageList = new ArrayList<>();
-            this.languageList.addAll(languageList);
-        }
-
-        @SuppressLint({"InflateParams", "SetTextI18n"})
-        @NonNull
-        @Override
-        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-
-            LanguageAdapter.ViewHolder holder;
-
-            if (convertView == null) {
-                LayoutInflater layoutInflater = (LayoutInflater) getSystemService(
-                        Context.LAYOUT_INFLATER_SERVICE);
-                convertView = layoutInflater.inflate(R.layout.activity_language_checkbox_row, null);
-
-                holder = new LanguageAdapter.ViewHolder();
-                holder.textView = convertView.findViewById(R.id.code);
-                holder.checkBox = convertView.findViewById(R.id.checkBox1);
-                convertView.setTag(holder);
-
-                holder.checkBox.setOnClickListener(view -> {
-                    CheckBox checkBox = (CheckBox) view;
-                    Language language = (Language) checkBox.getTag();
-                    language.setSelected(checkBox.isChecked());
-                });
-            } else {
-                holder = (LanguageAdapter.ViewHolder) convertView.getTag();
-            }
-
-            Language language = languageList.get(position);
-            holder.textView.setText(" (" + language.getNativeName() + ")");
-            holder.checkBox.setText(language.getEnglishName());
-            holder.checkBox.setChecked(language.isSelected());
-            holder.checkBox.setTag(language);
-
-            return convertView;
-        }
-
-        private class ViewHolder {
-            TextView textView;
-            CheckBox checkBox;
-        }
-
     }
 
     private class SongCollectionAdapter extends ArrayAdapter<SongCollection> {

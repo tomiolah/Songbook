@@ -65,18 +65,15 @@ public class NewSongActivity extends AppCompatActivity {
         }
 
         final View editTextView = findViewById(R.id.text);
-        editTextView.setOnTouchListener(new View.OnTouchListener() {
-
-            public boolean onTouch(View v, MotionEvent event) {
-                v.getParent().requestDisallowInterceptTouchEvent(true);
-                if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
-                    v.getParent().requestDisallowInterceptTouchEvent(false);
-                    return false;
-                }
-                v.performClick();
-                editTextView.requestFocus();
+        editTextView.setOnTouchListener((v, event) -> {
+            v.getParent().requestDisallowInterceptTouchEvent(true);
+            if ((event.getAction() & MotionEvent.ACTION_MASK) == MotionEvent.ACTION_UP) {
+                v.getParent().requestDisallowInterceptTouchEvent(false);
                 return false;
             }
+            v.performClick();
+            editTextView.requestFocus();
+            return false;
         });
 
         sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -93,7 +90,7 @@ public class NewSongActivity extends AppCompatActivity {
 
         LanguageRepositoryImpl languageRepository = new LanguageRepositoryImpl(this);
         final List<Language> languages = languageRepository.findAll();
-        sortLanguagesByRecentlyViewedSongs(languages);
+        sortLanguagesByRecentlyViewedSongs(languages, this);
         initializeLanguageSpinner(languages);
         LanguageDownloader languageDownloader = new LanguageDownloader(languages, withOnlineLanguages ->
                 runOnUiThread(() ->
@@ -103,8 +100,8 @@ public class NewSongActivity extends AppCompatActivity {
         prepareEditText();
     }
 
-    private void sortLanguagesByRecentlyViewedSongs(List<Language> languages) {
-        SongRepositoryImpl songRepository = new SongRepositoryImpl(this);
+    public static void sortLanguagesByRecentlyViewedSongs(List<Language> languages, AppCompatActivity context) {
+        SongRepositoryImpl songRepository = new SongRepositoryImpl(context);
         Collections.sort(languages, (o1, o2) -> {
             if (o1.isSelectedForDownload() && !o2.isSelectedForDownload()) {
                 return -1;
@@ -224,6 +221,7 @@ public class NewSongActivity extends AppCompatActivity {
         createdSongReached = true;
         song = new Song();
         EditText titleEditText = findViewById(R.id.title);
+        //noinspection RegExpUnnecessaryNonCapturingGroup
         String title = titleEditText.getText().toString().replaceAll("(?:\\n| {2}|\\n | \\n)", " ").trim();
         if (title.isEmpty()) {
             Toast.makeText(this, R.string.no_title, Toast.LENGTH_SHORT).show();

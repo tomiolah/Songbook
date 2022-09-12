@@ -32,6 +32,7 @@ public class LanguageAssembler implements GeneralAssembler<Language, LanguageDTO
             language.setEnglishName(languageDTO.getEnglishName());
             language.setNativeName(languageDTO.getNativeName());
             language.setSize(languageDTO.getSize());
+            language.setSelectedForDownload(false);
         }
         return language;
     }

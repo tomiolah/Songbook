@@ -87,14 +87,11 @@ public class Language extends BaseEntity {
     }
 
     public boolean isSelectedForDownload() {
-        return selectedForDownload != null && selectedForDownload;
+        return selectedForDownload == null || selectedForDownload;
     }
 
     public void setSelectedForDownload(boolean selectedForDownload) {
-        if (!selectedForDownload) {
-            return;
-        }
-        this.selectedForDownload = true;
+        this.selectedForDownload = selectedForDownload;
     }
 
     public void setSize(Long size) {
