@@ -24,7 +24,7 @@ public class LanguageServiceImpl extends BaseServiceImpl<Language> implements La
     @Override
     public long countSongsByLanguage(Language language) {
         if (language != null) {
-            return songRepository.countAllByLanguage(language);
+            return songRepository.countAllByLanguageAndIsBackUpIsNullAndDeletedIsFalse(language);
         }
         return 0L;
     }
