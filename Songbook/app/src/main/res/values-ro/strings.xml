@@ -133,4 +133,5 @@
     <string name="try_again_later">Încercați mai târziu</string>
     <string name="password_or_email_incorrect">Parola sau e-mailul e incorect</string>
     <string name="create_account">Creează cont</string>
+    <string name="upload_song">Încărcați cântarea</string>
 </resources>

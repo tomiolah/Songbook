@@ -20,7 +20,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
@@ -38,6 +37,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
+import com.bence.songbook.api.SongApiBean;
 import com.bence.songbook.models.FavouriteSong;
 import com.bence.songbook.models.Language;
 import com.bence.songbook.models.QueueSong;
@@ -69,7 +69,6 @@ import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -114,7 +113,7 @@ public class SongActivity extends AppCompatActivity {
             finish();
             return;
         }
-        tabLayout = findViewById(R.id.tablayout);
+        tabLayout = findViewById(R.id.tabLayout);
         viewPager = findViewById(R.id.viewPager);
         final SongRepository songRepository = new SongRepositoryImpl(this);
         allByVersionGroup.clear();
@@ -151,25 +150,22 @@ public class SongActivity extends AppCompatActivity {
             }
         }
         songs.addAll(hashMap.values());
-        Collections.sort(songs, new Comparator<Song>() {
-            @Override
-            public int compare(Song lhs, Song rhs) {
-                Integer scoreL = lhs.getScore();
-                Integer scoreR = rhs.getScore();
-                Language language = song.getLanguage();
-                if (language != null) {
-                    if (lhs.getLanguage().getId().equals(language.getId())) {
-                        scoreL += 1;
-                    }
-                    if (rhs.getLanguage().getId().equals(language.getId())) {
-                        scoreR += 1;
-                    }
+        Collections.sort(songs, (lhs, rhs) -> {
+            Integer scoreL = lhs.getScore();
+            Integer scoreR = rhs.getScore();
+            Language language = song.getLanguage();
+            if (language != null) {
+                if (lhs.getLanguage().getId().equals(language.getId())) {
+                    scoreL += 1;
                 }
-                if (scoreL.equals(scoreR)) {
-                    return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
+                if (rhs.getLanguage().getId().equals(language.getId())) {
+                    scoreR += 1;
                 }
-                return scoreR.compareTo(scoreL);
             }
+            if (scoreL.equals(scoreR)) {
+                return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
+            }
+            return scoreR.compareTo(scoreL);
         });
         for (Song song : songs) {
             tabLayout.addTab(tabLayout.newTab().setText(song.getTitle()));
@@ -210,27 +206,26 @@ public class SongActivity extends AppCompatActivity {
 
         final Intent fullScreenIntent = new Intent(this, FullscreenActivity.class);
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                fullScreenIntent.putExtra("verseIndex", -1);
-                startActivity(fullScreenIntent);
-            }
+        fab.setOnClickListener(view -> {
+            fullScreenIntent.putExtra("verseIndex", -1);
+            startActivity(fullScreenIntent);
         });
         setToolbarTitleAndSize();
-        FloatingActionButton fabSave = findViewById(R.id.fabSave);
+        View saveLayout = findViewById(R.id.saveLayout);
         if (song.isNotNewSong()) {
-            fabSave.hide();
+            saveLayout.setVisibility(View.GONE);
         } else {
-            fabSave.show();
-            fabSave.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    setResult(NewSongActivity.SAVE_RESULT_CODE);
-                    finish();
-                }
-            });
+            saveLayout.setVisibility(View.VISIBLE);
+            Button saveButton = findViewById(R.id.saveButton);
+            saveButton.setOnClickListener(v -> saveOrUploadSong(NewSongActivity.SAVE_RESULT_CODE));
+            Button uploadButton = findViewById(R.id.uploadButton);
+            uploadButton.setOnClickListener(v -> saveOrUploadSong(NewSongActivity.UPLOAD_RESULT_CODE));
         }
+    }
+
+    private void saveOrUploadSong(int resultCode) {
+        setResult(resultCode);
+        finish();
     }
 
     @Override
@@ -303,6 +298,26 @@ public class SongActivity extends AppCompatActivity {
             showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
         } else if (itemId == R.id.action_save_to_song_list) {
             saveToSongList();
+        } else if (itemId == R.id.action_upload) {
+            MenuItem uploadMenuItem = menu.findItem(R.id.action_upload);
+            uploadMenuItem.setVisible(false);
+            Thread thread = new Thread(() -> {
+                SongApiBean songApiBean = new SongApiBean();
+                final Song uploadedSong = songApiBean.uploadSong(song);
+                runOnUiThread(() -> {
+                    if (uploadedSong != null && !uploadedSong.getUuid().trim().isEmpty()) {
+                        song.setSavedOnlyToDevice(false);
+                        song.setUuid(uploadedSong.getUuid());
+                        song.setModifiedDate(uploadedSong.getModifiedDate());
+                        SongRepository songRepository = new SongRepositoryImpl(this);
+                        songRepository.save(song);
+                        Toast.makeText(SongActivity.this, R.string.successfully_uploaded, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(SongActivity.this, R.string.upload_failed, Toast.LENGTH_SHORT).show();
+                    }
+                });
+            });
+            thread.start();
         } else if (itemId == R.id.action_delete) {
             setSongAsDeleted();
         }
@@ -341,12 +356,7 @@ public class SongActivity extends AppCompatActivity {
             saveToSongListPopupWindow.setElevation(5.0f);
         }
         Button closeButton = customView.findViewById(R.id.closeButton);
-        closeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                saveToSongListPopupWindow.dismiss();
-            }
-        });
+        closeButton.setOnClickListener(view -> saveToSongListPopupWindow.dismiss());
         ListView listView = customView.findViewById(R.id.listView);
         SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
         final List<SongList> songLists = songListRepository.findAll();
@@ -359,19 +369,16 @@ public class SongActivity extends AppCompatActivity {
                 android.R.layout.simple_list_item_1,
                 all);
         listView.setAdapter(arrayAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                SongList songList = songLists.get(position);
-                List<SongListElement> songListElements = songList.getSongListElements();
-                SongListElement songListElement = new SongListElement();
-                songListElement.setSong(song);
-                songListElement.setNumber(songListElements.size());
-                songListElement.setSongList(songList);
-                songListElements.add(songListElement);
-                new SongListElementRepositoryImpl(SongActivity.this).save(songListElement);
-                saveToSongListPopupWindow.dismiss();
-            }
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            SongList songList = songLists.get(position);
+            List<SongListElement> songListElements = songList.getSongListElements();
+            SongListElement songListElement = new SongListElement();
+            songListElement.setSong(song);
+            songListElement.setNumber(songListElements.size());
+            songListElement.setSongList(songList);
+            songListElements.add(songListElement);
+            new SongListElementRepositoryImpl(SongActivity.this).save(songListElement);
+            saveToSongListPopupWindow.dismiss();
         });
         //noinspection deprecation
         saveToSongListPopupWindow.setBackgroundDrawable(new BitmapDrawable());
@@ -476,21 +483,18 @@ public class SongActivity extends AppCompatActivity {
             if (song.isFavourite()) {
                 favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), R.drawable.ic_star_black_24dp, null));
             }
-            favouriteMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-                @Override
-                public boolean onMenuItemClick(MenuItem item) {
-                    song.setFavourite(!song.isFavourite());
-                    FavouriteSong favourite = song.getFavourite();
-                    favourite.setModifiedDate(new Date());
-                    favourite.setUploadedToServer(false);
-                    favourite.setFavouritePublished(favourite.isFavouriteNotPublished());
-                    FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
-                    favouriteSongRepository.save(favourite);
-                    favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
-                            R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
-                    FavouriteSongService.getInstance().syncFavourites(SongActivity.this);
-                    return false;
-                }
+            favouriteMenuItem.setOnMenuItemClickListener(item -> {
+                song.setFavourite(!song.isFavourite());
+                FavouriteSong favourite = song.getFavourite();
+                favourite.setModifiedDate(new Date());
+                favourite.setUploadedToServer(false);
+                favourite.setFavouritePublished(favourite.isFavouriteNotPublished());
+                FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
+                favouriteSongRepository.save(favourite);
+                favouriteMenuItem.setIcon(ResourcesCompat.getDrawable(getResources(), song.isFavourite() ?
+                        R.drawable.ic_star_black_24dp : R.drawable.ic_star_border_black_24dp, null));
+                FavouriteSongService.getInstance().syncFavourites(SongActivity.this);
+                return false;
             });
             favouriteMenuItem.setVisible(true);
         } else {
@@ -499,6 +503,8 @@ public class SongActivity extends AppCompatActivity {
         menu.findItem(R.id.action_add_to_queue).setVisible(notNewSong);
         menu.findItem(R.id.action_save_to_song_list).setVisible(notNewSong);
         menu.findItem(R.id.action_suggest_edits).setVisible(notNewSong);
+        MenuItem uploadMenuItem = menu.findItem(R.id.action_upload);
+        uploadMenuItem.setVisible(notNewSong && song.isSavedOnlyToDevice());
         MenuItem deleteMenuItem = menu.findItem(R.id.action_delete);
         deleteMenuItem.setVisible(notNewSong);
         if (song.isAsDeleted()) {
@@ -513,6 +519,7 @@ public class SongActivity extends AppCompatActivity {
         finish();
     }
 
+    @SuppressWarnings("SpellCheckingInspection")
     public void onDontShowAgain(View view) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPreferences.edit().putBoolean("ShowGoogleSignInWhenFavouriteChanges", false).apply();

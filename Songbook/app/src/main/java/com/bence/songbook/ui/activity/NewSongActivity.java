@@ -23,6 +23,7 @@ import com.bence.projector.common.model.SectionType;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.api.SongApiBean;
+import com.bence.songbook.api.downloader.LanguageDownloader;
 import com.bence.songbook.models.Language;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongVerse;
@@ -31,9 +32,11 @@ import com.bence.songbook.repository.impl.ormLite.LanguageRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.UserService;
 import com.bence.songbook.ui.utils.Preferences;
+import com.bence.songbook.utils.Utility;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -42,9 +45,11 @@ import java.util.Map;
 public class NewSongActivity extends AppCompatActivity {
     public static final String TAG = NewSongActivity.class.getSimpleName();
     public static final int SAVE_RESULT_CODE = 14;
+    public static final int UPLOAD_RESULT_CODE = 15;
     private Spinner languageSpinner;
     private SharedPreferences sharedPreferences;
     private Song song;
+    private boolean createdSongReached = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +93,55 @@ public class NewSongActivity extends AppCompatActivity {
 
         LanguageRepositoryImpl languageRepository = new LanguageRepositoryImpl(this);
         final List<Language> languages = languageRepository.findAll();
+        sortLanguagesByRecentlyViewedSongs(languages);
+        initializeLanguageSpinner(languages);
+        LanguageDownloader languageDownloader = new LanguageDownloader(languages, withOnlineLanguages ->
+                runOnUiThread(() ->
+                        initializeLanguageSpinner(withOnlineLanguages)));
+        languageDownloader.start();
+        prepareFloatingActionButton(languages);
+        prepareEditText();
+    }
+
+    private void sortLanguagesByRecentlyViewedSongs(List<Language> languages) {
+        SongRepositoryImpl songRepository = new SongRepositoryImpl(this);
+        Collections.sort(languages, (o1, o2) -> {
+            if (o1.isSelectedForDownload() && !o2.isSelectedForDownload()) {
+                return -1;
+            }
+            if (!o1.isSelectedForDownload() && o2.isSelectedForDownload()) {
+                return 1;
+            }
+            int compare = Boolean.compare(o2.isSelected(), o1.isSelected());
+            if (compare != 0) {
+                return compare;
+            }
+            long l1 = o1.countAccessedTimesFromSongs(songRepository);
+            long l2 = o2.countAccessedTimesFromSongs(songRepository);
+            if (l1 < l2) {
+                return 1;
+            } else if (l1 > l2) {
+                return -1;
+            }
+            compare = Utility.compare(o1.getSongs().size(), o2.getSongs().size());
+            if (compare != 0) {
+                return compare;
+            }
+            long size1 = o1.getSizeL();
+            long size2 = o2.getSizeL();
+            if (size1 < size2) {
+                return 1;
+            } else if (size1 > size2) {
+                return -1;
+            }
+            return 0;
+        });
+    }
+
+    private void initializeLanguageSpinner(List<Language> languages) {
+        if (createdSongReached) {
+            return;
+        }
         languageSpinner = findViewById(R.id.languageSpinner);
         final List<String> spinnerArray = new ArrayList<>();
         for (Language language : languages) {
@@ -95,20 +149,19 @@ public class NewSongActivity extends AppCompatActivity {
         }
         ArrayAdapter<String> adapter = new ArrayAdapter<>(
                 this, android.R.layout.simple_spinner_item, spinnerArray);
-
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         languageSpinner.setAdapter(adapter);
         if (languages.size() > 0) {
             languageSpinner.setSelection(0, true);
         }
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                createSong(languages);
-            }
-        });
+    }
 
+    private void prepareFloatingActionButton(List<Language> languages) {
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(view -> createSong(languages));
+    }
+
+    private void prepareEditText() {
         @SuppressLint("CutPasteId") final EditText editText = findViewById(R.id.text);
         editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -146,12 +199,12 @@ public class NewSongActivity extends AppCompatActivity {
                             while (parse.contains("\n\r\n")) {
                                 parse = parse.replaceAll("\n{2}", "\n");
                             }
-                            String text = previousSequence.toString() + parse;
+                            String text = previousSequence + parse;
                             editText.setText(text);
                             return;
                         }
                         if (parse.length() != count) {
-                            String text = previousSequence.toString() + parse;
+                            String text = previousSequence + parse;
                             editText.setText(text);
                         }
                     } catch (Exception e) {
@@ -168,6 +221,7 @@ public class NewSongActivity extends AppCompatActivity {
     }
 
     private void createSong(List<Language> languages) {
+        createdSongReached = true;
         song = new Song();
         EditText titleEditText = findViewById(R.id.title);
         String title = titleEditText.getText().toString().replaceAll("(?:\\n| {2}|\\n | \\n)", " ").trim();
@@ -234,27 +288,23 @@ public class NewSongActivity extends AppCompatActivity {
         song.setNewSong(false);
         final SongRepository songRepository = new SongRepositoryImpl(this);
         songRepository.save(song);
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
+        if (!song.isSavedOnlyToDevice()) {
+            Thread thread = new Thread(() -> {
                 SongApiBean songApiBean = new SongApiBean();
                 final Song uploadedSong = songApiBean.uploadSong(song);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (uploadedSong != null && !uploadedSong.getUuid().trim().isEmpty()) {
-                            song.setUuid(uploadedSong.getUuid());
-                            song.setModifiedDate(uploadedSong.getModifiedDate());
-                            songRepository.save(song);
-                            Toast.makeText(NewSongActivity.this, R.string.successfully_uploaded, Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(NewSongActivity.this, R.string.upload_failed, Toast.LENGTH_SHORT).show();
-                        }
+                runOnUiThread(() -> {
+                    if (uploadedSong != null && !uploadedSong.getUuid().trim().isEmpty()) {
+                        song.setUuid(uploadedSong.getUuid());
+                        song.setModifiedDate(uploadedSong.getModifiedDate());
+                        songRepository.save(song);
+                        Toast.makeText(NewSongActivity.this, R.string.successfully_uploaded, Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(NewSongActivity.this, R.string.upload_failed, Toast.LENGTH_SHORT).show();
                     }
                 });
-            }
-        });
-        thread.start();
+            });
+            thread.start();
+        }
         Memory.getInstance().getSongsOrEmptyList().add(song);
         setResult(1);
         finish();
@@ -265,6 +315,10 @@ public class NewSongActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == SongActivity.NEW_SONG_REQUEST) {
             if (resultCode == SAVE_RESULT_CODE) {
+                song.setSavedOnlyToDevice(true);
+                saveSong();
+            } else if (resultCode == UPLOAD_RESULT_CODE) {
+                song.setSavedOnlyToDevice(false);
                 saveSong();
             }
         }
@@ -278,5 +332,4 @@ public class NewSongActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
-
 }

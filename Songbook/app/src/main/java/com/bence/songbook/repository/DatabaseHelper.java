@@ -28,7 +28,7 @@ import java.sql.SQLException;
 public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static final String TAG = DatabaseHelper.class.getSimpleName();
     private static final String DATABASE_NAME = "songbook.db";
-    private static final int DATABASE_VERSION = 24;
+    private static final int DATABASE_VERSION = 25;
 
     @SuppressLint("StaticFieldLeak")
     private static DatabaseHelper instance;
@@ -63,11 +63,11 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                          final ConnectionSource connectionSource) {
         try {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-            sharedPreferences.edit().putInt("songDataBaseVersion", 12).apply();
+            sharedPreferences.edit().putInt("songDataBaseVersion", 13).apply();
             TableUtils.createTableIfNotExists(connectionSource, Song.class);
             sharedPreferences.edit().putInt("songVerseDataBaseVersion", 5).apply();
             TableUtils.createTableIfNotExists(connectionSource, SongVerse.class);
-            sharedPreferences.edit().putInt("languageDataBaseVersion", 7).apply();
+            sharedPreferences.edit().putInt("languageDataBaseVersion", 8).apply();
             TableUtils.createTableIfNotExists(connectionSource, Language.class);
             sharedPreferences.edit().putInt("songCollectionDataBaseVersion", 5).apply();
             TableUtils.createTableIfNotExists(connectionSource, SongCollection.class);
@@ -123,6 +123,9 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                     if (songDataBaseVersion < 12) {
                         getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN asDeleted BOOLEAN");
                     }
+                    if (songDataBaseVersion < 13) {
+                        getSongDao().executeRaw("ALTER TABLE `song` ADD COLUMN savedOnlyToDevice BOOLEAN");
+                    }
                 }
                 int songVerseDataBaseVersion = sharedPreferences.getInt("songVerseDataBaseVersion", 0);
                 if (songVerseDataBaseVersion < 4) {
@@ -136,6 +139,8 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                     TableUtils.dropTable(connectionSource, Language.class, true);
                 } else if (languageDataBaseVersion < 7) {
                     getLanguageDao().executeRaw("ALTER TABLE `language` ADD COLUMN favouriteSongDate DATETIME");
+                } else if (languageDataBaseVersion < 8) {
+                    getLanguageDao().executeRaw("ALTER TABLE `language` ADD COLUMN selectedForDownload BOOLEAN");
                 }
                 int songCollectionDataBaseVersion = sharedPreferences.getInt("songCollectionDataBaseVersion", 0);
                 if (songCollectionDataBaseVersion < 5) {

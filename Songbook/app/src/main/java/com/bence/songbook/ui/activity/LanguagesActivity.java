@@ -7,20 +7,20 @@ import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
@@ -55,12 +55,10 @@ public class LanguagesActivity extends AppCompatActivity {
         final boolean syncAutomatically = sharedPreferences.getBoolean(LanguagesActivity.syncAutomatically, true);
         CheckBox checkBox = findViewById(R.id.checkBox);
         checkBox.setChecked(syncAutomatically);
-        checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                sharedPreferences.edit().putBoolean(LanguagesActivity.syncAutomatically, isChecked).apply();
-            }
-        });
+        checkBox.setOnCheckedChangeListener(
+                (buttonView, isChecked) ->
+                        sharedPreferences.edit().putBoolean(LanguagesActivity.syncAutomatically, isChecked).apply()
+        );
     }
 
     private void displayListView() {
@@ -72,29 +70,20 @@ public class LanguagesActivity extends AppCompatActivity {
 
     private void initializeDownloadButton() {
         Button myButton = findViewById(R.id.languageActivity_downloadButton);
-        myButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                List<Language> languageList = dataAdapter.languageList;
-                List<Language> languages = new ArrayList<>();
-                LanguageRepository languageRepository = new LanguageRepositoryImpl(getApplicationContext());
-                for (Language language : languageList) {
-                    if (language.isSelected()) {
-                        languageRepository.save(language);
-                        languages.add(language);
-                    } else {
-                        if (language.getId() != null) {
-                            Language one = languageRepository.findOne(language.getId());
-                            if (one != null) {
-                                languageRepository.save(language);
-                            }
-                        }
-                    }
+        myButton.setOnClickListener(v -> {
+            List<Language> languageList = dataAdapter.languageList;
+            List<Language> languages = new ArrayList<>();
+            LanguageRepository languageRepository = new LanguageRepositoryImpl(getApplicationContext());
+            for (Language language : languageList) {
+                languageRepository.save(language);
+                language.setSelectedForDownload(language.isSelected());
+                if (language.isSelected()) {
+                    languages.add(language);
                 }
-                Memory.getInstance().setPassingLanguages(languages);
-                Intent intent = new Intent(languagesActivity, LoadActivity.class);
-                startActivityForResult(intent, 1);
             }
+            Memory.getInstance().setPassingLanguages(languages);
+            Intent intent = new Intent(languagesActivity, LoadActivity.class);
+            startActivityForResult(intent, 1);
         });
 
     }
@@ -110,7 +99,7 @@ public class LanguagesActivity extends AppCompatActivity {
 
     private class MyCustomAdapter extends ArrayAdapter<Language> {
 
-        private List<Language> languageList;
+        private final List<Language> languageList;
 
         MyCustomAdapter(Context context, int textViewResourceId,
                         List<Language> languageList) {
@@ -120,7 +109,6 @@ public class LanguagesActivity extends AppCompatActivity {
         }
 
         @SuppressLint({"InflateParams", "SetTextI18n"})
-        @SuppressWarnings("ConstantConditions")
         @NonNull
         @Override
         public View getView(int position, View convertView, @NonNull ViewGroup parent) {
@@ -132,30 +120,80 @@ public class LanguagesActivity extends AppCompatActivity {
                 LayoutInflater layoutInflater = (LayoutInflater) getSystemService(
                         Context.LAYOUT_INFLATER_SERVICE);
                 convertView = layoutInflater.inflate(R.layout.activity_language_checkbox_row, null);
-
                 holder = new ViewHolder();
                 holder.textView = convertView.findViewById(R.id.code);
                 holder.checkBox = convertView.findViewById(R.id.checkBox1);
                 convertView.setTag(holder);
 
-                holder.checkBox.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View view) {
-                        CheckBox checkBox = (CheckBox) view;
-                        Language language = (Language) checkBox.getTag();
-                        language.setSelected(checkBox.isChecked());
-                    }
+                holder.textView.setOnClickListener(view -> {
+                    TextView textView = (TextView) view;
+                    CheckBox checkBox = (CheckBox) textView.getTag();
+                    checkBox.setChecked(!checkBox.isChecked());
+                    setSelection(checkBox);
+                });
+                holder.checkBox.setOnClickListener(view -> setSelection((CheckBox) view));
+                RelativeLayout relativelayout = convertView.findViewById(R.id.layout);
+                relativelayout.setOnClickListener(view -> {
+                    holder.checkBox.setChecked(!holder.checkBox.isChecked());
+                    setSelection(holder.checkBox);
                 });
             } else {
                 holder = (ViewHolder) convertView.getTag();
             }
 
             Language language = languageList.get(position);
-            holder.textView.setText(" (" + language.getNativeName() + ")");
+            holder.textView.setText(" - " + language.getNativeName() + getSizeString(language));
             holder.checkBox.setText(language.getEnglishName());
             holder.checkBox.setChecked(language.isSelected());
+            holder.textView.setTag(holder.checkBox);
             holder.checkBox.setTag(language);
 
             return convertView;
+        }
+
+        private String getSizeString(Language language) {
+            Long size = language.getSize();
+            if (size == null || size < 0) {
+                return "";
+            }
+            long almostEqualSize = getAlmostEqualSize(size);
+            return " (~" + almostEqualSize + ")";
+        }
+
+        private long getAlmostEqualSize(long size) {
+            if (size < 10) {
+                return size;
+            }
+            int countDigits = getCountDigits(size);
+            int resolution;
+            if (countDigits < 3) {
+                resolution = countDigits - 2;
+            } else if (countDigits < 4) {
+                resolution = countDigits - 1;
+            } else {
+                resolution = countDigits - 2;
+            }
+            return getResolutionNumber(size, resolution);
+        }
+
+        private long getResolutionNumber(long size, int resolution) {
+            long x = (long) Math.pow(10, resolution);
+            long a = size / x;
+            return a * x;
+        }
+
+        private int getCountDigits(long size) {
+            int countDigits = 0;
+            while (size > 0) {
+                ++countDigits;
+                size /= 10;
+            }
+            return countDigits;
+        }
+
+        private void setSelection(CheckBox checkBox) {
+            Language language = (Language) checkBox.getTag();
+            language.setSelected(checkBox.isChecked());
         }
 
         private class ViewHolder {
@@ -178,6 +216,7 @@ public class LanguagesActivity extends AppCompatActivity {
                     boolean was = false;
                     for (Language language : languages) {
                         if (language.getUuid().equals(onlineLanguage.getUuid())) {
+                            language.setSize(onlineLanguage.getSize());
                             was = true;
                             break;
                         }

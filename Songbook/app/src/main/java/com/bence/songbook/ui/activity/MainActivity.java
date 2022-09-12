@@ -383,7 +383,7 @@ public class MainActivity extends AppCompatActivity
         mainActivity = this;
         linearLayout = findViewById(R.id.mainLinearLayout);
         languageRepository = new LanguageRepositoryImpl(getApplicationContext());
-        languages = languageRepository.findAll();
+        languages = languageRepository.findAllSelectedForDownload();
         songCollections = memory.getSongCollections();
         favouriteSongs = memory.getFavouriteSongs();
         songCollectionRepository = new SongCollectionRepositoryImpl(getApplicationContext());
@@ -460,7 +460,16 @@ public class MainActivity extends AppCompatActivity
             }
         } else {
             songs = new ArrayList<>();
-            filter();
+            initialLoad();
+        }
+        onCreateEnd();
+    }
+
+    private void initialLoad() {
+//        Thread thread = new Thread(() -> {
+        // need to be faster
+        filter();
+        runOnUiThread(() -> {
             if (songs.size() > 0) {
                 setDataToQueueSongs();
                 Memory memory = Memory.getInstance();
@@ -469,10 +478,16 @@ public class MainActivity extends AppCompatActivity
                 loadSongVersesThread.start();
                 uploadViewsFavourites();
             } else {
-                Intent loadIntent = new Intent(this, LanguagesActivity.class);
+                Intent loadIntent = new Intent(MainActivity.this, LanguagesActivity.class);
                 startActivityForResult(loadIntent, DOWNLOAD_SONGS_REQUEST_CODE);
             }
-        }
+        });
+//        });
+//        thread.start();
+        // or a simple initial load
+    }
+
+    private void onCreateEnd() {
         Intent appLinkIntent = getIntent();
         Uri appLinkData = appLinkIntent.getData();
         if (appLinkData != null) {
@@ -752,7 +767,7 @@ public class MainActivity extends AppCompatActivity
                 // upload songs
                 List<Song> uploadingSongs = new ArrayList<>();
                 for (Song song : songs) {
-                    if (song.getModifiedDate().getTime() == 123L && !song.isAsDeleted()) {
+                    if (song.getModifiedDate().getTime() == 123L && !song.isAsDeleted() && !song.isSavedOnlyToDevice()) {
                         uploadingSongs.add(song);
                     }
                 }
@@ -916,7 +931,7 @@ public class MainActivity extends AppCompatActivity
                     if (queue.size() < 1) {
                         hideBottomSheet();
                     }
-                    languages = languageRepository.findAll();
+                    languages = languageRepository.findAllSelectedForDownload();
                     songCollections = songCollectionRepository.findAll();
                     setShortNamesForSongCollections(songCollections);
                     memory.setSongCollections(songCollections);
@@ -1068,6 +1083,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1) {// If request is cancelled, the result arrays are empty.
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {

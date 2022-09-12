@@ -137,4 +137,5 @@
     <string name="try_again_later">Try again later</string>
     <string name="password_or_email_incorrect">Password or email incorrect</string>
     <string name="create_account">Create account</string>
+    <string name="upload_song">Upload song</string>
 </resources>

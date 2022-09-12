@@ -10,6 +10,7 @@ import com.bence.songbook.repository.exception.RepositoryException;
 import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class LanguageRepositoryImpl extends AbstractRepository<Language> implements LanguageRepository {
@@ -38,5 +39,17 @@ public class LanguageRepositoryImpl extends AbstractRepository<Language> impleme
         for (Language language : languages) {
             save(language);
         }
+    }
+
+    @Override
+    public List<Language> findAllSelectedForDownload() {
+        List<Language> languages = findAll();
+        List<Language> filtered = new ArrayList<>(languages.size());
+        for (Language language : languages) {
+            if (language.isSelectedForDownload()) {
+                filtered.add(language);
+            }
+        }
+        return filtered;
     }
 }

@@ -85,6 +85,9 @@ fieldName=nativeName
 fieldName=selected
 # --field-end--
 # --field-start--
+fieldName=selectedForDownload
+# --field-end--
+# --field-start--
 fieldName=favouriteSongDate
 # --field-end--
 # --field-start--
@@ -191,6 +194,9 @@ fieldName=favourites
 # --field-end--
 # --field-start--
 fieldName=asDeleted
+# --field-end--
+# --field-start--
+fieldName=savedOnlyToDevice
 # --field-end--
 # --field-start--
 fieldName=id

@@ -133,4 +133,5 @@
     <string name="try_again_later">Versuchen Sie es später noch einmal</string>
     <string name="password_or_email_incorrect">Passwort oder E-Mail falsch</string>
     <string name="create_account">Konto anlegen</string>
+    <string name="upload_song">Lied hochladen</string>
 </resources>

@@ -1,11 +1,11 @@
 package com.bence.songbook.ui.activity;
 
+import static com.bence.songbook.models.Song.copyLocallySetted;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +14,9 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.ProgressMessage;
@@ -32,12 +35,9 @@ import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-
-import static com.bence.songbook.models.Song.copyLocallySetted;
 
 public class LoadActivity extends AppCompatActivity {
 
@@ -76,15 +76,10 @@ public class LoadActivity extends AppCompatActivity {
     }
 
     private void sortSongs(List<Song> all) {
-        Collections.sort(all, new Comparator<Song>() {
-            @Override
-            public int compare(Song lhs, Song rhs) {
-                return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
-            }
-        });
+        Collections.sort(all, (lhs, rhs) -> rhs.getModifiedDate().compareTo(lhs.getModifiedDate()));
     }
 
-    private class LanguageProgress {
+    private static class LanguageProgress {
         private Language language;
         private ProgressBar progressBar;
         private TextView textView;
@@ -118,10 +113,9 @@ public class LoadActivity extends AppCompatActivity {
         }
     }
 
-    @SuppressWarnings("ConstantConditions")
     private class MyCustomAdapter extends ArrayAdapter<LanguageProgress> {
 
-        private List<LanguageProgress> languageList;
+        private final List<LanguageProgress> languageList;
 
         MyCustomAdapter(Context context, int textViewResourceId,
                         List<LanguageProgress> languageList) {
@@ -173,9 +167,9 @@ public class LoadActivity extends AppCompatActivity {
 
     @SuppressLint("StaticFieldLeak")
     class Downloader extends AsyncTask<Void, Integer, Void> {
-        private Language language;
-        private ProgressBar progressBar;
-        private TextView textView;
+        private final Language language;
+        private final ProgressBar progressBar;
+        private final TextView textView;
         private List<SongCollection> onlineModifiedSongCollections;
         private ProgressMessage progressMessage;
         private String progressText = "";
