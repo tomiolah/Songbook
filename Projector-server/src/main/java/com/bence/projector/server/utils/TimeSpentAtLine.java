@@ -4,6 +4,7 @@ public class TimeSpentAtLine {
     private double timeSpent;
     private String className;
     private long lineNumber;
+    private StackTraceElement stackTraceElement;
 
     public double getTimeSpent() {
         return timeSpent;
@@ -35,6 +36,15 @@ public class TimeSpentAtLine {
 
     @Override
     public String toString() {
-        return timeSpent / 1000 + "\t" + className+ "\t" + lineNumber;
+        String filePath = System.getProperty("user.dir") + "\\Projector-server\\src\\main\\java\\" + className.replaceAll("\\.", "\\\\") + ".java";
+        return timeSpent / 1000 + "\t" + filePath + ":" + lineNumber + "\t" + stackTraceElement.getMethodName();
+    }
+
+    public StackTraceElement getStackTraceElement() {
+        return stackTraceElement;
+    }
+
+    public void setStackTraceElement(StackTraceElement stackTraceElement) {
+        this.stackTraceElement = stackTraceElement;
     }
 }

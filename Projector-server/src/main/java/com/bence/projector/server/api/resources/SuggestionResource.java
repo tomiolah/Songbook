@@ -51,18 +51,13 @@ public class SuggestionResource {
     @RequestMapping(value = "admin/api/suggestions", method = RequestMethod.GET)
     public List<SuggestionDTO> getSuggestions() {
         List<Suggestion> all = suggestionService.findAll();
-        return suggestionAssembler.createDtoList(all);
-    }
-
-    @RequestMapping(value = "reviewer/api/suggestions", method = RequestMethod.GET)
-    public List<SuggestionDTO> getSuggestionsR() {
-        return getSuggestions();
+        return suggestionAssembler.createDtosNoFetch(all);
     }
 
     private List<SuggestionDTO> getSuggestionDTOS(@PathVariable("languageId") String languageId) {
         Language language = languageService.findOneByUuid(languageId);
-        List<Suggestion> allByLanguage = suggestionService.findAllByLanguage(language);
-        return suggestionAssembler.createDtoList(allByLanguage);
+        List<Suggestion> allByLanguage = suggestionService.findAllByLanguageAndCustomFetch(language);
+        return suggestionAssembler.createDtosNoFetch(allByLanguage);
     }
 
     @RequestMapping(value = "admin/api/suggestions/language/{languageId}", method = RequestMethod.GET)

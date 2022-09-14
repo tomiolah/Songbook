@@ -7,6 +7,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 import java.util.Date;
 import java.util.List;
 
@@ -32,6 +33,8 @@ public class Suggestion extends AbstractModel {
     private User lastModifiedBy;
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "suggestionStack")
     private List<NotificationByLanguage> notificationByLanguages;
+    @Transient
+    private String songUuid;
 
     public Suggestion() {
     }
@@ -133,10 +136,17 @@ public class Suggestion extends AbstractModel {
     }
 
     public String getSongUuid() {
+        if (songUuid != null) {
+            return songUuid;
+        }
         Song song = getSong();
         if (song == null) {
             return null;
         }
         return song.getUuid();
+    }
+
+    public void setSongUuid(String songUuid) {
+        this.songUuid = songUuid;
     }
 }

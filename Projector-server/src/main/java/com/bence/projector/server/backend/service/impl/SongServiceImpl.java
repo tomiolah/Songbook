@@ -12,15 +12,12 @@ import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.ServiceException;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.SongVerseService;
-import com.bence.projector.server.utils.ApplicationProperties;
 import com.bence.projector.server.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -32,6 +29,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Random;
 
+import static com.bence.projector.server.backend.service.util.QueryUtil.getStatement;
 import static com.bence.projector.server.utils.ListUtil.twoListMatches;
 import static com.bence.projector.server.utils.StringUtils.longestCommonSubString;
 
@@ -476,14 +474,6 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         sql += " join song on (song.id = song_verse_order_list_item.song_id)";
         sql = getConditionSqlByLanguage(language, sql);
         return statement.executeQuery(sql);
-    }
-
-    private Statement getStatement() throws SQLException {
-        ApplicationProperties properties = ApplicationProperties.getInstance();
-        Connection connection = DriverManager.getConnection(properties.springDatasourceUrl(), properties.springDatasourceUsername(), properties.springDatasourcePassword());
-        return connection.createStatement(
-                ResultSet.TYPE_FORWARD_ONLY, //or ResultSet.TYPE_FORWARD_ONLY
-                ResultSet.CONCUR_READ_ONLY);
     }
 
     private List<Song> getSongsFromResultSet(ResultSet resultSet) throws SQLException {
