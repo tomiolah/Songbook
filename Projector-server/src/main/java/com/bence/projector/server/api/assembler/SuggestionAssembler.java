@@ -30,6 +30,7 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
         }
         SuggestionDTO suggestionDTO = createDtoNoFetch(suggestion);
         suggestionDTO.setVerses(songVerseAssembler.createDtoList(suggestion.getVerses()));
+        suggestionDTO.setSongId(suggestion.getSongUuid());
         return suggestionDTO;
     }
 
@@ -45,7 +46,6 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
         suggestionDTO.setCreatedByEmail(suggestion.getCreatedByEmail());
         suggestionDTO.setApplied(suggestion.getApplied());
         suggestionDTO.setDescription(suggestion.getDescription());
-        suggestionDTO.setSongId(suggestion.getSongUuid());
         suggestionDTO.setYoutubeUrl(suggestion.getYoutubeUrl());
         suggestionDTO.setReviewed(suggestion.getReviewed());
         User lastModifiedBy = suggestion.getLastModifiedBy();
