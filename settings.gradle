@@ -1,5 +1,4 @@
-include 'projector-desktop'
+//include 'projector-desktop'
 include 'projector-common'
 include 'Projector-server'
-include 'projector-backend'
 
