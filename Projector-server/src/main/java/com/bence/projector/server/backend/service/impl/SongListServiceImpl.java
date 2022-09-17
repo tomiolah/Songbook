@@ -4,6 +4,7 @@ import com.bence.projector.server.backend.model.SongList;
 import com.bence.projector.server.backend.model.SongListElement;
 import com.bence.projector.server.backend.repository.SongListElementRepository;
 import com.bence.projector.server.backend.repository.SongListRepository;
+import com.bence.projector.server.backend.service.SongListElementService;
 import com.bence.projector.server.backend.service.SongListService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -18,6 +19,8 @@ public class SongListServiceImpl extends BaseServiceImpl<SongList> implements So
     private SongListRepository songListRepository;
     @Autowired
     private SongListElementRepository songListElementRepository;
+    @Autowired
+    private SongListElementService songListElementService;
 
     @Override
     public SongList findOneByUuid(String uuid) {
@@ -32,7 +35,7 @@ public class SongListServiceImpl extends BaseServiceImpl<SongList> implements So
             songListElementRepository.deleteAllBySongListId(id);
         }
         SongList saved = songListRepository.save(songList);
-        songListElementRepository.save(songListElements);
+        songListElementService.saveAllByRepository(songListElements);
         return saved;
     }
 

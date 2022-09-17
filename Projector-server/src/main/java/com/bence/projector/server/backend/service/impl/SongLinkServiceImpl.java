@@ -53,7 +53,7 @@ public class SongLinkServiceImpl extends BaseServiceImpl<SongLink> implements So
                 appliedSongLinks.add(songLink);
             }
         }
-        songLinkRepository.save(appliedSongLinks);
+        saveAllByRepository(appliedSongLinks);
     }
 
     @Override

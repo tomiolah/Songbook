@@ -1,73 +1,66 @@
-buildscript {
-    ext {
-        springBootVersion = '1.5.14.RELEASE'
-    }
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-    }
+plugins {
+    id 'org.springframework.boot' version '2.7.3'
+    id 'io.spring.dependency-management' version '1.0.13.RELEASE'
+    id 'java'
 }
 
-apply plugin: 'java'
-apply plugin: 'idea'
-apply plugin: 'org.springframework.boot'
+group = 'com.bence.projector.server'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+configurations {
+    implementationOnly {
+        extendsFrom annotationProcessor
+    }
+}
 
 repositories {
     mavenCentral()
+    maven {
+        url 'https://repo.spring.io/libs-milestone'
+    }
 }
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
 
 dependencies {
 
     // project dependency
-    compile project(":projector-common")
+    implementation project(":projector-common")
 
-    compile("org.springframework.boot:spring-boot-starter-data-jpa")
-    compile 'mysql:mysql-connector-java'
-    compile("com.h2database:h2")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation 'mysql:mysql-connector-java'
+    implementation("com.h2database:h2")
 
     // tag::jetty[]
-    compile("org.springframework.boot:spring-boot-starter-web") {
+    implementation("org.springframework.boot:spring-boot-starter-web") {
         exclude module: "spring-boot-starter-tomcat"
     }
 
-    compile("org.springframework.boot:spring-boot-starter-thymeleaf")
-    compile("org.springframework.boot:spring-boot-devtools")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+    implementation("org.springframework.boot:spring-boot-devtools")
 
-    compile("org.springframework.boot:spring-boot-starter-jetty")
+    implementation("org.springframework.boot:spring-boot-starter-jetty")
     // end::jetty[]
     // tag::actuator[]
-    compile("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     // end::actuator[]
 
     // security
-    compile group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '1.5.6.RELEASE'
-    compile group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
+    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '2.7.3'
+    implementation group: 'com.google.code.gson', name: 'gson', version: '2.8.6'
 
-    // testCompile("junit:junit")
-    testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '1.5.3.RELEASE'
-    testCompile group: 'org.hsqldb', name: 'hsqldb', version: '2.3.1'
+    // testImplementation("junit:junit")
+    testImplementation group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.7.3'
+    testImplementation group: 'org.hsqldb', name: 'hsqldb', version: '2.3.1'
 
     //mail send
-    compile("org.springframework.boot:spring-boot-starter-mail")
-    compile("org.freemarker:freemarker:2.3.23")
-    // security
-//    compile group: 'org.springframework.boot', name: 'spring-boot-starter-security', version: '1.5.6.RELEASE'
-//    compile group: 'org.springframework.security', name: 'spring-security-crypto', version: '3.1.0.RELEASE'
+    implementation("org.springframework.boot:spring-boot-starter-mail")
+    implementation("org.freemarker:freemarker:2.3.31")
 
-    compileOnly group: 'org.apache.poi', name: 'poi', version: '4.1.0'
-    compileOnly 'org.apache.poi:poi-ooxml:4.1.0'
-    compileOnly group: 'org.apache.poi', name: 'poi-scratchpad', version: '4.1.0'
+    implementationOnly group: 'org.apache.poi', name: 'poi', version: '4.1.0'
+    implementationOnly 'org.apache.poi:poi-ooxml:4.1.0'
+    implementationOnly group: 'org.apache.poi', name: 'poi-scratchpad', version: '4.1.0'
 
-}
-repositories {
-    maven {
-        url 'https://repo.spring.io/libs-milestone'
-    }
 }
 
 sourceSets {
@@ -76,4 +69,8 @@ sourceSets {
             srcDirs = ["$project.rootDir/projector-web/dist", "$projectDir/src/main/resources"]
         }
     }
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
 }

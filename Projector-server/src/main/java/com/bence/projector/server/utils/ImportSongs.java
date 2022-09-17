@@ -73,7 +73,7 @@ public class ImportSongs {
                 }
             }
         }
-        songRepository.save(deletedSongs);
+        songService.saveAllByRepository(deletedSongs);
     }
 
     private static Collection<Song> getLanguageSongs(Language language, SongService songService, HashMap<String, Collection<Song>> hashMap) {

@@ -33,7 +33,7 @@ public class UserPropertiesAssembler implements GeneralAssembler<UserProperties,
     @Override
     public UserProperties updateModel(UserProperties userProperties, UserPropertiesDTO userPropertiesDTO) {
         List<NotificationByLanguage> notifications = notificationByLanguageAssembler.createModelList(userPropertiesDTO.getNotificationsByLanguage());
-        userProperties.setNotifications(notifications);
+        userProperties.setNotifications_(notifications);
         return userProperties;
     }
 }

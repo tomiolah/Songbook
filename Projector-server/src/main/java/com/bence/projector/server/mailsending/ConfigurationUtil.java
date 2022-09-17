@@ -8,7 +8,7 @@ public class ConfigurationUtil {
     private static Configuration configuration;
 
     static {
-        configuration = new Configuration(Configuration.VERSION_2_3_23);
+        configuration = new Configuration(Configuration.VERSION_2_3_31);
         ClassTemplateLoader loader = new ClassTemplateLoader(ConfigurationUtil.class, "/");
         configuration.setTemplateLoader(loader);
         configuration.setDefaultEncoding("UTF-8");

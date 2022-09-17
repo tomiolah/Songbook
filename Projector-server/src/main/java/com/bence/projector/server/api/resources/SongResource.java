@@ -641,13 +641,13 @@ public class SongResource {
                     song.setVersionGroup(songService.findOneByUuid(song2VersionGroup));
                     song.setModifiedDate(date);
                 }
-                songRepository.save(allByVersionGroup1);
+                songService.saveAllByRepository(allByVersionGroup1);
             } else {
                 for (Song song : allByVersionGroup2) {
                     song.setVersionGroup(songService.findOneByUuid(song1VersionGroup));
                     song.setModifiedDate(date);
                 }
-                songRepository.save(allByVersionGroup2);
+                songService.saveAllByRepository(allByVersionGroup2);
             }
         }
         return new ResponseEntity<>("Merged", HttpStatus.ACCEPTED);

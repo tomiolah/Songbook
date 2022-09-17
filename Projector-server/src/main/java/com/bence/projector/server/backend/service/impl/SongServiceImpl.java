@@ -11,6 +11,7 @@ import com.bence.projector.server.backend.repository.SongVerseOrderListItemRepos
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.ServiceException;
 import com.bence.projector.server.backend.service.SongService;
+import com.bence.projector.server.backend.service.SongVerseOrderListItemService;
 import com.bence.projector.server.backend.service.SongVerseService;
 import com.bence.projector.server.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 import static com.bence.projector.server.backend.service.util.QueryUtil.getStatement;
@@ -49,6 +51,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private long lastModifiedDateTime = 0;
     private HashMap<String, HashMap<String, Song>> songsHashMapByLanguage;
     private HashMap<String, HashMap<String, Boolean>> wordsHashMapByLanguage;
+    @Autowired
+    private SongVerseOrderListItemService songVerseOrderListItemService;
 
     @Override
     public boolean isLanguageIsGood(Song song, Language language) {
@@ -232,7 +236,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private List<Song> getSongsFromRepository(List<Song> similarSongsForSong) {
         ArrayList<Song> songs = new ArrayList<>();
         for (Song song : similarSongsForSong) {
-            songs.add(songRepository.findOne(song.getId()));
+            Optional<Song> songOptional = songRepository.findById(song.getId());
+            songOptional.ifPresent(songs::add);
         }
         return songs;
     }
@@ -567,7 +572,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         Random random = new Random();
         int size = (int) songRepository.countByLanguage(language);
         int n = random.nextInt(size);
-        PageRequest pageRequest = new PageRequest(n, 1);
+        PageRequest pageRequest = PageRequest.of(n, 1);
         List<Song> songs = songRepository.findAllByLanguage(language, pageRequest);
         if (songs.size() > 0) {
             return songs.get(0);
@@ -679,9 +684,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         songVerseService.save(verses);
         song.setVerses(verses);
         songVerseOrderListItemRepository.deleteBySong(song);
-        if (songVerseOrderListItems != null) {
-            songVerseOrderListItemRepository.save(songVerseOrderListItems);
-        }
+        songVerseOrderListItemService.saveAllByRepository(songVerseOrderListItems);
         song.setSongVerseOrderListItems(songVerseOrderListItems);
         return song;
     }

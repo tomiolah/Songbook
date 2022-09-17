@@ -213,7 +213,7 @@ public class User extends AbstractModel {
                 notificationByLanguage.setNewSongs(true);
                 notifications.add(notificationByLanguage);
             }
-            userProperties.setNotifications(notifications);
+            userProperties.setNotifications_(notifications);
         }
         return userProperties;
     }
@@ -233,7 +233,7 @@ public class User extends AbstractModel {
                 notificationByLanguage.setNewSongs(true);
                 notifications.add(notificationByLanguage);
             }
-            userProperties.setNotifications(notifications);
+            userProperties.setNotifications_(notifications);
         }
         return userProperties;
     }

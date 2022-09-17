@@ -6,6 +6,7 @@ import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.repository.SongVerseRepository;
 import com.bence.projector.server.backend.repository.SuggestionRepository;
+import com.bence.projector.server.backend.service.SongVerseService;
 import com.bence.projector.server.backend.service.SuggestionService;
 import com.bence.projector.server.utils.AppProperties;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,13 +29,15 @@ import static com.bence.projector.server.utils.MemoryUtil.getEmptyList;
 public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implements SuggestionService {
     private final SuggestionRepository suggestionRepository;
     private final SongVerseRepository songVerseRepository;
+    private final SongVerseService songVerseService;
     private final HashMap<String, Suggestion> suggestionHashMap;
     private long lastModifiedDateTime = 0;
 
     @Autowired
-    public SuggestionServiceImpl(SuggestionRepository suggestionRepository, SongVerseRepository songVerseRepository) {
+    public SuggestionServiceImpl(SuggestionRepository suggestionRepository, SongVerseRepository songVerseRepository, SongVerseService songVerseService) {
         this.suggestionRepository = suggestionRepository;
         this.songVerseRepository = songVerseRepository;
+        this.songVerseService = songVerseService;
         suggestionHashMap = new HashMap<>(500);
     }
 
@@ -197,7 +200,7 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
         List<SongVerse> verses = getCopyOfVerses(suggestion.getVerses());
         suggestionRepository.save(suggestion);
         songVerseRepository.deleteAllBySuggestionId(suggestion.getId());
-        songVerseRepository.save(verses);
+        songVerseService.saveAllByRepository(verses);
         return super.save(suggestion);
     }
 

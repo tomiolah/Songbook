@@ -16,4 +16,6 @@ public interface BaseService<M extends BaseEntity> {
     M save(M model);
 
     Iterable<M> save(List<M> models);
+
+    void saveAllByRepository(List<M> models);
 }

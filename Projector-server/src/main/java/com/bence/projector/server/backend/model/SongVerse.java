@@ -7,6 +7,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
+import java.util.List;
 
 @Entity
 public class SongVerse extends BaseEntity implements MatchesInterface<SongVerse> {
@@ -19,6 +21,8 @@ public class SongVerse extends BaseEntity implements MatchesInterface<SongVerse>
     private Song song;
     @ManyToOne(fetch = FetchType.LAZY)
     private Suggestion suggestion;
+    @Transient
+    private List<String> lines;
 
     public SongVerse() {
     }
@@ -72,5 +76,17 @@ public class SongVerse extends BaseEntity implements MatchesInterface<SongVerse>
 
     public void setSuggestion(Suggestion suggestion) {
         this.suggestion = suggestion;
+    }
+
+    public void setTextLines() {
+        lines = List.of(getText().split("\n"));
+    }
+
+    public List<String> getLines() {
+        return lines;
+    }
+
+    public void setLines(List<String> lines) {
+        this.lines = lines;
     }
 }
