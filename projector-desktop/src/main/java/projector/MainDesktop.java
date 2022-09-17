@@ -166,6 +166,7 @@ public class MainDesktop extends Application {
         primaryStage.setOnCloseRequest(we -> {
             System.out.println("Stage is closing");
             Settings settings = Settings.getInstance();
+            settings.setApplicationRunning(false);
             settings.setMainHeight(primaryStage.getScene().getHeight());
             settings.setMainWidth(primaryStage.getScene().getWidth());
             settings.save();

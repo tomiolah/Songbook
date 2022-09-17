@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
+import projector.application.Settings;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -32,7 +33,8 @@ public class UtilsController {
         timeTextField.setOnKeyReleased(event -> setCountDownValue());
         Thread thread = new Thread(() -> {
             try {
-                while (true) {
+                Settings settings = Settings.getInstance();
+                while (settings.isApplicationRunning()) {
                     setCountDownValue();
                     //noinspection BusyWait
                     Thread.sleep(200);
