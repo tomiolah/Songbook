@@ -34,7 +34,7 @@ javafx {
 
 dependencies {
 
-//    implementation project(":projector-common")
+    implementation project(":projector-common")
     //noinspection GradlePackageUpdate
     implementation 'com.h2database:h2:1.4.193'
 
