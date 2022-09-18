@@ -60,15 +60,15 @@ public class MyTextFlow extends TextFlow {
         mGetCharCount.setAccessible(true);
     }
 
+    private final List<Text> texts = new ArrayList<>();
+    private final List<Text> letters = new ArrayList<>();
+    private final String colorStartTag = "<color=\"0x";
     private int size = 100;
     private String fontFamily;
     private FontWeight fontWeight = FontWeight.BOLD;
     private String rawText;
     private int height;
     private int width;
-    private final List<Text> texts = new ArrayList<>();
-    private final List<Text> letters = new ArrayList<>();
-    private final String colorStartTag = "<color=\"0x";
     private boolean tmp = false;
     private double total;
     private boolean wrapped;
@@ -352,37 +352,46 @@ public class MyTextFlow extends TextFlow {
         letters.clear();
         prevColor = null;
         boolean italic = false;
-        int length = text.length();
         Stack<Color> colors = new Stack<>();
         colors.push(Settings.getInstance().getColor());
+        int[] codePoints = text.codePoints().toArray();
+        int length = codePoints.length;
+        int offset = 0;
         for (int i = 0; i < length; ++i) {
-            char s = text.charAt(i);
+            int codePoint = codePoints[i];
+            StringBuilder stringBuilder = new StringBuilder().appendCodePoint(codePoint);
+            String s = stringBuilder.toString();
             String colorEndTag = "</color>";
-            if (s == '[') {
+            if (s.equals("[")) {
                 italic = true;
-            } else if (italic && s == ']') {
+            } else if (italic && s.equals("]")) {
                 italic = false;
-            } else if (isaColorStartTag(text, i, s)) {
+            } else if (isaColorStartTag(text, offset, s)) {
                 try {
-                    int beginIndex = i + colorStartTag.length();
+                    int beginIndex = offset + colorStartTag.length();
                     String color = "0x" + text.substring(beginIndex, beginIndex + 8);
                     colors.push(Color.web(color));
-                    i += colorStartTag.length() + 9;
+                    int shift = colorStartTag.length() + 9;
+                    i += shift;
+                    offset += shift;
                 } catch (IllegalArgumentException ignored) {
                     addCharacter(italic, s, colors.peek());
                 }
-            } else if (s == '<' && text.startsWith(colorEndTag, i)) {
+            } else if (s.equals("<") && text.startsWith(colorEndTag, offset)) {
                 if (colors.size() > 1) {
                     colors.pop();
                 }
-                i += colorEndTag.length() - 1;
+                int shift = colorEndTag.length() - 1;
+                i += shift;
+                offset += shift;
             } else {
                 addCharacter(italic, s, colors.peek());
             }
+            offset += s.length();
         }
     }
 
-    private void addCharacter(boolean italic, char s, Color color) {
+    private void addCharacter(boolean italic, String s, Color color) {
         letters.add(getText(italic, s, color));
         if (prevItalic == italic && color.equals(prevColor)) {
             prevText.setText(prevText.getText() + s);
@@ -395,8 +404,8 @@ public class MyTextFlow extends TextFlow {
         prevText = e;
     }
 
-    private Text getText(boolean italic, char s, Color color) {
-        Text e = new Text(s + "");
+    private Text getText(boolean italic, String s, Color color) {
+        Text e = new Text(s);
         FontPosture fontPosture;
         if (italic) {
             fontPosture = FontPosture.ITALIC;
@@ -408,9 +417,9 @@ public class MyTextFlow extends TextFlow {
         return e;
     }
 
-    private boolean isaColorStartTag(String text, int i, char s) {
+    private boolean isaColorStartTag(String text, int i, String s) {
         try {
-            return s == '<' && text.startsWith(colorStartTag, i);
+            return s.equals("<") && text.startsWith(colorStartTag, i);
         } catch (StringIndexOutOfBoundsException e) {
             return false;
         }
@@ -624,11 +633,11 @@ public class MyTextFlow extends TextFlow {
         }
     }
 
-    public void setSecondText(String secondText) {
-        this.secondText = secondText;
-    }
-
     public String getSecondText() {
         return secondText;
+    }
+
+    public void setSecondText(String secondText) {
+        this.secondText = secondText;
     }
 }
