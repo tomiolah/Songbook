@@ -112,6 +112,10 @@ public class Suggestion extends AbstractModel {
         return reviewed;
     }
 
+    public boolean isReviewed() {
+        return reviewed != null && reviewed;
+    }
+
     public void setReviewed(Boolean reviewed) {
         this.reviewed = reviewed;
     }
