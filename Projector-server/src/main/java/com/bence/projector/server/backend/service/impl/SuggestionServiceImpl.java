@@ -197,7 +197,9 @@ public class SuggestionServiceImpl extends BaseServiceImpl<Suggestion> implement
         List<SongVerse> verses = getCopyOfVerses(suggestion.getVerses());
         suggestionRepository.save(suggestion);
         songVerseRepository.deleteAllBySuggestionId(suggestion.getId());
-        songVerseRepository.save(verses);
+        if (verses != null) {
+            songVerseRepository.save(verses);
+        }
         return super.save(suggestion);
     }
 

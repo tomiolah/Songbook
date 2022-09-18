@@ -12,12 +12,14 @@ import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.NotificationByLanguage;
 import com.bence.projector.server.backend.model.Role;
 import com.bence.projector.server.backend.model.Song;
+import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongCollectionService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
+import com.bence.projector.server.backend.service.SuggestionService;
 import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.mailsending.MailSenderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,10 +59,21 @@ public class SongResource {
     private final LanguageService languageService;
     private final MailSenderService mailSenderService;
     private final SongCollectionService songCollectionService;
+    private final SuggestionService suggestionService;
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, LanguageService languageService, MailSenderService mailSenderService, SongCollectionService songCollectionService) {
+    public SongResource(SongRepository songRepository,
+                        SongService songService,
+                        SongAssembler songAssembler,
+                        SongTitleAssembler songTitleAssembler,
+                        StatisticsService statisticsService,
+                        UserService userService,
+                        LanguageService languageService,
+                        MailSenderService mailSenderService,
+                        SuggestionService suggestionService,
+                        SongCollectionService songCollectionService
+    ) {
         this.songRepository = songRepository;
         this.songService = songService;
         this.songAssembler = songAssembler;
@@ -70,6 +83,7 @@ public class SongResource {
         this.languageService = languageService;
         this.mailSenderService = mailSenderService;
         this.songCollectionService = songCollectionService;
+        this.suggestionService = suggestionService;
     }
 
     static boolean hasReviewerRoleForSong(User user, Song song) {
@@ -418,6 +432,7 @@ public class SongResource {
                     songAssembler.updateModel(song, songDTO);
                     song.setReviewerErased(false);
                     final Song savedSong = songService.save(song);
+                    setSongSuggestionsReviewedForYoutubeUrl(savedSong, user);
                     if (savedSong != null) {
                         return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
                     }
@@ -426,6 +441,35 @@ public class SongResource {
             }
         }
         return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
+    }
+
+    private void setSongSuggestionsReviewedForYoutubeUrl(Song song, User user) {
+        try {
+            if (song == null) {
+                return;
+            }
+            String songYoutubeUrl = song.getYoutubeUrl();
+            if (songYoutubeUrl == null) {
+                return;
+            }
+            List<Suggestion> suggestions = suggestionService.findAllBySong(song);
+            if (suggestions == null) {
+                return;
+            }
+            for (Suggestion suggestion : suggestions) {
+                String youtubeUrl = suggestion.getYoutubeUrl();
+                if (!suggestion.isReviewed() && youtubeUrl != null) {
+                    if (youtubeUrl.equals(songYoutubeUrl)) {
+                        suggestion.setReviewed(true);
+                        suggestion.setModifiedDate(new Date());
+                        suggestion.setLastModifiedBy(user);
+                        suggestionService.save(suggestion);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/reviewer/api/changeLanguageForSong/{songId}")
@@ -533,6 +577,7 @@ public class SongResource {
         song.setReviewerErased(null);
         final Song savedSong = songService.save(song);
         if (savedSong != null) {
+            setSongSuggestionsReviewedForYoutubeUrl(savedSong, user);
             return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>("Could not update", HttpStatus.INTERNAL_SERVER_ERROR);
