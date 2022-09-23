@@ -22,7 +22,6 @@ import java.util.ArrayList;
 
 import static javafx.scene.input.KeyCode.DOWN;
 import static javafx.scene.input.KeyCode.ENTER;
-import static org.loadui.testfx.GuiTest.find;
 
 public class MainTest extends BaseTest {
 
@@ -97,9 +96,9 @@ public class MainTest extends BaseTest {
         openTab(2);
         clickOn("#searchTextField").write("100");
 
-        final ListView<SearchedSong> searchedSongListView = find("#listView");
+        final ListView<SearchedSong> searchedSongListView = find("#searchedSongListView");
         Bounds boundsInScene = searchedSongListView.localToScene(searchedSongListView.getBoundsInLocal());
-        clickOn("#listView");
+        clickOn("#searchedSongListView");
         clickOn(boundsInScene.getMinX() + 10, boundsInScene.getMinY() + 10);
         push(DOWN);
         push(DOWN);

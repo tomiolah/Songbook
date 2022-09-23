@@ -9,6 +9,7 @@ import projector.api.retrofit.LanguageApi;
 import projector.model.Language;
 import retrofit2.Call;
 
+import java.net.ConnectException;
 import java.util.List;
 
 public class LanguageApiBean {
@@ -30,6 +31,7 @@ public class LanguageApiBean {
         try {
             List<LanguageDTO> languageDTOs = call.execute().body();
             return languageAssembler.createModelList(languageDTOs);
+        } catch (ConnectException ignored) {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

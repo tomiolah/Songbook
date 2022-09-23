@@ -1,11 +1,13 @@
 package projector.controller.song;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Pane;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -20,8 +22,6 @@ import projector.service.SongService;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.loadui.testfx.GuiTest.find;
 
 public class SongControllerTest extends BaseTest {
 
@@ -81,13 +81,15 @@ public class SongControllerTest extends BaseTest {
         clickOn("#newVerseButton");
         clickOn("#textArea").write("First verse");
         clickOn("#languageComboBoxForNewSong").sleep(100);
-        final ComboBox<Language> languageComboBox = find("#languageComboBoxForNewSong");
+        Pane root = NewSongController.getGlobalRoot();
+        final ComboBox<Language> languageComboBox = find("#languageComboBoxForNewSong", root);
         Platform.runLater(() -> languageComboBox.getSelectionModel().selectFirst());
         sleep(100);
         clickOn("#saveButton");
-        ListView<SearchedSong> listView = find("#listView");
+        ListView<SearchedSong> listView = find("#searchedSongListView");
         boolean was = false;
-        for (SearchedSong song : listView.getItems()) {
+        ObservableList<SearchedSong> items = listView.getItems();
+        for (SearchedSong song : items) {
             if (song.getSong().getTitle().equals(test_songTitle)) {
                 was = true;
                 break;
@@ -108,16 +110,16 @@ public class SongControllerTest extends BaseTest {
     //	@Test
     private void editSong() {
         clickOn("#searchTextField").write(test_songTitle);
-        final ListView<SearchedSong> searchedSongListView = find("#listView");
+        final ListView<SearchedSong> searchedSongListView = find("#searchedSongListView");
         Bounds boundsInScene = searchedSongListView.localToScene(searchedSongListView.getBoundsInLocal());
-        clickOn("#listView");
+        clickOn("#searchedSongListView");
         final double x = boundsInScene.getMinX() + 10;
         final double y = boundsInScene.getMinY() + 10;
         rightClickOn(x, y).sleep(100).clickOn(x + 7, y + 7);
         final String edited_text = "Edited text";
         clickOn("#textArea").write(edited_text);
         clickOn("#saveButton");
-        ListView<SearchedSong> listView = find("#listView");
+        ListView<SearchedSong> listView = find("#searchedSongListView");
         SearchedSong editedSong = null;
         for (SearchedSong song : listView.getItems()) {
             if (song.getSong().getTitle().equals(test_songTitle)) {
@@ -132,9 +134,9 @@ public class SongControllerTest extends BaseTest {
     //	@Test
     private void deleteASong() {
         doubleClickOn("#searchTextField").doubleClickOn("#searchTextField").write(test_songTitle);
-        final ListView<SearchedSong> searchedSongListView = find("#listView");
+        final ListView<SearchedSong> searchedSongListView = find("#searchedSongListView");
         Bounds boundsInScene = searchedSongListView.localToScene(searchedSongListView.getBoundsInLocal());
-        clickOn("#listView");
+        clickOn("#searchedSongListView");
         final double x = boundsInScene.getMinX() + 10;
         final double y = boundsInScene.getMinY() + 10;
         rightClickOn(x, y).sleep(100).clickOn("#deleteMenuItem");

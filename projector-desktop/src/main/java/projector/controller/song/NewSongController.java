@@ -72,6 +72,7 @@ import static projector.utils.ContextMenuUtil.initializeContextMenu;
 public class NewSongController {
 
     private static final Logger LOG = LoggerFactory.getLogger(NewSongController.class);
+    private static Pane globalRoot;
     private final Settings settings = Settings.getInstance();
     private final String prefix = "verseOrderListView:move:";
     private final ArrayList<VerseController> verseControllers = new ArrayList<>();
@@ -121,6 +122,10 @@ public class NewSongController {
     private VerseController lastFocusedVerse;
     private List<Language> languages;
     private boolean sameAsCalculatedOrder = false;
+
+    public static Pane getGlobalRoot() {
+        return globalRoot;
+    }
 
     public void initialize() {
         edit = null;
@@ -700,7 +705,7 @@ public class NewSongController {
                             stage.close();
                         }
                     } catch (ApiException e) {
-                        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                        Alert alert = new Alert(AlertType.INFORMATION);
                         final ResourceBundle resourceBundle = settings.getResourceBundle();
                         alert.setTitle("Error");
                         alert.setHeaderText(resourceBundle.getString(e.getMessage()));
@@ -723,5 +728,9 @@ public class NewSongController {
     void setNewSong() {
         edit = false;
         editingSong = new Song();
+    }
+
+    public void setRoot(Pane root) {
+        NewSongController.globalRoot = root;
     }
 }

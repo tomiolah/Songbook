@@ -28,7 +28,7 @@ public class BibleSearchController {
 
     private static final Logger LOG = LoggerFactory.getLogger(BibleSearchController.class);
     @FXML
-    private TextField searchTextField;
+    private TextField bibleSearchTextField;
     @FXML
     private ListView<TextFlow> searchListView;
     private BibleController bibleController;
@@ -61,12 +61,12 @@ public class BibleSearchController {
         }
         initialized = true;
         maxResults = 1200;
-        searchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+        bibleSearchTextField.textProperty().addListener((observable, oldValue, newValue) -> {
             setNewSearchText(newValue);
             search(newValue);
             System.out.println("newValue: " + newValue);
         });
-        searchTextField.setOnKeyPressed(event -> mainController.globalKeyEventHandler().handle(event));
+        bibleSearchTextField.setOnKeyPressed(event -> mainController.globalKeyEventHandler().handle(event));
         searchListView.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
             int index = searchListView.getSelectionModel().selectedIndexProperty().get();
             if (index >= 0) {

@@ -29,6 +29,7 @@ import java.util.ListIterator;
 
 public class MainDesktop extends Application {
 
+    private static Pane globalRoot;
     private MyController myController;
     private ProjectionScreenController projectionScreenController;
     private double canvasHeight;
@@ -46,6 +47,10 @@ public class MainDesktop extends Application {
         launch(args);
     }
 
+    public static Pane getRoot() {
+        return globalRoot;
+    }
+
     @Override
     public void start(Stage primaryStage) {
         Date date = new Date();
@@ -57,6 +62,7 @@ public class MainDesktop extends Application {
             loader.setLocation(getClass().getResource("/view/MainView.fxml"));
             loader.setResources(Settings.getInstance().getResourceBundle());
             Pane root = loader.load();
+            MainDesktop.globalRoot = root;
             myController = loader.getController();
             BibleController bibleController = myController.getBibleController();
             SongController songController = myController.getSongController();

@@ -158,7 +158,7 @@ public class SongController {
     @FXML
     private CheckBox searchInTextCheckBox;
     @FXML
-    private ListView<SearchedSong> listView;
+    private ListView<SearchedSong> searchedSongListView;
     @FXML
     private ListView<MyTextFlow> songListView;
     @FXML
@@ -320,7 +320,7 @@ public class SongController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            listView.setCellFactory(param -> new ListCell<SearchedSong>() {
+            searchedSongListView.setCellFactory(param -> new ListCell<SearchedSong>() {
                 @Override
                 protected void updateItem(SearchedSong item, boolean empty) {
                     try {
@@ -362,9 +362,10 @@ public class SongController {
                 }
             });
             ObservableList<MyTextFlow> songListViewItems = songListView.getItems();
-            listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            searchedSongListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 try {
-                    int index = listView.getSelectionModel().selectedIndexProperty().get();
+                    MultipleSelectionModel<SearchedSong> selectionModel = searchedSongListView.getSelectionModel();
+                    int index = selectionModel.selectedIndexProperty().get();
                     if (index >= 0) {
                         if (activeSongVerseTime != null && activeSongVerseTime.getVersTimes() != null
                                 && activeSongVerseTime.getVersTimes().length > previousSelectedVerseIndex
@@ -375,7 +376,7 @@ public class SongController {
                             activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
                         }
                         songListViewItems.clear();
-                        selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
+                        selectedSong = selectionModel.getSelectedItem().getSong();
 
                         showVersionsButton.setVisible(false);
                         String versionGroup = selectedSong.getVersionGroup();
@@ -484,7 +485,7 @@ public class SongController {
             initListViewMenuItem();
             initSongCollectionListViewMenuItem();
 
-            listView.setOnKeyPressed(event -> {
+            searchedSongListView.setOnKeyPressed(event -> {
                 try {
                     if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
                         songListView.requestFocus();
@@ -829,10 +830,10 @@ public class SongController {
     }
 
     private void initializeDragListeners() {
-        listView.setOnDragDetected(event -> {
-            Dragboard dragboard = listView.startDragAndDrop(TransferMode.LINK, TransferMode.COPY);
+        searchedSongListView.setOnDragDetected(event -> {
+            Dragboard dragboard = searchedSongListView.startDragAndDrop(TransferMode.LINK, TransferMode.COPY);
             ClipboardContent content = new ClipboardContent();
-            Song song = listView.getSelectionModel().getSelectedItem().getSong();
+            Song song = searchedSongListView.getSelectionModel().getSelectedItem().getSong();
             String uuid = song.getUuid();
             String s;
             if (uuid == null) {
@@ -845,7 +846,7 @@ public class SongController {
             dragboard.setContent(content);
             rightBorderPane.setOpacity(0.8);
         });
-        listView.setOnDragDone(event -> rightBorderPane.setOpacity(1.0));
+        searchedSongListView.setOnDragDone(event -> rightBorderPane.setOpacity(1.0));
         scheduleListView.setOnDragEntered(dragEvent -> {
             if (getSongsFromDragBoard(dragEvent) != null) {
                 scheduleListView.setBlendMode(BlendMode.DARKEN);
@@ -1029,10 +1030,11 @@ public class SongController {
             }
             songs.addAll(hashMap.values());
             sortSongsByRelevanceOrder(songs);
-            listView.getItems().clear();
+            ObservableList<SearchedSong> items = searchedSongListView.getItems();
+            items.clear();
             for (Song song : songs) {
                 SearchedSong searchedSong = new SearchedSong(song);
-                listView.getItems().add(searchedSong);
+                items.add(searchedSong);
             }
         });
     }
@@ -1527,10 +1529,11 @@ public class SongController {
             lastSearching = LastSearching.IN_SONG;
             List<Song> songs = selectedSongCollection.getSongs();
             if (text.trim().isEmpty()) {
-                listView.getItems().clear();
+                ObservableList<SearchedSong> items = searchedSongListView.getItems();
+                items.clear();
                 for (Song song : songs) {
                     SearchedSong searchedSong = new SearchedSong(song);
-                    listView.getItems().add(searchedSong);
+                    items.add(searchedSong);
                 }
                 lastSearchText = text;
             } else {
@@ -1587,11 +1590,12 @@ public class SongController {
                         }
                         Platform.runLater(() -> {
                             try {
-                                listView.getItems().clear();
+                                ObservableList<SearchedSong> items = searchedSongListView.getItems();
+                                items.clear();
                                 for (int i = 0; i < tmpSearchISong.size(); ++i) {
                                     SearchedSong searchedSong = new SearchedSong(songs.get(tmpSearchISong.get(i)));
                                     searchedSong.setFoundAtVerse(tmpSearchIFoundAtLine.get(i));
-                                    listView.getItems().add(searchedSong);
+                                    items.add(searchedSong);
                                 }
                                 selectIfJustOne();
                             } catch (Exception e) {
@@ -1616,7 +1620,7 @@ public class SongController {
             text = text.trim();
             lastSearching = LastSearching.IN_TITLE;
             lastSearchText = text;
-            listView.getItems().clear();
+            searchedSongListView.getItems().clear();
             String[] split = text.split(" ");
             String firstWord = split[0];
             String ordinalNumber = firstWord;
@@ -1664,14 +1668,14 @@ public class SongController {
                 }
                 if (contains || contains(song.getStrippedTitle(), text)) {
                     SearchedSong searchedSong = new SearchedSong(song);
-                    listView.getItems().add(searchedSong);
+                    searchedSongListView.getItems().add(searchedSong);
                 }
             }
             if (wasOrdinalNumber) {
                 String finalCollectionName = collectionName;
                 String finalOrdinalNumber = ordinalNumber;
                 int finalOrdinalNumberInt = ordinalNumberInt;
-                listView.getItems().sort((l, r) -> {
+                searchedSongListView.getItems().sort((l, r) -> {
                     List<SongCollectionElement> lSongCollectionElements = l.getSong().getSongCollectionElements();
                     List<SongCollectionElement> rSongCollectionElements = r.getSong().getSongCollectionElements();
                     return compareSongCollectionElementsFirstByOrdinalNumber(lSongCollectionElements, rSongCollectionElements, finalCollectionName, finalOrdinalNumber, finalOrdinalNumberInt);
@@ -1679,7 +1683,7 @@ public class SongController {
             }
             selectIfJustOne();
             if (songRemoteListener != null) {
-                songRemoteListener.onSongListViewChanged(listView.getItems());
+                songRemoteListener.onSongListViewChanged(searchedSongListView.getItems());
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -1696,13 +1700,14 @@ public class SongController {
         try {
             lastSearching = LastSearching.IN_TITLE_START_WITH;
             lastSearchText = text;
-            listView.getItems().clear();
+            ObservableList<SearchedSong> items = searchedSongListView.getItems();
+            items.clear();
             List<Song> songs = selectedSongCollection.getSongs();
             for (Song song : songs) {
                 if (song.getTitle().equals(text)) {
                     SearchedSong searchedSong = new SearchedSong(song);
-                    listView.getItems().add(searchedSong);
-                    listView.getSelectionModel().select(0);
+                    items.add(searchedSong);
+                    searchedSongListView.getSelectionModel().select(0);
                     return;
                 }
             }
@@ -1713,9 +1718,9 @@ public class SongController {
 
     private void selectIfJustOne() {
         try {
-            if (listView.getItems().size() == 1) {
-                listView.getSelectionModel().clearAndSelect(0);
-                listView.requestFocus();
+            if (searchedSongListView.getItems().size() == 1) {
+                searchedSongListView.getSelectionModel().clearAndSelect(0);
+                searchedSongListView.requestFocus();
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -1751,10 +1756,11 @@ public class SongController {
 
     private void addSongsToSongListView(List<Song> songs) {
         try {
-            listView.getItems().clear();
+            ObservableList<SearchedSong> items = searchedSongListView.getItems();
+            items.clear();
             for (Song song : songs) {
                 SearchedSong searchedSong = new SearchedSong(song);
-                listView.getItems().add(searchedSong);
+                items.add(searchedSong);
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -1993,14 +1999,15 @@ public class SongController {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
-                        Song selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
+                        SearchedSong selectedItem = searchedSongListView.getSelectionModel().getSelectedItem();
+                        Song selectedSong = selectedItem.getSong();
                         FXMLLoader loader = new FXMLLoader();
                         loader.setLocation(MainDesktop.class.getResource("/view/song/NewSong.fxml"));
                         loader.setResources(Settings.getInstance().getResourceBundle());
                         Pane root = loader.load();
                         NewSongController newSongController = loader.getController();
                         newSongController.setSongController(songController);
-                        newSongController.setSelectedSong(listView.getSelectionModel().getSelectedItem());
+                        newSongController.setSelectedSong(selectedItem);
                         newSongController.setTitleTextFieldText(selectedSong.getTitle());
                         Scene scene = new Scene(root);
                         URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
@@ -2047,7 +2054,7 @@ public class SongController {
                 @Override
                 public void handle(ActionEvent event) {
                     try {
-                        Song selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
+                        Song selectedSong = searchedSongListView.getSelectionModel().getSelectedItem().getSong();
                         FXMLLoader loader = new FXMLLoader();
                         loader.setLocation(MainDesktop.class.getResource("/view/song/AddToCollection.fxml"));
                         loader.setResources(Settings.getInstance().getResourceBundle());
@@ -2072,7 +2079,7 @@ public class SongController {
             });
             removeFromCollectionMenuItem.setOnAction(event -> {
                 try {
-                    Song selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
+                    Song selectedSong = searchedSongListView.getSelectionModel().getSelectedItem().getSong();
                     List<SongCollectionElement> songCollectionElements = selectedSong.getSongCollectionElements();
                     ServiceManager.getSongCollectionElementService().delete(songCollectionElements);
                     selectedSong.setSongCollections(null);
@@ -2084,23 +2091,23 @@ public class SongController {
             });
             deleteMenuItem.setOnAction(event -> {
                 try {
-                    deleteSong(listView.getSelectionModel().getSelectedItem());
+                    deleteSong(searchedSongListView.getSelectionModel().getSelectedItem());
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
                 }
             });
             addScheduleMenuItem.setOnAction(event -> {
                 try {
-                    Song tmp = listView.getSelectionModel().getSelectedItem().getSong();
+                    Song tmp = searchedSongListView.getSelectionModel().getSelectedItem().getSong();
                     scheduleController.addSong(tmp);
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            listView.setOnMouseClicked(event -> {
+            searchedSongListView.setOnMouseClicked(event -> {
                 try {
                     if (event.getButton() == MouseButton.SECONDARY) {
-                        Song selectedSong = listView.getSelectionModel().getSelectedItem().getSong();
+                        Song selectedSong = searchedSongListView.getSelectionModel().getSelectedItem().getSong();
                         boolean hasSongCollection = selectedSong.hasSongCollection();
                         if (hasSongCollection) {
                             cm.getItems().remove(addToCollectionMenuItem);
@@ -2109,7 +2116,7 @@ public class SongController {
                             cm.getItems().remove(removeFromCollectionMenuItem);
                             cm.getItems().add(1, addToCollectionMenuItem);
                         }
-                        cm.show(listView, event.getScreenX(), event.getScreenY());
+                        cm.show(searchedSongListView, event.getScreenX(), event.getScreenY());
                     } else {
                         cm.hide();
                     }
@@ -2254,7 +2261,7 @@ public class SongController {
     private void deleteSong(SearchedSong selectedSong) {
         try {
             final Song song = removeSongFromList(selectedSong);
-            listView.getItems().remove(selectedSong);
+            searchedSongListView.getItems().remove(selectedSong);
             try {
                 songService.delete(song);
             } catch (ServiceException e) {
@@ -2269,7 +2276,7 @@ public class SongController {
 
     Song removeSongFromList(SearchedSong searchedSong) {
         try {
-            listView.getItems().remove(searchedSong);
+            searchedSongListView.getItems().remove(searchedSong);
             final Song song = searchedSong.getSong();
             for (int i = 0; i < songs.size(); ++i) {
                 final Song song1 = songs.get(i);
@@ -2292,6 +2299,7 @@ public class SongController {
             Pane root = loader.load();
             NewSongController newSongController = loader.getController();
             newSongController.setSongController(songController);
+            newSongController.setRoot(root);
             Scene scene = new Scene(root);
             setSceneStyleFile2(scene);
             Stage stage = new Stage();
@@ -2484,9 +2492,9 @@ public class SongController {
 
     private void selectFirstSong() {
         try {
-            if (listView.getItems().size() > 0) {
-                listView.getSelectionModel().clearAndSelect(0);
-                listView.requestFocus();
+            if (searchedSongListView.getItems().size() > 0) {
+                searchedSongListView.getSelectionModel().clearAndSelect(0);
+                searchedSongListView.requestFocus();
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -2494,7 +2502,7 @@ public class SongController {
     }
 
     public ListView<SearchedSong> getListView() {
-        return listView;
+        return searchedSongListView;
     }
 
     void addSong(Song song) {
@@ -2633,10 +2641,10 @@ public class SongController {
     }
 
     void selectSong(Song song) {
-        ObservableList<SearchedSong> listViewItems = listView.getItems();
+        ObservableList<SearchedSong> listViewItems = searchedSongListView.getItems();
         listViewItems.clear();
         listViewItems.add(new SearchedSong(song));
-        listView.getSelectionModel().selectFirst();
+        searchedSongListView.getSelectionModel().selectFirst();
     }
 
     public void setSongRemoteListener(SongRemoteListener songRemoteListener) {
@@ -2658,8 +2666,8 @@ public class SongController {
                 @Override
                 public void onSongListViewItemClick(int index) {
                     Platform.runLater(() -> {
-                        if (listView.getItems().size() > index) {
-                            listView.getSelectionModel().clearAndSelect(index);
+                        if (searchedSongListView.getItems().size() > index) {
+                            searchedSongListView.getSelectionModel().clearAndSelect(index);
                         }
                     });
                 }
