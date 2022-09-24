@@ -54,7 +54,7 @@ public class FileResource {
                 .body(new InputStreamResource(new ByteArrayInputStream("[]".getBytes())));
     }
 
-    @RequestMapping(value = "/api/files/{fileName}")
+    @RequestMapping(value = "/api/files/{pFileName}")
     public ResponseEntity<InputStreamResource> file(@PathVariable String pFileName) {
         String fileName = getFileName(pFileName); // fileName because we don't want other directories to be readable
         return getInputStreamResourceResponseEntity("aPublic_folder/" + fileName, servletContext);

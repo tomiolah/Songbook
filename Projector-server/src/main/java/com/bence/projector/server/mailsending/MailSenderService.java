@@ -132,6 +132,9 @@ public class MailSenderService {
     private void sendSuggestionsInThread(User user, List<Suggestion> suggestionStack) {
         List<Suggestion> suggestionList = new ArrayList<>(suggestionStack.size());
         suggestionList.addAll(suggestionStack);
+        if (!AppProperties.getInstance().isProduction()) {
+            return;
+        }
         Thread thread = new Thread(() -> sendSuggestions(suggestionList, user));
         thread.start();
     }
