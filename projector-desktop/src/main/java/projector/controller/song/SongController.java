@@ -1729,14 +1729,10 @@ public class SongController {
 
     public void initializeSongs() {
         try {
-            Date date = new Date();
             readSongs();
             sortSongs(songs);
             addAllSongs();
             addSongCollections();
-            Date date2 = new Date();
-            final String time = date2.getTime() - date.getTime() + "";
-            LOG.info(time);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

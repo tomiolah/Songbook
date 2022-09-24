@@ -8,6 +8,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.ToggleButton;
@@ -70,11 +71,9 @@ public class MyController {
     @FXML
     private TabPane tabPane;
     //    @FXML
-//    private Slider slider;
+    //    private Slider slider;
     // @FXML
     // private ToggleButton accentsButton;
-    @FXML
-    private Stage primaryStage;
     private Settings settings;
     @FXML
     private Tab songsTab;
@@ -98,10 +97,9 @@ public class MyController {
     }
 
     public void setPrimaryStage(Stage primaryStage) {
-        this.primaryStage = primaryStage;
-        // primaryStage.setMaximized(true);
-        // primaryStage.setX(0);
-        // primaryStage.setY(0);
+        projectionScreenController.setPrimaryStage(primaryStage);
+        primaryStage.toFront();
+        primaryStage.requestFocus();
     }
 
     public void setProjectionScreenController(ProjectionScreenController projectionScreenController) {
@@ -113,12 +111,9 @@ public class MyController {
         utilsController.setProjectionScreenController(projectionScreenController);
         projectionScreenController.setBlank(true);
         projectionScreenController.setSongController(songController);
-        projectionScreenController.setPrimaryStage(primaryStage);
         if (settings.isPreviewLoadOnStart()) {
             projectionScreenController.createPreview();
         }
-        primaryStage.toFront();
-        primaryStage.requestFocus();
         if (settings.isAllowRemote()) {
             RemoteServer.startRemoteServer(projectionScreenController, songController);
         }
@@ -126,6 +121,7 @@ public class MyController {
         automaticNetworks();
     }
 
+    @SuppressWarnings("unused")
     private void initializeGlobalKeyListener(ProjectionScreenController projectionScreenController) {
         try {
             GlobalScreen.registerNativeHook();
@@ -168,13 +164,13 @@ public class MyController {
 //        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
 //            System.out.println(newValue.getText());
 //        });
-        tabPane.getSelectionModel().selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
+        SingleSelectionModel<Tab> tabPaneSelectionModel = tabPane.getSelectionModel();
+        tabPaneSelectionModel.selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.equals(4)) {
                 historyController.loadRecents();
             }
         });
-        tabPane.getSelectionModel().select(recentTab);
-        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+        tabPaneSelectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.equals(songsTab)) {
                 songController.lazyInitialize();
             } else if (newValue.equals(bibleSearchTab)) {
@@ -190,6 +186,7 @@ public class MyController {
                 tabPane.getTabs().get(tabPane.getSelectionModel().getSelectedIndex()).getContent().requestFocus();
             }
         });
+        tabPaneSelectionModel.select(songsTab);
         tabPane.setFocusTraversable(false);
 //        slider.valueProperty().addListener(new ChangeListener<Number>() {
 //
