@@ -71,7 +71,7 @@ public class MainDesktop extends Application {
         try {
             this.primaryStage = primaryStage;
             ApplicationUtil.getInstance().setPrimaryStage(primaryStage);
-            if (ApplicationVersion.getInstance().getVersion() < 25) {
+            if (ApplicationVersion.getInstance().getVersion() < 25 && ApplicationVersion.getInstance().isNotTesting()) {
                 openFirstSetupView(primaryStage);
             } else {
                 openLauncherView(primaryStage);
@@ -110,7 +110,12 @@ public class MainDesktop extends Application {
             });
         });
         stage.show();
-        thread.start();
+        if (ApplicationVersion.getInstance().isNotTesting()) {
+            thread.start();
+        } else {
+            start2(primaryStage);
+            primaryStage.show();
+        }
     }
 
     private void openFirstSetupView(Stage primaryStage) throws IOException {

@@ -6,11 +6,13 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import org.junit.Before;
 import org.testfx.framework.junit.ApplicationTest;
+import projector.application.ApplicationVersion;
 
 public class BaseTest extends ApplicationTest {
 
     @Before
     public void setUpClass() throws Exception {
+        ApplicationVersion.getInstance().setTesting(true);
         ApplicationTest.launch(MainDesktop.class);
     }
 

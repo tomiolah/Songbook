@@ -21,6 +21,7 @@ public class ApplicationVersion {
     private final String filePath = "application.version";
     @Expose
     private int version;
+    private boolean testing;
 
     private ApplicationVersion() {
     }
@@ -85,5 +86,13 @@ public class ApplicationVersion {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    public boolean isNotTesting() {
+        return !testing;
+    }
+
+    public void setTesting(boolean testing) {
+        this.testing = testing;
     }
 }
