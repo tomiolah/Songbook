@@ -29,6 +29,13 @@ public class ProjectorVersionResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/projectorVersionsAfterNr/{nr}")
     public List<ProjectorVersionDTO> findAllAfterDate(HttpServletRequest httpServletRequest, @PathVariable("nr") int nr) {
         saveStatistics(httpServletRequest, statisticsService);
+        final List<ProjectorVersion> projectorVersions = projectorVersionService.findAllAfterCreatedNrAndBeforeCreatedNr(nr, 40);
+        return projectorVersionAssembler.createDtoList(projectorVersions);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/api/projectorVersionsAfterNr/v3/{nr}")
+    public List<ProjectorVersionDTO> findAllAfterDate_v3(HttpServletRequest httpServletRequest, @PathVariable("nr") int nr) {
+        saveStatistics(httpServletRequest, statisticsService);
         final List<ProjectorVersion> projectorVersions = projectorVersionService.findAllAfterCreatedNr(nr);
         return projectorVersionAssembler.createDtoList(projectorVersions);
     }

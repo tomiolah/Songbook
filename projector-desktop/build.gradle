@@ -104,3 +104,7 @@ runtime {
         }
     }
 }
+
+task installationTask(type: Exec, dependsOn: ['jpackageImage']) {
+    commandLine '"C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe"', 'setup.iss'
+}

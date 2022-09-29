@@ -32,7 +32,7 @@ public class Statistics extends BaseEntity {
     }
 
     public void setRemoteAddress(String remoteAddress) {
-        this.remoteAddress = remoteAddress.substring(0, REMOTE_ADDRESS_LENGTH - 1);
+        this.remoteAddress = remoteAddress.substring(0, Math.min(remoteAddress.length(), REMOTE_ADDRESS_LENGTH - 1));
     }
 
     public String getUri() {

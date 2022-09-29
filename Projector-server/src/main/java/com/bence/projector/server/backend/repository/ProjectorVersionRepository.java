@@ -8,4 +8,6 @@ import java.util.List;
 public interface ProjectorVersionRepository extends CrudRepository<ProjectorVersion, Long> {
 
     List<ProjectorVersion> findAllByVersionIdGreaterThan(int nr);
+
+    List<ProjectorVersion> findAllByVersionIdGreaterThanAndVersionIdLessThan(int nr, int nr2);
 }
