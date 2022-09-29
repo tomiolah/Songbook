@@ -18,16 +18,18 @@ public class UpdateController {
     private Button updateButton;
     @FXML
     private TextFlow textFlow;
+    private List<ProjectorVersionDTO> projectorVersions;
 
     public void initialize() {
     }
 
     public void updateButtonOnAction() {
-        Updater.getInstance().updateExe();
+        Updater.getInstance().updateExe(projectorVersions);
         updateButton.setDisable(true);
     }
 
     public void setProjectorVersions(List<ProjectorVersionDTO> projectorVersions) {
+        this.projectorVersions = projectorVersions;
         ObservableList<Node> children = textFlow.getChildren();
         for (ProjectorVersionDTO projectorVersionDTO : projectorVersions) {
             Text text = new Text(projectorVersionDTO.getVersion().trim() + ":\n");

@@ -8,6 +8,6 @@ import retrofit2.http.Path;
 import java.util.List;
 
 public interface ProjectorVersionApi {
-    @GET("/api/projectorVersionsAfterNr/{nr}")
+    @GET("/api/projectorVersionsAfterNr/v3/{nr}")
     Call<List<ProjectorVersionDTO>> getProjectorVersionsAfterNr(@Path("nr") int nr);
 }

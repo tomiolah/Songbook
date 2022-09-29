@@ -113,14 +113,11 @@ public class SettingsController {
     private CheckBox referenceItalicCheckBox;
     @FXML
     private Spinner<Integer> progressLineThicknessSpinner;
-
     private Settings settings;
     private ProjectionScreenController projectionScreenController;
-
     @FXML
     private CheckBox previewLoadOnStartCheckbox;
     private SongController songController;
-
     private List<Listener> listeners;
     private boolean initialized = false;
     private Stage stage;
@@ -368,7 +365,7 @@ public class SettingsController {
 
     public void onUpdateButtonAction() {
         Updater updater = Updater.getInstance();
-        updater.updateExe();
+        updater.updateExe2();
     }
 
     public void setPrefHeight(double d) {

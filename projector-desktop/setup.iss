@@ -1,10 +1,11 @@
 [Setup]
 AppName=Projector
 AppId=Projector_3
-AppVersion=3.0.0
+AppVersion=3.0.2
 AppVerName=Projector
 AppPublisher=SongPraise.com
 AppPublisherURL=http://www.songpraise.com/#/desktop-app
+UsePreviousAppDir=yes
 DefaultDirName={sd}\Projector
 DisableDirPage=no
 ; Since no icons will be created in "{group}", we don't need the wizard
@@ -13,8 +14,9 @@ DisableProgramGroupPage=yes
 UninstallDisplayIcon={app}\Projector.exe
 Compression=lzma2
 SolidCompression=yes
-OutputDir=..\Projector-server\src\main\resources\static
+OutputDir=..\Projector-server\aPublic_folder
 OutputBaseFilename=projector-setup
+SetupIconFile=projector_icon.ico
 
 [Files]     
 Source: ".\build\jpackage\Projector\Projector.exe"; DestDir: "{app}"
@@ -224,6 +226,11 @@ Source: "forSetup\songVersTimes"; DestDir: "{app}"
 Source: "forSetup\settings.ini"; DestDir: "{app}"
 Source: "forSetup\projector.log"; DestDir: "{app}"
 Source: "forSetup\recent.txt"; DestDir: "{app}"
+Source: "forSetup\application.version"; DestDir: "{app}"
+Source: "forSetup\app\projector-updater.jar"; DestDir: "{app}\app"
+Source: "forSetup\app\updater.cfg"; DestDir: "{app}\app"
+Source: "forSetup\updater.ico"; DestDir: "{app}"
+Source: "forSetup\updater.exe"; DestDir: "{app}"
 
 [Icons]
 Name: "{commonprograms}\Projector"; Filename: "{app}\Projector.exe"

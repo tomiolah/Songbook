@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.application.ApplicationUtil;
 import projector.application.ApplicationVersion;
 import projector.application.ProjectionType;
 import projector.application.Settings;
@@ -69,6 +70,7 @@ public class MainDesktop extends Application {
     public void start(Stage primaryStage) {
         try {
             this.primaryStage = primaryStage;
+            ApplicationUtil.getInstance().setPrimaryStage(primaryStage);
             if (ApplicationVersion.getInstance().getVersion() < 25) {
                 openFirstSetupView(primaryStage);
             } else {
@@ -99,7 +101,11 @@ public class MainDesktop extends Application {
                 throw new RuntimeException(e);
             }
             Platform.runLater(() -> {
-                start2(primaryStage);
+                try {
+                    start2(primaryStage);
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
                 stage.close();
             });
         });
@@ -248,19 +254,26 @@ public class MainDesktop extends Application {
         screen = Screen.getScreens();
         screen.addListener((ListChangeListener<Screen>) c -> setProjectionScreenStage());
         setProjectionScreenStage();
-        primaryStage.setOnCloseRequest(we -> {
-            System.out.println("Stage is closing");
-            Settings settings = Settings.getInstance();
-            settings.setApplicationRunning(false);
-            settings.setMainHeight(primaryStage.getScene().getHeight());
-            settings.setMainWidth(primaryStage.getScene().getWidth());
-            settings.save();
-            if (tmpStage != null) {
-                tmpStage.close();
-            }
-            myController.close();
-            projectionScreenController.onClose();
-        });
+        primaryStage.setOnCloseRequest(we -> closeApplication());
+        ApplicationUtil.getInstance().setListener(this::closeApplication);
+        primarySceneEventHandler();
+    }
+
+    private void closeApplication() {
+        System.out.println("Stage is closing");
+        Settings settings = Settings.getInstance();
+        settings.setApplicationRunning(false);
+        settings.setMainHeight(primaryStage.getScene().getHeight());
+        settings.setMainWidth(primaryStage.getScene().getWidth());
+        settings.save();
+        if (tmpStage != null) {
+            tmpStage.close();
+        }
+        myController.close();
+        projectionScreenController.onClose();
+    }
+
+    private void primarySceneEventHandler() {
         if (primaryScene != null) {
             primaryScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
                 if (tmpStage != null) {
