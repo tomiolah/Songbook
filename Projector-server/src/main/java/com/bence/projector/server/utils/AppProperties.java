@@ -46,4 +46,8 @@ public class AppProperties {
     public String adminEmail() {
         return (String) properties.get("adminEmail");
     }
+
+    public String getYouTubeAPIKey() {
+        return (String) properties.get("YouTubeAPIKey");
+    }
 }
