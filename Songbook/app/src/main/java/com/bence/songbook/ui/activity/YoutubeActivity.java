@@ -84,7 +84,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
         Intent intent = getIntent();
         song = Memory.getInstance().getPassingSong();
         youTubeView = findViewById(R.id.youtube_view);
-        youTubeView.initialize(Config.YOUTUBE_API_KEY, this);
+        youTubeView.initialize(Config.getInstance().getYouTubeApiKey(this), this);
         try {
             textView = findViewById(R.id.fullscreen_content);
             textView.setSingleLine(false);
@@ -238,7 +238,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == RECOVERY_REQUEST) {
             // Retry initialization if user performed a recovery action
-            getYouTubePlayerProvider().initialize(Config.YOUTUBE_API_KEY, this);
+            getYouTubePlayerProvider().initialize(Config.getInstance().getYouTubeApiKey(this), this);
         }
     }
 

@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import com.bence.projector.common.dto.LoginDTO;
+import com.bence.songbook.api.HttpStatus;
 import com.bence.songbook.api.LoginApiBean;
 import com.bence.songbook.models.LoggedInUser;
 import com.bence.songbook.repository.impl.ormLite.LoggedInUserRepositoryImpl;
@@ -12,6 +13,7 @@ import com.bence.songbook.repository.impl.ormLite.LoggedInUserRepositoryImpl;
 import java.util.List;
 
 import okhttp3.Headers;
+import okhttp3.Response;
 
 public class UserService {
     private static UserService instance;
@@ -40,7 +42,10 @@ public class UserService {
         return getLoggedInUser(context) != null;
     }
 
-    public boolean loginNeeded(Headers headers) {
+    public boolean loginNeeded(Headers headers, Response response) {
+        if (response != null && response.code() == HttpStatus.NOT_AUTHORIZED) {
+            return true;
+        }
         List<String> locations = headers.values("Location");
         for (String s : locations) {
             if (s.endsWith("/#/login")) {
@@ -62,8 +67,8 @@ public class UserService {
         return loginApiBean.login(loginDTO);
     }
 
-    public boolean loginIfNeeded(Headers headers, Context context) {
-        if (loginNeeded(headers)) {
+    public boolean loginIfNeeded(Headers headers, Context context, Response response) {
+        if (loginNeeded(headers, response)) {
             return loginToServer(context);
         }
         return false;

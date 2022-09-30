@@ -101,6 +101,7 @@ import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.ui.utils.QueueSongAdapter;
 import com.bence.songbook.ui.utils.SyncFavouriteInGoogleDrive;
 import com.bence.songbook.ui.utils.SyncInBackground;
+import com.bence.songbook.utils.Config;
 import com.bence.songbook.utils.Utility;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -487,6 +488,7 @@ public class MainActivity extends AppCompatActivity
         syncDatabase();
         setView();
         hideBottomSheetIfNoQueue();
+        Config.getInstance().getYouTubeApiKey(this);
     }
 
     private void loadFavouriteSongsFromDatabase() {

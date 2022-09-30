@@ -54,14 +54,9 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_suggest_youtube);
         youTubeView = findViewById(R.id.youtube_view);
-        youTubeView.initialize(Config.YOUTUBE_API_KEY, this);
+        youTubeView.initialize(Config.getInstance().getYouTubeApiKey(this), this);
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                submit();
-            }
-        });
+        fab.setOnClickListener(view -> submit());
         song = Memory.getInstance().getPassingSong();
         youtubeEditText = findViewById(R.id.youtubeUrl);
         youtubeEditText.addTextChangedListener(new TextWatcher() {
@@ -129,12 +124,9 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
             CheckSongForUpdate.getInstance().addListener(new CheckSongForUpdateListener(layoutInflater) {
                 @Override
                 public void onSongHasBeenModified(final PopupWindow updatePopupWindow) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            LinearLayout updateSongsLayout = findViewById(R.id.updateSongsLayout);
-                            updatePopupWindow.showAtLocation(updateSongsLayout, Gravity.CENTER, 0, 0);
-                        }
+                    runOnUiThread(() -> {
+                        LinearLayout updateSongsLayout = findViewById(R.id.updateSongsLayout);
+                        updatePopupWindow.showAtLocation(updateSongsLayout, Gravity.CENTER, 0, 0);
                     });
                 }
 
@@ -267,7 +259,7 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         if (errorReason.isUserRecoverableError()) {
             errorReason.getErrorDialog(this, RECOVERY_REQUEST).show();
         } else {
-            String error = String.format("Error initializing YouTube player: %s", errorReason.toString());
+            String error = String.format("Error initializing YouTube player: %s", errorReason);
             Toast.makeText(this, error, Toast.LENGTH_LONG).show();
             startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + song.getYoutubeUrl())));
             finish();
@@ -278,7 +270,7 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == RECOVERY_REQUEST) {
             // Retry initialization if user performed a recovery action
-            getYouTubePlayerProvider().initialize(Config.YOUTUBE_API_KEY, this);
+            getYouTubePlayerProvider().initialize(Config.getInstance().getYouTubeApiKey(this), this);
         }
     }
 
