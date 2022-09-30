@@ -5,7 +5,6 @@ plugins {
 }
 
 //group = 'com.bence.projector.server'
-version = '1.0.0'
 sourceCompatibility = '17'
 targetCompatibility = '17'
 
