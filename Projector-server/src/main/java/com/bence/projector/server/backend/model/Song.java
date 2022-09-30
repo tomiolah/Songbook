@@ -1,5 +1,6 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Index;
@@ -20,7 +21,7 @@ public class Song extends AbstractModel {
 
     private String originalId;
     private String title;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SongVerse> verses;
     private Date createdDate;
     private Date modifiedDate;
@@ -52,7 +53,7 @@ public class Song extends AbstractModel {
     private String beforeId;
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "newSongStack")
     private List<NotificationByLanguage> notificationByLanguages;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Suggestion> suggestions;
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<SongListElement> songListElements;
@@ -143,10 +144,6 @@ public class Song extends AbstractModel {
         this.deleted = deleted;
     }
 
-    public boolean isJustUploaded() {
-        return deleted && !isBackUp() || !isReviewerErased();
-    }
-
     public Language getLanguage() {
         return language;
     }
@@ -170,14 +167,6 @@ public class Song extends AbstractModel {
 
     public long getViews() {
         return views;
-    }
-
-    public void setViews(long views) {
-        this.views = views;
-    }
-
-    public Date getLastIncrementViewDate() {
-        return lastIncrementViewDate;
     }
 
     public void setLastIncrementViewDate(Date lastIncrementViewDate) {
@@ -232,10 +221,6 @@ public class Song extends AbstractModel {
         this.youtubeUrl = youtubeUrl;
     }
 
-    public Date getLastIncrementFavouritesDate() {
-        return lastIncrementFavouritesDate;
-    }
-
     public void setLastIncrementFavouritesDate(Date lastIncrementFavouritesDate) {
         this.lastIncrementFavouritesDate = lastIncrementFavouritesDate;
     }
@@ -246,10 +231,6 @@ public class Song extends AbstractModel {
 
     public long getFavourites() {
         return favourites;
-    }
-
-    public void setFavourites(long favourites) {
-        this.favourites = favourites;
     }
 
     public String getVerseOrder() {
@@ -368,10 +349,6 @@ public class Song extends AbstractModel {
 
     public boolean isPublic() {
         return !isReviewerErased() && !isDeleted() && !isBackUp();
-    }
-
-    public void setNotificationByLanguages(List<NotificationByLanguage> notificationByLanguages) {
-        this.notificationByLanguages = notificationByLanguages;
     }
 
     private String idOrVersionGroup() {
