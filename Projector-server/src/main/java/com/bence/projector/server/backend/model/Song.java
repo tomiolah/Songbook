@@ -1,6 +1,5 @@
 package com.bence.projector.server.backend.model;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.Index;
@@ -21,7 +20,7 @@ public class Song extends AbstractModel {
 
     private String originalId;
     private String title;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<SongVerse> verses;
     private Date createdDate;
     private Date modifiedDate;
@@ -53,7 +52,7 @@ public class Song extends AbstractModel {
     private String beforeId;
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "newSongStack")
     private List<NotificationByLanguage> notificationByLanguages;
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<Suggestion> suggestions;
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<SongListElement> songListElements;
