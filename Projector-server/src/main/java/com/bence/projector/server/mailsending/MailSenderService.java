@@ -180,6 +180,9 @@ public class MailSenderService {
 
     private void sendNewSongs(List<Song> songs, User user) {
         try {
+            if (!AppProperties.getInstance().isProduction()) {
+                return;
+            }
             final String freemarkerName = FreemarkerConfiguration.NEW_SONG + ".ftl";
             freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
             config.setDefaultEncoding("UTF-8");
