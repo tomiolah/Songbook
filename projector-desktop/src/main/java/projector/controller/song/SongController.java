@@ -840,7 +840,7 @@ public class SongController {
                 s = prefix + song.getId();
                 content.putString(s);
             } else {
-                s = link3 + "/song/" + uuid;
+                s = link4 + "/song/" + uuid;
                 content.putUrl(s);
             }
             dragboard.setContent(content);

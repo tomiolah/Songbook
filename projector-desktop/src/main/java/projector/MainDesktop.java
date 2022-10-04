@@ -234,6 +234,7 @@ public class MainDesktop extends Application {
             System.out.println("Something wrong!");
         }
         myController.setProjectionScreenController(projectionScreenController);
+        myController.initialTabSelect();
         myController.setMain(this);
         myController.getSettingsController().addOnSaveListener(() -> {
             ObservableList<String> stylesheets = primaryScene.getStylesheets();

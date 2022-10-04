@@ -186,7 +186,6 @@ public class MyController {
                 tabPane.getTabs().get(tabPane.getSelectionModel().getSelectedIndex()).getContent().requestFocus();
             }
         });
-        tabPaneSelectionModel.select(songsTab);
         tabPane.setFocusTraversable(false);
 //        slider.valueProperty().addListener(new ChangeListener<Number>() {
 //
@@ -196,6 +195,10 @@ public class MyController {
 //                projectionScreenController.getStage().setOpacity(newValue.doubleValue());
 //            }
 //        });
+    }
+
+    public void initialTabSelect() {
+        tabPane.getSelectionModel().select(songsTab);
     }
 
     private void automaticNetworks() {
