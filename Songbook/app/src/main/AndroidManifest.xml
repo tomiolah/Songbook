@@ -43,7 +43,7 @@
             android:exported="true"
             android:theme="@style/SongBookTheme"
             android:windowSoftInputMode="adjustPan">
-            <tools:validation testUrl="https://projector-songbook.herokuapp.com/#/song/5abf7bcde66f410004c91084" />
+            <tools:validation testUrl="https://projector-songbook.herokuapp.com/song/5abf7bcde66f410004c91084" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -56,6 +56,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
+                <data android:pathPattern="/song/.*" />
+                <data android:pathPattern="/queue.*" />
+                <data android:pathPattern="/songList/.*" />
                 <data
                     android:host="projector-songbook.herokuapp.com"
                     android:scheme="https" />

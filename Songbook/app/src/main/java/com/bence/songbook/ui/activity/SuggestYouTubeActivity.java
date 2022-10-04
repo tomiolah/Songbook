@@ -116,7 +116,7 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
             youtubeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(youtubeIntent);
         } catch (Exception e) {
-            Uri parse = Uri.parse("http://www.youtube.com/results?search_query=" + song.getTitle().replace(" ", "+"));
+            Uri parse = Uri.parse("https://www.youtube.com/results?search_query=" + song.getTitle().replace(" ", "+"));
             startActivity(new Intent(Intent.ACTION_VIEW, parse));
         }
         if (song.getUuid() != null && !song.getUuid().isEmpty()) {
@@ -261,7 +261,7 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         } else {
             String error = String.format("Error initializing YouTube player: %s", errorReason);
             Toast.makeText(this, error, Toast.LENGTH_LONG).show();
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + song.getYoutubeUrl())));
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=" + song.getYoutubeUrl())));
             finish();
         }
     }

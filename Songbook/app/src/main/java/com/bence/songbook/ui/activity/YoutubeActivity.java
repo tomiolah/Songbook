@@ -229,7 +229,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
         } else {
             String error = String.format("Error initializing YouTube player: %s", errorReason);
             Toast.makeText(this, error, Toast.LENGTH_LONG).show();
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://www.youtube.com/watch?v=" + song.getYoutubeUrl())));
+            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=" + song.getYoutubeUrl())));
             finish();
         }
     }
