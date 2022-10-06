@@ -132,6 +132,9 @@ public class MailSenderService {
     private void sendSuggestionsInThread(User user, List<Suggestion> suggestionStack) {
         List<Suggestion> suggestionList = new ArrayList<>(suggestionStack.size());
         suggestionList.addAll(suggestionStack);
+        if (!AppProperties.getInstance().isProduction()) {
+            return;
+        }
         Thread thread = new Thread(() -> sendSuggestions(suggestionList, user));
         thread.start();
     }
@@ -153,11 +156,14 @@ public class MailSenderService {
             helper = new MimeMessageHelper(message, true);
             helper.setTo(new InternetAddress(user.getEmail()));
             helper.setFrom(getInternetAddress());
+            String subject;
             if (suggestions.size() > 1) {
-                helper.setSubject("New suggestions");
+                subject = "New suggestions (" + suggestions.size() + ")";
             } else {
-                helper.setSubject("New suggestion");
+                subject = "New suggestion";
             }
+            subject += addLanguageToSubjectFromSuggestions(suggestions, user);
+            helper.setSubject(subject);
 
             Template template = config.getTemplate(freemarkerName);
 
@@ -174,6 +180,9 @@ public class MailSenderService {
 
     private void sendNewSongs(List<Song> songs, User user) {
         try {
+            if (!AppProperties.getInstance().isProduction()) {
+                return;
+            }
             final String freemarkerName = FreemarkerConfiguration.NEW_SONG + ".ftl";
             freemarker.template.Configuration config = ConfigurationUtil.getConfiguration();
             config.setDefaultEncoding("UTF-8");
@@ -182,11 +191,14 @@ public class MailSenderService {
             helper = new MimeMessageHelper(message, true);
             helper.setTo(new InternetAddress(user.getEmail()));
             helper.setFrom(getInternetAddress());
+            String subject;
             if (songs.size() > 1) {
-                helper.setSubject("New songs");
+                subject = "New songs (" + songs.size() + ")";
             } else {
-                helper.setSubject("New song");
+                subject = "New song";
             }
+            subject += addLanguageToSubject(songs, user);
+            helper.setSubject(subject);
 
             Template template = config.getTemplate(freemarkerName);
 
@@ -199,6 +211,42 @@ public class MailSenderService {
         } catch (MessagingException | IOException | TemplateException e) {
             e.printStackTrace();
         }
+    }
+
+    private String addLanguageToSubject(List<Song> songs, User user) {
+        try {
+            if (songs.size() < 1) {
+                return "";
+            }
+            Language language = songs.get(0).getLanguage();
+            return getSubjectByLanguage(user, language);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    private String addLanguageToSubjectFromSuggestions(List<Suggestion> suggestions, User user) {
+        try {
+            if (suggestions.size() < 1) {
+                return "";
+            }
+            Language language = suggestions.get(0).getSong().getLanguage();
+            return getSubjectByLanguage(user, language);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
+    private String getSubjectByLanguage(User user, Language language) {
+        if (language == null) {
+            return "";
+        }
+        if (user.getRole().equals(Role.ROLE_ADMIN) || user.getReviewLanguages().size() > 1) {
+            return " - " + language.getEnglishName() + " | " + language.getNativeName();
+        }
+        return "";
     }
 
     public InternetAddress getInternetAddress() throws AddressException {

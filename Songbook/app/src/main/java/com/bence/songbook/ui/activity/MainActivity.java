@@ -3,6 +3,7 @@ package com.bence.songbook.ui.activity;
 import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_DRAGGING;
 import static androidx.recyclerview.widget.RecyclerView.SCROLL_STATE_IDLE;
 import static com.bence.songbook.ui.activity.LoginActivity.RESULT_LOGGED_IN;
+import static com.bence.songbook.ui.activity.NewSongActivity.sortLanguagesByRecentlyViewedSongs;
 import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 import static com.bence.songbook.utils.BaseURL.BASE_URL;
@@ -35,11 +36,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -93,6 +92,7 @@ import com.bence.songbook.repository.impl.ormLite.SongListRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.FavouriteSongService;
 import com.bence.songbook.service.UserService;
+import com.bence.songbook.ui.adapter.LanguageAdapter;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.DynamicListView;
 import com.bence.songbook.ui.utils.GoogleSignInIntent;
@@ -101,6 +101,7 @@ import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.ui.utils.QueueSongAdapter;
 import com.bence.songbook.ui.utils.SyncFavouriteInGoogleDrive;
 import com.bence.songbook.ui.utils.SyncInBackground;
+import com.bence.songbook.utils.Config;
 import com.bence.songbook.utils.Utility;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
@@ -114,7 +115,6 @@ import java.io.StringWriter;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -222,12 +222,7 @@ public class MainActivity extends AppCompatActivity
             stackDTO.setVersion(version);
         } catch (Exception ignored) {
         }
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                stackApiBean.uploadStack(stackDTO);
-            }
-        });
+        Thread thread = new Thread(() -> stackApiBean.uploadStack(stackDTO));
         thread.start();
         try {
             thread.join(7000L);
@@ -243,26 +238,23 @@ public class MainActivity extends AppCompatActivity
         int queueIndex = sharedPreferences.getInt("queueIndex", -1);
         memory.setQueueIndex(queueIndex, this);
         queueListView = findViewById(R.id.queueList);
-        queueListView.setOnTouchListener(new ListView.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                int action = event.getAction();
-                switch (action) {
-                    case MotionEvent.ACTION_DOWN:
-                        // Disallow NestedScrollView to intercept touch events.
-                        v.getParent().requestDisallowInterceptTouchEvent(true);
-                        break;
+        queueListView.setOnTouchListener((v, event) -> {
+            int action = event.getAction();
+            switch (action) {
+                case MotionEvent.ACTION_DOWN:
+                    // Disallow NestedScrollView to intercept touch events.
+                    v.getParent().requestDisallowInterceptTouchEvent(true);
+                    break;
 
-                    case MotionEvent.ACTION_UP:
-                        // Allow NestedScrollView to intercept touch events.
-                        v.getParent().requestDisallowInterceptTouchEvent(false);
-                        break;
-                }
-
-                // Handle ListView touch events.
-                v.onTouchEvent(event);
-                return true;
+                case MotionEvent.ACTION_UP:
+                    // Allow NestedScrollView to intercept touch events.
+                    v.getParent().requestDisallowInterceptTouchEvent(false);
+                    break;
             }
+
+            // Handle ListView touch events.
+            v.onTouchEvent(event);
+            return true;
         });
 
         queueListView.setListener(new DynamicListView.Listener() {
@@ -383,7 +375,7 @@ public class MainActivity extends AppCompatActivity
         mainActivity = this;
         linearLayout = findViewById(R.id.mainLinearLayout);
         languageRepository = new LanguageRepositoryImpl(getApplicationContext());
-        languages = languageRepository.findAll();
+        loadLanguages();
         songCollections = memory.getSongCollections();
         favouriteSongs = memory.getFavouriteSongs();
         songCollectionRepository = new SongCollectionRepositoryImpl(getApplicationContext());
@@ -460,7 +452,16 @@ public class MainActivity extends AppCompatActivity
             }
         } else {
             songs = new ArrayList<>();
-            filter();
+            initialLoad();
+        }
+        onCreateEnd();
+    }
+
+    private void initialLoad() {
+//        Thread thread = new Thread(() -> {
+        // need to be faster
+        filter();
+        runOnUiThread(() -> {
             if (songs.size() > 0) {
                 setDataToQueueSongs();
                 Memory memory = Memory.getInstance();
@@ -469,10 +470,16 @@ public class MainActivity extends AppCompatActivity
                 loadSongVersesThread.start();
                 uploadViewsFavourites();
             } else {
-                Intent loadIntent = new Intent(this, LanguagesActivity.class);
+                Intent loadIntent = new Intent(MainActivity.this, LanguagesActivity.class);
                 startActivityForResult(loadIntent, DOWNLOAD_SONGS_REQUEST_CODE);
             }
-        }
+        });
+//        });
+//        thread.start();
+        // or a simple initial load
+    }
+
+    private void onCreateEnd() {
         Intent appLinkIntent = getIntent();
         Uri appLinkData = appLinkIntent.getData();
         if (appLinkData != null) {
@@ -481,6 +488,7 @@ public class MainActivity extends AppCompatActivity
         syncDatabase();
         setView();
         hideBottomSheetIfNoQueue();
+        Config.getInstance().getYouTubeApiKey(this);
     }
 
     private void loadFavouriteSongsFromDatabase() {
@@ -563,15 +571,12 @@ public class MainActivity extends AppCompatActivity
         if (song != null) {
             showSongFullscreen(song);
         } else {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    SongApiBean songApiBean = new SongApiBean();
-                    Song newSong = songApiBean.getSong(songUuid);
-                    if (newSong != null) {
-                        this_song_is_not_saved.show();
-                        showSongFullscreen(newSong);
-                    }
+            Thread thread = new Thread(() -> {
+                SongApiBean songApiBean = new SongApiBean();
+                Song newSong = songApiBean.getSong(songUuid);
+                if (newSong != null) {
+                    this_song_is_not_saved.show();
+                    showSongFullscreen(newSong);
                 }
             });
             thread.start();
@@ -593,13 +598,10 @@ public class MainActivity extends AppCompatActivity
                 song = songRepository.findByUUID(uuid);
             }
             if (song == null) {
-                Thread thread = new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        SongApiBean songApiBean = new SongApiBean();
-                        Song newSong = songApiBean.getSong(uuid);
-                        addToQueue(newSong);
-                    }
+                Thread thread = new Thread(() -> {
+                    SongApiBean songApiBean = new SongApiBean();
+                    Song newSong = songApiBean.getSong(uuid);
+                    addToQueue(newSong);
                 });
                 thread.start();
             }
@@ -620,14 +622,11 @@ public class MainActivity extends AppCompatActivity
         SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
         final SongList byUuid = songListRepository.findByUuid(uuid);
         if (byUuid == null) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    SongListApiBean songListApiBean = new SongListApiBean(MainActivity.this);
-                    SongList songList = songListApiBean.getSongList(uuid);
-                    if (songList != null) {
-                        askSongListLink(songList);
-                    }
+            Thread thread = new Thread(() -> {
+                SongListApiBean songListApiBean = new SongListApiBean(MainActivity.this);
+                SongList songList = songListApiBean.getSongList(uuid);
+                if (songList != null) {
+                    askSongListLink(songList);
                 }
             });
             thread.start();
@@ -650,46 +649,35 @@ public class MainActivity extends AppCompatActivity
             addSongListLinkPopupWindow.setElevation(5.0f);
         }
         Button addButton = customView.findViewById(R.id.addToButton);
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                List<SongListElement> songListElements = songList.getSongListElements();
-                QueueSongRepositoryImpl queueSongRepository = new QueueSongRepositoryImpl(MainActivity.this);
-                List<QueueSong> newQueueSongs = new ArrayList<>(songListElements.size());
-                for (SongListElement element : songListElements) {
-                    QueueSong queueSong = new QueueSong();
-                    queueSong.setSong(element.getSong());
-                    memory.addSongToQueue(queueSong);
-                    newQueueSongs.add(queueSong);
-                }
-                queueSongRepository.save(newQueueSongs);
-                showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
-                addSongListLinkPopupWindow.dismiss();
+        addButton.setOnClickListener(view -> {
+            List<SongListElement> songListElements = songList.getSongListElements();
+            QueueSongRepositoryImpl queueSongRepository = new QueueSongRepositoryImpl(MainActivity.this);
+            List<QueueSong> newQueueSongs = new ArrayList<>(songListElements.size());
+            for (SongListElement element : songListElements) {
+                QueueSong queueSong = new QueueSong();
+                queueSong.setSong(element.getSong());
+                memory.addSongToQueue(queueSong);
+                newQueueSongs.add(queueSong);
             }
+            queueSongRepository.save(newQueueSongs);
+            showToaster(getString(R.string.added_to_queue), Toast.LENGTH_SHORT);
+            addSongListLinkPopupWindow.dismiss();
         });
         Button newSongListButton = customView.findViewById(R.id.newSongListButton);
-        newSongListButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, SongListActivity.class);
-                SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(MainActivity.this);
-                songListRepository.save(songList);
-                SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(MainActivity.this);
-                songListElementRepository.save(songList.getSongListElements());
-                memory.setPassingSongList(songList);
-                intent.putExtra("newSongList", true);
-                startActivityForResult(intent, 7);
-                addSongListLinkPopupWindow.dismiss();
-            }
+        newSongListButton.setOnClickListener(view -> {
+            Intent intent = new Intent(MainActivity.this, SongListActivity.class);
+            SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(MainActivity.this);
+            songListRepository.save(songList);
+            SongListElementRepositoryImpl songListElementRepository = new SongListElementRepositoryImpl(MainActivity.this);
+            songListElementRepository.save(songList.getSongListElements());
+            memory.setPassingSongList(songList);
+            intent.putExtra("newSongList", true);
+            startActivityForResult(intent, 7);
+            addSongListLinkPopupWindow.dismiss();
         });
         addSongListLinkPopupWindow.setBackgroundDrawable(new BitmapDrawable());
         addSongListLinkPopupWindow.setOutsideTouchable(true);
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                addSongListLinkPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0);
-            }
-        });
+        new Handler(Looper.getMainLooper()).post(() -> addSongListLinkPopupWindow.showAtLocation(linearLayout, Gravity.CENTER, 0, 0));
     }
 
     private void addToQueue(Song song) {
@@ -707,80 +695,72 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void uploadViewsFavourites() {
-        Thread uploadViews = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                Date lastUploadedViewsDate = new Date(sharedPreferences.getLong("lastUploadedViewsDate", 0));
-                Date now = new Date();
-                long lastInterval = 86400000; // one day
-                long nowTime = now.getTime();
-                long lastUploadedViewsDateTime = lastUploadedViewsDate.getTime();
-                SongApiBean songApiBean = new SongApiBean();
-                if (nowTime - lastUploadedViewsDateTime > lastInterval) {
-                    List<Song> uploadingSongs = new ArrayList<>();
-                    for (Song song : songs) {
-                        if (song.getLastAccessed().getTime() > lastUploadedViewsDateTime && song.getModifiedDate().getTime() != 123L) {
-                            uploadingSongs.add(song);
-                        }
-                    }
-                    Collections.sort(uploadingSongs, new Comparator<Song>() {
-                        @Override
-                        public int compare(Song song1, Song song2) {
-                            return song1.getLastAccessed().compareTo(song2.getLastAccessed());
-                        }
-                    });
-                    boolean oneUploaded = false;
-                    boolean successfully = true;
-                    for (Song song : uploadingSongs) {
-                        if (songApiBean.uploadView(song) == null) {
-                            successfully = false;
-                            break;
-                        } else {
-                            oneUploaded = true;
-                            lastUploadedViewsDateTime = song.getLastAccessed().getTime();
-                        }
-                    }
-                    if (successfully) {
-                        lastUploadedViewsDateTime = nowTime;
-                    }
-                    if (oneUploaded) {
-                        sharedPreferences.edit().putLong("lastUploadedViewsDate", lastUploadedViewsDateTime).apply();
-                    }
-                }
-
-                // upload songs
+        Thread uploadViews = new Thread(() -> {
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            Date lastUploadedViewsDate = new Date(sharedPreferences.getLong("lastUploadedViewsDate", 0));
+            Date now = new Date();
+            long lastInterval = 86400000; // one day
+            long nowTime = now.getTime();
+            long lastUploadedViewsDateTime = lastUploadedViewsDate.getTime();
+            SongApiBean songApiBean = new SongApiBean();
+            if (nowTime - lastUploadedViewsDateTime > lastInterval) {
                 List<Song> uploadingSongs = new ArrayList<>();
                 for (Song song : songs) {
-                    if (song.getModifiedDate().getTime() == 123L && !song.isAsDeleted()) {
+                    if (song.getLastAccessed().getTime() > lastUploadedViewsDateTime && song.getModifiedDate().getTime() != 123L) {
                         uploadingSongs.add(song);
                     }
                 }
+                Collections.sort(uploadingSongs, (song1, song2) -> song1.getLastAccessed().compareTo(song2.getLastAccessed()));
+                boolean oneUploaded = false;
+                boolean successfully = true;
                 for (Song song : uploadingSongs) {
-                    final Song uploadedSong = songApiBean.uploadSong(song);
-                    if (uploadedSong != null && !uploadedSong.getUuid().trim().isEmpty()) {
-                        song.setUuid(uploadedSong.getUuid());
-                        song.setModifiedDate(uploadedSong.getModifiedDate());
-                        songRepository.save(song);
-                    }
-                }
-
-                //upload inc favourites
-                List<FavouriteSong> favouriteUploadingSongs = new ArrayList<>();
-                for (FavouriteSong favouriteSong : favouriteSongs) {
-                    if (favouriteSong.isFavourite() && favouriteSong.isFavouriteNotPublished()) {
-                        favouriteUploadingSongs.add(favouriteSong);
-                    }
-                }
-                FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(MainActivity.this);
-                for (FavouriteSong favouriteSong : favouriteUploadingSongs) {
-                    Song song = favouriteSong.getSong();
-                    if (song != null && song.getUuid() != null && songApiBean.uploadIncFavourite(song) != null) {
-                        favouriteSong.setFavouritePublished(true);
-                        favouriteSongRepository.save(favouriteSong);
-                    } else {
+                    if (songApiBean.uploadView(song) == null) {
+                        successfully = false;
                         break;
+                    } else {
+                        oneUploaded = true;
+                        lastUploadedViewsDateTime = song.getLastAccessed().getTime();
                     }
+                }
+                if (successfully) {
+                    lastUploadedViewsDateTime = nowTime;
+                }
+                if (oneUploaded) {
+                    sharedPreferences.edit().putLong("lastUploadedViewsDate", lastUploadedViewsDateTime).apply();
+                }
+            }
+
+            // upload songs
+            List<Song> uploadingSongs = new ArrayList<>();
+            for (Song song : songs) {
+                if (song.getModifiedDate().getTime() == 123L && !song.isAsDeleted() && !song.isSavedOnlyToDevice()) {
+                    uploadingSongs.add(song);
+                }
+            }
+            for (Song song : uploadingSongs) {
+                final Song uploadedSong = songApiBean.uploadSong(song);
+                if (uploadedSong != null && !uploadedSong.getUuid().trim().isEmpty()) {
+                    song.setUuid(uploadedSong.getUuid());
+                    song.setModifiedDate(uploadedSong.getModifiedDate());
+                    songRepository.save(song);
+                }
+            }
+
+            //upload inc favourites
+            List<FavouriteSong> favouriteUploadingSongs = new ArrayList<>();
+            for (FavouriteSong favouriteSong : favouriteSongs) {
+                if (favouriteSong.isFavourite() && favouriteSong.isFavouriteNotPublished()) {
+                    favouriteUploadingSongs.add(favouriteSong);
+                }
+            }
+            FavouriteSongRepository favouriteSongRepository = new FavouriteSongRepositoryImpl(MainActivity.this);
+            for (FavouriteSong favouriteSong : favouriteUploadingSongs) {
+                Song song = favouriteSong.getSong();
+                if (song != null && song.getUuid() != null && songApiBean.uploadIncFavourite(song) != null) {
+                    favouriteSong.setFavouritePublished(true);
+                    favouriteSongRepository.save(favouriteSong);
+                } else {
+                    break;
                 }
             }
         });
@@ -838,22 +818,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void syncFavouriteSongsFromServer() {
-        FavouriteSongService.getInstance().syncFavouritesFromServer(this, new FavouriteSongService.FavouriteSongUpdateListener() {
-            @Override
-            public void onUpdated() {
-                HashMap<String, Song> hashMap = getStringSongHashMap();
-                loadFavouriteSongsFromDatabase();
-                for (FavouriteSong favouriteSong : favouriteSongs) {
-                    if (favouriteSong.getSong() != null) {
-                        String songUuid = favouriteSong.getSong().getUuid();
-                        if (hashMap.containsKey(songUuid)) {
-                            Song song = hashMap.get(songUuid);
-                            song.setFavourite(favouriteSong);
-                        }
+        FavouriteSongService.getInstance().syncFavouritesFromServer(this, () -> {
+            HashMap<String, Song> hashMap = getStringSongHashMap();
+            loadFavouriteSongsFromDatabase();
+            for (FavouriteSong favouriteSong : favouriteSongs) {
+                if (favouriteSong.getSong() != null) {
+                    String songUuid = favouriteSong.getSong().getUuid();
+                    if (hashMap.containsKey(songUuid)) {
+                        Song song = hashMap.get(songUuid);
+                        song.setFavourite(favouriteSong);
                     }
                 }
-                search(lastSearchedText, adapter);
             }
+            search(lastSearchedText, adapter);
         });
     }
 
@@ -905,18 +882,13 @@ public class MainActivity extends AppCompatActivity
                     List<QueueSong> queue = memory.getQueue();
                     if (queue == null) {
                         queue = queueSongRepository.findAll();
-                        Collections.sort(queue, new Comparator<QueueSong>() {
-                            @Override
-                            public int compare(QueueSong o1, QueueSong o2) {
-                                return Utility.compare(o1.getQueueNumber(), o2.getQueueNumber());
-                            }
-                        });
+                        Collections.sort(queue, (o1, o2) -> Utility.compare(o1.getQueueNumber(), o2.getQueueNumber()));
                         memory.setQueue(queue);
                     }
                     if (queue.size() < 1) {
                         hideBottomSheet();
                     }
-                    languages = languageRepository.findAll();
+                    loadLanguages();
                     songCollections = songCollectionRepository.findAll();
                     setShortNamesForSongCollections(songCollections);
                     memory.setSongCollections(songCollections);
@@ -999,6 +971,11 @@ public class MainActivity extends AppCompatActivity
         queueListView.invalidateViews();
     }
 
+    private void loadLanguages() {
+        languages = languageRepository.findAllSelectedForDownload();
+        sortLanguagesByRecentlyViewedSongs(languages, this);
+    }
+
     private void refreshSongs() {
         songs = memory.getSongsOrEmptyList();
         values.clear();
@@ -1013,12 +990,7 @@ public class MainActivity extends AppCompatActivity
         HashMap<String, SongCollection> hashMap = new HashMap<>();
         List<SongCollection> collectionList = new ArrayList<>(songCollections.size());
         collectionList.addAll(songCollections);
-        Collections.sort(collectionList, new Comparator<SongCollection>() {
-            @Override
-            public int compare(SongCollection lhs, SongCollection rhs) {
-                return Utility.compare(rhs.getSongCollectionElements().size(), lhs.getSongCollectionElements().size());
-            }
-        });
+        Collections.sort(collectionList, (lhs, rhs) -> Utility.compare(rhs.getSongCollectionElements().size(), lhs.getSongCollectionElements().size()));
         for (SongCollection songCollection : collectionList) {
             String shortName = songCollection.getShortName();
             if (hashMap.containsKey(shortName)) {
@@ -1068,6 +1040,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1) {// If request is cancelled, the result arrays are empty.
             if (grantResults.length > 0
                     && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
@@ -1152,12 +1125,7 @@ public class MainActivity extends AppCompatActivity
             if (queue == null) {
                 return;
             }
-            QueueSongAdapter queueSongAdapter = new QueueSongAdapter(this, R.layout.list_row, queue, new Listener() {
-                @Override
-                public void onGrab(int position, LinearLayout row) {
-                    queueListView.onGrab(position, row);
-                }
-            }, shortCollectionName);
+            QueueSongAdapter queueSongAdapter = new QueueSongAdapter(this, R.layout.list_row, queue, (position, row) -> queueListView.onGrab(position, row), shortCollectionName);
             if (queue.size() < 1) {
                 linearLayout.setPadding(0, 0, 0, 0);
             } else {
@@ -1165,32 +1133,23 @@ public class MainActivity extends AppCompatActivity
             }
 
             queueListView.setAdapter(queueSongAdapter);
-            queueListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view,
-                                        int position, long id) {
-                    List<QueueSong> queue = memory.getQueue();
-                    Song tmp = queue.get(position).getSong();
-                    if (position + 1 < queue.size()) {
-                        memory.setQueueIndex(position + 1, MainActivity.this);
-                    } else {
-                        memory.setQueueIndex(0, MainActivity.this);
-                    }
-                    showSongFullscreen(tmp);
+            queueListView.setOnItemClickListener((parent, view, position, id) -> {
+                List<QueueSong> queue1 = memory.getQueue();
+                Song tmp = queue1.get(position).getSong();
+                if (position + 1 < queue1.size()) {
+                    memory.setQueueIndex(position + 1, MainActivity.this);
+                } else {
+                    memory.setQueueIndex(0, MainActivity.this);
                 }
-
+                showSongFullscreen(tmp);
             });
             songListView.setHasFixedSize(true);
             songListView.setAdapter(adapter);
-            songListView.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (values.size() > 0) {
-                        hideKeyboard();
-                    }
-                    return false;
+            songListView.setOnTouchListener((v, event) -> {
+                if (values.size() > 0) {
+                    hideKeyboard();
                 }
+                return false;
             });
             if (view_mode == 1) {
                 pageAdapter = new MainPageAdapter(getSupportFragmentManager(), values);
@@ -1201,34 +1160,28 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void search(final String text, final SongAdapter adapter) {
-        Thread searchThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (inSongSearchSwitch && (searchInSongTextIsAvailable)) {
-                    inSongSearch(text);
-                } else {
-                    titleSearch(text);
+        Thread searchThread = new Thread(() -> {
+            if (inSongSearchSwitch && (searchInSongTextIsAvailable)) {
+                inSongSearch(text);
+            } else {
+                titleSearch(text);
+            }
+            if (Thread.interrupted()) {
+                return;
+            }
+            runOnUiThread(() -> {
+                if (adapter == null) {
+                    loadAll();
+                    return;
                 }
                 if (Thread.interrupted()) {
                     return;
                 }
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (adapter == null) {
-                            loadAll();
-                            return;
-                        }
-                        if (Thread.interrupted()) {
-                            return;
-                        }
-                        adapter.setSongList(values);
-                        if (pageAdapter != null) {
-                            pageAdapter.notifyDataSetChanged();
-                        }
-                    }
-                });
-            }
+                adapter.setSongList(values);
+                if (pageAdapter != null) {
+                    pageAdapter.notifyDataSetChanged();
+                }
+            });
         });
         if (lastSearchThread != null && lastSearchThread.isAlive()) {
             lastSearchThread.interrupt();
@@ -1275,6 +1228,9 @@ public class MainActivity extends AppCompatActivity
         }
         final List<Song> tempSongList = new ArrayList<>();
         for (Song song : songList) {
+            if (song == null) {
+                continue;
+            }
             if (containsInTitle(stripped, song, other, collectionName, ordinalNumber, ordinalNumberInt)) {
                 tempSongList.add(song);
             }
@@ -1284,30 +1240,24 @@ public class MainActivity extends AppCompatActivity
         }
         if (wasOrdinalNumber) {
             try {
-                Collections.sort(tempSongList, new Comparator<Song>() {
-                    @Override
-                    public int compare(Song l, Song r) {
-                        SongCollectionElement lSongCollectionElement = l.getSongCollectionElement();
-                        SongCollectionElement rSongCollectionElement = r.getSongCollectionElement();
-                        if (lSongCollectionElement != null && rSongCollectionElement != null) {
-                            Integer ordinalNumberInt = lSongCollectionElement.getOrdinalNumberInt();
-                            return ordinalNumberInt.compareTo(rSongCollectionElement.getOrdinalNumberInt());
-                        } else {
-                            return 1;
-                        }
+                Collections.sort(tempSongList, (l, r) -> {
+                    SongCollectionElement lSongCollectionElement = l.getSongCollectionElement();
+                    SongCollectionElement rSongCollectionElement = r.getSongCollectionElement();
+                    if (lSongCollectionElement != null && rSongCollectionElement != null) {
+                        Integer ordinalNumberInt1 = lSongCollectionElement.getOrdinalNumberInt();
+                        return ordinalNumberInt1.compareTo(rSongCollectionElement.getOrdinalNumberInt());
+                    } else {
+                        return 1;
                     }
                 });
             } catch (IllegalArgumentException ignored) {
             }
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                values.clear();
-                values.addAll(tempSongList);
-                previouslyTitleSearchText = title;
-                previouslyInSongSearchText = "";
-            }
+        runOnUiThread(() -> {
+            values.clear();
+            values.addAll(tempSongList);
+            previouslyTitleSearchText = title;
+            previouslyInSongSearchText = "";
         });
     }
 
@@ -1399,14 +1349,11 @@ public class MainActivity extends AppCompatActivity
                 return;
             }
         }
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                values.clear();
-                values.addAll(tempSongList);
-                previouslyInSongSearchText = title;
-                previouslyTitleSearchText = "";
-            }
+        runOnUiThread(() -> {
+            values.clear();
+            values.addAll(tempSongList);
+            previouslyInSongSearchText = title;
+            previouslyTitleSearchText = "";
         });
     }
 
@@ -1419,74 +1366,48 @@ public class MainActivity extends AppCompatActivity
 
     private void sortSongs(List<Song> all) {
         if (sortMethod == 7) {
-            Collections.sort(all, new Comparator<Song>() {
-                @Override
-                public int compare(Song lhs, Song rhs) {
-                    Integer scoreL = lhs.getScore();
-                    Integer scoreR = rhs.getScore();
-                    if (scoreL.equals(scoreR)) {
-                        return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
-                    }
-                    return scoreR.compareTo(scoreL);
-                }
-            });
-        } else if (sortMethod == 0) {
-            Collections.sort(all, new Comparator<Song>() {
-                @Override
-                public int compare(Song lhs, Song rhs) {
+            Collections.sort(all, (lhs, rhs) -> {
+                Integer scoreL = lhs.getScore();
+                Integer scoreR = rhs.getScore();
+                if (scoreL.equals(scoreR)) {
                     return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
                 }
+                return scoreR.compareTo(scoreL);
             });
+        } else if (sortMethod == 0) {
+            Collections.sort(all, (lhs, rhs) -> rhs.getModifiedDate().compareTo(lhs.getModifiedDate()));
         } else if (sortMethod == 1) {
-            Collections.sort(all, new Comparator<Song>() {
-                @Override
-                public int compare(Song lhs, Song rhs) {
-                    return lhs.getStrippedTitle().compareTo(rhs.getStrippedTitle());
-                }
-            });
+            Collections.sort(all, (lhs, rhs) -> lhs.getStrippedTitle().compareTo(rhs.getStrippedTitle()));
         } else if (sortMethod == 3) {
-            Collections.sort(all, new Comparator<Song>() {
-                @Override
-                public int compare(Song lhs, Song rhs) {
-                    return lhs.getCreatedDate().compareTo(rhs.getCreatedDate());
-                }
-            });
+            Collections.sort(all, (lhs, rhs) -> lhs.getCreatedDate().compareTo(rhs.getCreatedDate()));
         } else if (sortMethod == 5) {
-            Collections.sort(all, new Comparator<Song>() {
-                @Override
-                public int compare(Song lhs, Song rhs) {
-                    return rhs.getLastAccessed().compareTo(lhs.getLastAccessed());
-                }
-            });
+            Collections.sort(all, (lhs, rhs) -> rhs.getLastAccessed().compareTo(lhs.getLastAccessed()));
         } else if (sortMethod == 6) {
-            Collections.sort(all, new Comparator<Song>() {
-                @Override
-                public int compare(Song lhs, Song rhs) {
-                    try {
-                        SongCollection lhsSongCollection = lhs.getSongCollection();
-                        SongCollection rhsSongCollection = rhs.getSongCollection();
-                        if (lhsSongCollection == null) {
-                            if (rhsSongCollection == null) {
-                                return lhs.getTitle().compareTo(rhs.getTitle());
-                            } else {
-                                return 1;
-                            }
+            Collections.sort(all, (lhs, rhs) -> {
+                try {
+                    SongCollection lhsSongCollection = lhs.getSongCollection();
+                    SongCollection rhsSongCollection = rhs.getSongCollection();
+                    if (lhsSongCollection == null) {
+                        if (rhsSongCollection == null) {
+                            return lhs.getTitle().compareTo(rhs.getTitle());
                         } else {
-                            if (rhsSongCollection == null) {
-                                return -1;
-                            } else {
-                                int compareTo = lhsSongCollection.getName().compareTo(rhsSongCollection.getName());
-                                if (compareTo == 0) {
-                                    Integer lhsOrdinalNumber = lhs.getSongCollectionElement().getOrdinalNumberInt();
-                                    int rhsOrdinalNumber = rhs.getSongCollectionElement().getOrdinalNumberInt();
-                                    return lhsOrdinalNumber.compareTo(rhsOrdinalNumber);
-                                }
-                                return compareTo;
-                            }
+                            return 1;
                         }
-                    } catch (Exception e) {
-                        return 0;
+                    } else {
+                        if (rhsSongCollection == null) {
+                            return -1;
+                        } else {
+                            int compareTo = lhsSongCollection.getName().compareTo(rhsSongCollection.getName());
+                            if (compareTo == 0) {
+                                Integer lhsOrdinalNumber = lhs.getSongCollectionElement().getOrdinalNumberInt();
+                                int rhsOrdinalNumber = rhs.getSongCollectionElement().getOrdinalNumberInt();
+                                return lhsOrdinalNumber.compareTo(rhsOrdinalNumber);
+                            }
+                            return compareTo;
+                        }
                     }
+                } catch (Exception e) {
+                    return 0;
                 }
             });
         }
@@ -1528,40 +1449,36 @@ public class MainActivity extends AppCompatActivity
         getMenuInflater().inflate(R.menu.main2, menu);
         searchItem = menu.findItem(R.id.action_search);
         final MenuItem searchInTextMenuItem = menu.findItem(R.id.action_search_in_text);
-        searchInTextMenuItem.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if (!inSongSearchSwitch) {
-                    Drawable drawable = item.getIcon();
-                    if (drawable != null) {
-                        drawable.mutate();
-                        drawable.setColorFilter(Color.rgb(153, 175, 174), PorterDuff.Mode.SRC_ATOP);
-                    }
-                    inSongSearchSwitch = true;
-                } else {
-                    Drawable drawable = item.getIcon();
-                    if (drawable != null) {
-                        drawable.mutate();
-                        drawable.setColorFilter(Color.rgb(94, 89, 94), PorterDuff.Mode.SRC_ATOP);
-                    }
-                    inSongSearchSwitch = false;
+        searchInTextMenuItem.setOnMenuItemClickListener(item -> {
+            Drawable drawable = item.getIcon();
+            if (!inSongSearchSwitch) {
+                if (drawable != null) {
+                    drawable.mutate();
+                    drawable.setColorFilter(Color.rgb(153, 175, 174), PorterDuff.Mode.SRC_ATOP);
                 }
-                if (searchInSongTextIsAvailable) {
-                    search(lastSearchedText, adapter);
-                } else {
-                    if (!loadSongVersesThread.isAlive()) {
-                        try {
-                            loadSongVersesThread.start();
-                        } catch (IllegalThreadStateException e) {
-                            createLoadSongVerseThread();
-                            loadSongVersesThread.start();
-                        }
-                    }
-                    Toast toast = Toast.makeText(getApplicationContext(), R.string.You_need_to_wait_for_this_feature, Toast.LENGTH_LONG);
-                    toast.show();
+                inSongSearchSwitch = true;
+            } else {
+                if (drawable != null) {
+                    drawable.mutate();
+                    drawable.setColorFilter(Color.rgb(94, 89, 94), PorterDuff.Mode.SRC_ATOP);
                 }
-                return false;
+                inSongSearchSwitch = false;
             }
+            if (searchInSongTextIsAvailable) {
+                search(lastSearchedText, adapter);
+            } else {
+                if (!loadSongVersesThread.isAlive()) {
+                    try {
+                        loadSongVersesThread.start();
+                    } catch (IllegalThreadStateException e) {
+                        createLoadSongVerseThread();
+                        loadSongVersesThread.start();
+                    }
+                }
+                Toast toast = Toast.makeText(getApplicationContext(), R.string.You_need_to_wait_for_this_feature, Toast.LENGTH_LONG);
+                toast.show();
+            }
+            return false;
         });
 
         final SearchView mSearchView = (SearchView) searchItem.getActionView();
@@ -1694,22 +1611,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void logout() {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                LoggedInUserRepositoryImpl loggedInUserRepository = new LoggedInUserRepositoryImpl(MainActivity.this);
-                LoggedInUser loggedInUser = getLoggedInUser();
-                loggedInUserRepository.delete(loggedInUser);
+        Thread thread = new Thread(() -> {
+            LoggedInUserRepositoryImpl loggedInUserRepository = new LoggedInUserRepositoryImpl(MainActivity.this);
+            LoggedInUser loggedInUser = getLoggedInUser();
+            loggedInUserRepository.delete(loggedInUser);
 
-                LoginApiBean loginApiBean = new LoginApiBean();
-                loginApiBean.logout();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        updateNavSignInTitleByLoggedIn();
-                    }
-                });
-            }
+            LoginApiBean loginApiBean = new LoginApiBean();
+            loginApiBean.logout();
+            runOnUiThread(this::updateNavSignInTitleByLoggedIn);
         });
         thread.start();
     }
@@ -1758,36 +1667,30 @@ public class MainActivity extends AppCompatActivity
             radioGroup.check(R.id.byCreatedDateRadioButton);
         }
         reverseSwitch.setChecked(reverseSortMethod);
-        reverseSwitch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                reverseSortMethod = reverseSwitch.isChecked();
-                saveReverseSortMethod();
-                loadAll();
-                sortPopupWindow.dismiss();
-            }
+        reverseSwitch.setOnClickListener(v -> {
+            reverseSortMethod = reverseSwitch.isChecked();
+            saveReverseSortMethod();
+            loadAll();
+            sortPopupWindow.dismiss();
         });
-        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup group, int checkedId) {
-                if (checkedId == R.id.relevanceRadioButton) {
-                    sortMethod = 7;
-                } else if (checkedId == R.id.modifiedDateRadioButton) {
-                    sortMethod = 0;
-                } else if (checkedId == R.id.byTitleRadioButton) {
-                    sortMethod = 1;
-                } else if (checkedId == R.id.byCreatedDateRadioButton) {
-                    sortMethod = 3;
-                } else if (checkedId == R.id.recentlyViewedRadioButton) {
-                    sortMethod = 5;
-                } else if (checkedId == R.id.byCollectionRadioButton) {
-                    sortMethod = 6;
-                }
-                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
-                sharedPreferences.edit().putInt("sortMethod", sortMethod).apply();
-                loadAll();
-                sortPopupWindow.dismiss();
+        radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
+            if (checkedId == R.id.relevanceRadioButton) {
+                sortMethod = 7;
+            } else if (checkedId == R.id.modifiedDateRadioButton) {
+                sortMethod = 0;
+            } else if (checkedId == R.id.byTitleRadioButton) {
+                sortMethod = 1;
+            } else if (checkedId == R.id.byCreatedDateRadioButton) {
+                sortMethod = 3;
+            } else if (checkedId == R.id.recentlyViewedRadioButton) {
+                sortMethod = 5;
+            } else if (checkedId == R.id.byCollectionRadioButton) {
+                sortMethod = 6;
             }
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+            sharedPreferences.edit().putInt("sortMethod", sortMethod).apply();
+            loadAll();
+            sortPopupWindow.dismiss();
         });
         if (Build.VERSION.SDK_INT >= 21) {
             sortPopupWindow.setElevation(5.0f);
@@ -1823,32 +1726,21 @@ public class MainActivity extends AppCompatActivity
             filterPopupWindow.setElevation(5.0f);
         }
         ImageButton closeButton = customView.findViewById(R.id.closeButton);
-        closeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                filterPopupWindow.dismiss();
-            }
-        });
+        closeButton.setOnClickListener(view -> filterPopupWindow.dismiss());
         if (songCollections.size() == 0) {
             customView.findViewById(R.id.collectionButton).setVisibility(View.GONE);
         }
         containingVideosSwitch = customView.findViewById(R.id.containingVideosSwitch);
-        containingVideosSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                hideKeyboard();
-                filter();
-                loadAll();
-            }
+        containingVideosSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            hideKeyboard();
+            filter();
+            loadAll();
         });
         favouriteSwitch = customView.findViewById(R.id.favouriteSwitch);
-        favouriteSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                hideKeyboard();
-                filter();
-                loadAll();
-            }
+        favouriteSwitch.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            hideKeyboard();
+            filter();
+            loadAll();
         });
         filterPopupWindow.setBackgroundDrawable(new BitmapDrawable());
         filterPopupWindow.setOutsideTouchable(true);
@@ -1894,21 +1786,13 @@ public class MainActivity extends AppCompatActivity
             collectionPopupWindow.setElevation(5.0f);
         }
         Button selectButton = customView.findViewById(R.id.selectButton);
-        selectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                filter();
-                loadAll();
-                filterPopupWindow.dismiss();
-                collectionPopupWindow.dismiss();
-            }
+        selectButton.setOnClickListener(view -> {
+            filter();
+            loadAll();
+            filterPopupWindow.dismiss();
+            collectionPopupWindow.dismiss();
         });
-        Collections.sort(songCollections, new Comparator<SongCollection>() {
-            @Override
-            public int compare(SongCollection o1, SongCollection o2) {
-                return Utility.compare(o2.getSongCollectionElements().size(), o1.getSongCollectionElements().size());
-            }
-        });
+        Collections.sort(songCollections, (o1, o2) -> Utility.compare(o2.getSongCollectionElements().size(), o1.getSongCollectionElements().size()));
         collectionListView = customView.findViewById(R.id.listView);
         collectionPopupWindow.setBackgroundDrawable(new BitmapDrawable());
         collectionPopupWindow.setOutsideTouchable(true);
@@ -1930,12 +1814,7 @@ public class MainActivity extends AppCompatActivity
         List<QueueSong> queue = memory.getQueue();
         if (queue == null) {
             queue = queueSongRepository.findAll();
-            Collections.sort(queue, new Comparator<QueueSong>() {
-                @Override
-                public int compare(QueueSong o1, QueueSong o2) {
-                    return Utility.compare(o1.getQueueNumber(), o2.getQueueNumber());
-                }
-            });
+            Collections.sort(queue, (o1, o2) -> Utility.compare(o1.getQueueNumber(), o2.getQueueNumber()));
             memory.setQueue(queue);
             if (queue.size() < 1) {
                 hideBottomSheet();
@@ -2066,19 +1945,17 @@ public class MainActivity extends AppCompatActivity
             selectLanguagePopupWindow.setElevation(5.0f);
         }
         Button selectButton = customView.findViewById(R.id.selectButton);
-        selectButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                languageRepository.save(languages);
-                filter();
-                lastSearchedText = "";
-                loadAll();
-                selectLanguagePopupWindow.dismiss();
-                filterPopupWindow.dismiss();
-            }
+        selectButton.setOnClickListener(view -> {
+            languageRepository.save(languages);
+            filter();
+            lastSearchedText = "";
+            loadAll();
+            selectLanguagePopupWindow.dismiss();
+            filterPopupWindow.dismiss();
         });
         LanguageAdapter dataAdapter = new LanguageAdapter(mainActivity,
-                R.layout.activity_language_checkbox_row, languages);
+                R.layout.activity_language_checkbox_row, languages,
+                (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE));
         ListView listView = customView.findViewById(R.id.listView);
         listView.setAdapter(dataAdapter);
         selectLanguagePopupWindow.setBackgroundDrawable(new BitmapDrawable());
@@ -2216,12 +2093,7 @@ public class MainActivity extends AppCompatActivity
             saveQueuePopupWindow.setElevation(5.0f);
         }
         Button closeButton = customView.findViewById(R.id.closeButton);
-        closeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                saveQueuePopupWindow.dismiss();
-            }
-        });
+        closeButton.setOnClickListener(view1 -> saveQueuePopupWindow.dismiss());
         ListView listView = customView.findViewById(R.id.listView);
         SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
         final List<SongList> songLists = songListRepository.findAll();
@@ -2234,30 +2106,27 @@ public class MainActivity extends AppCompatActivity
                 android.R.layout.simple_list_item_1,
                 all);
         listView.setAdapter(arrayAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                SongList songList = songLists.get(position);
-                List<QueueSong> queue = memory.getQueue();
-                List<SongListElement> songListElements = songList.getSongListElements();
-                LongSparseArray<Object> hashMap = new LongSparseArray<>(songListElements.size());
-                for (SongListElement element : songListElements) {
-                    hashMap.put(element.getSong().getId(), element.getSong());
-                }
-                boolean duplicate = false;
-                for (QueueSong queueSong : queue) {
-                    if (hashMap.get(queueSong.getSong().getId()) != null) {
-                        duplicate = true;
-                        break;
-                    }
-                }
-                if (!duplicate) {
-                    addQueueToList(songList, queue, false, hashMap);
-                } else {
-                    askAddDuplicates(songList, queue, hashMap);
-                }
-                saveQueuePopupWindow.dismiss();
+        listView.setOnItemClickListener((parent, view12, position, id) -> {
+            SongList songList = songLists.get(position);
+            List<QueueSong> queue = memory.getQueue();
+            List<SongListElement> songListElements = songList.getSongListElements();
+            LongSparseArray<Object> hashMap = new LongSparseArray<>(songListElements.size());
+            for (SongListElement element : songListElements) {
+                hashMap.put(element.getSong().getId(), element.getSong());
             }
+            boolean duplicate = false;
+            for (QueueSong queueSong : queue) {
+                if (hashMap.get(queueSong.getSong().getId()) != null) {
+                    duplicate = true;
+                    break;
+                }
+            }
+            if (!duplicate) {
+                addQueueToList(songList, queue, false, hashMap);
+            } else {
+                askAddDuplicates(songList, queue, hashMap);
+            }
+            saveQueuePopupWindow.dismiss();
         });
         saveQueuePopupWindow.setBackgroundDrawable(new BitmapDrawable());
         saveQueuePopupWindow.setOutsideTouchable(true);
@@ -2298,20 +2167,14 @@ public class MainActivity extends AppCompatActivity
             addDuplicatesPopupWindow.setElevation(5.0f);
         }
         Button skipButton = customView.findViewById(R.id.skipButton);
-        skipButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addQueueToList(songList, queue, true, hashMap);
-                addDuplicatesPopupWindow.dismiss();
-            }
+        skipButton.setOnClickListener(view -> {
+            addQueueToList(songList, queue, true, hashMap);
+            addDuplicatesPopupWindow.dismiss();
         });
         Button addButton = customView.findViewById(R.id.okButton);
-        addButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addQueueToList(songList, queue, false, hashMap);
-                addDuplicatesPopupWindow.dismiss();
-            }
+        addButton.setOnClickListener(view -> {
+            addQueueToList(songList, queue, false, hashMap);
+            addDuplicatesPopupWindow.dismiss();
         });
         addDuplicatesPopupWindow.setBackgroundDrawable(new BitmapDrawable());
         addDuplicatesPopupWindow.setOutsideTouchable(true);
@@ -2426,75 +2289,12 @@ public class MainActivity extends AppCompatActivity
         }
 
         void bind(final Song song, final OnItemClickListener listener, final int position) {
-            parentLayout.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    listener.onItemClick(song, position);
-                }
-            });
-            parentLayout.setOnLongClickListener(new View.OnLongClickListener() {
-                @Override
-                public boolean onLongClick(View v) {
-                    listener.onLongClick(song, position);
-                    return true;
-                }
+            parentLayout.setOnClickListener(v -> listener.onItemClick(song, position));
+            parentLayout.setOnLongClickListener(v -> {
+                listener.onLongClick(song, position);
+                return true;
             });
         }
-    }
-
-    private class LanguageAdapter extends ArrayAdapter<Language> {
-
-        private final List<Language> languageList;
-
-        LanguageAdapter(Context context, int textViewResourceId,
-                        List<Language> languageList) {
-            super(context, textViewResourceId, languageList);
-            this.languageList = new ArrayList<>();
-            this.languageList.addAll(languageList);
-        }
-
-        @SuppressLint({"InflateParams", "SetTextI18n"})
-        @NonNull
-        @Override
-        public View getView(int position, View convertView, @NonNull ViewGroup parent) {
-
-            LanguageAdapter.ViewHolder holder;
-
-            if (convertView == null) {
-                LayoutInflater layoutInflater = (LayoutInflater) getSystemService(
-                        Context.LAYOUT_INFLATER_SERVICE);
-                convertView = layoutInflater.inflate(R.layout.activity_language_checkbox_row, null);
-
-                holder = new LanguageAdapter.ViewHolder();
-                holder.textView = convertView.findViewById(R.id.code);
-                holder.checkBox = convertView.findViewById(R.id.checkBox1);
-                convertView.setTag(holder);
-
-                holder.checkBox.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View view) {
-                        CheckBox checkBox = (CheckBox) view;
-                        Language language = (Language) checkBox.getTag();
-                        language.setSelected(checkBox.isChecked());
-                    }
-                });
-            } else {
-                holder = (LanguageAdapter.ViewHolder) convertView.getTag();
-            }
-
-            Language language = languageList.get(position);
-            holder.textView.setText(" (" + language.getNativeName() + ")");
-            holder.checkBox.setText(language.getEnglishName());
-            holder.checkBox.setChecked(language.isSelected());
-            holder.checkBox.setTag(language);
-
-            return convertView;
-        }
-
-        private class ViewHolder {
-            TextView textView;
-            CheckBox checkBox;
-        }
-
     }
 
     private class SongCollectionAdapter extends ArrayAdapter<SongCollection> {
@@ -2525,12 +2325,10 @@ public class MainActivity extends AppCompatActivity
                 holder.checkBox = convertView.findViewById(R.id.checkBox1);
                 convertView.setTag(holder);
 
-                holder.checkBox.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View view) {
-                        CheckBox checkBox = (CheckBox) view;
-                        SongCollection songCollection = (SongCollection) checkBox.getTag();
-                        songCollection.setSelected(checkBox.isChecked());
-                    }
+                holder.checkBox.setOnClickListener(view -> {
+                    CheckBox checkBox = (CheckBox) view;
+                    SongCollection songCollection = (SongCollection) checkBox.getTag();
+                    songCollection.setSelected(checkBox.isChecked());
                 });
             } else {
                 holder = (SongCollectionAdapter.ViewHolder) convertView.getTag();

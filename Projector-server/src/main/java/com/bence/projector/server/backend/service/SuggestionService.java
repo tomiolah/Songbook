@@ -12,4 +12,6 @@ public interface SuggestionService extends BaseService<Suggestion> {
     List<Suggestion> findAllBySong(Song song);
 
     Suggestion findOneByUuid(String uuid);
+
+    List<Suggestion> findAllByLanguageAndCustomFetch(Language language);
 }

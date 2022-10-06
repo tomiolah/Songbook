@@ -6,8 +6,8 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { SongLink } from "../../models/song-link";
 import { SongLinkDataService } from "../../services/song-link-data.service";
 import { Title } from "@angular/platform-browser";
-import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { MatDialog } from "@angular/material";
+import { checkAuthenticationError, openAuthenticateDialog } from '../../util/error-util';
 
 @Component({
   selector: 'app-version-link',
@@ -54,9 +54,7 @@ export class VersionLinkComponent implements OnInit, OnDestroy {
             });
           },
           (err) => {
-            if (err.message === 'Unexpected token < in JSON at position 0') {
-              this.openAuthenticateDialog();
-            }
+            checkAuthenticationError(this.ngOnInit, this, err, this.dialog);
           });
       }
     });
@@ -64,21 +62,6 @@ export class VersionLinkComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
-  }
-
-  private openAuthenticateDialog() {
-    let user = JSON.parse(localStorage.getItem('currentUser'));
-    const dialogRef = this.dialog.open(AuthenticateComponent, {
-      data: {
-        email: user.email
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'ok') {
-        this.ngOnInit();
-      }
-    });
   }
 
   onRejectButtonClick() {
@@ -95,11 +78,7 @@ export class VersionLinkComponent implements OnInit, OnDestroy {
         this.router.navigate(['/versionLinks']);
       },
       (err) => {
-        if (err.status === 405) {
-          this.openAuthenticateDialog();
-        } else {
-          console.log(err);
-        }
+        checkAuthenticationError(this.uploadSongLinkAsApplied, this, err, this.dialog);
       }
     );
   }
@@ -112,15 +91,11 @@ export class VersionLinkComponent implements OnInit, OnDestroy {
           this.uploadSongLinkAsApplied();
         } else {
           console.log(res);
-          this.openAuthenticateDialog();
+          openAuthenticateDialog(this.onMergeSongsButtonClick, this, this.dialog);
         }
       },
       (err) => {
-        if (err.message === 'Unexpected token < in JSON at position 0') {
-          this.openAuthenticateDialog();
-        } else {
-          console.log(err);
-        }
+        checkAuthenticationError(this.onMergeSongsButtonClick, this, err, this.dialog);
       }
     );
   }

@@ -11,16 +11,14 @@ import com.bence.projector.server.backend.repository.SongVerseOrderListItemRepos
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.ServiceException;
 import com.bence.projector.server.backend.service.SongService;
+import com.bence.projector.server.backend.service.SongVerseOrderListItemService;
 import com.bence.projector.server.backend.service.SongVerseService;
-import com.bence.projector.server.utils.ApplicationProperties;
 import com.bence.projector.server.utils.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -30,8 +28,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
+import static com.bence.projector.server.backend.service.util.QueryUtil.getStatement;
 import static com.bence.projector.server.utils.ListUtil.twoListMatches;
 import static com.bence.projector.server.utils.StringUtils.longestCommonSubString;
 
@@ -51,6 +51,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private long lastModifiedDateTime = 0;
     private HashMap<String, HashMap<String, Song>> songsHashMapByLanguage;
     private HashMap<String, HashMap<String, Boolean>> wordsHashMapByLanguage;
+    @Autowired
+    private SongVerseOrderListItemService songVerseOrderListItemService;
 
     @Override
     public boolean isLanguageIsGood(Song song, Language language) {
@@ -170,10 +172,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
-    public List<Song> findAllByUploadedTrueAndDeletedTrue() {
+    public List<Song> findAllByUploadedTrueAndDeletedTrueAndNotBackup() {
         List<Song> allByUploadedTrueAndDeletedTrue = new LinkedList<>();
         for (Song song : getSongs()) {
-            if (song.isUploaded() && song.isDeleted()) {
+            if (song.isUploaded() && song.isDeleted() && !song.isBackUp()) {
                 allByUploadedTrueAndDeletedTrue.add(song);
             }
         }
@@ -219,7 +221,12 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         if (songs == null) {
             return null;
         }
-        String text = getText(song);
+        return findAllSimilar(song, checkDeleted, songs);
+    }
+
+    @Override
+    public List<Song> findAllSimilar(Song song, boolean checkDeleted, Collection<Song> songs) {
+        String text = getText(song).toLowerCase();
         String songId = song.getUuid();
         HashMap<String, Boolean> wordHashMap = getWordHashMap(text);
         List<Song> similarSongsForSong = getSimilarSongsForSong(checkDeleted, songs, text, songId, wordHashMap);
@@ -229,7 +236,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private List<Song> getSongsFromRepository(List<Song> similarSongsForSong) {
         ArrayList<Song> songs = new ArrayList<>();
         for (Song song : similarSongsForSong) {
-            songs.add(songRepository.findOne(song.getId()));
+            Optional<Song> songOptional = songRepository.findById(song.getId());
+            songOptional.ifPresent(songs::add);
         }
         return songs;
     }
@@ -272,7 +280,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     private boolean songsIsSimilar(String text, HashMap<String, Boolean> wordHashMap, int wordCount, HashMap<String, Boolean> hashMap, Song databaseSong) {
-        String secondText = getText(databaseSong);
+        String secondText = getText(databaseSong).toLowerCase();
         String[] words = secondText.split(wordsSplit);
         hashMap.clear();
         int count = 0;
@@ -378,6 +386,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private Collection<Song> getSongs() {
         HashMap<String, Song> songsHashMap = getSongsHashMap();
         if (songsHashMap.isEmpty()) {
+            lastModifiedDateTime = 0;
             for (Song song : songRepository.findAll()) {
                 putInMapAndCheckLastModifiedDate(song);
             }
@@ -393,7 +402,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return songsHashMap.values();
     }
 
-    private Collection<Song> getSongsByLanguageForSimilar(Language language) {
+    @Override
+    public Collection<Song> getSongsByLanguageForSimilar(Language language) {
         return getAllByLanguageAndIsBackUpIsNullAndDeletedIsFalseAndReviewerErasedIsNull(language);
     }
 
@@ -471,14 +481,6 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         return statement.executeQuery(sql);
     }
 
-    private Statement getStatement() throws SQLException {
-        ApplicationProperties properties = ApplicationProperties.getInstance();
-        Connection connection = DriverManager.getConnection(properties.springDatasourceUrl(), properties.springDatasourceUsername(), properties.springDatasourcePassword());
-        return connection.createStatement(
-                ResultSet.TYPE_FORWARD_ONLY, //or ResultSet.TYPE_FORWARD_ONLY
-                ResultSet.CONCUR_READ_ONLY);
-    }
-
     private List<Song> getSongsFromResultSet(ResultSet resultSet) throws SQLException {
         List<Song> songs = new ArrayList<>();
         Long lastSongId = null;
@@ -529,6 +531,8 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     private void putInMapAndCheckLastModifiedDate(Song song) {
         checkLastModifiedDate(song);
+        HashMap<String, Song> songsHashMap = getSongsHashMap();
+        songsHashMap.put(song.getUuid(), song);
     }
 
     @Override
@@ -568,7 +572,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         Random random = new Random();
         int size = (int) songRepository.countByLanguage(language);
         int n = random.nextInt(size);
-        PageRequest pageRequest = new PageRequest(n, 1);
+        PageRequest pageRequest = PageRequest.of(n, 1);
         List<Song> songs = songRepository.findAllByLanguage(language, pageRequest);
         if (songs.size() > 0) {
             return songs.get(0);
@@ -680,9 +684,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         songVerseService.save(verses);
         song.setVerses(verses);
         songVerseOrderListItemRepository.deleteBySong(song);
-        if (songVerseOrderListItems != null) {
-            songVerseOrderListItemRepository.save(songVerseOrderListItems);
-        }
+        songVerseOrderListItemService.saveAllByRepository(songVerseOrderListItems);
         song.setSongVerseOrderListItems(songVerseOrderListItems);
         return song;
     }

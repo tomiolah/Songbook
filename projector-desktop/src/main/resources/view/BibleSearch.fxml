@@ -9,7 +9,7 @@
     <center>
         <BorderPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
             <top>
-                <TextField fx:id="searchTextField" BorderPane.alignment="CENTER">
+                <TextField fx:id="bibleSearchTextField" BorderPane.alignment="CENTER">
                     <BorderPane.margin>
                         <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
                     </BorderPane.margin>

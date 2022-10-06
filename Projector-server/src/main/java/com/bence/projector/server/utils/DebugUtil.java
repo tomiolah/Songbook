@@ -59,6 +59,7 @@ public class DebugUtil {
                     timeSpentAtLine.setTimeSpent(time);
                     timeSpentAtLine.setLineNumber(currentLine);
                     timeSpentAtLine.setClassName(className);
+                    timeSpentAtLine.setStackTraceElement(stackTraceElement);
                 } else {
                     timeSpentAtLine.addTimeSpent(time);
                 }

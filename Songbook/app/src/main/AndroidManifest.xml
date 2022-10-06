@@ -4,6 +4,15 @@
     package="com.bence.songbook">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission
+        android:name="android.permission.SET_DEBUG_APP"
+        tools:ignore="ProtectedPermissions" />
+
+    <queries>
+        <intent>
+            <action android:name="com.google.android.youtube.api.service.START" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
@@ -31,10 +40,10 @@
         <activity
             android:name=".ui.activity.MainActivity"
             android:configChanges="orientation|screenSize"
-            android:label="@string/app_name"
+            android:exported="true"
             android:theme="@style/SongBookTheme"
             android:windowSoftInputMode="adjustPan">
-            <tools:validation testUrl="https://projector-songbook.herokuapp.com/#/song/5abf7bcde66f410004c91084" />
+            <tools:validation testUrl="https://projector-songbook.herokuapp.com/song/5abf7bcde66f410004c91084" />
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -47,6 +56,9 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
 
+                <data android:pathPattern="/song/.*" />
+                <data android:pathPattern="/queue.*" />
+                <data android:pathPattern="/songList/.*" />
                 <data
                     android:host="projector-songbook.herokuapp.com"
                     android:scheme="https" />
@@ -61,7 +73,8 @@
         <activity
             android:name=".ui.activity.LoadActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".ui.activity.LoginActivity"
             android:configChanges="orientation|screenSize"
@@ -69,7 +82,8 @@
         <activity
             android:name=".ui.activity.LanguagesActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".ui.activity.SettingsActivity"
             android:label="@string/settings"
@@ -112,7 +126,8 @@
         <activity
             android:name=".ui.activity.YoutubeActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            tools:ignore="LockedOrientationActivity" />
         <activity
             android:name=".ui.activity.LibraryActivity"
             android:theme="@style/SongBookTheme" />

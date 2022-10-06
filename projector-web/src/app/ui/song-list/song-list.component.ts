@@ -119,11 +119,12 @@ export class SongListComponent implements OnInit {
       (languages) => {
         this.languages = languages;
         if (localStorage.getItem(this.languagesKey) == null) {
-          this.saveToLocalStorage(this.languagesKey, JSON.stringify(languages));
+          this.saveToLocalStorage(this.languagesKey, languages);
         } else {
           let localStorageLanguages: Language[] = JSON.parse(this.getFromLocalStorage(this.languagesKey));
           if (localStorageLanguages.length != languages.length) {
             let index = 0;
+            let wasChange = false;
             for (let storageLanguage of localStorageLanguages) {
               let was = false;
               for (let language of languages) {
@@ -133,7 +134,8 @@ export class SongListComponent implements OnInit {
                 }
               }
               if (!was) {
-                localStorageLanguages.splice(index, 0);
+                localStorageLanguages.splice(index, 1);
+                wasChange = true;
               } else {
                 ++index;
               }
@@ -148,9 +150,12 @@ export class SongListComponent implements OnInit {
               }
               if (!was) {
                 localStorageLanguages = localStorageLanguages.concat(language);
+                wasChange = true;
               }
             }
-            this.saveToLocalStorage(this.languagesKey, JSON.stringify(localStorageLanguages));
+            if (wasChange) {
+              this.saveToLocalStorage(this.languagesKey, localStorageLanguages);
+            }
           }
         }
         this.selectedLanguage = SongListComponent.getSelectedLanguageFromLocalStorage(languages);
@@ -159,7 +164,8 @@ export class SongListComponent implements OnInit {
     );
   }
 
-  saveToLocalStorage(key: string, jsonData: string) {
+  saveToLocalStorage(key: string, languages: Language[]) {
+    const jsonData = JSON.stringify(languages);
     const compressedData = compress(jsonData);
     localStorage.setItem(key, compressedData);
   }
@@ -258,6 +264,9 @@ export class SongListComponent implements OnInit {
           }
         }
         this._subscription = this.songService.getAllSongTitlesAfterModifiedDate(modifiedDate, language.uuid).subscribe(songTitles => {
+          if (songTitles.length == 0) {
+            return;
+          }
           if (lang.songTitles.length == 0) {
             this.songTitles = songTitles;
             for (let song of songTitles) {
@@ -283,7 +292,7 @@ export class SongListComponent implements OnInit {
             lang.songTitles = this.songTitles;
             this.removeFromOtherLanguages(modifiedSongs, languages, lang);
           }
-          this.saveToLocalStorage(this.languagesKey, JSON.stringify(languages));
+          this.saveToLocalStorage(this.languagesKey, languages);
           this.sortAndUpdate();
         });
       }

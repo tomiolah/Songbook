@@ -162,6 +162,7 @@ export class Song extends BaseModel {
   constructor(values: Object = {}) {
     super(values);
     Object.assign(this, values);
+    this.languageDTO = new Language(this.languageDTO);
   }
 
   static copy(other: Song): Song {

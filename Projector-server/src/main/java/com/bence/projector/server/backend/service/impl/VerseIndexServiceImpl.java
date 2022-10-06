@@ -16,6 +16,9 @@ public class VerseIndexServiceImpl implements VerseIndexService {
 
     @Override
     public void save(List<VerseIndex> verseIndices) {
-        verseIndexRepository.save(verseIndices);
+        if (verseIndices == null) {
+            return;
+        }
+        verseIndexRepository.saveAll(verseIndices);
     }
 }

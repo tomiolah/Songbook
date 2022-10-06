@@ -31,6 +31,7 @@ export class AuthenticateComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.authService.loginConfirmed = false;
     this.model.email = this.data.email;
     this.loginForm = this.fb.group({
       'email': [this.model.email, [

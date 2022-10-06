@@ -1,39 +1,51 @@
 package projector;
 
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
-import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.application.ApplicationUtil;
+import projector.application.ApplicationVersion;
 import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.application.Updater;
 import projector.controller.BibleController;
+import projector.controller.FirstSetupController;
 import projector.controller.MyController;
 import projector.controller.ProjectionScreenController;
 import projector.controller.song.SongController;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.ListIterator;
 
+import static java.lang.Thread.sleep;
+import static projector.utils.SceneUtils.addIconToStage;
+import static projector.utils.SceneUtils.addStylesheetToSceneBySettings;
+
 public class MainDesktop extends Application {
 
     private static final Logger LOG = LoggerFactory.getLogger(MainDesktop.class);
+    private static Pane globalRoot;
     private MyController myController;
     private ProjectionScreenController projectionScreenController;
     private Stage tmpStage;
@@ -42,15 +54,99 @@ public class MainDesktop extends Application {
     private Stage canvasStage;
     private ObservableList<Screen> screen;
     private Settings settings;
+    private Date startDate;
 
     public static void main(String[] args) {
         launch(args);
     }
 
+    public static Pane getRoot() {
+        return globalRoot;
+    }
+
     @Override
     public void start(Stage primaryStage) {
-        Date date = new Date();
-        this.primaryStage = primaryStage;
+        try {
+            this.primaryStage = primaryStage;
+            ApplicationUtil.getInstance().setPrimaryStage(primaryStage);
+            if (ApplicationVersion.getInstance().getVersion() < 25 && ApplicationVersion.getInstance().isNotTesting()) {
+                openFirstSetupView(primaryStage);
+            } else {
+                openLauncherView(primaryStage);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void openLauncherView(Stage primaryStage) throws IOException {
+        startDate = new Date();
+        Stage stage = new Stage();
+        stage.initStyle(StageStyle.TRANSPARENT);
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("/view/LauncherView.fxml"));
+        BorderPane borderPane = loader.load();
+        Scene scene = new Scene(borderPane, borderPane.getPrefWidth(), borderPane.getPrefHeight());
+        scene.setFill(Color.TRANSPARENT);
+        stage.setScene(scene);
+        addIconToStage(stage, getClass());
+        stage.setTitle("Projector - starting");
+        Thread thread = new Thread(() -> {
+            try {
+                sleep(50);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            Platform.runLater(() -> {
+                try {
+                    start2(primaryStage);
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
+                stage.close();
+            });
+        });
+        stage.show();
+        if (ApplicationVersion.getInstance().isNotTesting()) {
+            thread.start();
+        } else {
+            start2(primaryStage);
+            primaryStage.show();
+        }
+    }
+
+    private void openFirstSetupView(Stage primaryStage) throws IOException {
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getResource("/view/FirstSetupView.fxml"));
+        BorderPane borderPane = loader.load();
+        FirstSetupController firstSetupController = loader.getController();
+        firstSetupController.setListener(() -> start2(primaryStage));
+        Scene scene = new Scene(borderPane, borderPane.getPrefWidth(), borderPane.getPrefHeight());
+        primaryStage.setScene(scene);
+        Class<?> aClass = getClass();
+        addIconToStage(primaryStage, aClass);
+        primaryStage.setTitle("Projector - setup");
+        primaryStage.show();
+    }
+
+    public void start2(Stage primaryStage) {
+        loadInBackGround();
+        addIconToStage(primaryStage, getClass());
+        primaryStage.setMinHeight(600);
+        primaryStage.setScene(primaryScene);
+        primaryStage.show();
+        primaryStage.setTitle("Projector");
+        primaryStage.setX(0);
+        primaryStage.setY(0);
+        myController.setPrimaryStage(primaryStage);
+        primaryStage.requestFocus();
+        canvasStage.show();
+    }
+
+    public void loadInBackGround() {
+        Settings.shouldBeNull();
+        Updater.getInstance().saveApplicationStartedWithVersion();
         primaryScene = null;
         settings = Settings.getInstance();
         try {
@@ -58,6 +154,7 @@ public class MainDesktop extends Application {
             loader.setLocation(getClass().getResource("/view/MainView.fxml"));
             loader.setResources(Settings.getInstance().getResourceBundle());
             Pane root = loader.load();
+            MainDesktop.globalRoot = root;
             myController = loader.getController();
             BibleController bibleController = myController.getBibleController();
             SongController songController = myController.getSongController();
@@ -69,8 +166,7 @@ public class MainDesktop extends Application {
                 bibleController.onKeyEvent(event);
                 songController.onKeyEvent(event);
             });
-            primaryScene.getStylesheets().add(getClass().getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
-            primaryStage.setMinHeight(600);
+            addStylesheetToSceneBySettings(primaryScene, getClass());
             primaryScene.setOnKeyPressed(event -> {
                 KeyCode keyCode = event.getCode();
                 if (event.isControlDown()) {
@@ -121,13 +217,6 @@ public class MainDesktop extends Application {
             });
             Scene tmpScene = primaryScene;
             primaryScene.addEventFilter(MouseEvent.DRAG_DETECTED, mouseEvent -> tmpScene.startFullDrag());
-
-            primaryStage.setScene(primaryScene);
-            primaryStage.show();
-            primaryStage.setTitle("Projector");
-            primaryStage.setX(0);
-            primaryStage.setY(0);
-            myController.setPrimaryStage(primaryStage);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -144,41 +233,52 @@ public class MainDesktop extends Application {
             e.printStackTrace();
             System.out.println("Something wrong!");
         }
-        primaryStage.requestFocus();
-        primaryStage.getIcons().add(new Image(getClass().getResourceAsStream("/icon.png")));
         myController.setProjectionScreenController(projectionScreenController);
+        myController.initialTabSelect();
         myController.setMain(this);
         myController.getSettingsController().addOnSaveListener(() -> {
-            primaryScene.getStylesheets().clear();
+            ObservableList<String> stylesheets = primaryScene.getStylesheets();
+            stylesheets.clear();
             URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
+            if (resource == null) {
+                return;
+            }
             String url = resource.toExternalForm();
             setUserAgentStylesheet(null);
-            primaryScene.getStylesheets().add(url);
+            stylesheets.add(url);
         });
         projectionScreenController.setText("<color=\"0xffffff0c\">.</color>", ProjectionType.REFERENCE);
         projectionScreenController.setBlank(false);
         Updater.getInstance().checkForUpdate();
-        Date date1 = new Date();
-        System.out.println(date1.getTime() - date.getTime());
+        if (startDate != null) {
+            Date date1 = new Date();
+            LOG.info((date1.getTime() - startDate.getTime()) + " ms");
+        }
     }
 
     private void setProjectionScreen() {
         screen = Screen.getScreens();
         screen.addListener((ListChangeListener<Screen>) c -> setProjectionScreenStage());
         setProjectionScreenStage();
-        primaryStage.setOnCloseRequest(we -> {
-            System.out.println("Stage is closing");
-            Settings settings = Settings.getInstance();
-            settings.setMainHeight(primaryStage.getScene().getHeight());
-            settings.setMainWidth(primaryStage.getScene().getWidth());
-            settings.save();
-            settings.setApplicationRunning(false);
+        primaryStage.setOnCloseRequest(we -> closeApplication());
+        ApplicationUtil.getInstance().setListener(this::closeApplication);
+        primarySceneEventHandler();
+    }
+
+    private void closeApplication() {
+        System.out.println("Stage is closing");
+        Settings settings = Settings.getInstance();
+        settings.setApplicationRunning(false);
+        settings.setMainHeight(primaryStage.getScene().getHeight());
+        settings.setMainWidth(primaryStage.getScene().getWidth());
+        settings.save();
+        settings.setApplicationRunning(false);
             if (tmpStage != null) {
                 tmpStage.close();
             }
             myController.close();
             projectionScreenController.onClose();
-        });
+        }private void primarySceneEventHandler() {
         if (primaryScene != null) {
             primaryScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
                 if (tmpStage != null) {
@@ -333,11 +433,11 @@ public class MainDesktop extends Application {
             }
         });
         canvasStage.setOnCloseRequest(event -> tmpStage.hide());
-
+addIconToStage(canvasStage, getClass());
         projectionScreenController.setStage(canvasStage);
         scene.widthProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
         scene.heightProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
-        canvasStage.show();
+
         scene.setOnKeyPressed(event -> {
             KeyCode keyCode = event.getCode();
             if (keyCode == KeyCode.DOWN || keyCode == KeyCode.RIGHT) {
@@ -363,7 +463,7 @@ public class MainDesktop extends Application {
         if (resource == null) {
             return;
         }
-        scene.getStylesheets().add(resource.toExternalForm());
+        addStylesheetToSceneBySettings(scene, getClass());
     }
 
     public void hideProjectionScreen() {

@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import androidx.annotation.NonNull;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -13,6 +12,8 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
@@ -133,12 +134,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                 verseIndex = 0;
             }
             setTextFromVerseListByVerseIndex();
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    songRepository = new SongRepositoryImpl(getApplicationContext());
-                }
-            });
+            Thread thread = new Thread(() -> songRepository = new SongRepositoryImpl(getApplicationContext()));
             thread.start();
             super.setContext(this);
         } catch (Exception e) {
@@ -157,6 +153,9 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
     }
 
     private void setVerseList() {
+        if (song == null) {
+            return;
+        }
         List<SongVerse> songVersesByVerseOrder = song.getSongVersesByVerseOrder();
         if (verseList == null) {
             verseList = new ArrayList<>(songVersesByVerseOrder.size());
@@ -221,25 +220,22 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
 
     private void updateSongAccessedTime() {
         if (songRepository != null) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Long id = FullscreenActivity.this.song.getId();
-                        if (id == null) {
-                            return;
-                        }
-                        Song song = songRepository.findOne(id);
-                        Date date = new Date();
-                        long endTime = date.getTime();
-                        duration += endTime - startTime;
-                        song.setLastAccessed(date);
-                        Long accessedTimes = song.getAccessedTimes();
-                        song.setAccessedTimes(accessedTimes + 1);
-                        song.setAccessedTimeAverage((accessedTimes * song.getAccessedTimeAverage() + duration) / song.getAccessedTimes());
-                        songRepository.save(song);
-                    } catch (Exception ignored) {
+            Thread thread = new Thread(() -> {
+                try {
+                    Long id = FullscreenActivity.this.song.getId();
+                    if (id == null) {
+                        return;
                     }
+                    Song song = songRepository.findOne(id);
+                    Date date = new Date();
+                    long endTime = date.getTime();
+                    duration += endTime - startTime;
+                    song.setLastAccessed(date);
+                    Long accessedTimes = song.getAccessedTimes();
+                    song.setAccessedTimes(accessedTimes + 1);
+                    song.setAccessedTimeAverage((accessedTimes * song.getAccessedTimeAverage() + duration) / song.getAccessedTimes());
+                    songRepository.save(song);
+                } catch (Exception ignored) {
                 }
             });
             thread.start();

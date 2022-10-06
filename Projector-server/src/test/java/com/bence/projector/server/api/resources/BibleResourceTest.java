@@ -64,7 +64,7 @@ public class BibleResourceTest {
         when(bibleAssembler.createDtoList(bibles)).thenReturn(biblesDTOS);
         String urlTemplate = "/api/bibleTitles";
         mockMvc.perform(get(urlTemplate))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
     }
@@ -76,7 +76,7 @@ public class BibleResourceTest {
         when(bibleService.findOneByUuid(uuid)).thenReturn(bible);
         when(bibleAssembler.createDto(bible)).thenReturn(getBibleDTO(bible));
         mockMvc.perform(get("/api/bible/{uuid}", uuid))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
     }
 

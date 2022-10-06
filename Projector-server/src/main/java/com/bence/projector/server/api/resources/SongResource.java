@@ -12,11 +12,14 @@ import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.NotificationByLanguage;
 import com.bence.projector.server.backend.model.Role;
 import com.bence.projector.server.backend.model.Song;
+import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
+import com.bence.projector.server.backend.service.SongCollectionService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
+import com.bence.projector.server.backend.service.SuggestionService;
 import com.bence.projector.server.backend.service.UserService;
 import com.bence.projector.server.mailsending.MailSenderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,10 +39,13 @@ import javax.transaction.Transactional;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import static com.bence.projector.server.api.resources.StatisticsResource.saveStatistics;
 import static com.bence.projector.server.api.resources.UserPropertiesResource.getUserFromPrincipalAndUserService;
+import static com.bence.projector.server.utils.SetLanguages.printLanguageWords;
+import static com.bence.projector.server.utils.SetLanguages.setLanguagesForUnknown;
 
 @RestController
 public class SongResource {
@@ -52,10 +58,22 @@ public class SongResource {
     private final UserService userService;
     private final LanguageService languageService;
     private final MailSenderService mailSenderService;
+    private final SongCollectionService songCollectionService;
+    private final SuggestionService suggestionService;
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    public SongResource(SongRepository songRepository, SongService songService, SongAssembler songAssembler, SongTitleAssembler songTitleAssembler, StatisticsService statisticsService, UserService userService, LanguageService languageService, MailSenderService mailSenderService) {
+    public SongResource(SongRepository songRepository,
+                        SongService songService,
+                        SongAssembler songAssembler,
+                        SongTitleAssembler songTitleAssembler,
+                        StatisticsService statisticsService,
+                        UserService userService,
+                        LanguageService languageService,
+                        MailSenderService mailSenderService,
+                        SuggestionService suggestionService,
+                        SongCollectionService songCollectionService
+    ) {
         this.songRepository = songRepository;
         this.songService = songService;
         this.songAssembler = songAssembler;
@@ -64,6 +82,8 @@ public class SongResource {
         this.userService = userService;
         this.languageService = languageService;
         this.mailSenderService = mailSenderService;
+        this.songCollectionService = songCollectionService;
+        this.suggestionService = suggestionService;
     }
 
     static boolean hasReviewerRoleForSong(User user, Song song) {
@@ -358,7 +378,7 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs/upload")
     public ResponseEntity<Object> uploadedSongs(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final List<Song> all = songService.findAllByUploadedTrueAndDeletedTrue();
+        final List<Song> all = songService.findAllByUploadedTrueAndDeletedTrueAndNotBackup();
         return new ResponseEntity<>(songTitleAssembler.createDtoList(all), HttpStatus.ACCEPTED);
     }
 
@@ -412,6 +432,7 @@ public class SongResource {
                     songAssembler.updateModel(song, songDTO);
                     song.setReviewerErased(false);
                     final Song savedSong = songService.save(song);
+                    setSongSuggestionsReviewedForYoutubeUrl(savedSong, user);
                     if (savedSong != null) {
                         return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
                     }
@@ -420,6 +441,35 @@ public class SongResource {
             }
         }
         return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
+    }
+
+    private void setSongSuggestionsReviewedForYoutubeUrl(Song song, User user) {
+        try {
+            if (song == null) {
+                return;
+            }
+            String songYoutubeUrl = song.getYoutubeUrl();
+            if (songYoutubeUrl == null) {
+                return;
+            }
+            List<Suggestion> suggestions = suggestionService.findAllBySong(song);
+            if (suggestions == null) {
+                return;
+            }
+            for (Suggestion suggestion : suggestions) {
+                String youtubeUrl = suggestion.getYoutubeUrl();
+                if (!suggestion.isReviewed() && youtubeUrl != null) {
+                    if (youtubeUrl.equals(songYoutubeUrl)) {
+                        suggestion.setReviewed(true);
+                        suggestion.setModifiedDate(new Date());
+                        suggestion.setLastModifiedBy(user);
+                        suggestionService.save(suggestion);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/reviewer/api/changeLanguageForSong/{songId}")
@@ -451,16 +501,50 @@ public class SongResource {
     public void removeDuplicates(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         Iterable<Song> songs = songRepository.findAll();
-        for (Song uploaded : songService.findAllByUploadedTrueAndDeletedTrue()) {
+        int exceptionCounter = 100;
+        HashMap<String, Boolean> deletedMap = new HashMap<>();
+        for (Song uploaded : songService.findAllByUploadedTrueAndDeletedTrueAndNotBackup()) {
             for (Song song : songs) {
-                if (!uploaded.getUuid().equals(song.getUuid()) && songService.matches(uploaded, song)) {
+                if (deletedMap.containsKey(song.getUuid())) {
+                    continue;
+                }
+                if (!uploaded.getUuid().equals(song.getUuid()) && songService.matches(uploaded, song) && uploaded.getSongListElements().size() == 0 && !songHasCollection(uploaded)) {
                     if (songRepository.findOneByUuid(song.getUuid()) != null) {
-                        songService.deleteByUuid(uploaded.getUuid());
+                        try {
+                            deletedMap.put(uploaded.getUuid(), true);
+                            songService.deleteByUuid(uploaded.getUuid());
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                            --exceptionCounter;
+                            if (exceptionCounter < 0) {
+                                return;
+                            }
+                        }
                         break;
                     }
                 }
             }
         }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/admin/automaticallyReAssignLanguages")
+    public void automaticallyReAssignLanguages(HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        setLanguagesForUnknown(songRepository, languageService);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/admin/printALanguageWord/{languageId}")
+    public void printALanguageWord(HttpServletRequest httpServletRequest, @PathVariable final String languageId) {
+        Language language = languageService.findOneByUuid(languageId);
+        if (language == null) {
+            return;
+        }
+        List<Language> languages = languageService.findAll();
+        printLanguageWords(songService.findAllByLanguage(language.getUuid()), languages, language);
+    }
+
+    private boolean songHasCollection(Song song) {
+        return songCollectionService.findAllBySong(song).size() > 0;
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/password/api/song/{songId}")
@@ -493,6 +577,7 @@ public class SongResource {
         song.setReviewerErased(null);
         final Song savedSong = songService.save(song);
         if (savedSong != null) {
+            setSongSuggestionsReviewedForYoutubeUrl(savedSong, user);
             return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>("Could not update", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -601,13 +686,13 @@ public class SongResource {
                     song.setVersionGroup(songService.findOneByUuid(song2VersionGroup));
                     song.setModifiedDate(date);
                 }
-                songRepository.save(allByVersionGroup1);
+                songService.saveAllByRepository(allByVersionGroup1);
             } else {
                 for (Song song : allByVersionGroup2) {
                     song.setVersionGroup(songService.findOneByUuid(song1VersionGroup));
                     song.setModifiedDate(date);
                 }
-                songRepository.save(allByVersionGroup2);
+                songService.saveAllByRepository(allByVersionGroup2);
             }
         }
         return new ResponseEntity<>("Merged", HttpStatus.ACCEPTED);

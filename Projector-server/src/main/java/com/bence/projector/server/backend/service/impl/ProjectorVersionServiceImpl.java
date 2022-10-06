@@ -18,4 +18,9 @@ public class ProjectorVersionServiceImpl extends BaseServiceImpl<ProjectorVersio
         return projectorVersionRepository.findAllByVersionIdGreaterThan(nr);
     }
 
+    @Override
+    public List<ProjectorVersion> findAllAfterCreatedNrAndBeforeCreatedNr(int nr, int nr2) {
+        return projectorVersionRepository.findAllByVersionIdGreaterThanAndVersionIdLessThan(nr, nr2);
+    }
+
 }

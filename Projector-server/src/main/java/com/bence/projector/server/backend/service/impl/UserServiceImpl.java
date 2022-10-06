@@ -17,7 +17,7 @@ import java.util.List;
 public class UserServiceImpl extends BaseServiceImpl<User> implements UserService {
     @Autowired
     private UserRepository userRepository;
-    private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     @Override
     public User findByEmail(String email) {

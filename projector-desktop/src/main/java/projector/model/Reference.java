@@ -5,51 +5,45 @@ import java.util.List;
 
 public class Reference {
 
-    private String reference;
-    private List<ReferenceBook> bookList;
+    private final List<ReferenceBook> bookList;
     private Bible bible;
 
     public Reference() {
         bookList = new LinkedList<>();
     }
 
-    public Reference(String reference) {
-        super();
-        this.reference = reference;
-    }
-
     public String getReference() {
-        reference = "";
+        StringBuilder reference = new StringBuilder();
         for (ReferenceBook book : bookList) {
-            if (!reference.equals("")) {
-                reference += "\n";
+            if (!reference.toString().equals("")) {
+                reference.append("\n");
             }
-            reference += getBookTitle(book);
+            reference.append(getBookTitle(book));
             ReferenceChapter c = book.getChapters().get(0);
-            reference += " " + c.getChapterNumber() + ":";
-            reference += c.getVerses().get(0);
+            reference.append(" ").append(c.getChapterNumber()).append(":");
+            reference.append(c.getVerses().get(0));
             int k;
-            k = getK(c);
-            someFunction(c, k);
+            k = getK(c, reference);
+            someFunction(c, k, reference);
             for (int j = 1; j < book.getChapters().size(); ++j) {
                 ReferenceChapter c1 = book.getChapters().get(j);
-                reference += "\n" + c1.getChapterNumber() + ":";
-                reference += c1.getVerses().get(0);
-                k = getK(c1);
-                someFunction(c1, k);
+                reference.append("\n").append(c1.getChapterNumber()).append(":");
+                reference.append(c1.getVerses().get(0));
+                k = getK(c1, reference);
+                someFunction(c1, k, reference);
             }
         }
-        return reference;
+        return reference.toString();
     }
 
-    private void someFunction(ReferenceChapter c, int k) {
+    private void someFunction(ReferenceChapter c, int k, StringBuilder reference) {
         if (k < c.getVerses().size()) {
             if (c.getVerses().get(k - 1) + 1 == c.getVerses().get(k)) {
-                reference += "-";
+                reference.append("-");
             } else {
-                reference += ", ";
+                reference.append(", ");
             }
-            reference += c.getVerses().get(k);
+            reference.append(c.getVerses().get(k));
         }
     }
 
@@ -57,22 +51,27 @@ public class Reference {
         if (referenceBook.getBook() != null) {
             return referenceBook.getBook().getTitle().trim();
         }
-        return bible.getBooks().get(referenceBook.getBookNumber()).getTitle().trim();
+        List<Book> books = bible.getBooks();
+        int bookNumber = referenceBook.getBookNumber();
+        if (bookNumber >= books.size()) {
+            return "";
+        }
+        return books.get(bookNumber).getTitle().trim();
     }
 
-    private int getK(ReferenceChapter c) {
+    private int getK(ReferenceChapter c, StringBuilder reference) {
         int k;
         for (k = 1; k < c.getVerses().size() - 1; ++k) {
             if (c.getVerses().get(k + 1) - 1 != c.getVerses().get(k)) {
                 if (c.getVerses().get(k - 1) + 1 == c.getVerses().get(k)) {
-                    reference += "-";
+                    reference.append("-");
                 } else {
-                    reference += ", ";
+                    reference.append(", ");
                 }
-                reference += c.getVerses().get(k);
+                reference.append(c.getVerses().get(k));
             } else if (c.getVerses().get(k - 1) + 1 != c.getVerses().get(k)) {
-                reference += ", ";
-                reference += c.getVerses().get(k);
+                reference.append(", ");
+                reference.append(c.getVerses().get(k));
             }
         }
         return k;

@@ -22,10 +22,12 @@ public interface SongRepository extends CrudRepository<Song, Long> {
 
     List<Song> findAllByLanguage(Language language, Pageable pageable);
 
-    long countAllByLanguage(Language language);
+    long countAllByLanguageAndIsBackUpIsNullAndDeletedIsFalse(Language language);
 
     @Transactional
     List<Song> findAllByModifiedDateGreaterThanAndLanguage(Date lastModifiedDate, Language language);
 
     List<Song> findAllByLanguageAndUploadedIsTrueAndIsBackUpIsNullAndDeletedIsTrue(Language language);
+
+    List<Song> findAllByCreatedByEmail(String createdByEmail);
 }

@@ -5,6 +5,7 @@ import android.util.Log;
 import android.widget.ProgressBar;
 
 import com.bence.projector.common.dto.SongViewsDTO;
+import com.bence.songbook.models.Language;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.SongRepository;
@@ -211,6 +212,17 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
             Log.e(TAG, msg);
             throw new RepositoryException(msg, e);
         }
+    }
+
+    @Override
+    public long sumAccessedTimesByLanguage(Language language) {
+        long x = 0L;
+        try {
+            x = songDao.queryRawValue("SELECT SUM(accessedTimes) FROM song WHERE language_id = " + language.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return x;
     }
 
 }

@@ -55,14 +55,14 @@ public class ProjectorVersionResourceTest {
         ProjectorVersion projectorVersion = getATestProjectorVersion();
         projectorVersions.add(projectorVersion);
         int nr = 1;
-        when(projectorVersionService.findAllAfterCreatedNr(nr)).thenReturn(projectorVersions);
+        when(projectorVersionService.findAllAfterCreatedNrAndBeforeCreatedNr(nr, 40)).thenReturn(projectorVersions);
         List<ProjectorVersionDTO> projectorVersionsDTOS = new ArrayList<>();
         ProjectorVersionDTO projectorVersionDTO = getProjectorVersionDTO(projectorVersion);
         projectorVersionsDTOS.add(projectorVersionDTO);
         when(projectorVersionAssembler.createDtoList(projectorVersions)).thenReturn(projectorVersionsDTOS);
         String urlTemplate = "/api/projectorVersionsAfterNr/{nr}";
         mockMvc.perform(get(urlTemplate, nr))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON_UTF8))
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));
     }

@@ -1,5 +1,5 @@
-import {BaseModel} from "./base-model";
-import {Song} from "../services/song-service.service";
+import { BaseModel } from "./base-model";
+import { Song } from "../services/song-service.service";
 
 export class Language extends BaseModel {
   englishName: '';
@@ -16,5 +16,9 @@ export class Language extends BaseModel {
       return this.englishName;
     }
     return this.englishName + " | " + this.nativeName;
+  }
+
+  isEnglish() {
+    return this.uuid == '5a2d25458c270b37345af0c5';
   }
 }

@@ -8,6 +8,7 @@ import com.bence.projector.server.backend.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -27,16 +28,24 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
         if (suggestion == null) {
             return null;
         }
+        SuggestionDTO suggestionDTO = createDtoNoFetch(suggestion);
+        suggestionDTO.setVerses(songVerseAssembler.createDtoList(suggestion.getVerses()));
+        suggestionDTO.setSongId(suggestion.getSongUuid());
+        return suggestionDTO;
+    }
+
+    public SuggestionDTO createDtoNoFetch(Suggestion suggestion) {
+        if (suggestion == null) {
+            return null;
+        }
         SuggestionDTO suggestionDTO = new SuggestionDTO();
         suggestionDTO.setUuid(suggestion.getUuid());
         suggestionDTO.setTitle(suggestion.getTitle());
         suggestionDTO.setCreatedDate(suggestion.getCreatedDate());
         suggestionDTO.setModifiedDate(suggestion.getModifiedDate());
-        suggestionDTO.setVerses(songVerseAssembler.createDtoList(suggestion.getVerses()));
         suggestionDTO.setCreatedByEmail(suggestion.getCreatedByEmail());
         suggestionDTO.setApplied(suggestion.getApplied());
         suggestionDTO.setDescription(suggestion.getDescription());
-        suggestionDTO.setSongId(suggestion.getSongUuid());
         suggestionDTO.setYoutubeUrl(suggestion.getYoutubeUrl());
         suggestionDTO.setReviewed(suggestion.getReviewed());
         User lastModifiedBy = suggestion.getLastModifiedBy();
@@ -44,6 +53,14 @@ public class SuggestionAssembler implements GeneralAssembler<Suggestion, Suggest
             suggestionDTO.setLastModifiedByUserEmail(lastModifiedBy.getEmail());
         }
         return suggestionDTO;
+    }
+
+    public List<SuggestionDTO> createDtosNoFetch(List<Suggestion> suggestions) {
+        List<SuggestionDTO> suggestionDTOS = new ArrayList<>();
+        for (Suggestion suggestion : suggestions) {
+            suggestionDTOS.add(createDtoNoFetch(suggestion));
+        }
+        return suggestionDTOS;
     }
 
     @Override

@@ -39,7 +39,7 @@ public class FavouriteSongApiBean {
             Response<List<FavouriteSongDTO>> favouriteSongDTOResponse = call.execute();
             if (favouriteSongDTOResponse.isSuccessful()) {
                 return favouriteSongDTOResponse.body();
-            } else if (!secondTry && UserService.getInstance().loginIfNeeded(favouriteSongDTOResponse.headers(), context)) {
+            } else if (!secondTry && UserService.getInstance().loginIfNeeded(favouriteSongDTOResponse.headers(), context, favouriteSongDTOResponse.raw())) {
                 return uploadFavouriteSongs(favouriteSongs, true);
             }
         } catch (Exception e) {
@@ -58,7 +58,7 @@ public class FavouriteSongApiBean {
             Response<List<FavouriteSongDTO>> response = call.execute();
             if (response.isSuccessful()) {
                 return response.body();
-            } else if (!secondTry && UserService.getInstance().loginIfNeeded(response.headers(), context)) {
+            } else if (!secondTry && UserService.getInstance().loginIfNeeded(response.headers(), context, response.raw())) {
                 return getFavouriteSongs(serverModifiedDate, true);
             }
         } catch (Exception e) {

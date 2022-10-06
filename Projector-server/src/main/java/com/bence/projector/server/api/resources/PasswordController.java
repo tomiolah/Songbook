@@ -45,7 +45,7 @@ public class PasswordController {
                 expiryDate.setTime(expiryDate.getTime() + TOKEN_DURATION);
                 user.setExpiryDate(expiryDate);
                 userService.save(user);
-                final String link = "http://" + AppProperties.getInstance().shortBaseUrl() + "/#/changePasswordByToken?email=" + user.getEmail() + "&token="
+                final String link = AppProperties.getInstance().baseUrl() + "/#/changePasswordByToken?email=" + user.getEmail() + "&token="
                         + user.getToken() + "&expiryDate=" + user.getExpiryDate().getTime();
                 try {
                     mailSenderService.sendForgottenEmail(user.getEmail(), link);

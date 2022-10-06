@@ -3,9 +3,8 @@ import { UserDataService } from '../../services/user-data.service';
 import { MatSnackBar, MatDialog } from '@angular/material';
 import { ActivatedRoute } from '@angular/router';
 import { Subscription } from "rxjs/Subscription";
-import { AuthenticateComponent } from '../authenticate/authenticate.component';
-import { User } from '../../models/user';
 import { AuthService } from '../../services/auth.service';
+import { checkAuthenticationError, ErrorUtil } from '../../util/error-util';
 
 @Component({
   selector: 'app-activation',
@@ -60,10 +59,9 @@ export class ActivationComponent implements OnInit, OnDestroy {
   }
 
   private handleError(err: any) {
-    if (err.status == 401 || err.message === 'Unexpected token < in JSON at position 0') {
-      this.openAuthenticateDialog();
-    }
-    else {
+    if (ErrorUtil.errorIsNeededLogin(err)) {
+      checkAuthenticationError(this.activate, this, err, this.dialog);
+    } else {
       console.log(err);
       this.snackBar.open(err._body, 'Close', {
         duration: 5000
@@ -73,24 +71,6 @@ export class ActivationComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
-  }
-
-  private openAuthenticateDialog() {
-    let user = JSON.parse(localStorage.getItem('currentUser'));
-    if (user == undefined) {
-      user = new User();
-    }
-    const dialogRef = this.dialog.open(AuthenticateComponent, {
-      data: {
-        email: user.email
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'ok') {
-        this.activate();
-      }
-    });
   }
 
 }

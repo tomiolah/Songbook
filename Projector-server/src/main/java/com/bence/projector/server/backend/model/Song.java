@@ -54,6 +54,8 @@ public class Song extends AbstractModel {
     private List<NotificationByLanguage> notificationByLanguages;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<Suggestion> suggestions;
+    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "song")
+    private List<SongListElement> songListElements;
 
     public Song() {
     }
@@ -141,10 +143,6 @@ public class Song extends AbstractModel {
         this.deleted = deleted;
     }
 
-    public boolean isJustUploaded() {
-        return deleted && !isBackUp() || !isReviewerErased();
-    }
-
     public Language getLanguage() {
         return language;
     }
@@ -168,14 +166,6 @@ public class Song extends AbstractModel {
 
     public long getViews() {
         return views;
-    }
-
-    public void setViews(long views) {
-        this.views = views;
-    }
-
-    public Date getLastIncrementViewDate() {
-        return lastIncrementViewDate;
     }
 
     public void setLastIncrementViewDate(Date lastIncrementViewDate) {
@@ -230,10 +220,6 @@ public class Song extends AbstractModel {
         this.youtubeUrl = youtubeUrl;
     }
 
-    public Date getLastIncrementFavouritesDate() {
-        return lastIncrementFavouritesDate;
-    }
-
     public void setLastIncrementFavouritesDate(Date lastIncrementFavouritesDate) {
         this.lastIncrementFavouritesDate = lastIncrementFavouritesDate;
     }
@@ -244,10 +230,6 @@ public class Song extends AbstractModel {
 
     public long getFavourites() {
         return favourites;
-    }
-
-    public void setFavourites(long favourites) {
-        this.favourites = favourites;
     }
 
     public String getVerseOrder() {
@@ -368,10 +350,6 @@ public class Song extends AbstractModel {
         return !isReviewerErased() && !isDeleted() && !isBackUp();
     }
 
-    public void setNotificationByLanguages(List<NotificationByLanguage> notificationByLanguages) {
-        this.notificationByLanguages = notificationByLanguages;
-    }
-
     private String idOrVersionGroup() {
         Song versionGroup = getVersionGroup();
         if (versionGroup != null) {
@@ -422,5 +400,12 @@ public class Song extends AbstractModel {
 
     private boolean verseOrderWasSaved() {
         return !verseOrderWasNotSaved();
+    }
+
+    public List<SongListElement> getSongListElements() {
+        if (songListElements == null) {
+            songListElements = new ArrayList<>();
+        }
+        return songListElements;
     }
 }

@@ -9,6 +9,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.security.Principal;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -16,6 +18,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.bence.projector.server.utils.MemoryUtil.getEmptyList;
 
 @Controller
 public class SongResourceSeo {
@@ -28,13 +32,23 @@ public class SongResourceSeo {
     }
 
     @GetMapping("/song/{id}")
-    public String song(Model model, @PathVariable("id") String id) {
+    public String song(Model model, @PathVariable("id") String id, Principal principal) {
         Song song = songService.findOneByUuid(id);
         if (song == null || song.isDeleted() || song.isBackUp()) {
             return "pageNotFound";
         }
         model.addAttribute("title", song.getTitle());
+        if (principal == null) {
+            setSongTextLines(song); // for lazy loading
+            addExtraInfo(model, song);
+        } else {
+            setEmptyLines(song);
+        }
         model.addAttribute("song", song);
+        return "song";
+    }
+
+    private void addExtraInfo(Model model, Song song) {
         Song randomSong = songService.getRandomSong(song.getLanguage());
         if (randomSong != null && randomSong.isPublic()) {
             model.addAttribute("randomSongUrl", "/song/" + randomSong.getUuid());
@@ -69,21 +83,12 @@ public class SongResourceSeo {
         if (song.getLanguage() != null) {
             String englishName = song.getLanguage().getEnglishName();
             switch (englishName) {
-                case "Hungarian":
-                    keywords.append(", dalszöveg, szöveg, ének");
-                    break;
-                case "Romanian":
-                    keywords.append(", versuri, text, cântec, imn");
-                    break;
-                case "German":
-                    keywords.append(", text, lied, hymne");
-                    break;
-                default: //if (englishName.equals("English"))
-                    keywords.append(", text, hymn, song");
-                    break;
+                case "Hungarian" -> keywords.append(", dalszöveg, szöveg, ének");
+                case "Romanian" -> keywords.append(", versuri, text, cântec, imn");
+                case "German" -> keywords.append(", text, lied, hymne");
+                default -> //if (englishName.equals("English"))
+                        keywords.append(", text, hymn, song");
             }
-//        } else {
-//            todo send email just once per day.
         }
         Iterator<String> iterator = strings.iterator();
         for (int i = 0; iterator.hasNext() && i < 4; ++i) {
@@ -94,7 +99,19 @@ public class SongResourceSeo {
         model.addAttribute("keywords", keywords.toString());
         model.addAttribute("youtubeUrl", "http://img.youtube.com/vi/" + song.getYoutubeUrl() + "/0.jpg");
         model.addAttribute("description", getDescriptionText(song));
-        return "song";
+    }
+
+    private void setEmptyLines(Song song) {
+        ArrayList<String> emptyList = getEmptyList();
+        for (SongVerse songVerse : song.getVerses()) {
+            songVerse.setLines(emptyList);
+        }
+    }
+
+    private void setSongTextLines(Song song) {
+        for (SongVerse songVerse : song.getVerses()) {
+            songVerse.setTextLines();
+        }
     }
 
     private String getDescriptionText(Song song) {

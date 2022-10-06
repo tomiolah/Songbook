@@ -9,8 +9,10 @@ import java.util.Date;
 public class Statistics extends BaseEntity {
     @Transient
     private final int URI_LENGTH = 100;
+    @Transient
+    private final int REMOTE_ADDRESS_LENGTH = 15;
     private Date accessedDate;
-    @Column(length = 15)
+    @Column(length = REMOTE_ADDRESS_LENGTH)
     private String remoteAddress;
     @Column(length = URI_LENGTH)
     private String uri;
@@ -30,7 +32,7 @@ public class Statistics extends BaseEntity {
     }
 
     public void setRemoteAddress(String remoteAddress) {
-        this.remoteAddress = remoteAddress;
+        this.remoteAddress = remoteAddress.substring(0, Math.min(remoteAddress.length(), REMOTE_ADDRESS_LENGTH - 1));
     }
 
     public String getUri() {

@@ -5,6 +5,7 @@ import static com.bence.songbook.utils.BaseURL.BASE_URL;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -108,5 +109,18 @@ public class LoginActivity extends AppCompatActivity {
     public void onCreateAccountClick(View view) {
         Uri uri = Uri.parse(BASE_URL + "#/registration");
         startActivity(new Intent(Intent.ACTION_VIEW, uri));
+    }
+
+    @Override
+    public void onBackPressed() {
+        finish();
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+        }
+        return true;
     }
 }

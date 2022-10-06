@@ -14,7 +14,7 @@ import retrofit2.Call;
 public class SongListApiBean {
     private static final String TAG = SongListApiBean.class.getName();
     private final SongListAssembler songListAssembler;
-    private SongListApi songListApi;
+    private final SongListApi songListApi;
 
     public SongListApiBean(Context context) {
         songListApi = ApiManager.getClient().create(SongListApi.class);
@@ -22,6 +22,9 @@ public class SongListApiBean {
     }
 
     public SongListDTO uploadSongList(SongList songList) {
+        if (songList == null) {
+            return null;
+        }
         SongListDTO dto = songListAssembler.createDto(songList);
         Call<SongListDTO> call = songListApi.uploadSongList(dto);
         try {

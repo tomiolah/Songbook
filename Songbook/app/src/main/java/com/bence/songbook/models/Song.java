@@ -55,6 +55,8 @@ public class Song extends BaseEntity {
     private boolean newSong;
     @DatabaseField
     private Boolean asDeleted;
+    @DatabaseField
+    private Boolean savedOnlyToDevice;
 
     public Song() {
     }
@@ -377,4 +379,13 @@ public class Song extends BaseEntity {
     public void setAsDeleted(boolean asDeleted) {
         this.asDeleted = asDeleted;
     }
+
+    public void setSavedOnlyToDevice(Boolean savedOnlyToDevice) {
+        this.savedOnlyToDevice = savedOnlyToDevice;
+    }
+
+    public boolean isSavedOnlyToDevice() {
+        return savedOnlyToDevice != null && savedOnlyToDevice;
+    }
+
 }

@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public abstract class BaseServiceImpl<M extends BaseEntity> implements BaseService<M> {
     @Autowired
@@ -13,7 +14,8 @@ public abstract class BaseServiceImpl<M extends BaseEntity> implements BaseServi
 
     @Override
     public M findOne(Long id) {
-        return repository.findOne(id);
+        Optional<M> optional = repository.findById(id);
+        return optional.orElse(null);
     }
 
     @Override
@@ -23,12 +25,12 @@ public abstract class BaseServiceImpl<M extends BaseEntity> implements BaseServi
 
     @Override
     public void delete(Long id) {
-        repository.delete(id);
+        repository.deleteById(id);
     }
 
     @Override
     public void delete(final List<Long> ids) {
-        ids.forEach(id -> repository.delete(id));
+        ids.forEach(id -> repository.deleteById(id));
     }
 
     @Override
@@ -38,6 +40,14 @@ public abstract class BaseServiceImpl<M extends BaseEntity> implements BaseServi
 
     @Override
     public Iterable<M> save(final List<M> models) {
-        return repository.save(models);
+        if (models == null) {
+            return null;
+        }
+        return repository.saveAll(models);
+    }
+
+    @Override
+    public void saveAllByRepository(List<M> models) {
+        save(models);
     }
 }

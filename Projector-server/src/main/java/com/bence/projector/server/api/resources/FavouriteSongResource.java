@@ -85,6 +85,9 @@ public class FavouriteSongResource {
     }
 
     private String getKey(FavouriteSongDTO favouriteSongDTO) {
+        if (favouriteSongDTO == null) {
+            return null;
+        }
         return favouriteSongDTO.getSongUuid();
     }
 

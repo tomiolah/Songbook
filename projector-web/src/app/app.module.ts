@@ -95,6 +95,7 @@ import { VersionLinkComponent } from './ui/version-link/version-link.component';
 import { SongCollectionElementComponent } from './ui/song-collection-element/song.collection.element';
 import { ActivateComponent } from './ui/activate/activate.component';
 import { NewSongCollectionComponent } from './ui/new-song-collection/new-song-collection.component';
+import { EditTitleComponent } from './ui/edit-title/edit-title.component';
 
 @NgModule({
   exports: [
@@ -180,6 +181,7 @@ export class PlunkerMaterialModule {
     SongCollectionElementComponent,
     ActivateComponent,
     NewSongCollectionComponent,
+    EditTitleComponent,
   ],
   imports: [
     BrowserModule,

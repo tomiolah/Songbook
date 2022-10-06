@@ -19,7 +19,7 @@ public class SiteMapController {
     @Autowired
     private SongService songService;
 
-    @RequestMapping(value = "/sitemap.xml", method = RequestMethod.GET)
+    @RequestMapping(value = "/sitemap.xml", method = RequestMethod.GET, produces = "application/xml")
     @ResponseBody
     public XmlUrlSet main() {
         XmlUrlSet xmlUrlSet = new XmlUrlSet();

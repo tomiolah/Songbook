@@ -5,11 +5,11 @@ import { ActivatedRoute } from "@angular/router";
 import { User } from "../../models/user";
 import { UserDataService } from "../../services/user-data.service";
 import { DomSanitizer, SafeResourceUrl, Title } from "@angular/platform-browser";
-import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { MatDialog } from "@angular/material";
 import { Role, getAllRole } from '../../models/role';
 import { Language } from '../../models/language';
 import { LanguageDataService } from '../../services/language-data.service';
+import { checkAuthenticationError } from '../../util/error-util';
 
 
 @Component({
@@ -63,9 +63,7 @@ export class UserComponent implements OnInit, OnDestroy {
             this.setOriginalUser(this.user);
           },
           (err) => {
-            if (err.message === 'Unexpected token < in JSON at position 0') {
-              this.openAuthenticateDialog();
-            }
+            checkAuthenticationError(this.ngOnInit, this, err, this.dialog);
           });
       }
     });
@@ -120,21 +118,6 @@ export class UserComponent implements OnInit, OnDestroy {
     return Role.getAsString(role);
   }
 
-  private openAuthenticateDialog() {
-    let user = JSON.parse(localStorage.getItem('currentUser'));
-    const dialogRef = this.dialog.open(AuthenticateComponent, {
-      data: {
-        email: user.email
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'ok') {
-        this.ngOnInit();
-      }
-    });
-  }
-
   onApplyRoleButtonClick() {
     const updateUser = new User(this.originalUser);
     updateUser.role = this.user.role;
@@ -177,12 +160,7 @@ export class UserComponent implements OnInit, OnDestroy {
     this.userService.update(updateUser).subscribe(() => {
       this.setOriginalUser(updateUser);
     }, (err) => {
-      if (err.status === 405) {
-        this.openAuthenticateDialog();
-      }
-      else {
-        console.log(err);
-      }
+      checkAuthenticationError(this.ngOnInit, this, err, this.dialog);
     });
   }
 

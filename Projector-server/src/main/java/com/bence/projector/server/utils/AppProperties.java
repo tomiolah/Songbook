@@ -35,7 +35,19 @@ public class AppProperties {
         return properties.get("useMoreMemory").equals("true");
     }
 
+    public boolean isProduction() {
+        Object production = properties.get("production");
+        if (production == null) {
+            return true;
+        }
+        return production.equals("true");
+    }
+
     public String adminEmail() {
         return (String) properties.get("adminEmail");
+    }
+
+    public String getYouTubeAPIKey() {
+        return (String) properties.get("YouTubeAPIKey");
     }
 }

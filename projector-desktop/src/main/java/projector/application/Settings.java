@@ -9,6 +9,8 @@ import javafx.scene.layout.BackgroundRepeat;
 import javafx.scene.layout.BackgroundSize;
 import javafx.scene.paint.Color;
 import javafx.scene.text.FontWeight;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.controller.BibleController;
 import projector.controller.SettingsController;
 import projector.controller.song.util.OrderMethod;
@@ -32,6 +34,7 @@ import static java.lang.Double.parseDouble;
 
 public class Settings {
 
+    private static final Logger LOG = LoggerFactory.getLogger(Settings.class);
     private static Settings instance = null;
     private final BooleanProperty connectedToShared = new SimpleBooleanProperty(false);
     private final SimpleBooleanProperty showProgressLine = new SimpleBooleanProperty(true);
@@ -97,6 +100,12 @@ public class Settings {
             instance = new Settings();
         }
         return instance;
+    }
+
+    public static void shouldBeNull() {
+        if (instance != null) {
+            LOG.error("Settings should be null");
+        }
     }
 
     public synchronized int getMaxFont() {
@@ -488,10 +497,6 @@ public class Settings {
         return fontWeight;
     }
 
-    public synchronized void setLogging(boolean logging) {
-        this.logging = logging;
-    }
-
     public synchronized double getPreviewX() {
         return previewX;
     }
@@ -602,14 +607,9 @@ public class Settings {
 
     public synchronized void setPreferredLanguage(String language) {
         switch (language) {
-            case "hu":
-                preferredLanguage = new Locale(language, "HU");
-                break;
-            case "ro":
-                preferredLanguage = new Locale(language, "RO");
-                break;
-            default:
-                preferredLanguage = new Locale("en", "US");
+            case "hu" -> preferredLanguage = new Locale(language, "HU");
+            case "ro" -> preferredLanguage = new Locale(language, "RO");
+            default -> preferredLanguage = new Locale("en", "US");
         }
     }
 

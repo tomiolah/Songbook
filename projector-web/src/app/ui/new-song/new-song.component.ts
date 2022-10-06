@@ -4,12 +4,12 @@ import { Song, SongService, SongVerseDTO, SongVerseUI, SectionType } from '../..
 import { Router } from '@angular/router';
 import { Language } from "../../models/language";
 import { LanguageDataService } from "../../services/language-data.service";
-import { MatDialog, MatIconRegistry, MatSnackBar } from "@angular/material";
+import { MatDialog, MatIconRegistry } from "@angular/material";
 import { NewLanguageComponent } from "../new-language/new-language.component";
 import { DomSanitizer, SafeResourceUrl, Title } from "@angular/platform-browser";
-import { AuthenticateComponent } from '../authenticate/authenticate.component';
 import { CdkDragDrop, moveItemInArray, copyArrayItem } from '@angular/cdk/drag-drop';
 import { addNewVerse_, calculateOrder_ } from '../../util/song.utils';
+import { checkAuthenticationError } from '../../util/error-util';
 
 export function replace(value: string) {
   let newValue: string = value.trim();
@@ -39,6 +39,8 @@ export function replace(value: string) {
   newValue = replaceMatch(newValue, /ţ/g, 'ț');
   newValue = replaceMatch(newValue, /ã/g, 'ă');
   newValue = replaceMatch(newValue, /à/g, 'á');
+  newValue = replaceMatch(newValue, /è/g, 'é');
+  newValue = replaceMatch(newValue, /È/g, 'É');
   newValue = replaceMatch(newValue, /õ/g, 'ő');
   newValue = replaceMatch(newValue, /ō/g, 'ő');
   newValue = replaceMatch(newValue, /ô/g, 'ő');
@@ -114,7 +116,6 @@ export class NewSongComponent implements OnInit {
     private titleService: Title,
     private dialog: MatDialog,
     iconRegistry: MatIconRegistry,
-    private snackBar: MatSnackBar,
     public sanitizer: DomSanitizer,
     private _changeDetectionRef: ChangeDetectorRef) {
     iconRegistry.addSvgIcon(
@@ -340,31 +341,9 @@ export class NewSongComponent implements OnInit {
         this.router.navigate(['/song/' + song.uuid]);
       },
       (err) => {
-        if (err.message === 'Unexpected token < in JSON at position 0') {
-          this.openAuthenticateDialog();
-        } else {
-          console.log(err);
-          this.snackBar.open(err._body, 'Close', {
-            duration: 5000
-          })
-        }
+        checkAuthenticationError(this.insertNewSong, this, err, this.dialog);
       }
     );
-  }
-
-  private openAuthenticateDialog() {
-    let user = JSON.parse(localStorage.getItem('currentUser'));
-    const dialogRef = this.dialog.open(AuthenticateComponent, {
-      data: {
-        email: user.email
-      }
-    });
-
-    dialogRef.afterClosed().subscribe((result) => {
-      if (result === 'ok') {
-        this.insertNewSong();
-      }
-    });
   }
 
   private setVerseOrderListFromSectionOrder() {

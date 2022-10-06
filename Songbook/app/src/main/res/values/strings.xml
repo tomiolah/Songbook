@@ -53,7 +53,7 @@
     <string name="empty_verses">Empty verses</string>
     <string name="title_of_the_song">Title of the song</string>
     <string name="verses">Verses:</string>
-    <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Insert here the song verses\n  separated by an empty line.\n\n  1. Example\n\n  2. Example</string>
+    <string name="insert_here_the_song_verses_nseparated_by_an_empty_line_n_n1_example_n_n2_example">Insert here the song verses\nseparated by an empty line.\n\n  1. Example\n\n  2. Example</string>
     <string name="your_email">Your email:</string>
     <string name="languageD">Language:</string>
     <string name="title">Title</string>
@@ -137,4 +137,5 @@
     <string name="try_again_later">Try again later</string>
     <string name="password_or_email_incorrect">Password or email incorrect</string>
     <string name="create_account">Create account</string>
+    <string name="upload_song">Upload song</string>
 </resources>

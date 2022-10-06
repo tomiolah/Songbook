@@ -19,7 +19,7 @@ public class UserProperties extends BaseEntity {
         return notifications;
     }
 
-    public final void setNotifications(List<NotificationByLanguage> notifications) {
+    public final void setNotifications_(List<NotificationByLanguage> notifications) {
         if (notifications != null) {
             for (NotificationByLanguage notificationByLanguage : notifications) {
                 notificationByLanguage.setUserProperties(this);

@@ -8,7 +8,6 @@ import android.preference.PreferenceManager;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -57,13 +56,11 @@ public class SuggestEditsActivity extends AppCompatActivity {
             supportActionBar.setDisplayShowHomeEnabled(true);
         }
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                submit();
-            }
-        });
+        fab.setOnClickListener(view -> submit());
         song = Memory.getInstance().getPassingSong();
+        if (song == null) {
+            finish();
+        }
         Intent intent = getIntent();
         String method = intent.getStringExtra("method");
         titleEditText = findViewById(R.id.title);
@@ -85,12 +82,9 @@ public class SuggestEditsActivity extends AppCompatActivity {
             CheckSongForUpdate.getInstance().addListener(new CheckSongForUpdateListener(layoutInflater) {
                 @Override
                 public void onSongHasBeenModified(final PopupWindow updatePopupWindow) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            LinearLayout updateSongsLayout = findViewById(R.id.updateSongsLayout);
-                            updatePopupWindow.showAtLocation(updateSongsLayout, Gravity.CENTER, 0, 0);
-                        }
+                    runOnUiThread(() -> {
+                        LinearLayout updateSongsLayout = findViewById(R.id.updateSongsLayout);
+                        updatePopupWindow.showAtLocation(updateSongsLayout, Gravity.CENTER, 0, 0);
                     });
                 }
 
@@ -160,22 +154,16 @@ public class SuggestEditsActivity extends AppCompatActivity {
             }
             suggestionDTO.setVerses(songVerseDTOList);
         }
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SuggestionApiBean suggestionApiBean = new SuggestionApiBean();
-                final SuggestionDTO uploadedSuggestion = suggestionApiBean.uploadSuggestion(suggestionDTO);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (uploadedSuggestion != null && !uploadedSuggestion.getUuid().trim().isEmpty()) {
-                            Toast.makeText(SuggestEditsActivity.this, R.string.successfully_uploaded, Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(SuggestEditsActivity.this, R.string.upload_failed, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
+        Thread thread = new Thread(() -> {
+            SuggestionApiBean suggestionApiBean = new SuggestionApiBean();
+            final SuggestionDTO uploadedSuggestion = suggestionApiBean.uploadSuggestion(suggestionDTO);
+            runOnUiThread(() -> {
+                if (uploadedSuggestion != null && !uploadedSuggestion.getUuid().trim().isEmpty()) {
+                    Toast.makeText(SuggestEditsActivity.this, R.string.successfully_uploaded, Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(SuggestEditsActivity.this, R.string.upload_failed, Toast.LENGTH_SHORT).show();
+                }
+            });
         });
         thread.start();
         finish();

@@ -1,1 +1,1 @@
-gradle bootRepackage
+gradle bootJar

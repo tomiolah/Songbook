@@ -1,5 +1,7 @@
 package com.bence.songbook.ui.utils;
 
+import static com.bence.songbook.models.Song.copyLocallySetted;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -27,8 +29,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
-import static com.bence.songbook.models.Song.copyLocallySetted;
-
 public class SyncInBackground {
 
     private static SyncInBackground instance;
@@ -50,7 +50,7 @@ public class SyncInBackground {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         incorrectSyncSave = sharedPreferences.getBoolean("incorrectSyncSave", true);
         LanguageRepository languageRepository = new LanguageRepositoryImpl(context);
-        List<Language> languages = languageRepository.findAll();
+        List<Language> languages = languageRepository.findAllSelectedForDownload();
         for (Language language : languages) {
             new Downloader(language, context).execute();
         }
@@ -66,7 +66,7 @@ public class SyncInBackground {
                         Thread.sleep(100);
                     }
                     LanguageRepository languageRepository = new LanguageRepositoryImpl(context);
-                    List<Language> languages = languageRepository.findAll();
+                    List<Language> languages = languageRepository.findAllSelectedForDownload();
                     for (Language language : languages) {
                         new ViewsDownloader(context, language).execute();
                     }
