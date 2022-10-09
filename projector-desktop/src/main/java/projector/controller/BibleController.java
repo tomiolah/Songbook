@@ -202,6 +202,13 @@ public class BibleController {
         Settings.getInstance().getBibleController().setStyleFile(scene);
     }
 
+    private static Integer getFirstFromSelectedIndices(ObservableList<Integer> ob) {
+        if (ob == null || ob.size() == 0) {
+            return -1;
+        }
+        return ob.get(0);
+    }
+
     @SuppressWarnings("ResultOfMethodCallIgnored")
     void lazyInitialize() {
         if (initialized) {
@@ -269,11 +276,11 @@ public class BibleController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            bibleListView.setCellFactory(new Callback<ListView<Bible>, ListCell<Bible>>() {
+            bibleListView.setCellFactory(new Callback<>() {
                 @Override
                 public ListCell<Bible> call(ListView<Bible> bibleListView) {
 
-                    return new ListCell<Bible>() {
+                    return new ListCell<>() {
                         @Override
                         protected void updateItem(Bible bible, boolean empty) {
                             try {
@@ -464,7 +471,7 @@ public class BibleController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            bookListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<String>() {
+            bookListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
                 @Override
                 public synchronized void changed(ObservableValue<? extends String> selected, String oldBook,
                                                  String newBook) {
@@ -500,7 +507,7 @@ public class BibleController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            partListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Integer>() {
+            partListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
                 @Override
                 public synchronized void changed(ObservableValue<? extends Integer> observable, Integer oldPart,
                                                  Integer newPart) {
@@ -614,7 +621,7 @@ public class BibleController {
                 }
             });
             verseListView.setCellFactory((ListView<MarkTextFlow> list) -> {
-                final ListCell<MarkTextFlow> cell = new ListCell<MarkTextFlow>() {
+                final ListCell<MarkTextFlow> cell = new ListCell<>() {
                     @Override
                     protected void updateItem(MarkTextFlow textFlow, boolean empty) {
                         try {
@@ -872,11 +879,18 @@ public class BibleController {
             references = new LinkedList<>();
             references.add(allReference);
             references.add(ref);
-            referenceListView.getSelectionModel().getSelectedIndices().addListener(new ListChangeListener<Integer>() {
+            referenceListView.getSelectionModel().getSelectedIndices().addListener(new ListChangeListener<>() {
                 @Override
                 synchronized public void onChanged(Change<? extends Integer> c) {
                     try {
-                        int selectedIndex = referenceListView.getSelectionModel().getSelectedIndex();
+                        if (c == null) {
+                            return;
+                        }
+                        ObservableList<? extends Integer> integers = c.getList();
+                        if (integers == null || integers.size() < 1) {
+                            return;
+                        }
+                        int selectedIndex = integers.get(0);
                         int lastIndex = referenceListView.getItems().size() - 1;
                         if (!newReferenceAdded) {
                             if (selectedIndex == lastIndex) {
@@ -953,8 +967,7 @@ public class BibleController {
             settings.setVerseListViewFontSize(verseFont.getSize());
             for (MarkTextFlow textFlow : verseListView.getItems()) {
                 for (Node node : textFlow.getChildren()) {
-                    if (node instanceof Text) {
-                        final Text node1 = (Text) node;
+                    if (node instanceof final Text node1) {
                         node1.setFont(verseFont);
                     }
                 }
@@ -1102,11 +1115,15 @@ public class BibleController {
             BibleService bibleService = ServiceManager.getBibleService();
             List<Bible> bibles = bibleService.findAll();
             bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
-            if (bibles.size() == 0) {
+            int biblesCount = bibles.size();
+            if (biblesCount == 0) {
                 downloadBibles();
                 return;
             }
             ObservableList<Bible> items = bibleListView.getItems();
+            if (items.size() == biblesCount) {
+                return;
+            }
             items.clear();
             items.addAll(bibles);
             parallelBibles.clear();
@@ -1374,6 +1391,10 @@ public class BibleController {
             result.append(bibleVerse.getText());
             reference.addVerse(bibleVerse.getChapter().getBook(), bibleVerse.getChapter().getNumber(), bibleVerse.getNumber());
         }
+        String versesText = result.toString();
+        if (versesText.length() == 0) {
+            return "";
+        }
         result.append("\n");
         if (settings.isReferenceItalic()) {
             result.append("[");
@@ -1393,7 +1414,7 @@ public class BibleController {
             ObservableList<Integer> ob = verseListView.getSelectionModel().getSelectedIndices();
             StringBuilder string = new StringBuilder();
             int iVerse;
-            iVerse = verseListView.getSelectionModel().getSelectedIndex();
+            iVerse = getFirstFromSelectedIndices(ob);
             String text = null;
             if (selectedBook >= 0 && selectedPart >= 0 && iVerse >= 0) {
                 List<VerseIndex> verseIndices = new ArrayList<>();
