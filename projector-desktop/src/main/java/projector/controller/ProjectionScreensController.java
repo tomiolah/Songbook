@@ -70,6 +70,7 @@ public class ProjectionScreensController {
         settingsButton.setOnAction(onSettingsAction(projectionScreenHolder));
         hBoxChildren.add(settingsButton);
         ToggleButton blankButton = new ToggleButton();
+        blankButton.setMnemonicParsing(false);
         blankButton.setText(resourceBundle.getString("Blank"));
         blankButton.setOnAction(event -> projectionScreenHolder.getProjectionScreenController().toggleBlank());
         hBoxChildren.add(blankButton);

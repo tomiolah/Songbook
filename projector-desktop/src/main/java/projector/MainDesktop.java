@@ -7,6 +7,7 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -55,6 +56,7 @@ public class MainDesktop extends Application {
     private ObservableList<Screen> screen;
     private Settings settings;
     private Date startDate;
+    private Screen mainScreen;
 
     public static void main(String[] args) {
         launch(args);
@@ -140,8 +142,11 @@ public class MainDesktop extends Application {
         primaryStage.setX(0);
         primaryStage.setY(0);
         myController.setPrimaryStage(primaryStage);
+        setProjectionScreen();
+        if (canvasStage != null) {
+            canvasStage.show();
+        }
         primaryStage.requestFocus();
-        canvasStage.show();
     }
 
     public void loadInBackGround() {
@@ -228,7 +233,6 @@ public class MainDesktop extends Application {
             projectionScreenController = loader.getController();
             projectionScreenController.setRoot(root);
             ProjectionScreensUtil.getInstance().addProjectionScreenController(projectionScreenController, "Main projection");
-            setProjectionScreen();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Something wrong!");
@@ -273,12 +277,14 @@ public class MainDesktop extends Application {
         settings.setMainWidth(primaryStage.getScene().getWidth());
         settings.save();
         settings.setApplicationRunning(false);
-            if (tmpStage != null) {
-                tmpStage.close();
-            }
-            myController.close();
-            projectionScreenController.onClose();
-        }private void primarySceneEventHandler() {
+        if (tmpStage != null) {
+            tmpStage.close();
+        }
+        myController.close();
+        projectionScreenController.onClose();
+    }
+
+    private void primarySceneEventHandler() {
         if (primaryScene != null) {
             primaryScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
                 if (tmpStage != null) {
@@ -307,7 +313,7 @@ public class MainDesktop extends Application {
         if (!it.hasNext()) {
             return;
         }
-        it.next(); // primary screen
+        mainScreen = it.next(); // primary screen
         showProjectionScreenOnNextScreen(it);
         Integer index = 0;
         while (it.hasNext()) {
@@ -355,11 +361,6 @@ public class MainDesktop extends Application {
         projectionScreenController.setScreen(nextScreen);
         Rectangle2D bounds = nextScreen.getBounds();
         double positionX = bounds.getMinX() + 0;
-        //            GraphicsDevice[] screenDevices = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
-        //            double mainScreenWidth = mainScreen.getBounds().getWidth();
-        //            int mainScreenTrueWidth = screenDevices[0].getDisplayMode().getWidth();
-        //            double scale = mainScreenTrueWidth / mainScreenWidth;
-        //            positionX = mainScreenWidth + (mainScreenTrueWidth - mainScreenWidth) / scale;
         double positionY = bounds.getMinY();
         double canvasWidth = bounds.getWidth();
         double canvasHeight = bounds.getHeight();
@@ -374,7 +375,15 @@ public class MainDesktop extends Application {
         }
         popup = new Popup();
         projectionScreenController.setPopup(popup);
-        popup.getContent().add(projectionScreenController.getRoot());
+        ObservableList<Node> content = popup.getContent();
+        if (content == null) {
+            return;
+        }
+        Pane root = projectionScreenController.getRoot();
+        if (root == null) {
+            return;
+        }
+        content.add(root);
         popup.setAutoFix(false);
         Stage primaryStage = projectionScreenController.getPrimaryStageVariable();
         popup.show(primaryStage, positionX, positionY);
@@ -433,7 +442,7 @@ public class MainDesktop extends Application {
             }
         });
         canvasStage.setOnCloseRequest(event -> tmpStage.hide());
-addIconToStage(canvasStage, getClass());
+        addIconToStage(canvasStage, getClass());
         projectionScreenController.setStage(canvasStage);
         scene.widthProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
         scene.heightProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
