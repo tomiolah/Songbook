@@ -457,8 +457,8 @@ public class ProjectionScreenController {
 
                 previewProjectionScreenController = loader2.getController();
                 Scene scene = mainPane.getScene();
-                int width = (int) scene.getWidth();
-                int height = (int) scene.getHeight();
+                int width = Math.max((int) scene.getWidth(), 16);
+                int height = Math.max((int) scene.getHeight(), 9);
                 int size = 512;
                 if (settings.getPreviewWidth() > 0) {
                     size = (int) settings.getPreviewWidth();
