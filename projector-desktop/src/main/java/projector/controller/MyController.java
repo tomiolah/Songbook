@@ -20,6 +20,7 @@ import org.jnativehook.GlobalScreen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.MainDesktop;
+import projector.application.ApplicationVersion;
 import projector.application.Settings;
 import projector.controller.song.ScheduleController;
 import projector.controller.song.SongController;
@@ -189,6 +190,9 @@ public class MyController {
     }
 
     private void automaticNetworks() {
+        if (ApplicationVersion.getInstance().isTesting()) {
+            return;
+        }
         if (settings.isShareOnLocalNetworkAutomatically()) {
             TCPServer.startShareNetwork(projectionScreenController, songController);
         }

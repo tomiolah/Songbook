@@ -89,7 +89,11 @@ public class ApplicationVersion {
     }
 
     public boolean isNotTesting() {
-        return !testing;
+        return !isTesting();
+    }
+
+    public boolean isTesting() {
+        return testing;
     }
 
     public void setTesting(boolean testing) {
