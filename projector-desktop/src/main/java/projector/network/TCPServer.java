@@ -16,9 +16,9 @@ import java.util.List;
 public class TCPServer {
 
     private static final Logger LOG = LoggerFactory.getLogger(TCPServer.class);
+    private static final List<Sender> senders = new ArrayList<>();
     private static Thread thread;
     private static boolean closed = false;
-    private static final List<Sender> senders = new ArrayList<>();
     private static ServerSocket welcomeSocket;
 
     public synchronized static void startShareNetwork(ProjectionScreenController projectionScreenController, SongController songController) {
@@ -63,7 +63,9 @@ public class TCPServer {
         if (thread != null) {
             thread.interrupt();
             try {
-                welcomeSocket.close();
+                if (welcomeSocket != null) {
+                    welcomeSocket.close();
+                }
             } catch (IOException e) {
                 LOG.error(e.getMessage(), e);
             }
