@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import static projector.utils.SceneUtils.getAStage;
+
 public class DownloadLanguagesController {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadLanguagesController.class);
     private final Settings settings = Settings.getInstance();
@@ -80,7 +82,7 @@ public class DownloadLanguagesController {
                 Pane root = loader.load();
                 Scene scene = new Scene(root);
                 setStyleFile(scene);
-                Stage stage = new Stage();
+                Stage stage = getAStage(getClass());
                 stage.setScene(scene);
                 stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download songs"));
                 stage.show();

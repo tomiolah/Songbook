@@ -32,6 +32,7 @@ import java.util.ResourceBundle;
 
 import static projector.controller.BibleController.setSceneStyleFile;
 import static projector.controller.MyController.calculateSizeByScale;
+import static projector.utils.SceneUtils.getAStage;
 
 public class ProjectionScreensController {
 
@@ -106,7 +107,7 @@ public class ProjectionScreensController {
     }
 
     private EventHandler<ActionEvent> onSettingsAction(ProjectionScreenHolder projectionScreenHolder) {
-        return new EventHandler<ActionEvent>() {
+        return new EventHandler<>() {
             @Override
             public void handle(ActionEvent event) {
                 ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
@@ -120,7 +121,7 @@ public class ProjectionScreensController {
                     int height = gd.getDisplayMode().getHeight();
                     Scene scene = new Scene(root, 850, calculateSizeByScale(height - 100));
                     setSceneStyleFile(scene);
-                    Stage settingsStage = new Stage();
+                    Stage settingsStage = getAStage(getClass());
                     settingsStage.setScene(scene);
                     settingsStage.setTitle(title);
                     ProjectionScreenSettingsController settingsController = loader.getController();

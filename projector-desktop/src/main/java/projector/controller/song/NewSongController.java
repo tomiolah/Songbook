@@ -68,6 +68,7 @@ import java.util.ResourceBundle;
 
 import static projector.controller.song.VerseController.getRawTextFromVerseString;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
+import static projector.utils.SceneUtils.getAStage;
 
 public class NewSongController {
 
@@ -222,11 +223,11 @@ public class NewSongController {
                 LOG.error(e.getMessage(), e);
             }
         });
-        verseOrderListView.setCellFactory(new Callback<ListView<DraggableEntity<SongVerse>>, ListCell<DraggableEntity<SongVerse>>>() {
+        verseOrderListView.setCellFactory(new Callback<>() {
             @Override
             public ListCell<DraggableEntity<SongVerse>> call(ListView<DraggableEntity<SongVerse>> listView) {
 
-                return new ListCell<DraggableEntity<SongVerse>>() {
+                return new ListCell<>() {
                     final Tooltip tooltip = new Tooltip();
 
                     @Override
@@ -685,7 +686,7 @@ public class NewSongController {
                 if (resource != null) {
                     scene.getStylesheets().add(resource.toExternalForm());
                 }
-                Stage stage = new Stage();
+                Stage stage = getAStage(getClass());
                 stage.setScene(scene);
                 stage.show();
                 loginController.addListener(user -> {

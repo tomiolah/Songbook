@@ -33,4 +33,10 @@ public class SceneUtils {
     public static void addStylesheetToSceneBySettings(Scene scene, Class<?> aClass) {
         addStylesheetToScene(scene, aClass, "/view/" + Settings.getInstance().getSceneStyleFile());
     }
+
+    public static Stage getAStage(Class<?> aClass) {
+        Stage stage = new Stage();
+        addIconToStage(stage, aClass);
+        return stage;
+    }
 }

@@ -72,6 +72,7 @@ import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
 import static projector.controller.song.SongController.getKeyEventEventHandler;
+import static projector.utils.SceneUtils.getAStage;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class BibleController {
@@ -686,7 +687,7 @@ public class BibleController {
             });
             referenceEditText.setOnAction(event -> {
                 try {
-                    Stage dialog = new Stage(); // new stage
+                    Stage dialog = getAStage(getClass()); // new stage
                     dialog.initModality(Modality.APPLICATION_MODAL);
                     // Defines a modal window that blocks events from being
                     // delivered to any other application window.
@@ -1550,7 +1551,7 @@ public class BibleController {
             DownloadBiblesController controller = loader.getController();
             Scene scene = new Scene(root);
             setStyleFile(scene);
-            Stage stage = new Stage();
+            Stage stage = getAStage(getClass());
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download bibles"));
             controller.setBibleController(this);
@@ -1577,7 +1578,7 @@ public class BibleController {
             ParallelBiblesController controller = loader.getController();
             Scene scene = new Scene(root);
             setStyleFile(scene);
-            Stage stage = new Stage();
+            Stage stage = getAStage(getClass());
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Parallel"));
             controller.initialize(bibleListView.getItems());

@@ -112,6 +112,7 @@ import java.util.TreeSet;
 import static com.bence.projector.common.converter.OpenLPXmlConverter.getXmlSongs;
 import static java.lang.Math.min;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
+import static projector.utils.SceneUtils.getAStage;
 import static projector.utils.StringUtils.stripAccents;
 
 public class SongController {
@@ -1327,7 +1328,7 @@ public class SongController {
                     if (resource != null) {
                         scene.getStylesheets().add(resource.toExternalForm());
                     }
-                    Stage stage = new Stage();
+                    Stage stage = getAStage(getClass());
                     stage.setScene(scene);
                     stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download languages"));
                     stage.show();
@@ -1409,7 +1410,7 @@ public class SongController {
                     if (resource != null) {
                         scene.getStylesheets().add(resource.toExternalForm());
                     }
-                    Stage stage = new Stage();
+                    Stage stage = getAStage(getClass());
                     stage.setScene(scene);
                     stage.setTitle(Settings.getInstance().getResourceBundle().getString("Upload songs"));
                     stage.show();
@@ -2008,7 +2009,7 @@ public class SongController {
                         if (resource != null) {
                             scene.getStylesheets().add(resource.toExternalForm());
                         }
-                        Stage stage = new Stage();
+                        Stage stage = getAStage(getClass());
                         stage.setScene(scene);
                         stage.setTitle(Settings.getInstance().getResourceBundle().getString("Song Edit"));
                         stage.show();
@@ -2026,7 +2027,7 @@ public class SongController {
                         }
                         scene2.widthProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                         scene2.heightProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
-                        Stage stage2 = new Stage();
+                        Stage stage2 = getAStage(getClass());
                         stage2.setScene(scene2);
 
                         stage2.setX(0);
@@ -2061,7 +2062,7 @@ public class SongController {
                         if (resource != null) {
                             scene.getStylesheets().add(resource.toExternalForm());
                         }
-                        Stage stage = new Stage();
+                        Stage stage = getAStage(getClass());
                         stage.setScene(scene);
                         stage.setTitle(Settings.getInstance().getResourceBundle().getString("Add to collection"));
                         addToCollectionController.setStage(stage);
@@ -2146,7 +2147,7 @@ public class SongController {
                         newSongCollectionController.setSongs(songs);
                         Scene scene = new Scene(root);
                         setSceneStyleFile(scene);
-                        Stage stage = new Stage();
+                        Stage stage = getAStage(getClass());
                         stage.setScene(scene);
                         stage.setTitle(Settings.getInstance().getResourceBundle().getString("SongBook Edit"));
                         stage.show();
@@ -2296,7 +2297,7 @@ public class SongController {
             newSongController.setRoot(root);
             Scene scene = new Scene(root);
             setSceneStyleFile2(scene);
-            Stage stage = new Stage();
+            Stage stage = getAStage(getClass());
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Song Edit"));
             stage.show();
@@ -2324,7 +2325,7 @@ public class SongController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            Stage stage2 = new Stage();
+            Stage stage2 = getAStage(getClass());
             stage2.setScene(scene2);
 
             stage2.setX(0);
@@ -2358,7 +2359,7 @@ public class SongController {
             newSongCollectionController.setSongs(songs);
             Scene scene = new Scene(root);
             setSceneStyleFile2(scene);
-            Stage stage = new Stage();
+            Stage stage = getAStage(getClass());
             stage.setScene(scene);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("New song book"));
             newSongCollectionController.setStage(stage);

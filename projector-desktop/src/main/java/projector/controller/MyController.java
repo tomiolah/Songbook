@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.ResourceBundle;
 
 import static projector.controller.BibleController.setSceneStyleFile;
+import static projector.utils.SceneUtils.getAStage;
 
 public class MyController {
 
@@ -111,9 +112,6 @@ public class MyController {
         utilsController.setProjectionScreenController(projectionScreenController);
         projectionScreenController.setBlank(true);
         projectionScreenController.setSongController(songController);
-        if (settings.isPreviewLoadOnStart()) {
-            projectionScreenController.createPreview();
-        }
         if (settings.isAllowRemote()) {
             RemoteServer.startRemoteServer(projectionScreenController, songController);
         }
@@ -215,7 +213,7 @@ public class MyController {
             int height = gd.getDisplayMode().getHeight();
             Scene scene = new Scene(root, 850, calculateSizeByScale(height - 100));
             setSceneStyleFile(scene);
-            settingsStage = new Stage();
+            settingsStage = getAStage(getClass());
             settingsStage.setScene(scene);
             settingsStage.setTitle(title);
             settingsController = loader.getController();

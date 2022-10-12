@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static projector.utils.SceneUtils.addIconToStage;
+import static projector.utils.SceneUtils.getAStage;
 
 public class MessageDialogController {
     private static final Logger LOG = LoggerFactory.getLogger(MessageDialogController.class);
@@ -21,7 +22,7 @@ public class MessageDialogController {
 
     public static MessageDialogController getMessageDialog(Class<?> aClass, String title) {
         try {
-            Stage stage = new Stage();
+            Stage stage = getAStage(aClass);
             stage.initStyle(StageStyle.DECORATED);
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(aClass.getResource("/view/MessageDialogView.fxml"));

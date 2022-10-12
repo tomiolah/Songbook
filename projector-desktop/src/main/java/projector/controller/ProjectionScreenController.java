@@ -41,6 +41,7 @@ import java.util.List;
 import static projector.controller.MyController.calculateSizeByScale;
 import static projector.utils.CountDownTimerUtil.getRemainedDate;
 import static projector.utils.CountDownTimerUtil.getTimeTextFromDate;
+import static projector.utils.SceneUtils.getAStage;
 
 public class ProjectionScreenController {
 
@@ -340,7 +341,7 @@ public class ProjectionScreenController {
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> doubleProjectionScreenController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> doubleProjectionScreenController.repaint());
-                Stage stage2 = new Stage();
+                Stage stage2 = getAStage(getClass());
                 stage2.setScene(scene2);
                 stage2.setTitle(doubleProjectionScreenController.getProjectionScreenSettings().getProjectionScreenHolder().getName());
                 stage2.setX(0);
@@ -435,7 +436,7 @@ public class ProjectionScreenController {
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
-                Stage stage2 = new Stage();
+                Stage stage2 = getAStage(getClass());
                 stage2.setTitle("Custom Canvas");
                 ProjectionScreensUtil.getInstance().addProjectionScreenController(customStageController, stage2.getTitle());
                 stage2.initStyle(StageStyle.TRANSPARENT);
@@ -494,7 +495,7 @@ public class ProjectionScreenController {
         }
     }
 
-    void createPreview() {
+    public void createPreview() {
         if (previewProjectionScreenController == null) {
             FXMLLoader loader2 = new FXMLLoader();
             loader2.setLocation(MainDesktop.class.getResource("/view/ProjectionScreen.fxml"));
@@ -514,7 +515,7 @@ public class ProjectionScreenController {
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
-                Stage stage2 = new Stage();
+                Stage stage2 = getAStage(getClass());
                 stage2.setScene(scene2);
 
                 stage2.setX(settings.getPreviewX());

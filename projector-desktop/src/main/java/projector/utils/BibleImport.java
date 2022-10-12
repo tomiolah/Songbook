@@ -40,6 +40,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static projector.utils.SceneUtils.getAStage;
+
+@SuppressWarnings("unused")
 public class BibleImport {
 
     private static final Settings settings = Settings.getInstance();
@@ -140,12 +143,12 @@ public class BibleImport {
 
     /* Should be called from the main application
      */
-    public static void bibleImporting() {
+    public static void bibleImporting(Class<?> aClass) {
         List<Bible> bibles = ServiceManager.getBibleService().findAll();
         Bible bible = bibles.get(4);
 //        updateBibleWithDelete(bible);
 
-        setIndicesForBible(bible);
+        setIndicesForBible(bible, aClass);
         //bibleImportFromJson();
     }
 
@@ -159,7 +162,7 @@ public class BibleImport {
         bibleService.create(bible);
     }
 
-    public static void bibleImportFromJson() {
+    public static void bibleImportFromJson(Class<?> aClass) {
         FileInputStream inputStream;
         try {
             inputStream = new FileInputStream("booktitle.txt");
@@ -302,7 +305,7 @@ public class BibleImport {
             bible.setShortName("TLAB");
             createIndices(bible);
             //ServiceManager.getBibleService().create(bible);
-            setIndicesForBible(bible);
+            setIndicesForBible(bible, aClass);
 
             //verseImport(bible);
         } catch (IOException ignored) {
@@ -451,7 +454,7 @@ public class BibleImport {
         }
     }
 
-    public static void setIndicesForBible(Bible otherBible) {
+    public static void setIndicesForBible(Bible otherBible, Class<?> aClass) {
         try {
             FXMLLoader loader = new FXMLLoader();
             loader.setLocation(MainDesktop.class.getResource("/view/IndicesForBibleView.fxml"));
@@ -463,7 +466,7 @@ public class BibleImport {
             controller.setOtherBible(otherBible);
             Scene scene = new Scene(root);
             scene.getStylesheets().add(BibleImport.class.getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
-            Stage stage = new Stage();
+            Stage stage = getAStage(aClass);
             stage.setScene(scene);
             stage.setTitle("Indices");
             stage.show();

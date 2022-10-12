@@ -32,6 +32,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static projector.controller.BibleController.setSceneStyleFile;
+import static projector.utils.SceneUtils.getAStage;
 
 public class Updater {
 
@@ -80,7 +81,7 @@ public class Updater {
                     Scene scene = new Scene(root);
                     setSceneStyleFile(scene);
                     Platform.runLater(() -> {
-                        Stage stage = new Stage();
+                        Stage stage = getAStage(getClass());
                         stage.setTitle("Update available");
                         stage.setScene(scene);
                         stage.show();

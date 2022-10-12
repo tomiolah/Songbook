@@ -42,6 +42,7 @@ import java.util.ListIterator;
 import static java.lang.Thread.sleep;
 import static projector.utils.SceneUtils.addIconToStage;
 import static projector.utils.SceneUtils.addStylesheetToSceneBySettings;
+import static projector.utils.SceneUtils.getAStage;
 
 public class MainDesktop extends Application {
 
@@ -84,7 +85,7 @@ public class MainDesktop extends Application {
 
     private void openLauncherView(Stage primaryStage) throws IOException {
         startDate = new Date();
-        Stage stage = new Stage();
+        Stage stage = getAStage(getClass());
         stage.initStyle(StageStyle.TRANSPARENT);
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("/view/LauncherView.fxml"));
@@ -92,7 +93,6 @@ public class MainDesktop extends Application {
         Scene scene = new Scene(borderPane, borderPane.getPrefWidth(), borderPane.getPrefHeight());
         scene.setFill(Color.TRANSPARENT);
         stage.setScene(scene);
-        addIconToStage(stage, getClass());
         stage.setTitle("Projector - starting");
         Thread thread = new Thread(() -> {
             try {
@@ -146,8 +146,15 @@ public class MainDesktop extends Application {
         if (canvasStage != null) {
             canvasStage.show();
         }
+        createPreview();
         myController.initialTabSelect();
         primaryStage.requestFocus();
+    }
+
+    private void createPreview() {
+        if (settings.isPreviewLoadOnStart()) {
+            projectionScreenController.createPreview();
+        }
     }
 
     public void loadInBackGround() {
@@ -425,7 +432,7 @@ public class MainDesktop extends Application {
             return;
         }
         Scene scene = new Scene(projectionScreenController.getRoot(), 800, 600);
-        canvasStage = new Stage();
+        canvasStage = getAStage(getClass());
         canvasStage.setScene(scene);
         canvasStage.setTitle(Settings.getInstance().getResourceBundle().getString("Canvas"));
         tmpStage = canvasStage;
@@ -442,7 +449,6 @@ public class MainDesktop extends Application {
             }
         });
         canvasStage.setOnCloseRequest(event -> tmpStage.hide());
-        addIconToStage(canvasStage, getClass());
         projectionScreenController.setStage(canvasStage);
         scene.widthProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
         scene.heightProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
