@@ -146,6 +146,7 @@ public class MainDesktop extends Application {
         if (canvasStage != null) {
             canvasStage.show();
         }
+        myController.initialTabSelect();
         primaryStage.requestFocus();
     }
 
@@ -238,7 +239,6 @@ public class MainDesktop extends Application {
             System.out.println("Something wrong!");
         }
         myController.setProjectionScreenController(projectionScreenController);
-        myController.initialTabSelect();
         myController.setMain(this);
         myController.getSettingsController().addOnSaveListener(() -> {
             ObservableList<String> stylesheets = primaryScene.getStylesheets();

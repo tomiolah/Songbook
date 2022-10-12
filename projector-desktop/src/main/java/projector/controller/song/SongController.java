@@ -320,7 +320,7 @@ public class SongController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            searchedSongListView.setCellFactory(param -> new ListCell<SearchedSong>() {
+            searchedSongListView.setCellFactory(param -> new ListCell<>() {
                 @Override
                 protected void updateItem(SearchedSong item, boolean empty) {
                     try {
@@ -390,8 +390,12 @@ public class SongController {
                             }
                         }
 
-                        final int width = (int) projectionScreenController.getScene().getWidth();
+                        int width = (int) projectionScreenController.getScene().getWidth();
                         int height = (int) projectionScreenController.getScene().getHeight();
+                        if (width == 0) {
+                            width = 16;
+                            height = 9;
+                        }
                         final int size = (int) songHeightSlider.getValue();
                         selectedSongVerseList = selectedSong.getSongVersesByVerseOrder();
                         MyTextFlow myTextFlow = new MyTextFlow();
@@ -648,7 +652,7 @@ public class SongController {
                 }
             });
             songCollectionListView.orientationProperty().set(Orientation.HORIZONTAL);
-            songCollectionListView.setCellFactory(param -> new ListCell<SongCollection>() {
+            songCollectionListView.setCellFactory(param -> new ListCell<>() {
                 @Override
                 protected void updateItem(SongCollection item, boolean empty) {
                     try {
@@ -670,15 +674,9 @@ public class SongController {
                         sortSongs(selectedSongCollection.getSongs());
                     }
                     switch (lastSearching) {
-                        case IN_SONG:
-                            search(lastSearchText);
-                            break;
-                        case IN_TITLE:
-                            titleSearch(lastSearchText);
-                            break;
-                        case IN_TITLE_START_WITH:
-                            titleSearchStartWith(lastSearchText);
-                            break;
+                        case IN_SONG -> search(lastSearchText);
+                        case IN_TITLE -> titleSearch(lastSearchText);
+                        case IN_TITLE_START_WITH -> titleSearchStartWith(lastSearchText);
                     }
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
@@ -785,11 +783,11 @@ public class SongController {
         verseOrderListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         final ObservableList<Integer> selectedIndices = verseOrderListView.getSelectionModel().getSelectedIndices();
         selectedIndices.addListener((ListChangeListener<Integer>) c -> synchronizedSelectSongVerseListView(selectedIndices));
-        verseOrderListView.setCellFactory(new Callback<ListView<SongVerse>, ListCell<SongVerse>>() {
+        verseOrderListView.setCellFactory(new Callback<>() {
             @Override
             public ListCell<SongVerse> call(ListView<SongVerse> listView) {
 
-                return new ListCell<SongVerse>() {
+                return new ListCell<>() {
                     final Tooltip tooltip = new Tooltip();
 
                     @Override
@@ -1990,7 +1988,7 @@ public class SongController {
             deleteMenuItem.setId("deleteMenuItem");
             MenuItem addScheduleMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Add to schedule"));
             cm.getItems().addAll(editMenuItem, addToCollectionMenuItem, deleteMenuItem, addScheduleMenuItem);
-            editMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+            editMenuItem.setOnAction(new EventHandler<>() {
 
                 @Override
                 public void handle(ActionEvent event) {
@@ -2045,7 +2043,7 @@ public class SongController {
                     }
                 }
             });
-            addToCollectionMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+            addToCollectionMenuItem.setOnAction(new EventHandler<>() {
 
                 @Override
                 public void handle(ActionEvent event) {
@@ -2133,7 +2131,7 @@ public class SongController {
             MenuItem deleteMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Delete"));
 //            cm.getItems().addAll(editMenuItem, deleteMenuItem);
             cm.getItems().addAll(deleteMenuItem);
-            editMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+            editMenuItem.setOnAction(new EventHandler<>() {
 
                 @Override
                 public void handle(ActionEvent event) {

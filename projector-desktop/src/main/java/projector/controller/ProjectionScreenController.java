@@ -565,11 +565,11 @@ public class ProjectionScreenController {
 
     private double getSceneAspectRatio(Scene scene) {
         if (scene != null) {
-            double width = scene.getWidth();
-            int height = (int) scene.getHeight();
+            double width = Math.max(scene.getWidth(), 16);
+            int height = Math.max((int) scene.getHeight(), 9);
             return height / width;
         }
-        return 1;
+        return 16 / 9;
     }
 
     public Stage getStage() {
