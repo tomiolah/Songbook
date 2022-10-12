@@ -569,7 +569,8 @@ public class ProjectionScreenController {
             int height = Math.max((int) scene.getHeight(), 9);
             return height / width;
         }
-        return 16 / 9;
+        double x = 9;
+        return x / 16;
     }
 
     public Stage getStage() {

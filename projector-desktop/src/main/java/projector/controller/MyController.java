@@ -72,10 +72,6 @@ public class MyController {
     private ToggleButton lockButton;
     @FXML
     private TabPane tabPane;
-    //    @FXML
-    //    private Slider slider;
-    // @FXML
-    // private ToggleButton accentsButton;
     private Settings settings;
     @FXML
     private Tab songsTab;
@@ -139,6 +135,7 @@ public class MyController {
     }
 
     public void initialize() {
+        tabPane.getTabs().remove(projectionScreensTab);
         settings = Settings.getInstance();
         settings.setBibleController(bibleController);
         initializeSettingsController();
@@ -161,13 +158,7 @@ public class MyController {
         blankButton.setFocusTraversable(false);
         lockButton.setFocusTraversable(false);
         previewButton.setFocusTraversable(false);
-        // accentsButton.setFocusTraversable(false);
-        // accentsButton.setSelected(settings.isWithAccents());
         blankButton.setSelected(false);
-        // recentController.setBlank(blankButton.isSelected());
-//        tabPane.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-//            System.out.println(newValue.getText());
-//        });
         SingleSelectionModel<Tab> tabPaneSelectionModel = tabPane.getSelectionModel();
         tabPaneSelectionModel.selectedIndexProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.equals(4)) {
@@ -193,14 +184,6 @@ public class MyController {
             }
         });
         tabPane.setFocusTraversable(false);
-//        slider.valueProperty().addListener(new ChangeListener<Number>() {
-//
-//            @Override
-//            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
-//                System.out.println(newValue.doubleValue());
-//                projectionScreenController.getStage().setOpacity(newValue.doubleValue());
-//            }
-//        });
     }
 
     public void initialTabSelect() {
