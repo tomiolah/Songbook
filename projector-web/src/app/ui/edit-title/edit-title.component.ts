@@ -55,6 +55,7 @@ export class EditTitleComponent implements OnInit {
       s != 'by' &&
       s != 'but' &&
       s != 'for' &&
+      s != 'in' &&
       s != 'into' &&
       s != 'nor' &&
       s != 'of' &&
