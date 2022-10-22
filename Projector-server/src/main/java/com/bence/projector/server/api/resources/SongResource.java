@@ -210,14 +210,14 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.GET, value = "/api/song/{songId}")
     public SongDTO getSong(@PathVariable final String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final Song song = songService.findOneByUuid(songId);
+        final Song song = songRepository.findOneByUuid(songId);
         return songAssembler.createDto(song);
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/admin/api/song/delete/{songId}")
     public SongDTO deleteSong(@PathVariable final String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final Song song = songService.findOneByUuid(songId);
+        final Song song = songRepository.findOneByUuid(songId);
         song.setDeleted(true);
         song.setModifiedDate(new Date());
         songService.save(song);
@@ -240,7 +240,7 @@ public class SongResource {
             String email = principal.getName();
             User user = userService.findByEmail(email);
             if (user != null) {
-                final Song song = songService.findOneByUuid(songId);
+                final Song song = songRepository.findOneByUuid(songId);
                 if (!hasReviewerRoleForSong(user, song)) {
                     return new ResponseEntity<>(HttpStatus.PRECONDITION_FAILED);
                 }
@@ -257,7 +257,7 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.DELETE, value = "/admin/api/song/erase/{songId}")
     public ResponseEntity<Object> eraseSong(@PathVariable final String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final Song song = songService.findOneByUuid(songId);
+        final Song song = songRepository.findOneByUuid(songId);
         if (song == null) {
             return null;
         }
@@ -283,7 +283,7 @@ public class SongResource {
             String email = principal.getName();
             User user = userService.findByEmail(email);
             if (user != null) {
-                Song song = songService.findOneByUuid(songId);
+                Song song = songRepository.findOneByUuid(songId);
                 if (hasReviewerRoleForSong(user, song)) {
                     song.setReviewerErased(true);
                     song.setModifiedDate(new Date());
@@ -301,7 +301,7 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.DELETE, value = "/admin/api/song/publish/{songId}")
     public SongDTO publishSong(@PathVariable final String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        final Song song = songService.findOneByUuid(songId);
+        final Song song = songRepository.findOneByUuid(songId);
         song.setDeleted(false);
         song.setModifiedDate(new Date());
         songService.save(song);
@@ -411,7 +411,7 @@ public class SongResource {
             String email = principal.getName();
             User user = userService.findByEmail(email);
             if (user != null) {
-                Song song = songService.findOneByUuid(songId);
+                Song song = songRepository.findOneByUuid(songId);
                 if (hasReviewerRoleForSong(user, song)) {
                     if (!changeLanguage) {
                         songDTO.setLanguageDTO(null);
@@ -485,7 +485,7 @@ public class SongResource {
     private ResponseEntity<Object> changeLanguageByUser(Principal principal, String songId, SongDTO songDTO, HttpServletRequest httpServletRequest) {
         ResponseEntity<Object> responseEntity = updateSongByUser(principal, songId, songDTO, httpServletRequest, true);
         if (responseEntity.getStatusCode().equals(HttpStatus.ACCEPTED)) {
-            Song song = songService.findOneByUuid(songId);
+            Song song = songRepository.findOneByUuid(songId);
             Thread thread = new Thread(() -> sendEmail(song));
             thread.start();
         }
@@ -562,7 +562,7 @@ public class SongResource {
     }
 
     private ResponseEntity<Object> updateSong(String songId, SongDTO songDTO, User user) {
-        Song song = songService.findOneByUuid(songId);
+        Song song = songRepository.findOneByUuid(songId);
         if (song != null) {
             Date modifiedDate = song.getModifiedDate();
             if (modifiedDate != null && modifiedDate.compareTo(songDTO.getModifiedDate()) != 0) {
@@ -594,7 +594,7 @@ public class SongResource {
     @Transactional
     public ResponseEntity<Object> similarSongs(@PathVariable("songId") String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        Song song = songService.findOneByUuid(songId);
+        Song song = songRepository.findOneByUuid(songId);
         if (song != null) {
             final List<Song> similar = songService.findAllSimilar(song);
             if (similar != null) {
@@ -618,11 +618,11 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.PUT, value = "/api/song/{songId}/incViews")
     public ResponseEntity<Object> incrementViews(@PathVariable("songId") String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        Song song = songService.findOneByUuid(songId);
+        Song song = songRepository.findOneByUuid(songId);
         if (song != null) {
             song.incrementViews();
             song.setLastIncrementViewDate(new Date());
-            songRepository.save(song);
+            songService.save(song);
             return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
@@ -631,11 +631,11 @@ public class SongResource {
     @RequestMapping(method = RequestMethod.PUT, value = "/api/song/{songId}/incFavourites")
     public ResponseEntity<Object> incrementFavourites(@PathVariable("songId") String songId, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
-        Song song = songService.findOneByUuid(songId);
+        Song song = songRepository.findOneByUuid(songId);
         if (song != null) {
             song.incrementFavourites();
             song.setLastIncrementFavouritesDate(new Date());
-            songRepository.save(song);
+            songService.save(song);
             return new ResponseEntity<>(songAssembler.createDto(song), HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
@@ -647,8 +647,8 @@ public class SongResource {
             return new ResponseEntity<>("Same song", HttpStatus.CONFLICT);
         }
         Date date = new Date();
-        Song song1 = songService.findOneByUuid(songId1);
-        Song song2 = songService.findOneByUuid(songId2);
+        Song song1 = songRepository.findOneByUuid(songId1);
+        Song song2 = songRepository.findOneByUuid(songId2);
         if (song1 == null || song2 == null) {
             return new ResponseEntity<>("Null", HttpStatus.NO_CONTENT);
         }
@@ -732,7 +732,7 @@ public class SongResource {
     public ResponseEntity<BooleanResponse> hasReviewerRoleForSongApi(@PathVariable("uuid") String uuid, Principal principal) {
         User user = getUserFromPrincipal(principal);
         BooleanResponse booleanResponse = new BooleanResponse();
-        booleanResponse.setResponse(hasReviewerRoleForSong(user, songService.findOneByUuid(uuid)));
+        booleanResponse.setResponse(hasReviewerRoleForSong(user, songRepository.findOneByUuid(uuid)));
         return new ResponseEntity<>(booleanResponse, HttpStatus.ACCEPTED);
     }
 
