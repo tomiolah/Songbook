@@ -189,7 +189,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public void deleteByUuid(String id) {
-        Song oneByUuid = findOneByUuid(id);
+        Song oneByUuid = songRepository.findOneByUuid(id);
         if (oneByUuid == null) {
             return;
         }
@@ -547,7 +547,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
 
     @Override
     public List<Song> findAllByVersionGroup(String versionGroupUuid) {
-        Song versionGroupSong = findOneByUuid(versionGroupUuid);
+        Song versionGroupSong = songRepository.findOneByUuid(versionGroupUuid);
         ArrayList<Song> songs = new ArrayList<>();
         if (versionGroupSong == null) {
             return songs;

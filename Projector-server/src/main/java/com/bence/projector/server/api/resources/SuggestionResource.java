@@ -7,6 +7,7 @@ import com.bence.projector.server.backend.model.NotificationByLanguage;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.Suggestion;
 import com.bence.projector.server.backend.model.User;
+import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongService;
 import com.bence.projector.server.backend.service.StatisticsService;
@@ -47,6 +48,8 @@ public class SuggestionResource {
     private UserService userService;
     @Autowired
     private SongService songService;
+    @Autowired
+    private SongRepository songRepository;
 
     @RequestMapping(value = "admin/api/suggestions", method = RequestMethod.GET)
     public List<SuggestionDTO> getSuggestions() {
@@ -141,7 +144,7 @@ public class SuggestionResource {
             if (user != null) {
                 Suggestion suggestion = suggestionService.findOneByUuid(suggestionId);
                 if (suggestion != null) {
-                    Song song = songService.findOneByUuid(suggestion.getSongUuid());
+                    Song song = songRepository.findOneByUuid(suggestion.getSongUuid());
                     if (hasReviewerRoleForSong(user, song)) {
                         Date modifiedDate = suggestion.getModifiedDate();
                         if ((modifiedDate != null && modifiedDate.compareTo(suggestionDTO.getModifiedDate()) != 0) || (modifiedDate == null && suggestionDTO.getModifiedDate() != null)) {

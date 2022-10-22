@@ -6,6 +6,7 @@ import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongLink;
 import com.bence.projector.server.backend.model.User;
+import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.SongLinkService;
 import com.bence.projector.server.backend.service.SongService;
@@ -30,7 +31,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringWriter;
@@ -53,9 +53,10 @@ public class SongLinkResource {
     private final SongService songService;
     private final LanguageService languageService;
     private final MailSenderService mailSenderService;
+    private final SongRepository songRepository;
 
     @Autowired
-    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, @Qualifier("javaMailSender") JavaMailSender sender, UserService userService, SongService songService, LanguageService languageService, MailSenderService mailSenderService) {
+    public SongLinkResource(StatisticsService statisticsService, SongLinkService songLinkService, SongLinkAssembler songLinkAssembler, @Qualifier("javaMailSender") JavaMailSender sender, UserService userService, SongService songService, LanguageService languageService, MailSenderService mailSenderService, SongRepository songRepository) {
         this.statisticsService = statisticsService;
         this.songLinkService = songLinkService;
         this.songLinkAssembler = songLinkAssembler;
@@ -64,6 +65,7 @@ public class SongLinkResource {
         this.songService = songService;
         this.languageService = languageService;
         this.mailSenderService = mailSenderService;
+        this.songRepository = songRepository;
     }
 
     @RequestMapping(value = "admin/api/songLinks", method = RequestMethod.GET)
@@ -156,8 +158,8 @@ public class SongLinkResource {
         SongLink model = new SongLink();
         model.setApplied(false);
         model.setCreatedDate(new Date());
-        model.setSong1(songService.findOneByUuid(songId1));
-        model.setSong2(songService.findOneByUuid(songId2));
+        model.setSong1(songRepository.findOneByUuid(songId1));
+        model.setSong2(songRepository.findOneByUuid(songId2));
         model.setCreatedByEmail(user.getEmail());
         SongLink songLink = songLinkService.save(model);
         Thread thread = new Thread(() -> {
