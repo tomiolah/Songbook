@@ -33,6 +33,7 @@ public class SongResourceSeo {
 
     @GetMapping("/song/{id}")
     public String song(Model model, @PathVariable("id") String id, Principal principal) {
+        songService.startThreadFindForSong(id);
         Song song = songService.findOneByUuid(id);
         if (song == null || song.isDeleted() || song.isBackUp()) {
             return "pageNotFound";
