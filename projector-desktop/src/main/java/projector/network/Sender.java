@@ -47,7 +47,9 @@ public class Sender {
                             close();
                             return;
                         } else if (!message.equals("Connection reset by peer: socket write error") &&
-                                !message.equals("Software caused connection abort: socket write error")) {
+                                !message.equals("Software caused connection abort: socket write error") &&
+                                !message.equals("Connection reset by peer")
+                        ) {
                             LOG.error(message, e);
                         }
                         projectionScreenController.removeProjectionTextChangeListener(this);
@@ -64,7 +66,7 @@ public class Sender {
         writer.start();
         reader = new Thread(() -> {
             try {
-                String s = inFromClient.readLine();
+                inFromClient.readLine();
 //                while (!s.equals("Finished")) {
 //                    s = inFromClient.readLine();
 //                }
