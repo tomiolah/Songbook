@@ -265,10 +265,8 @@ public class BibleController {
                             if (verseI.size() > 0) {
                                 setSelecting(true);
                                 for (Integer aVerseI : verseI) {
-                                    if (aVerseI > bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size()
-                                            - 1) {
-                                        verseListViewSelectionModel.select(
-                                                bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size() - 1);
+                                    if (aVerseI > bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size() - 1) {
+                                        verseListViewSelectionModel.select(bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size() - 1);
                                         break;
                                     } else {
                                         verseListViewSelectionModel.select(aVerseI);
@@ -382,9 +380,7 @@ public class BibleController {
                         if (event.isAltDown() || partTextField.getCaretPosition() == 0) {
                             bookTextField.requestFocus();
                         }
-                    } else if (!partTextField.getText().trim().isEmpty()
-                            && (event.getCode() == KeyCode.SPACE || event.getCode() == KeyCode.ENTER
-                            || event.getCode() == KeyCode.PERIOD || event.getCode() == KeyCode.DECIMAL)) {
+                    } else if (!partTextField.getText().trim().isEmpty() && (event.getCode() == KeyCode.SPACE || event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.PERIOD || event.getCode() == KeyCode.DECIMAL)) {
                         try {
                             int tmp = Integer.parseInt(partTextField.getText());
                             if (tmp <= partListView.getItems().size() && tmp > 0) {
@@ -481,8 +477,7 @@ public class BibleController {
             });
             bookListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
                 @Override
-                public synchronized void changed(ObservableValue<? extends String> selected, String oldBook,
-                                                 String newBook) {
+                public synchronized void changed(ObservableValue<? extends String> selected, String oldBook, String newBook) {
                     try {
                         if (!bookListView.getSelectionModel().isEmpty() && bible != null) {
                             partListBookI = searchIBook.get(bookListView.getSelectionModel().getSelectedIndex());
@@ -517,8 +512,7 @@ public class BibleController {
             });
             partListView.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<>() {
                 @Override
-                public synchronized void changed(ObservableValue<? extends Integer> observable, Integer oldPart,
-                                                 Integer newPart) {
+                public synchronized void changed(ObservableValue<? extends Integer> observable, Integer oldPart, Integer newPart) {
                     try {
                         final int selectedPartIndex = partListView.getSelectionModel().getSelectedIndex();
                         if (selectedPartIndex >= 0 && bible != null) {
@@ -615,12 +609,18 @@ public class BibleController {
                     } else if ((keyCode.equals(KeyCode.MINUS) || keyCode.equals(KeyCode.SUBTRACT)) && event.isControlDown()) {
                         shrinkVerseListViewText();
                     } else {
+                        String character = event.getCharacter();
                         if (keyCode.isDigitKey() || keyCode.isKeypadKey()) {
-                            verseTextField.setText(event.getCharacter());
+                            try {
+                                verseTextField.setText(character);
+                            } catch (Exception e) {
+                                LOG.error(e.getMessage(), e);
+                                LOG.error("Charachter: " + character);
+                            }
                             verseTextField.requestFocus();
                             event.consume();
                         } else if (keyCode.isLetterKey() && !event.isControlDown()) {
-                            searchTextField.setText(event.getCharacter());
+                            searchTextField.setText(character);
                             searchTextField.requestFocus();
                             event.consume();
                         }
@@ -653,8 +653,7 @@ public class BibleController {
                     }
                 };
                 cell.setOnMousePressed(event -> {
-                    if (event.isControlDown() && cell.isSelected()
-                            && (lastUpdateSelected == null || new Date().getTime() - lastUpdateSelected.getTime() > 1000)) {
+                    if (event.isControlDown() && cell.isSelected() && (lastUpdateSelected == null || new Date().getTime() - lastUpdateSelected.getTime() > 1000)) {
                         verseListViewSelectionModel.clearSelection(cell.getIndex());
                         event.consume();
                     }
@@ -706,8 +705,7 @@ public class BibleController {
                         for (ReferenceChapter ch : rb.getChapters()) {
                             for (int i : ch.getVerses()) {
                                 Book book = bible.getBooks().get(rb.getBookNumber());
-                                CheckBox tmp = new CheckBox(book.getShortOrTitle() + " "
-                                        + ch.getChapterNumber() + ":" + i);
+                                CheckBox tmp = new CheckBox(book.getShortOrTitle() + " " + ch.getChapterNumber() + ":" + i);
                                 tmp.selectedProperty().set(true);
                                 list.add(tmp);
                             }
@@ -761,8 +759,7 @@ public class BibleController {
                             for (int i : ch.getVerses()) {
                                 CheckBox tmp = list.get(k++);
                                 if (!tmp.isSelected()) {
-                                    waitToRemove.add(new Triplet<>(rb.getBookNumber(),
-                                            ch.getChapterNumber(), i));
+                                    waitToRemove.add(new Triplet<>(rb.getBookNumber(), ch.getChapterNumber(), i));
                                 }
                             }
                         }
@@ -1504,9 +1501,7 @@ public class BibleController {
                 }
                 ArrayList<Integer> tmp = new ArrayList<>(ob);
                 text = string.toString();
-                String verseNumbers = text.substring(string.lastIndexOf(":") + 1, string.length())
-                        .replace("]", "")
-                        .replace("</color>", "");
+                String verseNumbers = text.substring(string.lastIndexOf(":") + 1, string.length()).replace("]", "").replace("</color>", "");
                 recentController.addRecentBibleVerse(text, selectedBook, selectedPart, iVerse, verseNumbers, tmp);
             }
             if (string.length() > 0) {

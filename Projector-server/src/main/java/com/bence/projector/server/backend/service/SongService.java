@@ -37,14 +37,17 @@ public interface SongService extends BaseService<Song> {
 
     void deleteByUuid(String uuid);
 
+    @SuppressWarnings("unused")
     boolean isLanguageIsGood(Song song, Language language);
 
+    @SuppressWarnings("unused")
     Language bestLanguage(Song song, List<Language> languages);
 
     List<Song> findAllSimilar(Song song, boolean checkDeleted);
 
     List<Song> findAllSimilar(Song song, boolean checkDeleted, Collection<Song> songs);
 
+    @SuppressWarnings("unused")
     void enrollSongInMap(Song song);
 
     List<Song> findAllInReviewByLanguage(Language language);
@@ -52,4 +55,6 @@ public interface SongService extends BaseService<Song> {
     List<Song> findAllReviewedByUser(User user);
 
     Song findOneByUuid(String uuid);
+
+    void startThreadFindForSong(String uuid);
 }
