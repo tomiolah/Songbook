@@ -63,4 +63,12 @@ public class Chapter extends BaseEntity {
     public String toString() {
         return number + "";
     }
+
+    public BibleVerse getVerse(int index) {
+        List<BibleVerse> bibleVerses = getVerses();
+        if (bibleVerses == null || index < 0 || index >= bibleVerses.size()) {
+            return null;
+        }
+        return bibleVerses.get(index);
+    }
 }

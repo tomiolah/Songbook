@@ -13,6 +13,7 @@ import java.util.GregorianCalendar;
 
 import static projector.utils.CountDownTimerUtil.getRemainedDate;
 import static projector.utils.CountDownTimerUtil.getTimeTextFromDate;
+import static projector.utils.KeyEventUtil.getTextFromEvent;
 
 
 public class UtilsController {
@@ -25,8 +26,8 @@ public class UtilsController {
 
     public void initialize() {
         timeTextField.addEventFilter(KeyEvent.KEY_TYPED, event -> {
-            String character = event.getCharacter();
-            if (!character.matches("[0-9]") && (timeTextField.getText().contains(":") && character.equals(":"))) {
+            String text = getTextFromEvent(event);
+            if (!text.matches("[0-9]") && (timeTextField.getText().contains(":") && text.equals(":"))) {
                 event.consume();
             }
         });

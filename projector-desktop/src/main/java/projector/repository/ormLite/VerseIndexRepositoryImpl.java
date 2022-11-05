@@ -18,15 +18,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> implements VerseIndexRepository {
+public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> implements VerseIndexRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(VerseIndexRepositoryImpl.class);
     private final Dao<VerseIndex, Long> dao;
+    private final String simpleName = "";
     private BookRepositoryImpl bookRepository;
-    private String simpleName = "";
     private BibleVerseRepositoryImpl bibleVerseRepository;
 
-    VerseIndexRepositoryImpl() throws SQLException {
+    public VerseIndexRepositoryImpl() throws SQLException {
         super(VerseIndex.class, DatabaseHelper.getInstance().getVerseIndexDao());
         dao = DatabaseHelper.getInstance().getVerseIndexDao();
     }
@@ -124,6 +124,30 @@ class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> implements
             LOG.error(msg);
             throw new RepositoryException(msg, e);
         }
+    }
+
+    @Override
+    public long countByBibleId(Long bibleId) {
+        String msg = "Could not find index";
+        try {
+            GenericRawResults<Object[]> rawResults = null;
+            try {
+                rawResults = dao.queryRaw(
+                        "SELECT COUNT(*) FROM VERSEINDEX where BibleId=" + bibleId,
+                        new DataType[]{DataType.LONG});
+                for (Object[] resultArray : rawResults) {
+                    return (Long) resultArray[0];
+                }
+            } finally {
+                if (rawResults != null) {
+                    rawResults.close();
+                }
+            }
+        } catch (Exception e) {
+            LOG.error(msg);
+            throw new RepositoryException(msg, e);
+        }
+        return 0;
     }
 
     private BookRepositoryImpl getBookRepository() {

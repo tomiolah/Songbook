@@ -113,6 +113,7 @@ import static com.bence.projector.common.converter.OpenLPXmlConverter.getXmlSong
 import static java.lang.Math.min;
 import static projector.utils.ContextMenuUtil.getDeleteMenuItem;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
+import static projector.utils.KeyEventUtil.getTextFromEvent;
 import static projector.utils.SceneUtils.getAStage;
 import static projector.utils.StringUtils.stripAccents;
 
@@ -223,7 +224,7 @@ public class SongController {
     public static EventHandler<KeyEvent> getKeyEventEventHandler(Logger log) {
         return event -> {
             try {
-                if (!event.getCharacter().matches("[0-9]") && event.getCode() != KeyCode.F1) {
+                if (!getTextFromEvent(event).matches("[0-9]") && event.getCode() != KeyCode.F1) {
                     event.consume();
                 }
             } catch (Exception e) {
@@ -518,7 +519,7 @@ public class SongController {
                     } else if (keyCode == KeyCode.ENTER) {
                         mainController.setBlank(false);
                     } else if (keyCode.isDigitKey()) {
-                        verseTextField.setText(event.getCharacter());
+                        verseTextField.setText(getTextFromEvent(event));
                         verseTextField.requestFocus();
                         event.consume();
                     }
@@ -2631,7 +2632,7 @@ public class SongController {
     public void onKeyPressed(KeyEvent event) {
         KeyCode keyCode = event.getCode();
         if (keyCode.isDigitKey()) {
-            verseTextField.setText(verseTextField.getText() + event.getText());
+            verseTextField.setText(verseTextField.getText() + getTextFromEvent(event));
             verseTextField.requestFocus();
             event.consume();
         } else if (keyCode.equals(KeyCode.ENTER)) {

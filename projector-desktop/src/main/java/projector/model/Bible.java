@@ -41,6 +41,8 @@ public class Bible extends BaseEntity {
     private Double opacity;
     @DatabaseField
     private Integer showAbbreviation;
+    private boolean hasVerseIndices;
+    private boolean hasVerseIndicesChecked = false;
 
     public String getName() {
         return name;
@@ -169,5 +171,29 @@ public class Bible extends BaseEntity {
 
     public boolean equivalent(Bible other) {
         return super.equivalent(other);
+    }
+
+    public Book getBook(int index) {
+        List<Book> bookList = getBooks();
+        if (bookList == null || index < 0 || index >= bookList.size()) {
+            return null;
+        }
+        return bookList.get(index);
+    }
+
+    public boolean hasVerseIndices() {
+        return hasVerseIndices;
+    }
+
+    public void setHasVerseIndices(boolean hasVerseIndices) {
+        this.hasVerseIndices = hasVerseIndices;
+    }
+
+    public void setHasVerseIndicesChecked(boolean hasVerseIndicesChecked) {
+        this.hasVerseIndicesChecked = hasVerseIndicesChecked;
+    }
+
+    public boolean hasVerseIndicesChecked() {
+        return hasVerseIndicesChecked;
     }
 }

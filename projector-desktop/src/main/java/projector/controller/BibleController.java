@@ -78,6 +78,7 @@ import java.util.concurrent.TimeUnit;
 import static projector.controller.song.SongController.getKeyEventEventHandler;
 import static projector.utils.ContextMenuUtil.getDeleteMenuItem;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
+import static projector.utils.KeyEventUtil.getTextFromEvent;
 import static projector.utils.SceneUtils.getAStage;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -502,7 +503,7 @@ public class BibleController {
                     } else if (keyCode == KeyCode.RIGHT) {
                         partListView.requestFocus();
                     } else if (keyCode.isDigitKey() || keyCode.isKeypadKey() || keyCode.isLetterKey()) {
-                        bookTextField.setText(event.getCharacter());
+                        bookTextField.setText(getTextFromEvent(event));
                         bookTextField.requestFocus();
                         event.consume();
                     }
@@ -547,7 +548,7 @@ public class BibleController {
                         verseListView.requestFocus();
                     } else {
                         if (keyCode.isDigitKey() || keyCode.isKeypadKey()) {
-                            partTextField.setText(event.getCharacter());
+                            partTextField.setText(getTextFromEvent(event));
                             partTextField.requestFocus();
                             event.consume();
                         }
@@ -609,18 +610,18 @@ public class BibleController {
                     } else if ((keyCode.equals(KeyCode.MINUS) || keyCode.equals(KeyCode.SUBTRACT)) && event.isControlDown()) {
                         shrinkVerseListViewText();
                     } else {
-                        String character = event.getCharacter();
+                        String text = getTextFromEvent(event);
                         if (keyCode.isDigitKey() || keyCode.isKeypadKey()) {
                             try {
-                                verseTextField.setText(character);
+                                verseTextField.setText(text);
                             } catch (Exception e) {
                                 LOG.error(e.getMessage(), e);
-                                LOG.error("Charachter: " + character);
+                                LOG.error("Charachter: " + text);
                             }
                             verseTextField.requestFocus();
                             event.consume();
                         } else if (keyCode.isLetterKey() && !event.isControlDown()) {
-                            searchTextField.setText(character);
+                            searchTextField.setText(text);
                             searchTextField.requestFocus();
                             event.consume();
                         }
@@ -1413,7 +1414,28 @@ public class BibleController {
         }
     }
 
-    private List<BibleVerse> getVersesByIndices(List<VerseIndex> verseIndices, Bible bible) {
+    private List<BibleVerse> getVersesByIndices(List<VerseIndex> verseIndices, Bible bible, int selectedBook, int selectedPart, ObservableList<Integer> ob) {
+        ServiceManager.getBibleService().checkHasVerseIndices(bible);
+        if (verseIndices != null && verseIndices.size() > 0 && bible.hasVerseIndices()) {
+            return getVersesByIndices_(verseIndices, bible);
+        }
+        List<BibleVerse> verses = new ArrayList<>();
+        Book book = bible.getBook(selectedBook);
+        if (book != null) {
+            Chapter chapter = book.getChapter(selectedPart);
+            if (chapter != null) {
+                for (int i : ob) {
+                    BibleVerse bibleVerse = chapter.getVerse(i);
+                    if (bibleVerse != null) {
+                        verses.add(bibleVerse);
+                    }
+                }
+            }
+        }
+        return verses;
+    }
+
+    private List<BibleVerse> getVersesByIndices_(List<VerseIndex> verseIndices, Bible bible) {
         VerseIndexService verseIndexService = ServiceManager.getVerseIndexService();
         List<BibleVerse> verses = new ArrayList<>();
         List<Long> uniqueIndices = new ArrayList<>(verseIndices.size());
@@ -1489,7 +1511,7 @@ public class BibleController {
                 if (settings.isParallel()) {
                     for (Bible parallelBible : parallelBibles) {
                         if (parallelBible.getParallelNumber() > 0) {
-                            List<BibleVerse> verses = getVersesByIndices(verseIndices, parallelBible);
+                            List<BibleVerse> verses = getVersesByIndices(verseIndices, parallelBible, selectedBook, selectedPart, ob);
                             String s = getVersesAndReference(parallelBible, verses);
                             if (!s.trim().equals("[]") && !s.trim().isEmpty()) {
                                 string.append("<color=\"").append(parallelBible.getColor().toString()).append("\">");

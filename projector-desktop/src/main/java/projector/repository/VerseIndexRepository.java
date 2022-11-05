@@ -9,4 +9,6 @@ public interface VerseIndexRepository extends CrudDAO<VerseIndex> {
     List<VerseIndex> findByIndex(Long index);
 
     List<BibleVerse> findByIndexAndBibleId(Long index, Long bibleId);
+
+    long countByBibleId(Long bibleId);
 }

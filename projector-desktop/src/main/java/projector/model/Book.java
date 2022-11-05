@@ -84,4 +84,12 @@ public class Book extends BaseEntity {
         }
         return title;
     }
+
+    public Chapter getChapter(int index) {
+        List<Chapter> chapterList = getChapters();
+        if (chapterList == null || index < 0 || index >= chapterList.size()) {
+            return null;
+        }
+        return chapterList.get(index);
+    }
 }

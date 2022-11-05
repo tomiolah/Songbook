@@ -18,6 +18,9 @@ import projector.service.ServiceManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import static projector.utils.KeyEventUtil.getTextFromEvent;
 
 public class ParallelBiblesController {
     @FXML
@@ -42,6 +45,10 @@ public class ParallelBiblesController {
         });
     }
 
+    private static Color getRandomColor() {
+        return Color.color(Math.random(), Math.random(), Math.random());
+    }
+
     public void initialize(List<Bible> bibles) {
         this.bibles = new ArrayList<>(bibles);
         sortParallelBibles(this.bibles);
@@ -59,17 +66,13 @@ public class ParallelBiblesController {
         checkBox.setSelected(selected);
         ColorPicker colorPicker = new ColorPicker();
         Color color = bible.getColor();
-        if (color != null) {
-            colorPicker.setValue(color);
-        } else {
-            colorPicker.setValue(Color.color(Math.random(), Math.random(), Math.random()));
-        }
+        colorPicker.setValue(Objects.requireNonNullElseGet(color, ParallelBiblesController::getRandomColor));
         TextField textField = new TextField();
         colorPicker.setDisable(!selected);
         textField.setDisable(!selected);
         textField.setText(bible.getParallelNumber() + "");
         textField.addEventFilter(KeyEvent.KEY_TYPED, event -> {
-            if (!event.getCharacter().matches("[0-9]")) {
+            if (!getTextFromEvent(event).matches("[0-9]")) {
                 event.consume();
             }
         });
