@@ -7,6 +7,8 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -22,8 +24,13 @@ import projector.model.Book;
 import projector.model.Chapter;
 import projector.model.Language;
 import projector.model.VerseIndex;
+import projector.model.assembler.BibleAssembler;
+import projector.model.sqlite.Books;
+import projector.model.sqlite.Verses;
+import projector.repository.sqlite.DatabaseHelper;
 import projector.service.BibleService;
 import projector.service.ServiceManager;
+import projector.service.sqlite.BooksService;
 
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
@@ -40,17 +47,45 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static projector.utils.SceneUtils.addStylesheetToSceneBySettings;
 import static projector.utils.SceneUtils.getAStage;
 
 @SuppressWarnings("unused")
 public class BibleImport {
 
     private static final Settings settings = Settings.getInstance();
+    private static final Logger LOG = LoggerFactory.getLogger(BibleImport.class);
 
     public static void main(String[] args) {
         //bibleImportFromJson();
         //bibleImport();
-        bibleImportFromXml("Bible_Indonesian_TB.xml");
+    }
+
+    public static Bible bibleImportFromSQLite(String databasePath) {
+        DatabaseHelper databaseHelper = DatabaseHelper.getInstance();
+        databaseHelper.connect(databasePath);
+        BooksService booksService = ServiceManager.getBooksService();
+        List<Books> books = booksService.findAll();
+        List<Verses> verses = ServiceManager.getVersesService().findAll();
+        String bibleName = ServiceManager.getInfoService().getDescription();
+        String bibleShortName = getBibleShortNameFromPath(databasePath);
+        Bible bible = BibleAssembler.getInstance().createBible(books, verses, bibleName, bibleShortName);
+        databaseHelper.disconnect();
+        return bible;
+    }
+
+    private static String getBibleShortNameFromPath(String path) {
+        try {
+            String[] split = path.split("[/\\\\]");
+            String s = split[split.length - 1];
+            String fileName = s.split(".SQLite3")[0];
+            if (!fileName.isEmpty()) {
+                return fileName;
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return "Imported";
     }
 
     private static void bibleImportFromXml(@SuppressWarnings("SameParameterValue") String fileName) {
@@ -176,7 +211,6 @@ public class BibleImport {
             br.close();
             inputStream = new FileInputStream("bible.txt");
             br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
-            StringBuilder s = new StringBuilder();
             List<String> verses = new ArrayList<>();
             line = br.readLine();
             List<Book> books = new ArrayList<>();
@@ -203,96 +237,29 @@ public class BibleImport {
                     chapter = new Chapter();
                     chapter.setBook(book);
                     chapter.setNumber((short) partNr);
-                    List<Chapter> chapters = book.getChapters();
-                    if (chapters == null) {
-                        chapters = new ArrayList<>();
-                        book.setChapters(chapters);
+                    if (book != null) {
+                        List<Chapter> chapters = book.getChapters();
+                        if (chapters == null) {
+                            chapters = new ArrayList<>();
+                            book.setChapters(chapters);
+                        }
+                        chapters.add(chapter);
                     }
-                    chapters.add(chapter);
                 }
-                List<BibleVerse> bibleVerses = chapter.getVerses();
-                if (bibleVerses == null) {
-                    bibleVerses = new ArrayList<>();
-                    chapter.setVerses(bibleVerses);
+                if (chapter != null) {
+                    List<BibleVerse> bibleVerses = chapter.getVerses();
+                    if (bibleVerses == null) {
+                        bibleVerses = new ArrayList<>();
+                        chapter.setVerses(bibleVerses);
+                    }
+                    BibleVerse verse = new BibleVerse();
+                    bibleVerses.add(verse);
+                    verse.setNumber((short) verseNr);
+                    verse.setText(split[3].trim());
+                    verse.setChapter(chapter);
                 }
-                BibleVerse verse = new BibleVerse();
-                bibleVerses.add(verse);
-                verse.setNumber((short) verseNr);
-                verse.setText(split[3].trim());
-                verse.setChapter(chapter);
-                s.append(line);
                 line = br.readLine();
             }
-            //Gson gson = new GsonBuilder().serializeNulls().create();
-            //ArrayList<BibleBook> bookArrayList;
-            //Type listType = new TypeToken<ArrayList<BibleBook>>() {
-            //}.getType();
-            //bookArrayList = gson.fromJson(s.toString(), listType);
-            //char[] chars = s.toString().toCharArray();
-            //boolean quote = false;
-            //boolean isBook = false;
-            //boolean isChapter = false;
-            //boolean isVerse = false;
-            //boolean isScripture = false;
-            //boolean isValue = false;
-            //boolean isEnd = false;
-            //String value = "";
-            //int book;
-            //int chapter;
-            //int verse;
-            //int x;
-            //String scripture = "";
-            //for (char c : chars) {
-            //    if (quote) {
-            //        if (c == 'B') {
-            //            isBook = true;
-            //        } else if (c == 'C') {
-            //            isChapter = true;
-            //        } else if (c == 'V') {
-            //            isVerse = true;
-            //        } else if (c == 'S') {
-            //            isScripture = true;
-            //        }
-            //    } else if (isValue) {
-            //        if (!(c >= '0' && c <= '9')) {
-            //            isValue = false;
-            //            x = Integer.parseInt(value);
-            //            if (isBook) {
-            //                book = x;
-            //                isBook = false;
-            //            } else if (isChapter) {
-            //                chapter = x;
-            //                isChapter = false;
-            //            } else if (isVerse) {
-            //                verse = x;
-            //                isVerse = false;
-            //            } else if (isScripture) {
-            //                scripture += getCharFromX(x);
-            //            }
-            //            value = "";
-            //        }
-            //    }
-            //
-            //    if (c == '[') {
-            //
-            //    } else if (c == '{') {
-            //
-            //    } else if (c == '}') {
-            //        if (!scripture.isEmpty()) {
-            //            verses.add(scripture);
-            //            scripture = "";
-            //            isScripture = false;
-            //        }
-            //    } else if (c == ',') {
-            //
-            //    } else if (c == ' ' || c == ':' || c == ',') {
-            //    } else if (c == '"') {
-            //        quote = !quote;
-            //    } else if (c >= '0' && c <= '9') {
-            //        value += c;
-            //        isValue = true;
-            //    }
-            //}
             System.out.println(books.size());
 
             Bible bible = new Bible();
@@ -313,19 +280,14 @@ public class BibleImport {
     }
 
     private static char getCharFromX(int x) {
-        switch (x) {
-            case 81:
-                return 'N';
-            case 127:
-                return 'g';
-            case 129:
-                return 'a';
-            case 163:
-                return 'n';
-            case 7:
-                return ' ';
-        }
-        return '?';
+        return switch (x) {
+            case 81 -> 'N';
+            case 127 -> 'g';
+            case 129 -> 'a';
+            case 163 -> 'n';
+            case 7 -> ' ';
+            default -> '?';
+        };
     }
 
     public static void bibleImport() {
@@ -445,7 +407,7 @@ public class BibleImport {
                     bibleVerse.setNumber(verseNr++);
                     ArrayList<VerseIndex> verseIndices = new ArrayList<>();
                     VerseIndex verseIndex = new VerseIndex();
-                    verseIndex.setIndexNumber((long) (k++ * 1000));
+                    verseIndex.setIndexNumber(k++ * 1000L);
                     verseIndices.add(verseIndex);
                     bibleVerse.setVerseIndices(verseIndices);
                     bibleVerse.setChapter(chapter);
@@ -465,7 +427,7 @@ public class BibleImport {
             controller.setLeftBible(bibles.get(0));
             controller.setOtherBible(otherBible);
             Scene scene = new Scene(root);
-            scene.getStylesheets().add(BibleImport.class.getResource("/view/" + settings.getSceneStyleFile()).toExternalForm());
+            addStylesheetToSceneBySettings(scene, aClass);
             Stage stage = getAStage(aClass);
             stage.setScene(scene);
             stage.setTitle("Indices");
@@ -475,7 +437,7 @@ public class BibleImport {
         }
     }
 
-    private class Verse {
+    private static class Verse {
         private String bookNumber;
         private String chapter;
         private String text;

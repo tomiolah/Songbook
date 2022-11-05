@@ -6,6 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,10 +16,17 @@ import projector.model.Bible;
 import projector.service.BibleService;
 import projector.service.ServiceManager;
 
+import java.awt.*;
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import static projector.utils.BibleImport.bibleImportFromSQLite;
 
 public class DownloadBiblesController {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadBiblesController.class);
@@ -79,18 +87,22 @@ public class DownloadBiblesController {
                             e.printStackTrace();
                         }
                     }
-                    if (stage != null) {
-                        Platform.runLater(() -> {
-                            bibleController.initializeBibles();
-                            this.stage.close();
-                        });
-                    }
+                    closeDownloadBibleStage();
                 });
                 thread2.start();
             } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
             }
         });
+    }
+
+    private void closeDownloadBibleStage() {
+        if (stage != null) {
+            Platform.runLater(() -> {
+                bibleController.initializeBibles();
+                this.stage.close();
+            });
+        }
     }
 
     private Thread saveBibleInThread(Thread thread, Bible bible) {
@@ -133,4 +145,26 @@ public class DownloadBiblesController {
         this.bibleController = bibleController;
     }
 
+    public void openMyBibleModuleDownloadSite() {
+        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            try {
+                Desktop.getDesktop().browse(new URI("https://www.ph4.org/b4_index.php"));
+            } catch (IOException | URISyntaxException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    public void importMyBibleModule() {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Choose the MyBible module!");
+        fileChooser.setInitialDirectory(new File(new File(".").getAbsolutePath()));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("MyBible", "*.SQLite3"));
+        File selectedFile = fileChooser.showOpenDialog(null);
+        if (selectedFile != null) {
+            Bible bible = bibleImportFromSQLite(selectedFile.getAbsolutePath());
+            ServiceManager.getBibleService().create(bible);
+            closeDownloadBibleStage();
+        }
+    }
 }

@@ -1,6 +1,9 @@
 package projector.repository;
 
 import projector.repository.ormLite.OrmLiteDAOFactory;
+import projector.repository.sqlite.BooksRepository;
+import projector.repository.sqlite.InfoRepository;
+import projector.repository.sqlite.VersesRepository;
 
 public abstract class DAOFactory {
 
@@ -25,4 +28,10 @@ public abstract class DAOFactory {
     public abstract BibleRepository getBibleDAO();
 
     public abstract VerseIndexRepository getVerseIndexDAO();
+
+    public abstract BooksRepository getBooksDAO();
+
+    public abstract VersesRepository getVersesDAO();
+
+    public abstract InfoRepository getInfoDAO();
 }

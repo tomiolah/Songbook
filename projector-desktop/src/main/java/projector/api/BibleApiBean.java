@@ -9,6 +9,7 @@ import projector.api.retrofit.BibleApi;
 import projector.model.Bible;
 import retrofit2.Call;
 
+import java.net.ConnectException;
 import java.net.UnknownHostException;
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class BibleApiBean {
             if (bibleDTOs != null) {
                 return bibleAssembler.createModelList(bibleDTOs);
             }
-        } catch (UnknownHostException e) {
+        } catch (UnknownHostException | ConnectException e) {
             return null;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);

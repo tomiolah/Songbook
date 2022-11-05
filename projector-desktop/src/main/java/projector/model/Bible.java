@@ -51,8 +51,10 @@ public class Bible extends BaseEntity {
     }
 
     public int getBookIndex(String bookName) {
-        for (int i = 0; i < getBooks().size(); ++i) {
-            if (getBooks().get(i).getTitle().trim().equals(bookName)) {
+        List<Book> bookList = getBooks();
+        for (int i = 0; i < bookList.size(); ++i) {
+            Book book = bookList.get(i);
+            if (book.getShortOrTitle().trim().equals(bookName)) {
                 return i;
             }
         }
@@ -163,5 +165,9 @@ public class Bible extends BaseEntity {
         } else {
             this.showAbbreviation = -1;
         }
+    }
+
+    public boolean equivalent(Bible other) {
+        return super.equivalent(other);
     }
 }

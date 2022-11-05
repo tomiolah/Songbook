@@ -111,6 +111,7 @@ import java.util.TreeSet;
 
 import static com.bence.projector.common.converter.OpenLPXmlConverter.getXmlSongs;
 import static java.lang.Math.min;
+import static projector.utils.ContextMenuUtil.getDeleteMenuItem;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
 import static projector.utils.SceneUtils.getAStage;
 import static projector.utils.StringUtils.stripAccents;
@@ -1985,8 +1986,7 @@ public class SongController {
             MenuItem editMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Edit"));
             MenuItem addToCollectionMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Add to collection"));
             MenuItem removeFromCollectionMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Remove from collection"));
-            MenuItem deleteMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Delete"));
-            deleteMenuItem.setId("deleteMenuItem");
+            MenuItem deleteMenuItem = getDeleteMenuItem();
             MenuItem addScheduleMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Add to schedule"));
             cm.getItems().addAll(editMenuItem, addToCollectionMenuItem, deleteMenuItem, addScheduleMenuItem);
             editMenuItem.setOnAction(new EventHandler<>() {
@@ -2102,7 +2102,11 @@ public class SongController {
             searchedSongListView.setOnMouseClicked(event -> {
                 try {
                     if (event.getButton() == MouseButton.SECONDARY) {
-                        Song selectedSong = searchedSongListView.getSelectionModel().getSelectedItem().getSong();
+                        SearchedSong selectedItem = searchedSongListView.getSelectionModel().getSelectedItem();
+                        if (selectedItem == null) {
+                            return;
+                        }
+                        Song selectedSong = selectedItem.getSong();
                         boolean hasSongCollection = selectedSong.hasSongCollection();
                         if (hasSongCollection) {
                             cm.getItems().remove(addToCollectionMenuItem);

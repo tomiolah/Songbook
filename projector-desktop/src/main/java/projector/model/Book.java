@@ -65,4 +65,23 @@ public class Book extends BaseEntity {
         }
         return shortName;
     }
+
+    public boolean equals(Book other) {
+        if (other != null) {
+            Long id = getId();
+            if (id != null) {
+                return id.equals(other.getId());
+            } else if (other.getId() != null) {
+                return false;
+            }
+        }
+        return super.equals(other);
+    }
+
+    public String getShortOrTitle() {
+        if (shortName != null && !shortName.trim().equals("")) {
+            return shortName;
+        }
+        return title;
+    }
 }

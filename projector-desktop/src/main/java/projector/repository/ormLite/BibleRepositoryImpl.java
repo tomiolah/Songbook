@@ -18,8 +18,8 @@ import java.util.List;
 public class BibleRepositoryImpl extends AbstractBaseRepository<Bible> implements BibleRepository {
     private static final Logger LOG = LoggerFactory.getLogger(BibleRepositoryImpl.class);
     private final VerseIndexRepositoryImpl verseIndexRepository;
-    private BibleVerseRepositoryImpl bibleVerseRepository;
-    private BookRepository bookRepository;
+    private final BibleVerseRepositoryImpl bibleVerseRepository;
+    private final BookRepository bookRepository;
 
     BibleRepositoryImpl() throws SQLException {
         super(Bible.class, DatabaseHelper.getInstance().getBibleDao());
@@ -47,7 +47,10 @@ public class BibleRepositoryImpl extends AbstractBaseRepository<Bible> implement
         bibleVerseRepository.create(verses);
         List<VerseIndex> verseIndices = new LinkedList<>();
         for (BibleVerse bibleVerse : verses) {
-            verseIndices.addAll(bibleVerse.getVerseIndices());
+            List<VerseIndex> verseIndexList = bibleVerse.getVerseIndices();
+            if (verseIndexList != null) {
+                verseIndices.addAll(verseIndexList);
+            }
         }
         verseIndexRepository.create(verseIndices);
         return collection;

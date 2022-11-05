@@ -1,9 +1,11 @@
 package projector.utils;
 
 import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import org.slf4j.Logger;
+import projector.application.Settings;
 
 public class ContextMenuUtil {
 
@@ -24,5 +26,11 @@ public class ContextMenuUtil {
                 LOG.error(e.getMessage(), e);
             }
         });
+    }
+
+    public static MenuItem getDeleteMenuItem() {
+        MenuItem deleteMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Delete"));
+        deleteMenuItem.setId("deleteMenuItem");
+        return deleteMenuItem;
     }
 }

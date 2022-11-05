@@ -48,15 +48,16 @@ public class Reference {
     }
 
     private String getBookTitle(ReferenceBook referenceBook) {
-        if (referenceBook.getBook() != null) {
-            return referenceBook.getBook().getTitle().trim();
+        Book book = referenceBook.getBook();
+        if (book != null) {
+            return book.getShortOrTitle().trim();
         }
         List<Book> books = bible.getBooks();
         int bookNumber = referenceBook.getBookNumber();
         if (bookNumber >= books.size()) {
             return "";
         }
-        return books.get(bookNumber).getTitle().trim();
+        return books.get(bookNumber).getShortOrTitle().trim();
     }
 
     private int getK(ReferenceChapter c, StringBuilder reference) {
@@ -94,7 +95,7 @@ public class Reference {
 
     public void addVerse(Book book, int chapter, int vers) {
         for (ReferenceBook bookI : bookList) {
-            if (bookI.getBook().getId().equals(book.getId())) {
+            if (bookI.getBook().equivalent(book)) {
                 bookI.addVerse(chapter, vers);
                 return;
             }

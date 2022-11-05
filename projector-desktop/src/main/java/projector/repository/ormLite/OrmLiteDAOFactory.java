@@ -10,6 +10,12 @@ import projector.repository.SongCollectionRepository;
 import projector.repository.SongDAO;
 import projector.repository.SongVerseDAO;
 import projector.repository.VerseIndexRepository;
+import projector.repository.sqlite.BooksRepository;
+import projector.repository.sqlite.BooksRepositoryImpl;
+import projector.repository.sqlite.InfoRepository;
+import projector.repository.sqlite.InfoRepositoryImpl;
+import projector.repository.sqlite.VersesRepository;
+import projector.repository.sqlite.VersesRepositoryImpl;
 
 import java.sql.SQLException;
 
@@ -99,6 +105,36 @@ public class OrmLiteDAOFactory extends DAOFactory {
     public VerseIndexRepository getVerseIndexDAO() {
         try {
             return new VerseIndexRepositoryImpl();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public BooksRepository getBooksDAO() {
+        try {
+            return new BooksRepositoryImpl();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public VersesRepository getVersesDAO() {
+        try {
+            return new VersesRepositoryImpl();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public InfoRepository getInfoDAO() {
+        try {
+            return new InfoRepositoryImpl();
         } catch (SQLException e) {
             e.printStackTrace();
         }

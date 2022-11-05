@@ -14,9 +14,11 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.SelectionMode;
@@ -26,6 +28,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
@@ -46,6 +49,7 @@ import projector.application.Settings;
 import projector.controller.eventHandler.NextButtonEventHandler;
 import projector.model.Bible;
 import projector.model.BibleVerse;
+import projector.model.Book;
 import projector.model.Chapter;
 import projector.model.Reference;
 import projector.model.ReferenceBook;
@@ -72,6 +76,8 @@ import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
 import static projector.controller.song.SongController.getKeyEventEventHandler;
+import static projector.utils.ContextMenuUtil.getDeleteMenuItem;
+import static projector.utils.ContextMenuUtil.initializeContextMenu;
 import static projector.utils.SceneUtils.getAStage;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -299,6 +305,7 @@ public class BibleController {
                     };
                 }
             });
+            setBibleListViewOnMouseClicked();
             verseListViewSelectionModel.setSelectionMode(SelectionMode.MULTIPLE);
             bookTextField.textProperty().addListener((observable, oldValue, newValue) -> titleSearch(newValue));
             bookTextField.setOnKeyPressed(event -> {
@@ -477,7 +484,7 @@ public class BibleController {
                 public synchronized void changed(ObservableValue<? extends String> selected, String oldBook,
                                                  String newBook) {
                     try {
-                        if (!bookListView.getSelectionModel().isEmpty()) {
+                        if (!bookListView.getSelectionModel().isEmpty() && bible != null) {
                             partListBookI = searchIBook.get(bookListView.getSelectionModel().getSelectedIndex());
                             partListView.getItems().clear();
                             for (int i = 0; i < bible.getBooks().get(partListBookI).getChapters().size(); ++i) {
@@ -514,8 +521,9 @@ public class BibleController {
                                                  Integer newPart) {
                     try {
                         final int selectedPartIndex = partListView.getSelectionModel().getSelectedIndex();
-                        if (selectedPartIndex >= 0) {
-                            partLabel.setText(bible.getBooks().get(partListBookI).getTitle().trim() + " " + (selectedPartIndex + 1));
+                        if (selectedPartIndex >= 0 && bible != null) {
+                            Book book = bible.getBooks().get(partListBookI);
+                            partLabel.setText(book.getShortOrTitle().trim() + " " + (selectedPartIndex + 1));
                             selectedBook = partListBookI;
                             selectedPart = selectedPartIndex;
                             addAllVerse();
@@ -697,7 +705,8 @@ public class BibleController {
                     for (ReferenceBook rb : ref.getBookList()) {
                         for (ReferenceChapter ch : rb.getChapters()) {
                             for (int i : ch.getVerses()) {
-                                CheckBox tmp = new CheckBox(bible.getBooks().get(rb.getBookNumber()).getTitle() + " "
+                                Book book = bible.getBooks().get(rb.getBookNumber());
+                                CheckBox tmp = new CheckBox(book.getShortOrTitle() + " "
                                         + ch.getChapterNumber() + ":" + i);
                                 tmp.selectedProperty().set(true);
                                 list.add(tmp);
@@ -929,6 +938,43 @@ public class BibleController {
         }
     }
 
+    private void setBibleListViewOnMouseClicked() {
+        ContextMenu contextMenu = new ContextMenu();
+        initializeContextMenu(contextMenu, LOG);
+        MenuItem deleteMenuItem = getDeleteMenuItem();
+        contextMenu.getItems().addAll(deleteMenuItem);
+        bibleListView.setOnMouseClicked(event -> {
+            try {
+                if (event.getButton() == MouseButton.SECONDARY) {
+                    Bible selectedItem = bibleListView.getSelectionModel().getSelectedItem();
+                    if (selectedItem == null) {
+                        return;
+                    }
+                    contextMenu.show(bibleListView, event.getScreenX(), event.getScreenY());
+                } else {
+                    contextMenu.hide();
+                }
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        deleteMenuItem.setOnAction(event -> {
+            try {
+                Bible selectedItem = bibleListView.getSelectionModel().getSelectedItem();
+                if (selectedItem == null) {
+                    return;
+                }
+                ServiceManager.getBibleService().delete(selectedItem);
+                if (selectedItem.equivalent(bible)) {
+                    bible = null;
+                }
+                initializeBibles();
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+    }
+
     private void setAbbreviationButtonVisibility() {
         abbreviationToggleButton.setManaged(settings.getBibleShortName());
         if (bible != null) {
@@ -1117,11 +1163,12 @@ public class BibleController {
             List<Bible> bibles = bibleService.findAll();
             bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
             int biblesCount = bibles.size();
+            ObservableList<Bible> items = bibleListView.getItems();
             if (biblesCount == 0) {
+                items.clear();
                 downloadBibles();
                 return;
             }
-            ObservableList<Bible> items = bibleListView.getItems();
             if (items.size() == biblesCount) {
                 return;
             }
@@ -1159,7 +1206,7 @@ public class BibleController {
 
     private Bible getBibleFromList(ObservableList<Bible> bibles, Bible bible) {
         for (Bible aBible : bibles) {
-            if (aBible.getId().equals(bible.getId())) {
+            if (aBible.equivalent(bible)) {
                 return aBible;
             }
         }
@@ -1220,7 +1267,8 @@ public class BibleController {
             }
             bookListView.getItems().clear();
             for (int iBook = 0; iBook < bible.getBooks().size(); ++iBook) {
-                bookListView.getItems().add(bible.getBooks().get(iBook).getTitle());
+                Book book = bible.getBooks().get(iBook);
+                bookListView.getItems().add(book.getShortOrTitle());
                 searchIBook.add(iBook);
             }
             isAllBooks = true;
@@ -1239,10 +1287,9 @@ public class BibleController {
                 }
                 bookListView.getItems().clear();
                 for (int iBook = 0; iBook < bible.getBooks().size(); ++iBook) {
-                    if (contains(bible.getBooks().get(iBook).getTitle(), text)) {
-                        bookListView.getItems().add(bible.getBooks().get(iBook).getTitle());
-                        searchIBook.add(iBook);
-                    }
+                    Book book = bible.getBooks().get(iBook);
+                    addIfContains(text, iBook, book.getTitle());
+                    addIfContains(text, iBook, book.getShortName());
                 }
                 if (bookListView.getItems().size() == 1) {
                     bookListView.getSelectionModel().select(0);
@@ -1257,6 +1304,16 @@ public class BibleController {
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void addIfContains(String text, int iBook, String s) {
+        if (s == null || s.trim().isEmpty()) {
+            return;
+        }
+        if (contains(s, text)) {
+            bookListView.getItems().add(s);
+            searchIBook.add(iBook);
         }
     }
 
@@ -1412,6 +1469,9 @@ public class BibleController {
 
     private void verseSelected() {
         try {
+            if (bible == null) {
+                return;
+            }
             ObservableList<Integer> ob = verseListView.getSelectionModel().getSelectedIndices();
             StringBuilder string = new StringBuilder();
             int iVerse;
@@ -1423,7 +1483,10 @@ public class BibleController {
                 for (int i : ob) {
                     BibleVerse bibleVerse = bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().get(i);
                     bibleVerses.add(bibleVerse);
-                    verseIndices.addAll(bibleVerse.getVerseIndices());
+                    List<VerseIndex> verseIndexList = bibleVerse.getVerseIndices();
+                    if (verseIndexList != null) {
+                        verseIndices.addAll(verseIndexList);
+                    }
                 }
                 string = new StringBuilder(getVersesAndReference(bible, bibleVerses).replaceFirst("\n", ""));
                 if (settings.isParallel()) {

@@ -172,7 +172,7 @@ public class BibleSearchController {
                         }
                         if (contains(text2, text3)) {
                             TextFlow textFlow = new TextFlow();
-                            Text reference = new Text(book.getTitle() + " " + (iPart + 1) + ":" + (iVerse + 1) + " ");
+                            Text reference = new Text(book.getShortOrTitle() + " " + (iPart + 1) + ":" + (iVerse + 1) + " ");
                             reference.setFill(Color.rgb(5, 30, 70));
                             textFlow.getChildren().add(reference);
                             char[] chars = stripAccents(verse).toLowerCase().toCharArray();

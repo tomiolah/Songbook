@@ -41,6 +41,8 @@ dependencies {
     implementation 'com.j256.ormlite:ormlite-core:4.48'
     implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
 
+    implementation group: 'org.xerial', name: 'sqlite-jdbc', version: '3.39.3.0'
+
     implementation 'com.squareup.retrofit2:retrofit:2.3.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:3.8.0'
