@@ -38,10 +38,17 @@ public class BibleAssembler {
                 .replaceAll("<e>", "[")
                 .replaceAll("</e>", "]")
                 .replaceAll("<i>(.*)</i>", "[$1]")
+                .replaceAll("<i>", "[")
+                .replaceAll("</i>", "]")
                 .replaceAll("<f>.*</f>", "")
+                .replaceAll("<J>", "")
+                .replaceAll("</J>", "")
+                .replaceAll("<n>", "[")
+                .replaceAll("</n>", "]")
                 .replaceAll("<n>(\\[.*])</n>", "$1")
                 .replaceAll("<n>(.*)</n>", "[$1]")
                 .replaceAll("<!--end of footnotes-->", "")
+                .replaceAll("<br/>", "\n")
                 .replaceAll("<!--end of crossrefs-->", "");
         s = s.trim();
 //        s = text;
