@@ -269,7 +269,7 @@ public class ProjectionScreenController {
             int height = (int) scene.getHeight();
             if (projectionType == ProjectionType.REFERENCE) {
                 textFlow1.setText2(newText, width, height);
-                double v = settings.getMaxFont() * 0.7;
+                double v = projectionScreenSettings.getMaxFont() * 0.7;
                 if (textFlow1.getSize() < v && newText.length() > 100) {
                     String[] split = splitHalfByNewLine(newText);
                     textFlow.setText2(split[0], width / 2, height);
@@ -662,7 +662,7 @@ public class ProjectionScreenController {
         }
         textFlow.setColor(value);
         textFlow1.setColor(value);
-        progressLine.setStroke(settings.getProgressLineColor());
+        progressLine.setStroke(projectionScreenSettings.getProgressLineColor());
     }
 
     void setPrimaryStage(Stage primaryStage) {

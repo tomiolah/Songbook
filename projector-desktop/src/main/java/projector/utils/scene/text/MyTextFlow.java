@@ -132,9 +132,8 @@ public class MyTextFlow extends TextFlow {
         this.width = width;
         this.height = height;
         this.rawText = newText;
-        Settings settings = Settings.getInstance();
-        fontFamily = settings.getFont();
-        fontWeight = settings.getFontWeight();
+        fontFamily = projectionScreenSettings.getFont();
+        fontWeight = projectionScreenSettings.getFontWeight();
         newText = ampersandToNewLine(newText);
         String text2 = newText;
         setTextsByCharacters(text2);
@@ -328,7 +327,7 @@ public class MyTextFlow extends TextFlow {
     }
 
     private void maximizeSize(int trueWidth, int height) {
-        double lineSpace = Settings.getInstance().getLineSpace();
+        double lineSpace = projectionScreenSettings.getLineSpace();
         setLineSpacing(lineSpace);
         double aDouble = 1.0;
         int width = (int) (trueWidth * aDouble);
@@ -357,7 +356,7 @@ public class MyTextFlow extends TextFlow {
         prevColor = null;
         boolean italic = false;
         Stack<Color> colors = new Stack<>();
-        colors.push(Settings.getInstance().getColor());
+        colors.push(projectionScreenSettings.getColor());
         int[] codePoints = text.codePoints().toArray();
         int length = codePoints.length;
         int offset = 0;
@@ -439,12 +438,13 @@ public class MyTextFlow extends TextFlow {
     private void calculateMaxSize(int trueWidth, int height) {
         int w, h;
         Settings settings = Settings.getInstance();
-        size = (int) (settings.getMaxFont() * (((double) (height)) / (double) (768)));
-        int size2 = (int) (settings.getMaxFont() * (((double) (trueWidth)) / (double) (1366)));
+        int maxFont = projectionScreenSettings.getMaxFont();
+        size = (int) (maxFont * (((double) (height)) / (double) (768)));
+        int size2 = (int) (maxFont * (((double) (trueWidth)) / (double) (1366)));
         if (size2 > size) {
             size = size2;
         }
-        int prefMinSize = (int) (size * (((double) settings.getBreakAfter()) / 100));
+        int prefMinSize = (int) (size * (((double) projectionScreenSettings.getBreakAfter()) / 100));
         int a = 2, b = size;
         boolean b2 = !settings.isBreakLines();
         if (b2) {
@@ -484,7 +484,7 @@ public class MyTextFlow extends TextFlow {
             } while (true);
         }
         if (size < prefMinSize || !b2) {
-            size = (int) (settings.getMaxFont() * (((double) (height)) / (double) (768)));
+            size = (int) (maxFont * (((double) (height)) / (double) (768)));
             if (size2 > size) {
                 size = size2;
             }
@@ -576,7 +576,7 @@ public class MyTextFlow extends TextFlow {
         final Settings settings = Settings.getInstance();
         if (settings.isBackgroundImage()) {
             super.setBackground(new Background(new BackgroundImage(
-                    new Image(settings.getBackgroundImagePath(), width, height, false, true), BackgroundRepeat.NO_REPEAT,
+                    new Image(projectionScreenSettings.getBackgroundImagePath(), width, height, false, true), BackgroundRepeat.NO_REPEAT,
                     BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT)));
         }
     }

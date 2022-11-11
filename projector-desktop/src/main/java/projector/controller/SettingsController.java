@@ -124,37 +124,21 @@ public class SettingsController {
     private Stage stage;
 
     public static FontWeight getFontWeightByString(String newValue) {
-        FontWeight fontWeight;
-        switch (newValue) {
-            case "BOLD":
-                fontWeight = FontWeight.BOLD;
-                break;
-            case "BLACK":
-                fontWeight = FontWeight.BLACK;
-                break;
-            case "EXTRA_BOLD":
-                fontWeight = FontWeight.EXTRA_BOLD;
-                break;
-            case "EXTRA_LIGHT":
-                fontWeight = FontWeight.EXTRA_LIGHT;
-                break;
-            case "LIGHT":
-                fontWeight = FontWeight.LIGHT;
-                break;
-            case "MEDIUM":
-                fontWeight = FontWeight.MEDIUM;
-                break;
-            case "SEMI_BOLD":
-                fontWeight = FontWeight.SEMI_BOLD;
-                break;
-            case "THIN":
-                fontWeight = FontWeight.THIN;
-                break;
-            default:
-                fontWeight = FontWeight.NORMAL;
-                break;
+        FontWeight normal = FontWeight.NORMAL;
+        if (newValue == null) {
+            return normal;
         }
-        return fontWeight;
+        return switch (newValue) {
+            case "BOLD" -> FontWeight.BOLD;
+            case "BLACK" -> FontWeight.BLACK;
+            case "EXTRA_BOLD" -> FontWeight.EXTRA_BOLD;
+            case "EXTRA_LIGHT" -> FontWeight.EXTRA_LIGHT;
+            case "LIGHT" -> FontWeight.LIGHT;
+            case "MEDIUM" -> FontWeight.MEDIUM;
+            case "SEMI_BOLD" -> FontWeight.SEMI_BOLD;
+            case "THIN" -> FontWeight.THIN;
+            default -> normal;
+        };
     }
 
     public static List<Text> getFontTexts(FontWeight fontWeight) {
@@ -236,12 +220,8 @@ public class SettingsController {
         showSongSecondTextCheckBox.setSelected(settings.isShowSongSecondText());
         songSecondTextColorPicker.setValue(settings.getSongSecondTextColor());
         switch (settings.getSceneStyleFile()) {
-            case "application.css":
-                appearanceComboBox.getSelectionModel().select(0);
-                break;
-            case "applicationDark.css":
-                appearanceComboBox.getSelectionModel().select(1);
-                break;
+            case "application.css" -> appearanceComboBox.getSelectionModel().select(0);
+            case "applicationDark.css" -> appearanceComboBox.getSelectionModel().select(1);
         }
     }
 
@@ -317,12 +297,8 @@ public class SettingsController {
         settings.setProgressLineThickness(value);
         settings.setBibleShortName(bibleShortNameCheckBox.isSelected());
         switch (appearanceComboBox.getValue()) {
-            case "Light":
-                settings.setSceneStyleFile("application.css");
-                break;
-            case "Dark":
-                settings.setSceneStyleFile("applicationDark.css");
-                break;
+            case "Light" -> settings.setSceneStyleFile("application.css");
+            case "Dark" -> settings.setSceneStyleFile("applicationDark.css");
         }
         try {
             settings.setCustomCanvasWidth(getCustomCanvasSize(customCanvasWidthTextField));
