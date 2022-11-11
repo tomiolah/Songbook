@@ -634,6 +634,7 @@ public class MyTextFlow extends TextFlow {
     private void initializeTmpTextFlow() {
         if (tmpTextFlow == null) {
             tmpTextFlow = new MyTextFlow(true);
+            tmpTextFlow.setProjectionScreenSettings(projectionScreenSettings);
         }
     }
 
@@ -647,5 +648,8 @@ public class MyTextFlow extends TextFlow {
 
     public void setProjectionScreenSettings(ProjectionScreenSettings projectionScreenSettings) {
         this.projectionScreenSettings = projectionScreenSettings;
+        if (tmpTextFlow != null) {
+            tmpTextFlow.setProjectionScreenSettings(projectionScreenSettings);
+        }
     }
 }

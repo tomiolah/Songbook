@@ -706,7 +706,7 @@ public class ProjectionScreenController {
 
     public void setScene(Scene scene) {
         this.scene = scene;
-        if (!settings.isProgressLinePositionIsTop()) {
+        if (!projectionScreenSettings.isProgressLinePositionIsTop()) {
             double endY = scene.getHeight() - 1;
             progressLine.setStartY(endY);
             progressLine.setEndY(endY);
@@ -718,9 +718,9 @@ public class ProjectionScreenController {
             previewProjectionScreenController.setLineSize(size);
         }
         if (!isLock) {
-            double progressLineThickness = settings.getProgressLineThickness();
+            double progressLineThickness = projectionScreenSettings.getProgressLineThickness();
             progressLine.setStrokeLineCap(StrokeLineCap.BUTT);
-            if (!settings.isProgressLinePositionIsTop()) {
+            if (!projectionScreenSettings.isProgressLinePositionIsTop()) {
                 double endY = scene.getHeight() - 1;
                 progressLine.setStartY(endY - progressLineThickness / 2);
                 progressLine.setEndY(endY - progressLineThickness / 2);
