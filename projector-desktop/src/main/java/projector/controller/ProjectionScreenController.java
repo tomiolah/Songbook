@@ -28,7 +28,10 @@ import projector.MainDesktop;
 import projector.application.ProjectionScreenSettings;
 import projector.application.ProjectionType;
 import projector.application.Settings;
+import projector.controller.listener.OnBlankListener;
+import projector.controller.listener.ViewChangedListener;
 import projector.controller.song.SongController;
+import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
 import projector.utils.scene.text.MyTextFlow;
 
@@ -45,6 +48,8 @@ import static projector.utils.SceneUtils.getAStage;
 
 public class ProjectionScreenController {
 
+    private final List<ViewChangedListener> viewChangedListeners = new ArrayList<>();
+    private final List<OnBlankListener> onBlankListeners = new ArrayList<>();
     @FXML
     private MyTextFlow textFlow;
     @FXML
@@ -53,14 +58,11 @@ public class ProjectionScreenController {
     private BorderPane mainPane;
     @FXML
     private Pane pane;
-
     @FXML
     private Line progressLine;
-
     private Stage stage;
     private boolean isBlank;
     private Settings settings;
-
     //    private List<Text> textsList;
     private BibleController bibleController;
     private SongController songController;
@@ -69,7 +71,6 @@ public class ProjectionScreenController {
     private ProjectionScreenController doubleProjectionScreenController;
     private ProjectionScreenController previewProjectionScreenController;
     private boolean isLock = false;
-
     private String activeText = "";
     private double xOffset = 0;
     private double yOffset = 0;
@@ -79,7 +80,6 @@ public class ProjectionScreenController {
     private ProjectionScreenController customStageController;
     private boolean countDownTimerRunning = false;
     private Thread countDownTimerThread = null;
-
     private ProjectionScreenSettings projectionScreenSettings = new ProjectionScreenSettings();
     private Popup popup;
     private Pane root;
@@ -185,6 +185,14 @@ public class ProjectionScreenController {
     private void setBlankLocally(boolean isBlank) {
         this.isBlank = isBlank;
         mainPane.setVisible(!isBlank);
+        onViewChanged();
+        onBlankChanged();
+    }
+
+    private void onBlankChanged() {
+        for (OnBlankListener onBlankListener : onBlankListeners) {
+            onBlankListener.onBlankChanged(isBlank);
+        }
     }
 
     void reload() {
@@ -289,6 +297,7 @@ public class ProjectionScreenController {
             }
             textFlow.setText2(newText, width, height);
             textFlow1.setText2("", 0, height);
+            onViewChanged();
         });
     }
 
@@ -504,19 +513,27 @@ public class ProjectionScreenController {
                 root2 = loader2.load();
 
                 previewProjectionScreenController = loader2.getController();
-                ProjectionScreensUtil.getInstance().addProjectionScreenController(previewProjectionScreenController, "Preview");
+                String title = Settings.getInstance().getResourceBundle().getString("Preview");
+                ProjectionScreenHolder projectionScreenHolder =
+                        ProjectionScreensUtil.getInstance().addProjectionScreenController(previewProjectionScreenController, title);
+                previewProjectionScreenController.setScreen(Screen.getPrimary());
+                projectionScreenHolder.setScreenIndex(0);
                 double ratio = getSceneAspectRatio(mainPane.getScene());
-                int size = 512;
+                double size = 512;
                 if (settings.getPreviewWidth() > 0) {
-                    size = (int) settings.getPreviewWidth();
+                    size = settings.getPreviewWidth();
                 }
-                Scene scene2 = new Scene(root2, size, (double) size * ratio);
+                double width = size;
+                double height = size * ratio;
+                Scene scene2 = new Scene(root2, width, height);
                 setStyleFile(scene2);
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                 Stage stage2 = getAStage(getClass());
                 stage2.setScene(scene2);
+                stage2.setWidth(width);
+                stage2.setHeight(height);
 
                 stage2.setX(settings.getPreviewX());
                 stage2.setY(settings.getPreviewY());
@@ -526,7 +543,7 @@ public class ProjectionScreenController {
                         stage2.setMaximized(!stage2.isMaximized());
                     }
                 });
-                stage2.setTitle(Settings.getInstance().getResourceBundle().getString("Preview"));
+                stage2.setTitle(title);
                 stage2.show();
                 stage2.maximizedProperty().addListener((observable, oldValue, newValue) -> {
                 });
@@ -825,6 +842,10 @@ public class ProjectionScreenController {
         }
     }
 
+    public Screen getScreen() {
+        return screen;
+    }
+
     public void setScreen(Screen screen) {
         this.screen = screen;
     }
@@ -840,4 +861,23 @@ public class ProjectionScreenController {
     public void setMainDesktop(MainDesktop mainDesktop) {
         this.mainDesktop = mainDesktop;
     }
+
+    public void addViewChangedListener(ViewChangedListener viewChangedListener) {
+        viewChangedListeners.add(viewChangedListener);
+    }
+
+    private void onViewChanged() {
+        for (ViewChangedListener viewChangedListener : viewChangedListeners) {
+            viewChangedListener.viewChanged();
+        }
+    }
+
+    public BorderPane getMainPane() {
+        return mainPane;
+    }
+
+    public void addOnBlankListener(OnBlankListener onBlankListener) {
+        onBlankListeners.add(onBlankListener);
+    }
+
 }

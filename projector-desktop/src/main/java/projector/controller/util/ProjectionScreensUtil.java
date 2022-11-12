@@ -29,10 +29,11 @@ public class ProjectionScreensUtil {
         return projectionScreenHolders;
     }
 
-    public void addProjectionScreenController(ProjectionScreenController projectionScreenController, String name) {
+    public ProjectionScreenHolder addProjectionScreenController(ProjectionScreenController projectionScreenController, String name) {
         ProjectionScreenHolder projectionScreenHolder = new ProjectionScreenHolder(projectionScreenController, name);
         addProjectionScreenHolder(projectionScreenHolder);
         projectionScreenController.setProjectionScreenSettings(projectionScreenHolder.getProjectionScreenSettings());
+        return projectionScreenHolder;
     }
 
     private void addProjectionScreenHolder(ProjectionScreenHolder projectionScreenHolder) {

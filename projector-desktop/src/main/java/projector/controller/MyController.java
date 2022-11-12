@@ -134,7 +134,6 @@ public class MyController {
     }
 
     public void initialize() {
-        tabPane.getTabs().remove(projectionScreensTab);
         settings = Settings.getInstance();
         settings.setBibleController(bibleController);
         initializeSettingsController();
@@ -174,7 +173,7 @@ public class MyController {
                 bibleController.lazyInitialize();
                 bibleController.initializeBibles();
             } else if (newValue.equals(projectionScreensTab)) {
-                projectionScreensController.lazyInitialize();
+                projectionScreensController.lazyInitialize(projectionScreensTab);
             }
         });
         tabPane.focusedProperty().addListener((observable, oldValue, newValue) -> {

@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.ApplicationUtil;
 import projector.application.ApplicationVersion;
+import projector.application.ProjectionScreenSettings;
 import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.application.Updater;
@@ -54,7 +55,7 @@ public class MainDesktop extends Application {
     private Stage primaryStage;
     private Scene primaryScene;
     private Stage canvasStage;
-    private ObservableList<Screen> screen;
+    private ObservableList<Screen> screenObservableList;
     private Settings settings;
     private Date startDate;
     private Screen mainScreen;
@@ -268,8 +269,8 @@ public class MainDesktop extends Application {
     }
 
     private void setProjectionScreen() {
-        screen = Screen.getScreens();
-        screen.addListener((ListChangeListener<Screen>) c -> setProjectionScreenStage());
+        screenObservableList = Screen.getScreens();
+        screenObservableList.addListener((ListChangeListener<Screen>) c -> setProjectionScreenStage());
         setProjectionScreenStage();
         primaryStage.setOnCloseRequest(we -> closeApplication());
         ApplicationUtil.getInstance().setListener(this::closeApplication);
@@ -280,8 +281,9 @@ public class MainDesktop extends Application {
         System.out.println("Stage is closing");
         Settings settings = Settings.getInstance();
         settings.setApplicationRunning(false);
-        settings.setMainHeight(primaryStage.getScene().getHeight());
-        settings.setMainWidth(primaryStage.getScene().getWidth());
+        Scene scene = primaryStage.getScene();
+        settings.setMainHeight(scene.getHeight());
+        settings.setMainWidth(scene.getWidth());
         settings.save();
         settings.setApplicationRunning(false);
         if (tmpStage != null) {
@@ -316,17 +318,21 @@ public class MainDesktop extends Application {
     }
 
     public void setProjectionScreenStage() {
-        ListIterator<Screen> it = screen.listIterator(0);
+        ListIterator<Screen> it = screenObservableList.listIterator(0);
+        while (it.hasPrevious()) {
+            it.previous();
+        }
         if (!it.hasNext()) {
             return;
         }
         mainScreen = it.next(); // primary screen
         showProjectionScreenOnNextScreen(it);
-        Integer index = 0;
+        int index = 0;
         while (it.hasNext()) {
             Screen nextScreen = it.next();
             try {
                 ProjectionScreenController projectionScreenController = getProjectionScreenControllerOrDuplicate(index);
+                projectionScreenController.getProjectionScreenSettings().getProjectionScreenHolder().setScreenIndex(index + 2);
                 projectionScreenController.setPrimaryStageVariable(primaryStage);
                 createPopupForNextScreen(nextScreen, projectionScreenController);
             } catch (Exception e) {
@@ -418,6 +424,13 @@ public class MainDesktop extends Application {
             projectionScreenController.loadEmpty();
         }
         setSceneStyleSheet(scene);
+        ProjectionScreenSettings projectionScreenSettings = projectionScreenController.getProjectionScreenSettings();
+        if (projectionScreenSettings != null) {
+            ProjectionScreenHolder projectionScreenHolder = projectionScreenSettings.getProjectionScreenHolder();
+            if (projectionScreenHolder != null) {
+                projectionScreenHolder.popupCreated();
+            }
+        }
     }
 
     private void createCanvasStage() {
@@ -435,6 +448,8 @@ public class MainDesktop extends Application {
         canvasStage = getAStage(getClass());
         canvasStage.setScene(scene);
         canvasStage.setTitle(Settings.getInstance().getResourceBundle().getString("Canvas"));
+        projectionScreenController.setScreen(mainScreen);
+        projectionScreenController.getProjectionScreenSettings().getProjectionScreenHolder().setScreenIndex(0);
         tmpStage = canvasStage;
         canvasStage.setX(800);
         canvasStage.setY(0);
