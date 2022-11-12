@@ -402,6 +402,7 @@ public class SongController {
                         final int size = (int) songHeightSlider.getValue();
                         selectedSongVerseList = selectedSong.getSongVersesByVerseOrder();
                         MyTextFlow myTextFlow = new MyTextFlow();
+                        myTextFlow.setAutoHeight(true);
                         int width1;
                         boolean aspectRatioCheckBoxSelected = aspectRatioCheckBox.isSelected();
                         if (height < 10) {
@@ -429,6 +430,7 @@ public class SongController {
                         songListViewItems.add(myTextFlow);
                         for (SongVerse songVerse : selectedSongVerseList) {
                             myTextFlow = new MyTextFlow();
+                            myTextFlow.setAutoHeight(true);
                             aspectRatioCheckBoxSelected = aspectRatioCheckBox.isSelected();
                             if (aspectRatioCheckBoxSelected) {
                                 width1 = (size * width - 30) / height;
@@ -447,6 +449,7 @@ public class SongController {
                             songListViewItems.add(myTextFlow);
                         }
                         myTextFlow = new MyTextFlow();
+                        myTextFlow.setAutoHeight(true);
                         myTextFlow.setText2("", 100, size / 3);
                         myTextFlow.setPrefHeight(100);
                         myTextFlow.setBackGroundColor();

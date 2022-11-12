@@ -162,6 +162,22 @@ public class SettingsController {
         }).start();
     }
 
+    public static void imageBrowseWithTextFieldResult(TextField imagePathTextField) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle(Settings.getInstance().getResourceBundle().getString("Chose the image file"));
+        fileChooser.setInitialDirectory(new File(new File(".").getAbsolutePath()));
+        File selectedFile = fileChooser.showOpenDialog(null);
+        if (selectedFile != null) {
+            try {
+                imagePathTextField.setText(selectedFile.getCanonicalFile().toURI().toString());
+                imagePathTextField.positionCaret(imagePathTextField.getText().length() - 1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            // System.out.println(selectedFile.getPath());
+        }
+    }
+
     synchronized void lazyInitialize() {
         if (initialized) {
             return;
@@ -330,19 +346,7 @@ public class SettingsController {
     }
 
     public void onImageBrowseButtonAction() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle(Settings.getInstance().getResourceBundle().getString("Chose the image file"));
-        fileChooser.setInitialDirectory(new File(new File(".").getAbsolutePath()));
-        File selectedFile = fileChooser.showOpenDialog(null);
-        if (selectedFile != null) {
-            try {
-                imagePathTextField.setText(selectedFile.getCanonicalFile().toURI().toString());
-                imagePathTextField.positionCaret(imagePathTextField.getText().length() - 1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            // System.out.println(selectedFile.getPath());
-        }
+        imageBrowseWithTextFieldResult(imagePathTextField);
     }
 
     synchronized void setProjectionScreenController(ProjectionScreenController projectionScreenController) {

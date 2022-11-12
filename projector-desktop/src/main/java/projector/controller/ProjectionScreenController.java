@@ -145,7 +145,7 @@ public class ProjectionScreenController {
         if (isLock) {
             return;
         }
-        if (!Settings.getInstance().isBackgroundImage()) {
+        if (!projectionScreenSettings.isBackgroundImage()) {
             Color backgroundColor = projectionScreenSettings.getBackgroundColor();
             BackgroundFill myBF = new BackgroundFill(backgroundColor, new CornerRadii(1),
                     new Insets(0.0, 0.0, 0.0, 0.0));

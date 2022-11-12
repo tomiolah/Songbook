@@ -25,6 +25,7 @@ import projector.ui.ResetButton;
 
 import static projector.controller.SettingsController.addFonts;
 import static projector.controller.SettingsController.getFontWeightByString;
+import static projector.controller.SettingsController.imageBrowseWithTextFieldResult;
 import static projector.utils.NumberUtil.getIntegerFromNumber;
 
 public class ProjectionScreenSettingsController {
@@ -63,12 +64,14 @@ public class ProjectionScreenSettingsController {
     public ResetButton showSongSecondTextCheckBoxReset;
     public ResetButton songSecondTextColorPickerReset;
     public ResetButton fontListViewReset;
+    public ResetButton imageBrowseButtonReset;
     private Stage stage;
     private ProjectionScreenSettings projectionScreenSettings;
     private ProjectionScreenSettings projectionScreenSettingsModel;
     private ProjectionScreenHolder projectionScreenHolder;
 
     public void onImageBrowseButtonAction() {
+        imageBrowseWithTextFieldResult(imagePathTextField);
     }
 
     public void onSaveButtonAction() {
@@ -78,6 +81,7 @@ public class ProjectionScreenSettingsController {
         projectionScreenSettings.setLineSpace(projectionScreenSettingsModel.getLineSpace());
         projectionScreenSettings.setColor(projectionScreenSettingsModel.getColor());
         projectionScreenSettings.setIsBackgroundImage(projectionScreenSettingsModel.getIsBackgroundImage());
+        projectionScreenSettings.setBackgroundImagePath(projectionScreenSettingsModel.getBackgroundImagePath());
         projectionScreenSettings.setBackgroundColor(projectionScreenSettingsModel.getBackgroundColor());
         projectionScreenSettings.setProgressLineColor(projectionScreenSettingsModel.getProgressLineColor());
         projectionScreenSettings.setProgressLineThickness(projectionScreenSettingsModel.getProgressLineThickness());
@@ -120,6 +124,7 @@ public class ProjectionScreenSettingsController {
         initializeBackgroundRadio();
         initializeImageRadioButton();
         initializeColorRadioButton();
+        initializeBackgroundImagePath(settings);
         initializeBackgroundColorPicker(settings);
         initializeProgressLineColorPicker(settings);
         initializeProgressLineThicknessSpinner(settings);
@@ -162,6 +167,23 @@ public class ProjectionScreenSettingsController {
             projectionScreenSettingsModel.setMaxFont(getIntegerFromNumber(newValue));
             setMaxFontSliderResetVisibility();
         });
+    }
+
+    private void initializeBackgroundImagePath(Settings settings) {
+        imagePathTextField.setText(projectionScreenSettings.getBackgroundImagePath());
+        setImageBrowseButtonResetVisibility();
+        imageBrowseButtonReset.setOnAction2(event -> {
+            imagePathTextField.setText(settings.getBackgroundImagePath());
+            projectionScreenSettingsModel.setBackgroundImagePath(null);
+        });
+        imagePathTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            projectionScreenSettingsModel.setBackgroundImagePath(newValue);
+            setImageBrowseButtonResetVisibility();
+        });
+    }
+
+    private void setImageBrowseButtonResetVisibility() {
+        imageBrowseButtonReset.setVisible(projectionScreenSettingsModel.getBackgroundImagePath() != null);
     }
 
     private void initializeBreakLinesCheckbox(Settings settings) {
