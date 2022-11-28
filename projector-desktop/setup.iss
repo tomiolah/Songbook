@@ -1,7 +1,7 @@
 [Setup]
 AppName=Projector
 AppId=Projector_3
-AppVersion=3.0.8
+AppVersion=3.0.9
 AppVerName=Projector
 AppPublisher=SongPraise.com
 AppPublisherURL=http://www.songpraise.com/#/desktop-app
@@ -46,6 +46,7 @@ Source: ".\build\jpackage\Projector\app\ormlite-jdbc-4.48.jar"; DestDir: "{app}\
 Source: ".\build\jpackage\Projector\app\projector-common.jar"; DestDir: "{app}\app"
 Source: ".\build\jpackage\Projector\app\retrofit-2.3.0.jar"; DestDir: "{app}\app"
 Source: ".\build\jpackage\Projector\app\slf4j-api-1.7.25.jar"; DestDir: "{app}\app"
+Source: ".\build\jpackage\Projector\app\sqlite-jdbc-3.39.3.0.jar"; DestDir: "{app}\app"
 Source: ".\build\jpackage\Projector\runtime\bin\api-ms-win-core-console-l1-1-0.dll"; DestDir: "{app}\runtime\bin"
 Source: ".\build\jpackage\Projector\runtime\bin\api-ms-win-core-console-l1-2-0.dll"; DestDir: "{app}\runtime\bin"
 Source: ".\build\jpackage\Projector\runtime\bin\api-ms-win-core-datetime-l1-1-0.dll"; DestDir: "{app}\runtime\bin"
