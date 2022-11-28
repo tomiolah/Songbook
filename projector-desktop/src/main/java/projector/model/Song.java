@@ -12,6 +12,7 @@ import java.util.Date;
 import java.util.List;
 
 import static projector.utils.StringUtils.stripAccents;
+import static projector.utils.StringUtils.trimLongString100;
 
 public class Song extends BaseEntity {
 
@@ -157,7 +158,7 @@ public class Song extends BaseEntity {
             s.append(index);
             first = false;
         }
-        verseOrder = s.toString();
+        verseOrder = trimLongString100(s.toString());
     }
 
     public List<SongVerse> getSongVersesByVerseOrder() {
@@ -175,8 +176,8 @@ public class Song extends BaseEntity {
     }
 
     public void setTitle(String title) {
-        this.title = title;
-        strippedTitle = stripAccents(title.toLowerCase());
+        this.title = trimLongString100(title);
+        strippedTitle = stripAccents(this.title.toLowerCase());
     }
 
     public void setFileText(String fileText) {
@@ -391,7 +392,7 @@ public class Song extends BaseEntity {
     }
 
     public void setAuthor(String author) {
-        this.author = author;
+        this.author = trimLongString100(author);
     }
 
     public void addToSongCollectionElements(SongCollectionElement songCollectionElement) {
