@@ -1,10 +1,13 @@
 package com.bence.projector.server.backend.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Index;
-import javax.persistence.Lob;
 import javax.persistence.Table;
 import java.util.Date;
+
+import static com.bence.projector.common.util.StringUtils.trimLongString;
+import static com.bence.projector.common.util.StringUtils.trimLongString255;
 
 @Entity
 @Table(
@@ -12,7 +15,8 @@ import java.util.Date;
 )
 public class Stack extends AbstractModel {
 
-    @Lob
+    private static final int MAX_STACK_LENGTH = 100000;
+    @Column(length = MAX_STACK_LENGTH)
     private String stackTrace;
     private String message;
     private String email;
@@ -25,7 +29,7 @@ public class Stack extends AbstractModel {
     }
 
     public void setStackTrace(String stackTrace) {
-        this.stackTrace = stackTrace;
+        this.stackTrace = trimLongString(stackTrace, MAX_STACK_LENGTH);
     }
 
     public String getMessage() {
@@ -33,7 +37,7 @@ public class Stack extends AbstractModel {
     }
 
     public void setMessage(String message) {
-        this.message = message;
+        this.message = trimLongString255(message);
     }
 
     public String getEmail() {
@@ -41,7 +45,7 @@ public class Stack extends AbstractModel {
     }
 
     public void setEmail(String email) {
-        this.email = email;
+        this.email = trimLongString255(email);
     }
 
     public Date getCreatedDate() {
@@ -65,6 +69,6 @@ public class Stack extends AbstractModel {
     }
 
     public void setVersion(String version) {
-        this.version = version;
+        this.version = trimLongString255(version);
     }
 }

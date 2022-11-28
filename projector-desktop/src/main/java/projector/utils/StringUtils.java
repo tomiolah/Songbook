@@ -172,15 +172,4 @@ public class StringUtils {
         System.out.println(a.length());
         System.out.println(b.length());
     }
-
-    public static String trimLongString(String s, int maxLength) {
-        if (s == null) {
-            return null;
-        }
-        return s.substring(0, Math.min(s.length(), maxLength));
-    }
-
-    public static String trimLongString100(String s) {
-        return trimLongString(s, 100);
-    }
 }

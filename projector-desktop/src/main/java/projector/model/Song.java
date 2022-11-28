@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.bence.projector.common.util.StringUtils.trimLongString100;
 import static projector.utils.StringUtils.stripAccents;
-import static projector.utils.StringUtils.trimLongString100;
 
 public class Song extends BaseEntity {
 

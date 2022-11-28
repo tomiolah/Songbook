@@ -9,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import static com.bence.projector.common.util.StringUtils.trimLongString;
 import static projector.utils.StringUtils.stripAccents;
-import static projector.utils.StringUtils.trimLongString;
 
 public class SongVerse extends BaseEntity {
 
