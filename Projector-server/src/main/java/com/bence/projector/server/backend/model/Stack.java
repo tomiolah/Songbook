@@ -15,7 +15,7 @@ import static com.bence.projector.common.util.StringUtils.trimLongString255;
 )
 public class Stack extends AbstractModel {
 
-    private static final int MAX_STACK_LENGTH = 100000;
+    private static final int MAX_STACK_LENGTH = 4000;
     @Column(length = MAX_STACK_LENGTH)
     private String stackTrace;
     private String message;

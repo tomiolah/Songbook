@@ -29,7 +29,7 @@ public class FavouriteSongAssembler implements GeneralAssembler<FavouriteSong, F
 
     @Override
     public FavouriteSong updateModel(FavouriteSong favouriteSong, FavouriteSongDTO favouriteSongDTO) {
-        if (favouriteSong != null) {
+        if (favouriteSong != null && favouriteSongDTO != null) {
             favouriteSong.setSong(songService.findOneByUuid(favouriteSongDTO.getSongUuid()));
             favouriteSong.setModifiedDate(favouriteSongDTO.getModifiedDate());
             favouriteSong.setFavourite(favouriteSongDTO.isFavourite());
