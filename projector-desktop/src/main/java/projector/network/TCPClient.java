@@ -171,7 +171,7 @@ public class TCPClient {
         String selectedBibleName = projectionDTO.getSelectedBibleName();
         Bible preferred = null;
         for (Bible bible : bibles) {
-            if (!bible.isParallelSelected()) {
+            if (!bible.isPreferredByRemote()) {
                 continue;
             }
             if (selectedBibleUuid != null) {

@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Label;
+import javafx.scene.control.Separator;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.HBox;
@@ -27,6 +28,7 @@ public class ParallelBiblesController {
     @FXML
     private VBox listView;
     private List<Bible> bibles;
+    private List<ParallelBibleHolder> parallelBibleHolders = new ArrayList<>();
     private List<CheckBox> checkBoxes;
     private List<ColorPicker> colorPickers;
     private List<TextField> textFields;
@@ -56,13 +58,13 @@ public class ParallelBiblesController {
         checkBoxes = new ArrayList<>(this.bibles.size());
         colorPickers = new ArrayList<>(this.bibles.size());
         textFields = new ArrayList<>(this.bibles.size());
+        parallelBibleHolders = new ArrayList<>(this.bibles.size());
         for (Bible bible : this.bibles) {
             addBibleToVBox(bible);
         }
         Settings settings = Settings.getInstance();
         forIncomingDisplayOnlySelected.setSelected(settings.isForIncomingDisplayOnlySelected());
-        forIncomingDisplayOnlySelected.setOnAction(
-                event -> settings.setForIncomingDisplayOnlySelected(forIncomingDisplayOnlySelected.isSelected()));
+        forIncomingDisplayOnlySelected.setOnAction(event -> settings.setForIncomingDisplayOnlySelected(forIncomingDisplayOnlySelected.isSelected()));
     }
 
     private void addBibleToVBox(Bible bible) {
@@ -81,11 +83,17 @@ public class ParallelBiblesController {
                 event.consume();
             }
         });
+        CheckBox preferredByRemoteCheckBox = getPreferredByRemoteCheckBox(bible);
+        Separator separator = new Separator();
         Platform.runLater(() -> {
             HBox hBox = new HBox(new Label("Nr "), textField);
-            listView.getChildren().addAll(checkBox, colorPicker, hBox);
+            listView.getChildren().addAll(checkBox, preferredByRemoteCheckBox, colorPicker, hBox, separator);
         });
         checkBoxes.add(checkBox);
+        ParallelBibleHolder parallelBibleHolder = new ParallelBibleHolder();
+        parallelBibleHolder.preferredByRemoteCheckBox = preferredByRemoteCheckBox;
+        parallelBibleHolder.checkBox = checkBox;
+        parallelBibleHolders.add(parallelBibleHolder);
         checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
             colorPicker.setDisable(!newValue);
             textField.setDisable(!newValue);
@@ -110,13 +118,20 @@ public class ParallelBiblesController {
         textFields.add(textField);
     }
 
+    private CheckBox getPreferredByRemoteCheckBox(Bible bible) {
+        CheckBox preferredByRemote = new CheckBox("Preferred by remote");
+        preferredByRemote.setSelected(bible.isPreferredByRemote());
+        return preferredByRemote;
+    }
+
     public void setStage(Stage stage) {
         stage.setOnCloseRequest(event -> {
             int i = 0;
             boolean was = false;
             BibleService bibleService = ServiceManager.getBibleService();
             for (Bible bible : bibles) {
-                if (checkBoxes.get(i).isSelected()) {
+                ParallelBibleHolder parallelBibleHolder = parallelBibleHolders.get(i);
+                if (parallelBibleHolder.checkBox.isSelected()) {
                     bible.setColor(colorPickers.get(i).getValue());
                     try {
                         int parallelNumber = Integer.parseInt(textFields.get(i).getText().trim());
@@ -131,6 +146,7 @@ public class ParallelBiblesController {
                 } else {
                     bible.setParallelNumber(0);
                 }
+                bible.setPreferredByRemote(parallelBibleHolder.preferredByRemoteCheckBox.isSelected());
                 ++i;
                 bibleService.update(bible);
             }
@@ -143,4 +159,9 @@ public class ParallelBiblesController {
         this.bibleController = bibleController;
     }
 
+
+    static class ParallelBibleHolder {
+        public CheckBox checkBox;
+        CheckBox preferredByRemoteCheckBox;
+    }
 }
