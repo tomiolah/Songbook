@@ -134,7 +134,6 @@ public class MyController {
     }
 
     public void initialize() {
-        tabPane.getTabs().remove(projectionScreensTab);
         settings = Settings.getInstance();
         settings.setBibleController(bibleController);
         initializeSettingsController();
@@ -174,7 +173,7 @@ public class MyController {
                 bibleController.lazyInitialize();
                 bibleController.initializeBibles();
             } else if (newValue.equals(projectionScreensTab)) {
-                projectionScreensController.lazyInitialize();
+                projectionScreensController.lazyInitialize(projectionScreensTab);
             }
         });
         tabPane.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -331,7 +330,7 @@ public class MyController {
 
     public void showHideProjectionScreen() {
         if (showProjectionScreenToggleButton.isSelected()) {
-            mainDesktop.setProjectionScreenStage();
+            mainDesktop.setProjectionScreenStage(true);
         } else {
             mainDesktop.hideProjectionScreen();
         }
@@ -374,5 +373,9 @@ public class MyController {
 
     public void createCustomCanvas() {
         projectionScreenController.createCustomStage(settings.getCustomCanvasWidth(), settings.getCustomCanvasHeight());
+    }
+
+    public void setShowProjectionScreenToggleButtonToggle(boolean selected) {
+        showProjectionScreenToggleButton.setSelected(selected);
     }
 }

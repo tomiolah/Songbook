@@ -12,15 +12,13 @@
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
-<BorderPane fx:id="mainBorderPain" prefHeight="800.0" prefWidth="850.0" xmlns="http://javafx.com/javafx/16"
+<?import projector.ui.ResetButton?>
+<BorderPane fx:id="mainBorderPain" prefHeight="800.0" prefWidth="850.0" xmlns="http://javafx.com/javafx/18"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="projector.controller.ProjectionScreenSettingsController">
     <center>
         <ScrollPane fx:id="scrollPane" prefHeight="55.0" prefWidth="50.0" BorderPane.alignment="CENTER">
@@ -60,79 +58,94 @@
                             <Insets left="4.0"/>
                         </padding>
                         <Label text="%Projection max font size"/>
-                        <Slider fx:id="maxFontSlider" max="140" min="10" prefHeight="31.0" showTickLabels="true"
-                                showTickMarks="true" GridPane.columnIndex="1"/>
-                        <CheckBox fx:id="breakLinesCheckbox" mnemonicParsing="false" prefHeight="23.0"
-                                  text="%Break lines" GridPane.rowIndex="1"/>
-                        <Slider fx:id="breakAfterSlider" max="98" min="1" prefHeight="31.0" GridPane.columnIndex="1"
-                                GridPane.rowIndex="1"/>
+                        <HBox spacing="4.0" GridPane.columnIndex="1">
+                            <Slider fx:id="maxFontSlider" max="140" min="10" prefHeight="31.0" prefWidth="1000.0"
+                                    showTickLabels="true" showTickMarks="true"/>
+                            <ResetButton fx:id="maxFontSliderReset"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.rowIndex="1">
+                            <CheckBox fx:id="breakLinesCheckbox" mnemonicParsing="false" prefHeight="23.0"
+                                      text="%Break lines"/>
+                            <ResetButton fx:id="breakLinesCheckboxReset"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1"
+                              GridPane.rowIndex="1">
+                            <Slider fx:id="breakAfterSlider" max="98" min="1" prefHeight="31.0"/>
+                            <ResetButton fx:id="breakAfterSliderReset"/>
+                        </HBox>
                         <Label text="%Line space" GridPane.rowIndex="2"/>
-                        <Slider fx:id="slider" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
-                        <CheckBox fx:id="showSongSecondTextCheckBox" mnemonicParsing="false"
-                                  text="%Show song second text" GridPane.rowIndex="10"/>
-                        <ColorPicker fx:id="songSecondTextColorPicker" prefHeight="31.0" prefWidth="136.0"
-                                     GridPane.columnIndex="1" GridPane.rowIndex="10"/>
-                        <ListView fx:id="listView" prefHeight="163.0" prefWidth="438.0" GridPane.columnIndex="1"
-                                  GridPane.rowIndex="11"/>
-                        <Label text="%Font" GridPane.rowIndex="11"/>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                            <Slider fx:id="lineSpaceSlider"/>
+                            <ResetButton fx:id="lineSpaceSliderReset"/>
+                        </HBox>
                         <Label text="%Color" GridPane.rowIndex="3"/>
-                        <ColorPicker fx:id="colorPicker" prefHeight="31.0" prefWidth="134.0" GridPane.columnIndex="1"
-                                     GridPane.rowIndex="3"/>
-                        <RadioButton fx:id="imageRadioButton" mnemonicParsing="false" text="%Background image"
-                                     GridPane.rowIndex="4"/>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                            <ColorPicker fx:id="colorPicker" prefHeight="31.0" prefWidth="134.0"/>
+                            <ResetButton fx:id="colorReset"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.rowIndex="4">
+                            <RadioButton fx:id="imageRadioButton" mnemonicParsing="false" text="%Background image"/>
+                            <ResetButton fx:id="imageRadioButtonReset"/>
+                        </HBox>
                         <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
                             <center>
                                 <TextField fx:id="imagePathTextField" prefHeight="31.0" prefWidth="231.0"
                                            BorderPane.alignment="CENTER"/>
                             </center>
                             <right>
-                                <Button fx:id="imageBrowseButton" mnemonicParsing="false"
-                                        onAction="#onImageBrowseButtonAction" text="%Browse"
-                                        BorderPane.alignment="CENTER"/>
+                                <HBox alignment="CENTER_LEFT" spacing="4.0">
+                                    <Button fx:id="imageBrowseButton" mnemonicParsing="false"
+                                            onAction="#onImageBrowseButtonAction" text="%Browse"
+                                            BorderPane.alignment="CENTER"/>
+                                    <ResetButton fx:id="imageBrowseButtonReset"/>
+                                </HBox>
                             </right>
                         </BorderPane>
-
-                        <RadioButton fx:id="colorRadioButton" mnemonicParsing="false" text="%Background color"
-                                     GridPane.rowIndex="5"/>
-                        <BorderPane GridPane.columnIndex="1" GridPane.rowIndex="5">
-                            <center>
-                                <HBox alignment="CENTER_LEFT" spacing="4.0">
-                                    <ColorPicker fx:id="backgroundColorPicker" prefHeight="31.0" prefWidth="136.0"/>
-
-                                    <Button contentDisplay="CENTER" graphicTextGap="0.0" maxHeight="-Infinity"
-                                            maxWidth="-Infinity" mnemonicParsing="false"
-                                            onAction="#resetBackgroundColor" prefHeight="17.0" prefWidth="17.0"
-                                            textAlignment="CENTER" GridPane.columnIndex="0" GridPane.rowIndex="5">
-                                        <graphic>
-                                            <ImageView fitHeight="16.0" fitWidth="16.0" pickOnBounds="true"
-                                                       preserveRatio="true">
-                                                <Image url="@../icons/reset.png"/>
-                                            </ImageView>
-                                        </graphic>
-                                        <tooltip>
-                                            <Tooltip text="%Reset to default setting"/>
-                                        </tooltip>
-                                        <padding>
-                                            <Insets bottom="2.0" left="2.0" right="2.0" top="2.0"/>
-                                        </padding>
-                                    </Button>
-                                </HBox>
-                            </center>
-                        </BorderPane>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.rowIndex="5">
+                            <RadioButton fx:id="colorRadioButton" mnemonicParsing="false" text="%Background color"/>
+                            <ResetButton fx:id="colorRadioButtonReset"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="5">
+                            <ColorPicker fx:id="backgroundColorPicker" prefHeight="31.0" prefWidth="136.0"/>
+                            <ResetButton fx:id="backgroundColorReset"/>
+                        </HBox>
                         <Label text="%Progress line color" GridPane.rowIndex="6"/>
-                        <ColorPicker fx:id="progressLineColorPicker" prefHeight="31.0" prefWidth="136.0"
-                                     GridPane.columnIndex="1" GridPane.rowIndex="6"/>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="6">
+                            <ColorPicker fx:id="progressLineColorPicker" prefHeight="31.0" prefWidth="136.0"/>
+                            <ResetButton fx:id="progressLineColorPickerReset"/>
+                        </HBox>
                         <Label text="%Progress line thickness" GridPane.rowIndex="7"/>
-                        <Spinner fx:id="progressLineThicknessSpinner" editable="true" prefHeight="31.0" prefWidth="75.0"
-                                 GridPane.columnIndex="1" GridPane.rowIndex="7"/>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="7">
+                            <Spinner fx:id="progressLineThicknessSpinner" editable="true" prefHeight="31.0"
+                                     prefWidth="75.0"/>
+                            <ResetButton fx:id="progressLineThicknessSpinnerReset"/>
+                        </HBox>
                         <Label text="%Progress line position" GridPane.rowIndex="8"/>
                         <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="8">
                             <RadioButton fx:id="progressLinePositionTopRadioButton" text="%Top"/>
                             <RadioButton fx:id="progressLinePositionBottomRadioButton" text="%Bottom"/>
+                            <ResetButton fx:id="progressLinePositionReset"/>
                         </HBox>
                         <Label text="%Font weight" GridPane.rowIndex="9"/>
-                        <ComboBox fx:id="fontWeightComboBox" prefWidth="150.0" GridPane.columnIndex="1"
-                                  GridPane.rowIndex="9"/>
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="9">
+                            <ComboBox fx:id="fontWeightComboBox" prefWidth="150.0"/>
+                            <ResetButton fx:id="fontWeightComboBoxReset"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.rowIndex="10" visible="false">
+                            <CheckBox fx:id="showSongSecondTextCheckBox" mnemonicParsing="false"
+                                      text="%Show song second text"/>
+                            <ResetButton fx:id="showSongSecondTextCheckBoxReset"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="10"
+                              visible="false">
+                            <ColorPicker fx:id="songSecondTextColorPicker" prefHeight="31.0" prefWidth="136.0"/>
+                            <ResetButton fx:id="songSecondTextColorPickerReset"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="11">
+                            <ListView fx:id="fontListView" prefHeight="163.0" prefWidth="438.0"/>
+                            <ResetButton fx:id="fontListViewReset"/>
+                        </HBox>
+                        <Label text="%Font" GridPane.rowIndex="11"/>
                     </GridPane>
                 </left>
             </BorderPane>

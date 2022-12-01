@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class ProjectionScreenSettings {
 
@@ -30,38 +32,37 @@ public class ProjectionScreenSettings {
 
     private ProjectionScreenHolder projectionScreenHolder;
     @Expose
-    private int maxFont = 80;
+    private Integer maxFont;
     @Expose
-    private Color backgroundColor = Color.BLACK;
+    private Color backgroundColor;
     @Expose
-    private boolean defaultBackgroundColor = true;
-    @Expose
-    private Color color = Color.WHITE;
+    private Color color;
     private BackgroundImage backgroundImage;
     @Expose
     private String backgroundImagePath;
     @Expose
-    private boolean isBackgroundImage = false;
+    private Boolean isBackgroundImage;
     @Expose
-    private String font = "system";
+    private String font;
     @Expose
-    private double lineSpace = 3.131991051454138;
+    private Double lineSpace;
     @Expose
-    private String fontWeight = "NORMAL";
+    private String fontWeight;
     @Expose
-    private Color progressLineColor = new Color(1.0, 1.0, 1.0, 0.7);
+    private Color progressLineColor;
     @Expose
-    private boolean breakLines = false;
+    private Boolean breakLines;
     @Expose
-    private int breakAfter = 77;
+    private Integer breakAfter;
     @Expose
-    private Integer progressLineThickness = 5;
+    private Integer progressLineThickness;
     @Expose
-    private boolean showSongSecondText = false;
+    private Boolean showSongSecondText;
     @Expose
-    private Color songSecondTextColor = new Color(0.46, 1.0, 1.0, 1.0);
+    private Color songSecondTextColor;
     @Expose
-    private boolean progressLinePositionIsTop = true;
+    private Boolean progressLinePositionIsTop;
+    private boolean useGlobalSettings = true;
 
     public ProjectionScreenSettings() {
         settings = Settings.getInstance();
@@ -73,28 +74,49 @@ public class ProjectionScreenSettings {
         load();
     }
 
+    public ProjectionScreenSettings(ProjectionScreenSettings projectionScreenSettings) {
+        this.settings = projectionScreenSettings.settings;
+        this.maxFont = projectionScreenSettings.maxFont;
+        this.backgroundColor = projectionScreenSettings.backgroundColor;
+        this.color = projectionScreenSettings.color;
+        this.backgroundImage = projectionScreenSettings.backgroundImage;
+        this.backgroundImagePath = projectionScreenSettings.backgroundImagePath;
+        this.isBackgroundImage = projectionScreenSettings.isBackgroundImage;
+        this.font = projectionScreenSettings.font;
+        this.lineSpace = projectionScreenSettings.lineSpace;
+        this.fontWeight = projectionScreenSettings.fontWeight;
+        this.progressLineColor = projectionScreenSettings.progressLineColor;
+        this.breakLines = projectionScreenSettings.breakLines;
+        this.breakAfter = projectionScreenSettings.breakAfter;
+        this.progressLineThickness = projectionScreenSettings.progressLineThickness;
+        this.showSongSecondText = projectionScreenSettings.showSongSecondText;
+        this.songSecondTextColor = projectionScreenSettings.songSecondTextColor;
+        this.progressLinePositionIsTop = projectionScreenSettings.progressLinePositionIsTop;
+        this.projectionScreenHolder = projectionScreenSettings.projectionScreenHolder;
+        this.useGlobalSettings = projectionScreenSettings.useGlobalSettings;
+    }
+
+    private static boolean isaBoolean(Boolean aBoolean) {
+        return aBoolean != null && aBoolean;
+    }
+
     public ProjectionScreenHolder getProjectionScreenHolder() {
         return projectionScreenHolder;
     }
 
-    public int getMaxFont() {
+    public Integer getMaxFont() {
+        if (maxFont == null && useGlobalSettings) {
+            return settings.getMaxFont();
+        }
         return maxFont;
     }
 
-    public void setMaxFont(int maxFont) {
+    public void setMaxFont(Integer maxFont) {
         this.maxFont = maxFont;
     }
 
-    public boolean isDefaultBackgroundColor() {
-        return defaultBackgroundColor;
-    }
-
-    public void setDefaultBackgroundColor(boolean defaultBackgroundColor) {
-        this.defaultBackgroundColor = defaultBackgroundColor;
-    }
-
     public Color getBackgroundColor() {
-        if (defaultBackgroundColor) {
+        if (backgroundColor == null && useGlobalSettings) {
             return settings.getBackgroundColor();
         }
         return backgroundColor;
@@ -102,10 +124,12 @@ public class ProjectionScreenSettings {
 
     public void setBackgroundColor(Color backgroundColor) {
         this.backgroundColor = backgroundColor;
-        defaultBackgroundColor = false;
     }
 
     public Color getColor() {
+        if (color == null && useGlobalSettings) {
+            return settings.getColor();
+        }
         return color;
     }
 
@@ -113,23 +137,33 @@ public class ProjectionScreenSettings {
         this.color = color;
     }
 
+    @SuppressWarnings("unused")
     public BackgroundImage getBackgroundImage() {
+        if (backgroundImage == null && useGlobalSettings) {
+            return settings.getBackgroundImage();
+        }
         return backgroundImage;
     }
 
     public boolean isBackgroundImage() {
+        return isaBoolean(getIsBackgroundImage());
+    }
+
+    public Boolean getIsBackgroundImage() {
+        if (isBackgroundImage == null && useGlobalSettings) {
+            return settings.isBackgroundImage();
+        }
         return isBackgroundImage;
     }
 
-    public void setBackgroundImage(BackgroundImage backgroundImage) {
-        this.backgroundImage = backgroundImage;
-    }
-
-    public void setBackgroundImage(boolean isBackgroundImage) {
+    public void setIsBackgroundImage(Boolean isBackgroundImage) {
         this.isBackgroundImage = isBackgroundImage;
     }
 
     public String getBackgroundImagePath() {
+        if (backgroundImagePath == null && useGlobalSettings) {
+            return settings.getBackgroundImagePath();
+        }
         return backgroundImagePath;
     }
 
@@ -138,6 +172,9 @@ public class ProjectionScreenSettings {
     }
 
     public String getFont() {
+        if (font == null && useGlobalSettings) {
+            return settings.getFont();
+        }
         return font;
     }
 
@@ -145,16 +182,19 @@ public class ProjectionScreenSettings {
         this.font = font;
     }
 
-    public double getLineSpace() {
+    public Double getLineSpace() {
+        if (lineSpace == null && useGlobalSettings) {
+            return settings.getLineSpace();
+        }
         return lineSpace;
     }
 
-    public void setLineSpace(double lineSpace) {
+    public void setLineSpace(Double lineSpace) {
         this.lineSpace = lineSpace;
     }
 
     public FontWeight getFontWeight() {
-        return SettingsController.getFontWeightByString(fontWeight);
+        return SettingsController.getFontWeightByString(getFontWeightString());
     }
 
     public void setFontWeight(String fontWeight) {
@@ -202,7 +242,6 @@ public class ProjectionScreenSettings {
             }
             this.maxFont = fromJson.maxFont;
             this.backgroundColor = fromJson.backgroundColor;
-            this.defaultBackgroundColor = fromJson.defaultBackgroundColor;
             this.color = fromJson.color;
             this.backgroundImage = fromJson.backgroundImage;
             this.backgroundImagePath = fromJson.backgroundImagePath;
@@ -216,6 +255,7 @@ public class ProjectionScreenSettings {
             this.progressLineThickness = fromJson.progressLineThickness;
             this.showSongSecondText = fromJson.showSongSecondText;
             this.songSecondTextColor = fromJson.songSecondTextColor;
+            this.progressLinePositionIsTop = fromJson.progressLinePositionIsTop;
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
@@ -223,14 +263,25 @@ public class ProjectionScreenSettings {
     }
 
     private String getFileName() {
-        return projectionScreenHolder.getName() + ".json";
+        String screensDirectory = "screens";
+        try {
+            Files.createDirectories(Paths.get(screensDirectory));
+        } catch (IOException ignored) {
+        }
+        return screensDirectory + "/" + projectionScreenHolder.getName() + ".json";
     }
 
     public String getFontWeightString() {
+        if (fontWeight == null && useGlobalSettings) {
+            return settings.getFontWeightString();
+        }
         return fontWeight;
     }
 
     public Color getProgressLineColor() {
+        if (progressLineColor == null && useGlobalSettings) {
+            return settings.getProgressLineColor();
+        }
         return progressLineColor;
     }
 
@@ -239,22 +290,35 @@ public class ProjectionScreenSettings {
     }
 
     public boolean isBreakLines() {
+        return isaBoolean(getBreakLines());
+    }
+
+    public Boolean getBreakLines() {
+        if (breakLines == null && useGlobalSettings) {
+            return settings.isBreakLines();
+        }
         return breakLines;
     }
 
-    public void setBreakLines(boolean breakLines) {
+    public void setBreakLines(Boolean breakLines) {
         this.breakLines = breakLines;
     }
 
-    public int getBreakAfter() {
+    public Integer getBreakAfter() {
+        if (breakAfter == null && useGlobalSettings) {
+            return settings.getBreakAfter();
+        }
         return breakAfter;
     }
 
-    public void setBreakAfter(int breakAfter) {
+    public void setBreakAfter(Integer breakAfter) {
         this.breakAfter = breakAfter;
     }
 
     public Integer getProgressLineThickness() {
+        if (progressLineThickness == null && useGlobalSettings) {
+            return settings.getProgressLineThickness();
+        }
         return progressLineThickness;
     }
 
@@ -263,14 +327,24 @@ public class ProjectionScreenSettings {
     }
 
     public boolean isShowSongSecondText() {
+        return isaBoolean(getShowSongSecondText());
+    }
+
+    public Boolean getShowSongSecondText() {
+        if (showSongSecondText == null && useGlobalSettings) {
+            return settings.isShowSongSecondText();
+        }
         return showSongSecondText;
     }
 
-    public void setShowSongSecondText(boolean showSongSecondText) {
+    public void setShowSongSecondText(Boolean showSongSecondText) {
         this.showSongSecondText = showSongSecondText;
     }
 
     public Color getSongSecondTextColor() {
+        if (songSecondTextColor == null && useGlobalSettings) {
+            return settings.getSongSecondTextColor();
+        }
         return songSecondTextColor;
     }
 
@@ -279,10 +353,21 @@ public class ProjectionScreenSettings {
     }
 
     public boolean isProgressLinePositionIsTop() {
+        return isaBoolean(getProgressLinePosition());
+    }
+
+    public void setProgressLinePositionIsTop(Boolean progressLinePositionIsTop) {
+        this.progressLinePositionIsTop = progressLinePositionIsTop;
+    }
+
+    public Boolean getProgressLinePosition() {
+        if (progressLinePositionIsTop == null && useGlobalSettings) {
+            return settings.isProgressLinePositionIsTop();
+        }
         return progressLinePositionIsTop;
     }
 
-    public void setProgressLinePositionIsTop(boolean progressLinePositionIsTop) {
-        this.progressLinePositionIsTop = progressLinePositionIsTop;
+    public void setUseGlobalSettings(boolean useGlobalSettings) {
+        this.useGlobalSettings = useGlobalSettings;
     }
 }

@@ -44,6 +44,7 @@ public class HistoryController {
             }
             ArrayList<TextFlow> historyList = new ArrayList<>();
             String strLine;
+            boolean bibleInitialized = false;
             while ((strLine = br.readLine()) != null) {
                 Text dateText = new Text();
                 try {
@@ -89,7 +90,8 @@ public class HistoryController {
                 }
                 Text verses = new Text();
                 try {
-                    if (bible == null) {
+                    if (bible == null && !bibleInitialized) {
+                        bibleInitialized = true;
                         bibleController.initializeBibles();
                     }
                     String referenceText = reference.getReference(bible);

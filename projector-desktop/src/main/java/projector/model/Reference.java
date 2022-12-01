@@ -52,6 +52,9 @@ public class Reference {
         if (book != null) {
             return book.getShortOrTitle().trim();
         }
+        if (bible == null) {
+            return "";
+        }
         List<Book> books = bible.getBooks();
         int bookNumber = referenceBook.getBookNumber();
         if (bookNumber >= books.size()) {

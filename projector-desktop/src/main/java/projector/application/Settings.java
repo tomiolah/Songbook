@@ -90,6 +90,8 @@ public class Settings {
     private boolean showSongSecondText = false;
     private Color songSecondTextColor = new Color(0.46, 1.0, 1.0, 1.0);
     private boolean applicationRunning = true;
+    private boolean customCanvasLoadOnStart = false;
+    private boolean automaticProjectionScreens = true;
 
     protected Settings() {
         load();
@@ -332,10 +334,17 @@ public class Settings {
             bw.write(showSongSecondText + System.lineSeparator());
             bw.write("songSecondTextColor" + System.lineSeparator());
             writeColorToFile(bw, songSecondTextColor);
+            writeBooleanToFile(bw, customCanvasLoadOnStart, "customCanvasLoadOnStart");
+            writeBooleanToFile(bw, automaticProjectionScreens, "automaticProjectionScreens");
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void writeBooleanToFile(BufferedWriter bw, boolean b, String s) throws IOException {
+        bw.write(s + System.lineSeparator());
+        bw.write(b + System.lineSeparator());
     }
 
     private void writeColorToFile(BufferedWriter bw, Color color) throws IOException {
@@ -476,6 +485,8 @@ public class Settings {
             showSongSecondText = parseBoolean(br.readLine());
             br.readLine();
             songSecondTextColor = getColorFromFile(br);
+            customCanvasLoadOnStart = getABoolean(br, customCanvasLoadOnStart);
+            automaticProjectionScreens = getABoolean(br, automaticProjectionScreens);
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -486,6 +497,15 @@ public class Settings {
                 e1.printStackTrace();
             }
         }
+    }
+
+    private boolean getABoolean(BufferedReader br, boolean defaultValue) throws IOException {
+        br.readLine();
+        String s = br.readLine();
+        if (s == null) {
+            return defaultValue;
+        }
+        return parseBoolean(s);
     }
 
     private Color getColorFromFile(BufferedReader br) throws IOException {
@@ -825,5 +845,21 @@ public class Settings {
 
     public void setApplicationRunning(boolean applicationRunning) {
         this.applicationRunning = applicationRunning;
+    }
+
+    public boolean isCustomCanvasLoadOnStart() {
+        return customCanvasLoadOnStart;
+    }
+
+    public void setCustomCanvasLoadOnStart(boolean customCanvasLoadOnStart) {
+        this.customCanvasLoadOnStart = customCanvasLoadOnStart;
+    }
+
+    public boolean isAutomaticProjectionScreens() {
+        return automaticProjectionScreens;
+    }
+
+    public void setAutomaticProjectionScreens(boolean automaticProjectionScreens) {
+        this.automaticProjectionScreens = automaticProjectionScreens;
     }
 }

@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class SettingsController {
+    public CheckBox customCanvasLoadOnStartCheckBox;
+    public CheckBox automaticProjectionScreensCheckBox;
     @FXML
     private ColorPicker songSecondTextColorPicker;
     @FXML
@@ -124,37 +126,21 @@ public class SettingsController {
     private Stage stage;
 
     public static FontWeight getFontWeightByString(String newValue) {
-        FontWeight fontWeight;
-        switch (newValue) {
-            case "BOLD":
-                fontWeight = FontWeight.BOLD;
-                break;
-            case "BLACK":
-                fontWeight = FontWeight.BLACK;
-                break;
-            case "EXTRA_BOLD":
-                fontWeight = FontWeight.EXTRA_BOLD;
-                break;
-            case "EXTRA_LIGHT":
-                fontWeight = FontWeight.EXTRA_LIGHT;
-                break;
-            case "LIGHT":
-                fontWeight = FontWeight.LIGHT;
-                break;
-            case "MEDIUM":
-                fontWeight = FontWeight.MEDIUM;
-                break;
-            case "SEMI_BOLD":
-                fontWeight = FontWeight.SEMI_BOLD;
-                break;
-            case "THIN":
-                fontWeight = FontWeight.THIN;
-                break;
-            default:
-                fontWeight = FontWeight.NORMAL;
-                break;
+        FontWeight normal = FontWeight.NORMAL;
+        if (newValue == null) {
+            return normal;
         }
-        return fontWeight;
+        return switch (newValue) {
+            case "BOLD" -> FontWeight.BOLD;
+            case "BLACK" -> FontWeight.BLACK;
+            case "EXTRA_BOLD" -> FontWeight.EXTRA_BOLD;
+            case "EXTRA_LIGHT" -> FontWeight.EXTRA_LIGHT;
+            case "LIGHT" -> FontWeight.LIGHT;
+            case "MEDIUM" -> FontWeight.MEDIUM;
+            case "SEMI_BOLD" -> FontWeight.SEMI_BOLD;
+            case "THIN" -> FontWeight.THIN;
+            default -> normal;
+        };
     }
 
     public static List<Text> getFontTexts(FontWeight fontWeight) {
@@ -176,6 +162,22 @@ public class SettingsController {
             List<Text> fontTexts = getFontTexts(fontWeight);
             Platform.runLater(() -> listView.getItems().addAll(fontTexts));
         }).start();
+    }
+
+    public static void imageBrowseWithTextFieldResult(TextField imagePathTextField) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle(Settings.getInstance().getResourceBundle().getString("Chose the image file"));
+        fileChooser.setInitialDirectory(new File(new File(".").getAbsolutePath()));
+        File selectedFile = fileChooser.showOpenDialog(null);
+        if (selectedFile != null) {
+            try {
+                imagePathTextField.setText(selectedFile.getCanonicalFile().toURI().toString());
+                imagePathTextField.positionCaret(imagePathTextField.getText().length() - 1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            // System.out.println(selectedFile.getPath());
+        }
     }
 
     synchronized void lazyInitialize() {
@@ -229,6 +231,8 @@ public class SettingsController {
         initializeNetworkButtons();
         progressLineThicknessSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, settings.getProgressLineThickness()));
         bibleShortNameCheckBox.setSelected(settings.getBibleShortName());
+        customCanvasLoadOnStartCheckBox.setSelected(settings.isCustomCanvasLoadOnStart());
+        automaticProjectionScreensCheckBox.setSelected(settings.isAutomaticProjectionScreens());
         customCanvasWidthTextField.setText(settings.getCustomCanvasWidth() + "");
         customCanvasHeightTextField.setText(settings.getCustomCanvasHeight() + "");
         shareOnLocalNetworkAutomaticallyCheckbox.setSelected(settings.isShareOnLocalNetworkAutomatically());
@@ -236,12 +240,8 @@ public class SettingsController {
         showSongSecondTextCheckBox.setSelected(settings.isShowSongSecondText());
         songSecondTextColorPicker.setValue(settings.getSongSecondTextColor());
         switch (settings.getSceneStyleFile()) {
-            case "application.css":
-                appearanceComboBox.getSelectionModel().select(0);
-                break;
-            case "applicationDark.css":
-                appearanceComboBox.getSelectionModel().select(1);
-                break;
+            case "application.css" -> appearanceComboBox.getSelectionModel().select(0);
+            case "applicationDark.css" -> appearanceComboBox.getSelectionModel().select(1);
         }
     }
 
@@ -317,13 +317,11 @@ public class SettingsController {
         settings.setProgressLineThickness(value);
         settings.setBibleShortName(bibleShortNameCheckBox.isSelected());
         switch (appearanceComboBox.getValue()) {
-            case "Light":
-                settings.setSceneStyleFile("application.css");
-                break;
-            case "Dark":
-                settings.setSceneStyleFile("applicationDark.css");
-                break;
+            case "Light" -> settings.setSceneStyleFile("application.css");
+            case "Dark" -> settings.setSceneStyleFile("applicationDark.css");
         }
+        settings.setCustomCanvasLoadOnStart(customCanvasLoadOnStartCheckBox.isSelected());
+        settings.setAutomaticProjectionScreens(automaticProjectionScreensCheckBox.isSelected());
         try {
             settings.setCustomCanvasWidth(getCustomCanvasSize(customCanvasWidthTextField));
             settings.setCustomCanvasHeight(getCustomCanvasSize(customCanvasHeightTextField));
@@ -354,19 +352,7 @@ public class SettingsController {
     }
 
     public void onImageBrowseButtonAction() {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle(Settings.getInstance().getResourceBundle().getString("Chose the image file"));
-        fileChooser.setInitialDirectory(new File(new File(".").getAbsolutePath()));
-        File selectedFile = fileChooser.showOpenDialog(null);
-        if (selectedFile != null) {
-            try {
-                imagePathTextField.setText(selectedFile.getCanonicalFile().toURI().toString());
-                imagePathTextField.positionCaret(imagePathTextField.getText().length() - 1);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            // System.out.println(selectedFile.getPath());
-        }
+        imageBrowseWithTextFieldResult(imagePathTextField);
     }
 
     synchronized void setProjectionScreenController(ProjectionScreenController projectionScreenController) {

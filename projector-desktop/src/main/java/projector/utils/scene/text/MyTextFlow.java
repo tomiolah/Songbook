@@ -25,7 +25,6 @@ import javafx.scene.text.TextFlow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.ProjectionScreenSettings;
-import projector.application.Settings;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -80,6 +79,7 @@ public class MyTextFlow extends TextFlow {
     private Color prevColor = null;
     private String secondText;
     private ProjectionScreenSettings projectionScreenSettings;
+    private boolean autoHeight = false;
 
     public MyTextFlow() {
         projectionScreenSettings = new ProjectionScreenSettings();
@@ -132,9 +132,8 @@ public class MyTextFlow extends TextFlow {
         this.width = width;
         this.height = height;
         this.rawText = newText;
-        Settings settings = Settings.getInstance();
-        fontFamily = settings.getFont();
-        fontWeight = settings.getFontWeight();
+        fontFamily = projectionScreenSettings.getFont();
+        fontWeight = projectionScreenSettings.getFontWeight();
         newText = ampersandToNewLine(newText);
         String text2 = newText;
         setTextsByCharacters(text2);
@@ -328,7 +327,7 @@ public class MyTextFlow extends TextFlow {
     }
 
     private void maximizeSize(int trueWidth, int height) {
-        double lineSpace = Settings.getInstance().getLineSpace();
+        double lineSpace = projectionScreenSettings.getLineSpace();
         setLineSpacing(lineSpace);
         double aDouble = 1.0;
         int width = (int) (trueWidth * aDouble);
@@ -342,12 +341,20 @@ public class MyTextFlow extends TextFlow {
             setPrefHeight(height);
             int w;
             int h;
-            w = (int) tmpTextFlow.boundsInLocalProperty().getValue().getWidth();
-            h = (int) tmpTextFlow.boundsInLocalProperty().getValue().getHeight();
+            Bounds bounds = tmpTextFlow.boundsInLocalProperty().getValue();
+            w = (int) bounds.getWidth();
+            h = (int) bounds.getHeight();
             resize(width, height);
             setLayoutX((double) (trueWidth - w) / 2);
             setLayoutY((double) (height - h) / 2);
-            setPrefHeight(h);
+            setPrefHeight2(h);
+        }
+    }
+
+    private void setPrefHeight2(int height) {
+        setPrefHeight(height);
+        if (isAutoHeight()) {
+            setBackGroundImage(height);
         }
     }
 
@@ -357,7 +364,7 @@ public class MyTextFlow extends TextFlow {
         prevColor = null;
         boolean italic = false;
         Stack<Color> colors = new Stack<>();
-        colors.push(Settings.getInstance().getColor());
+        colors.push(projectionScreenSettings.getColor());
         int[] codePoints = text.codePoints().toArray();
         int length = codePoints.length;
         int offset = 0;
@@ -438,15 +445,15 @@ public class MyTextFlow extends TextFlow {
 
     private void calculateMaxSize(int trueWidth, int height) {
         int w, h;
-        Settings settings = Settings.getInstance();
-        size = (int) (settings.getMaxFont() * (((double) (height)) / (double) (768)));
-        int size2 = (int) (settings.getMaxFont() * (((double) (trueWidth)) / (double) (1366)));
+        int maxFont = projectionScreenSettings.getMaxFont();
+        size = (int) (maxFont * (((double) (height)) / (double) (768)));
+        int size2 = (int) (maxFont * (((double) (trueWidth)) / (double) (1366)));
         if (size2 > size) {
             size = size2;
         }
-        int prefMinSize = (int) (size * (((double) settings.getBreakAfter()) / 100));
+        int prefMinSize = (int) (size * (((double) projectionScreenSettings.getBreakAfter()) / 100));
         int a = 2, b = size;
-        boolean b2 = !settings.isBreakLines();
+        boolean b2 = !projectionScreenSettings.isBreakLines();
         if (b2) {
             int prefLineCount = getLineCount();
             do {
@@ -484,7 +491,7 @@ public class MyTextFlow extends TextFlow {
             } while (true);
         }
         if (size < prefMinSize || !b2) {
-            size = (int) (settings.getMaxFont() * (((double) (height)) / (double) (768)));
+            size = (int) (maxFont * (((double) (height)) / (double) (768)));
             if (size2 > size) {
                 size = size2;
             }
@@ -561,23 +568,24 @@ public class MyTextFlow extends TextFlow {
     }
 
     public void setBackGroundColor() {
-        final Settings settings = Settings.getInstance();
-        if (!settings.isBackgroundImage()) {
+        if (!projectionScreenSettings.isBackgroundImage()) {
             BackgroundFill myBF = new BackgroundFill(projectionScreenSettings.getBackgroundColor(), new CornerRadii(1),
                     new Insets(0.0, 0.0, 0.0, 0.0));
             // then you set to your node
             super.setBackground(new Background(myBF));
         } else {
-            setBackGroundImage();
+            setBackGroundImage(height);
         }
     }
 
-    private void setBackGroundImage() {
-        final Settings settings = Settings.getInstance();
-        if (settings.isBackgroundImage()) {
-            super.setBackground(new Background(new BackgroundImage(
-                    new Image(settings.getBackgroundImagePath(), width, height, false, true), BackgroundRepeat.NO_REPEAT,
-                    BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT)));
+    private void setBackGroundImage(int height) {
+        if (projectionScreenSettings.isBackgroundImage()) {
+            Image image = new Image(projectionScreenSettings.getBackgroundImagePath(), width, height, false, true);
+            BackgroundImage backgroundImage = new BackgroundImage(
+                    image, BackgroundRepeat.NO_REPEAT,
+                    BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+            Background background = new Background(backgroundImage);
+            super.setBackground(background);
         }
     }
 
@@ -634,6 +642,7 @@ public class MyTextFlow extends TextFlow {
     private void initializeTmpTextFlow() {
         if (tmpTextFlow == null) {
             tmpTextFlow = new MyTextFlow(true);
+            tmpTextFlow.setProjectionScreenSettings(projectionScreenSettings);
         }
     }
 
@@ -647,5 +656,16 @@ public class MyTextFlow extends TextFlow {
 
     public void setProjectionScreenSettings(ProjectionScreenSettings projectionScreenSettings) {
         this.projectionScreenSettings = projectionScreenSettings;
+        if (tmpTextFlow != null) {
+            tmpTextFlow.setProjectionScreenSettings(projectionScreenSettings);
+        }
+    }
+
+    private boolean isAutoHeight() {
+        return autoHeight;
+    }
+
+    public void setAutoHeight(boolean autoHeight) {
+        this.autoHeight = autoHeight;
     }
 }

@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.ApplicationUtil;
 import projector.application.ApplicationVersion;
-import projector.application.ProjectionType;
+import projector.application.ProjectionScreenSettings;
 import projector.application.Settings;
 import projector.application.Updater;
 import projector.controller.BibleController;
@@ -54,7 +54,7 @@ public class MainDesktop extends Application {
     private Stage primaryStage;
     private Scene primaryScene;
     private Stage canvasStage;
-    private ObservableList<Screen> screen;
+    private ObservableList<Screen> screenObservableList;
     private Settings settings;
     private Date startDate;
     private Screen mainScreen;
@@ -258,7 +258,7 @@ public class MainDesktop extends Application {
             setUserAgentStylesheet(null);
             stylesheets.add(url);
         });
-        projectionScreenController.setText("<color=\"0xffffff0c\">.</color>", ProjectionType.REFERENCE);
+        projectionScreenController.setInitialDotText();
         projectionScreenController.setBlank(false);
         Updater.getInstance().checkForUpdate();
         if (startDate != null) {
@@ -268,20 +268,25 @@ public class MainDesktop extends Application {
     }
 
     private void setProjectionScreen() {
-        screen = Screen.getScreens();
-        screen.addListener((ListChangeListener<Screen>) c -> setProjectionScreenStage());
-        setProjectionScreenStage();
+        myController.setShowProjectionScreenToggleButtonToggle(settings.isAutomaticProjectionScreens());
+        screenObservableList = Screen.getScreens();
+        screenObservableList.addListener((ListChangeListener<Screen>) c -> setProjectionScreenStageCheckAutomatic());
+        setProjectionScreenStageCheckAutomatic();
         primaryStage.setOnCloseRequest(we -> closeApplication());
         ApplicationUtil.getInstance().setListener(this::closeApplication);
         primarySceneEventHandler();
+        if (settings.isCustomCanvasLoadOnStart()) {
+            myController.createCustomCanvas();
+        }
     }
 
     private void closeApplication() {
         System.out.println("Stage is closing");
         Settings settings = Settings.getInstance();
         settings.setApplicationRunning(false);
-        settings.setMainHeight(primaryStage.getScene().getHeight());
-        settings.setMainWidth(primaryStage.getScene().getWidth());
+        Scene scene = primaryStage.getScene();
+        settings.setMainHeight(scene.getHeight());
+        settings.setMainWidth(scene.getWidth());
         settings.save();
         settings.setApplicationRunning(false);
         if (tmpStage != null) {
@@ -315,18 +320,29 @@ public class MainDesktop extends Application {
         }
     }
 
-    public void setProjectionScreenStage() {
-        ListIterator<Screen> it = screen.listIterator(0);
+    public void setProjectionScreenStageCheckAutomatic() {
+        if (settings.isAutomaticProjectionScreens()) {
+            setProjectionScreenStage(false);
+        }
+    }
+
+    public void setProjectionScreenStage(boolean fromToggleButton) {
+        ListIterator<Screen> it = screenObservableList.listIterator(0);
+        while (it.hasPrevious()) {
+            it.previous();
+        }
         if (!it.hasNext()) {
             return;
         }
         mainScreen = it.next(); // primary screen
-        showProjectionScreenOnNextScreen(it);
-        Integer index = 0;
+        showProjectionScreenOnNextScreen(it, fromToggleButton);
+        int index = 0;
         while (it.hasNext()) {
             Screen nextScreen = it.next();
             try {
                 ProjectionScreenController projectionScreenController = getProjectionScreenControllerOrDuplicate(index);
+                ProjectionScreenHolder projectionScreenHolder = projectionScreenController.getProjectionScreenSettings().getProjectionScreenHolder();
+                projectionScreenHolder.setScreenIndex(index + 2);
                 projectionScreenController.setPrimaryStageVariable(primaryStage);
                 createPopupForNextScreen(nextScreen, projectionScreenController);
             } catch (Exception e) {
@@ -334,6 +350,7 @@ public class MainDesktop extends Application {
             }
             ++index;
         }
+        ProjectionScreensUtil.getInstance().closeFromIndex(index);
     }
 
     private ProjectionScreenController getProjectionScreenControllerOrDuplicate(Integer index) {
@@ -347,13 +364,13 @@ public class MainDesktop extends Application {
         return projectionScreenController;
     }
 
-    private void showProjectionScreenOnNextScreen(ListIterator<Screen> it) {
+    private void showProjectionScreenOnNextScreen(ListIterator<Screen> it, boolean fromToggleButton) {
         try {
             if (it.hasNext() && (canvasStage == null || !canvasStage.isShowing())) {
                 projectionScreenController.setPrimaryStageVariable(primaryStage);
                 createPopupForNextScreen(it.next(), projectionScreenController);
             } else {
-                createCanvasStage();
+                createCanvasStage(fromToggleButton);
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -373,7 +390,7 @@ public class MainDesktop extends Application {
         double canvasHeight = bounds.getHeight();
         projectionScreenController.setWidth(canvasWidth);
         projectionScreenController.setHeight(canvasHeight);
-        boolean loadEmpty = true;
+        boolean loadEmpty = !projectionScreenController.isSetTextCalled();
         Popup popup = projectionScreenController.getPopup();
         if (popup != null) {
             popup.getContent().clear();
@@ -396,13 +413,21 @@ public class MainDesktop extends Application {
         popup.show(primaryStage, positionX, positionY);
         popup.widthProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.intValue() != canvasWidth) {
-                projectionScreenController.getPopup().setWidth(canvasWidth);
+                Popup popup1 = projectionScreenController.getPopup();
+                if (popup1 == null) {
+                    return;
+                }
+                popup1.setWidth(canvasWidth);
                 projectionScreenController.setWidth(canvasWidth);
             }
         });
         popup.heightProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.intValue() != canvasHeight) {
-                projectionScreenController.getPopup().setHeight(canvasHeight);
+                Popup popup1 = projectionScreenController.getPopup();
+                if (popup1 == null) {
+                    return;
+                }
+                popup1.setHeight(canvasHeight);
                 projectionScreenController.setHeight(canvasHeight);
             }
         });
@@ -417,10 +442,18 @@ public class MainDesktop extends Application {
         if (loadEmpty) {
             projectionScreenController.loadEmpty();
         }
+        projectionScreenController.setBackGroundColor();
         setSceneStyleSheet(scene);
+        ProjectionScreenSettings projectionScreenSettings = projectionScreenController.getProjectionScreenSettings();
+        if (projectionScreenSettings != null) {
+            ProjectionScreenHolder projectionScreenHolder = projectionScreenSettings.getProjectionScreenHolder();
+            if (projectionScreenHolder != null) {
+                projectionScreenHolder.popupCreated();
+            }
+        }
     }
 
-    private void createCanvasStage() {
+    private void createCanvasStage(boolean fromToggleButton) {
         Popup popup = projectionScreenController.getPopup();
         if (popup != null) {
             popup.getContent().clear();
@@ -435,6 +468,8 @@ public class MainDesktop extends Application {
         canvasStage = getAStage(getClass());
         canvasStage.setScene(scene);
         canvasStage.setTitle(Settings.getInstance().getResourceBundle().getString("Canvas"));
+        projectionScreenController.setScreen(mainScreen);
+        projectionScreenController.getProjectionScreenSettings().getProjectionScreenHolder().setScreenIndex(0);
         tmpStage = canvasStage;
         canvasStage.setX(800);
         canvasStage.setY(0);
@@ -471,6 +506,9 @@ public class MainDesktop extends Application {
             myController.onKeyPressed(event);
         });
         setSceneStyleSheet(scene);
+        if (fromToggleButton) {
+            canvasStage.show();
+        }
     }
 
     private void setSceneStyleSheet(Scene scene) {
