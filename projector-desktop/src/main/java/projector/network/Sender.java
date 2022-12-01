@@ -1,5 +1,7 @@
 package projector.network;
 
+import com.bence.projector.common.dto.ProjectionDTO;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.ProjectionType;
@@ -15,8 +17,12 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 
+import static projector.application.ApplicationVersion.getGson;
+
 public class Sender {
 
+    public static final String START_PROJECTION_DTO = "start 'projectionDTO'";
+    public static final String END_PROJECTION_DTO = "end 'projectionDTO'";
     private static final Logger LOG = LoggerFactory.getLogger(Sender.class);
     private final Thread writer;
     private final DataOutputStream outToClient;
@@ -31,11 +37,14 @@ public class Sender {
         writer = new Thread(() -> {
             ProjectionTextChangeListener projectionTextChangeListener = new ProjectionTextChangeListener() {
                 @Override
-                public void onSetText(String text, ProjectionType projectionType) {
+                public void onSetText(String text, ProjectionType projectionType, ProjectionDTO projectionDTO) {
                     try {
                         String s = "start 'text'\n"
                                 + text + "\n"
                                 + "end 'text'\n"
+                                + START_PROJECTION_DTO + "\n"
+                                + getProjectionJson(projectionDTO) + "\n"
+                                + END_PROJECTION_DTO + "\n"
                                 + "start 'projectionType'\n"
                                 + projectionType.name() + "\n"
                                 + "end 'projectionType'\n";
@@ -82,6 +91,11 @@ public class Sender {
             }
         });
         reader.start();
+    }
+
+    private String getProjectionJson(ProjectionDTO projectionDTO) {
+        Gson gson = getGson();
+        return gson.toJson(projectionDTO);
     }
 
     public void close() {

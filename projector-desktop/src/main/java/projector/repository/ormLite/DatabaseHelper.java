@@ -37,7 +37,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 14;
+    private final int DATABASE_VERSION = 15;
     private final ConnectionSource connectionSource;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
@@ -71,6 +71,7 @@ public class DatabaseHelper {
                     } catch (Exception ignored) {
                     }
                 } else if (oldVersion == 4) {
+                    //noinspection TextBlockMigration
                     getSongCollectionElementDao().executeRaw("DELETE FROM SONGCOLLECTIONELEMENT \n" +
                             " WHERE SONGCOLLECTION_ID NOT IN (SELECT f.id \n" +
                             "                        FROM SONGCOLLECTION f)");
@@ -132,7 +133,6 @@ public class DatabaseHelper {
                     } catch (Exception ignored) {
                     }
                 }
-                //noinspection ConstantConditions
                 if (oldVersion <= 13) {
                     Dao<Song, Long> songDao = getSongDao();
                     try {
@@ -144,6 +144,14 @@ public class DatabaseHelper {
                         songDao.executeRaw("ALTER TABLE `SONG` DROP COLUMN versionGroup_temp;");
                     } catch (Exception e) {
                         LOG.error(e.getMessage(), e);
+                    }
+                }
+                //noinspection ConstantConditions
+                if (oldVersion <= 14) {
+                    Dao<Bible, Long> bibleDao = getBibleDao();
+                    try {
+                        bibleDao.executeRaw("ALTER TABLE `bible` ADD COLUMN preferredByRemote INTEGER");
+                    } catch (Exception ignored) {
                     }
                 }
                 saveNewVersion();

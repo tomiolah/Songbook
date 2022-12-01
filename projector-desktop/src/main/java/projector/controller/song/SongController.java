@@ -556,7 +556,7 @@ public class SongController {
                             try {
                                 String secondText = getSecondText(selectedIndex - 1);
                                 for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
-                                    projectionTextChangeListener.onSetText(secondText, ProjectionType.SONG);
+                                    projectionTextChangeListener.onSetText(secondText, ProjectionType.SONG, null);
                                 }
                             } catch (Exception e) {
                                 LOG.error(e.getMessage(), e);
@@ -571,7 +571,7 @@ public class SongController {
                         MyTextFlow myTextFlow = songListViewItems.get(selectedIndex);
                         String text = myTextFlow.getRawText();
                         text = getWithSecondText(myTextFlow, text);
-                        projectionScreenController.setText(text, ProjectionType.SONG);
+                        projectionScreenController.setText2(text, ProjectionType.SONG);
                         previousSelectedVerseIndex = selectedIndex;
                         if (selectedIndex + 1 == songListViewItems.size()) {
                             projectionScreenController.progressLineSetVisible(false);
@@ -593,7 +593,7 @@ public class SongController {
                             }
                         }
                         projectionScreenController.setLineSize((double) lastIndex / (songListViewItems.size() - 2));
-                        projectionScreenController.setText(tmpTextBuffer.toString(), ProjectionType.SONG);
+                        projectionScreenController.setText2(tmpTextBuffer.toString(), ProjectionType.SONG);
                     }
                     if (recentController != null && !recentController.getLastItemText().equals(activeSongVerseTime.getSongTitle()) &&
                             ob.size() > 0) {
@@ -653,7 +653,7 @@ public class SongController {
             songListView.setOnMouseClicked(event -> {
                 try {
                     if (event.getClickCount() == 2) {
-                        projectionScreenController.setText(
+                        projectionScreenController.setText2(
                                 songListViewItems.get(songListView.getSelectionModel().getSelectedIndex()).getRawText(),
                                 ProjectionType.SONG);
                         timeStart = System.currentTimeMillis();

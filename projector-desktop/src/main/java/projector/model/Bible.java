@@ -20,7 +20,6 @@ public class Bible extends BaseEntity {
     private List<Book> books;
     @DatabaseField(foreign = true, index = true)
     private Language language;
-    private String path;
 
     @DatabaseField
     private int usage = 0;
@@ -41,6 +40,8 @@ public class Bible extends BaseEntity {
     private Double opacity;
     @DatabaseField
     private Integer showAbbreviation;
+    @DatabaseField
+    private Integer preferredByRemote;
     private boolean hasVerseIndices;
     private boolean hasVerseIndicesChecked = false;
 
@@ -69,14 +70,6 @@ public class Bible extends BaseEntity {
 
     public void setUsage(int usage) {
         this.usage = usage;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
     }
 
     public List<Book> getBooks() {
@@ -142,6 +135,10 @@ public class Bible extends BaseEntity {
         this.parallelNumber = parallelNumber;
     }
 
+    public boolean isParallelSelected() {
+        return parallelNumber > 0;
+    }
+
     public Color getColor() {
         if (color == null && red != null) {
             color = Color.color(red, green, blue, opacity);
@@ -166,6 +163,18 @@ public class Bible extends BaseEntity {
             this.showAbbreviation = 1;
         } else {
             this.showAbbreviation = -1;
+        }
+    }
+
+    public boolean isPreferredByRemote() {
+        return preferredByRemote == null || preferredByRemote > 0;
+    }
+
+    public void setPreferredByRemote(boolean preferredByRemote) {
+        if (preferredByRemote) {
+            this.preferredByRemote = 1;
+        } else {
+            this.preferredByRemote = -1;
         }
     }
 

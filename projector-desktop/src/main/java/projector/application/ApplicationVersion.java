@@ -34,7 +34,7 @@ public class ApplicationVersion {
         return instance;
     }
 
-    private static Gson getGson() {
+    public static Gson getGson() {
         return new GsonBuilder()
                 .serializeNulls()
                 .excludeFieldsWithoutExposeAnnotation()

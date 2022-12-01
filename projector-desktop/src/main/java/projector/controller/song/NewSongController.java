@@ -340,7 +340,7 @@ public class NewSongController {
                 }
                 int end = result.length() - 1;
                 if (end > 0) {
-                    previewProjectionScreenController.setText(result.substring(0, end),
+                    previewProjectionScreenController.setText2(result.substring(0, end),
                             ProjectionType.SONG);
                 }
                 break;
@@ -594,18 +594,18 @@ public class NewSongController {
             final TextArea textArea = verseController.getTextArea();
             textArea.focusedProperty().addListener((observable, oldValue, newValue) -> {
                 if (newValue) {
-                    previewProjectionScreenController.setText(verseController.getRawText(), ProjectionType.SONG);
+                    previewProjectionScreenController.setText2(verseController.getRawText(), ProjectionType.SONG);
                     lastFocusedVerse = verseController;
                 }
             });
-            textArea.textProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.setText(verseController.getRawText(), ProjectionType.SONG));
+            textArea.textProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.setText2(verseController.getRawText(), ProjectionType.SONG));
             TextArea secondTextArea = verseController.getSecondTextArea();
             secondTextArea.focusedProperty().addListener((observable, oldValue, newValue) -> {
                 if (newValue) {
-                    previewProjectionScreenController.setText(secondTextArea.getText(), ProjectionType.SONG);
+                    previewProjectionScreenController.setText2(secondTextArea.getText(), ProjectionType.SONG);
                 }
             });
-            secondTextArea.textProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.setText(secondTextArea.getText(), ProjectionType.SONG));
+            secondTextArea.textProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.setText2(secondTextArea.getText(), ProjectionType.SONG));
             textAreasChildren.add(root);
         } catch (IOException e) {
             e.printStackTrace();

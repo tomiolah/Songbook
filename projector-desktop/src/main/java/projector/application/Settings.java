@@ -92,6 +92,7 @@ public class Settings {
     private boolean applicationRunning = true;
     private boolean customCanvasLoadOnStart = false;
     private boolean automaticProjectionScreens = true;
+    private boolean forIncomingDisplayOnlySelected = false;
 
     protected Settings() {
         load();
@@ -336,6 +337,7 @@ public class Settings {
             writeColorToFile(bw, songSecondTextColor);
             writeBooleanToFile(bw, customCanvasLoadOnStart, "customCanvasLoadOnStart");
             writeBooleanToFile(bw, automaticProjectionScreens, "automaticProjectionScreens");
+            writeBooleanToFile(bw, forIncomingDisplayOnlySelected, "forIncomingDisplayOnlySelected");
             bw.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -487,6 +489,7 @@ public class Settings {
             songSecondTextColor = getColorFromFile(br);
             customCanvasLoadOnStart = getABoolean(br, customCanvasLoadOnStart);
             automaticProjectionScreens = getABoolean(br, automaticProjectionScreens);
+            forIncomingDisplayOnlySelected = getABoolean(br, forIncomingDisplayOnlySelected);
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -861,5 +864,13 @@ public class Settings {
 
     public void setAutomaticProjectionScreens(boolean automaticProjectionScreens) {
         this.automaticProjectionScreens = automaticProjectionScreens;
+    }
+
+    public boolean isForIncomingDisplayOnlySelected() {
+        return forIncomingDisplayOnlySelected;
+    }
+
+    public void setForIncomingDisplayOnlySelected(boolean forIncomingDisplayOnlySelected) {
+        this.forIncomingDisplayOnlySelected = forIncomingDisplayOnlySelected;
     }
 }
