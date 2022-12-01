@@ -20,7 +20,6 @@ public class Bible extends BaseEntity {
     private List<Book> books;
     @DatabaseField(foreign = true, index = true)
     private Language language;
-    private String path;
 
     @DatabaseField
     private int usage = 0;
@@ -69,14 +68,6 @@ public class Bible extends BaseEntity {
 
     public void setUsage(int usage) {
         this.usage = usage;
-    }
-
-    public String getPath() {
-        return path;
-    }
-
-    public void setPath(String path) {
-        this.path = path;
     }
 
     public List<Book> getBooks() {
@@ -140,6 +131,10 @@ public class Bible extends BaseEntity {
 
     public void setParallelNumber(int parallelNumber) {
         this.parallelNumber = parallelNumber;
+    }
+
+    public boolean isParallelSelected() {
+        return parallelNumber > 0;
     }
 
     public Color getColor() {

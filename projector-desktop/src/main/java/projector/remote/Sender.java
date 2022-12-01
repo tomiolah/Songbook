@@ -1,5 +1,6 @@
 package projector.remote;
 
+import com.bence.projector.common.dto.ProjectionDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.collections.ObservableList;
@@ -39,7 +40,7 @@ public class Sender {
         writer = new Thread(() -> {
             ProjectionTextChangeListener projectionTextChangeListener = new ProjectionTextChangeListener() {
                 @Override
-                public void onSetText(String text, ProjectionType projectionType) {
+                public void onSetText(String text, ProjectionType projectionType, ProjectionDTO projectionDTO) {
                     try {
                         String s = "start 'text'\n"
                                 + text + "\n"
@@ -130,35 +131,29 @@ public class Sender {
                 while (s == null || !s.equals("Finished")) {
                     if (s != null) {
                         switch (s) {
-                            case "onSongVerseListViewItemClick": {
+                            case "onSongVerseListViewItemClick" -> {
                                 int position = Integer.parseInt(inFromClient.readLine());
                                 songReadRemoteListener.onSongVerseListViewItemClick(position);
                                 do {
                                     s = inFromClient.readLine();
                                 } while (!s.equals("end"));
-                                break;
                             }
-                            case "onSongListViewItemClick": {
+                            case "onSongListViewItemClick" -> {
                                 int position = Integer.parseInt(inFromClient.readLine());
                                 songReadRemoteListener.onSongListViewItemClick(position);
                                 do {
                                     s = inFromClient.readLine();
                                 } while (!s.equals("end"));
-                                break;
                             }
-                            case "onSearch":
+                            case "onSearch" -> {
                                 String text = inFromClient.readLine();
                                 songReadRemoteListener.onSearch(text);
                                 do {
                                     s = inFromClient.readLine();
                                 } while (!s.equals("end"));
-                                break;
-                            case "onSongPrev":
-                                songReadRemoteListener.onSongPrev();
-                                break;
-                            case "onSongNext":
-                                songReadRemoteListener.onSongNext();
-                                break;
+                            }
+                            case "onSongPrev" -> songReadRemoteListener.onSongPrev();
+                            case "onSongNext" -> songReadRemoteListener.onSongNext();
                         }
                     }
                     s = inFromClient.readLine();
@@ -214,7 +209,9 @@ public class Sender {
             LOG.error(e.getMessage(), e);
         }
         closeConnections();
+        //noinspection deprecation
         writer.stop();
+        //noinspection deprecation
         reader.stop();
         Thread.currentThread().interrupt();
     }

@@ -23,6 +23,7 @@ import java.util.Objects;
 import static projector.utils.KeyEventUtil.getTextFromEvent;
 
 public class ParallelBiblesController {
+    public CheckBox forIncomingDisplayOnlySelected;
     @FXML
     private VBox listView;
     private List<Bible> bibles;
@@ -58,11 +59,15 @@ public class ParallelBiblesController {
         for (Bible bible : this.bibles) {
             addBibleToVBox(bible);
         }
+        Settings settings = Settings.getInstance();
+        forIncomingDisplayOnlySelected.setSelected(settings.isForIncomingDisplayOnlySelected());
+        forIncomingDisplayOnlySelected.setOnAction(
+                event -> settings.setForIncomingDisplayOnlySelected(forIncomingDisplayOnlySelected.isSelected()));
     }
 
     private void addBibleToVBox(Bible bible) {
         CheckBox checkBox = new CheckBox(bible.getName() + " - " + bible.getShortName());
-        boolean selected = bible.getParallelNumber() > 0;
+        boolean selected = bible.isParallelSelected();
         checkBox.setSelected(selected);
         ColorPicker colorPicker = new ColorPicker();
         Color color = bible.getColor();

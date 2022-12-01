@@ -48,7 +48,7 @@ public class GlobalKeyListenerExample implements NativeKeyListener {
                 for (DataFlavor dataFlavor : dataFlavorList) {
                     if (systemClipboard.isDataFlavorAvailable(dataFlavor)) {
                         String clipBoardText = (String) systemClipboard.getData(dataFlavor);
-                        projectionScreenController.setText(clipBoardText, ProjectionType.CLIP_BOARD);
+                        projectionScreenController.setText(clipBoardText, ProjectionType.CLIP_BOARD, null);
                     }
                 }
             } catch (UnsupportedFlavorException | IOException ex) {

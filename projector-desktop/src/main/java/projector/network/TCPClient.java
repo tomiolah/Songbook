@@ -1,10 +1,15 @@
 package projector.network;
 
+import com.bence.projector.common.dto.ProjectionDTO;
+import com.google.gson.Gson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.controller.ProjectionScreenController;
+import projector.model.Bible;
+import projector.model.VerseIndex;
+import projector.service.ServiceManager;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -18,6 +23,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
+
+import static projector.application.ApplicationVersion.getGson;
+import static projector.controller.BibleController.getBibleVerseWithReferenceText;
+import static projector.network.Sender.END_PROJECTION_DTO;
+import static projector.network.Sender.START_PROJECTION_DTO;
 
 public class TCPClient {
 
@@ -95,18 +105,19 @@ public class TCPClient {
                                     return;
                                 }
                                 if (fromServer.equals("start 'text'")) {
-                                    StringBuilder text = new StringBuilder(inFromServer.readLine());
+                                    String text = readTextToEndS(settings, "end 'text'");
                                     fromServer = inFromServer.readLine();
-                                    while (!fromServer.equals("end 'text'")) {
-                                        text.append("\n").append(fromServer);
+                                    ProjectionDTO projectionDTO = null;
+                                    if (fromServer.equals(START_PROJECTION_DTO)) {
+                                        projectionDTO = readProjectionDTO(settings);
+                                        text = getTextFromProjectionDTO(projectionDTO, text);
                                         fromServer = inFromServer.readLine();
                                     }
-                                    fromServer = inFromServer.readLine();
                                     if (fromServer.equals("start 'projectionType'")) {
                                         String projectionTypeName = inFromServer.readLine();
                                         fromServer = inFromServer.readLine();
                                         if (fromServer.equals("end 'projectionType'")) {
-                                            projectionScreenController.setText(text.toString(), ProjectionType.valueOf(projectionTypeName));
+                                            projectionScreenController.setText(text, ProjectionType.valueOf(projectionTypeName), projectionDTO);
                                         }
                                     }
                                 }
@@ -123,6 +134,58 @@ public class TCPClient {
             }
         });
         thread.start();
+    }
+
+    private static String getTextFromProjectionDTO(ProjectionDTO projectionDTO, String originalText) {
+        if (projectionDTO == null) {
+            return originalText;
+        }
+        if (!Settings.getInstance().isForIncomingDisplayOnlySelected()) {
+            return originalText;
+        }
+        StringBuilder text = new StringBuilder();
+        List<Long> verseIndexIntegers = projectionDTO.getVerseIndices();
+        List<VerseIndex> verseIndices = getFromIntegers(verseIndexIntegers);
+        List<Bible> bibles = ServiceManager.getBibleService().findAll();
+        for (Bible bible : bibles) {
+            if (!bible.isParallelSelected()) {
+                continue;
+            }
+            String s = getBibleVerseWithReferenceText(verseIndices, bible, 0, 0, null);
+            text.append(s);
+        }
+        return text.toString();
+    }
+
+    private static List<VerseIndex> getFromIntegers(List<Long> verseIndexIntegers) {
+        List<VerseIndex> indices = new ArrayList<>(verseIndexIntegers.size());
+        for (Long aLong : verseIndexIntegers) {
+            VerseIndex verseIndex = new VerseIndex();
+            verseIndex.setIndexNumber(aLong);
+            indices.add(verseIndex);
+        }
+        return indices;
+    }
+
+    private static ProjectionDTO readProjectionDTO(Settings settings) throws IOException {
+        String text = readTextToEndS(settings, END_PROJECTION_DTO);
+        return getProjectionDTOFromJson(text);
+    }
+
+    private static String readTextToEndS(Settings settings, String endS) throws IOException {
+        String fromServer;
+        StringBuilder text = new StringBuilder(inFromServer.readLine());
+        fromServer = inFromServer.readLine();
+        while (settings.isConnectedToShared() && !fromServer.equals(endS)) {
+            text.append("\n").append(fromServer);
+            fromServer = inFromServer.readLine();
+        }
+        return text.toString();
+    }
+
+    private static ProjectionDTO getProjectionDTOFromJson(String json) {
+        Gson gson = getGson();
+        return gson.fromJson(json, ProjectionDTO.class);
     }
 
     private static boolean isOpenAddress(String ip) {

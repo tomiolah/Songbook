@@ -1,5 +1,6 @@
 package projector.controller;
 
+import com.bence.projector.common.dto.ProjectionDTO;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -43,6 +44,7 @@ import javafx.util.Callback;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.MainDesktop;
+import projector.api.assembler.ProjectionAssembler;
 import projector.application.ProjectionType;
 import projector.application.Reader;
 import projector.application.Settings;
@@ -215,6 +217,91 @@ public class BibleController {
             return -1;
         }
         return ob.get(0);
+    }
+
+    public static List<BibleVerse> getVersesByIndices(List<VerseIndex> verseIndices, Bible bible, int selectedBook, int selectedPart, ObservableList<Integer> ob) {
+        ServiceManager.getBibleService().checkHasVerseIndices(bible);
+        if (verseIndices != null && verseIndices.size() > 0 && bible.hasVerseIndices()) {
+            return getVersesByIndices_(verseIndices, bible);
+        }
+        List<BibleVerse> verses = new ArrayList<>();
+        Book book = bible.getBook(selectedBook);
+        if (book != null) {
+            Chapter chapter = book.getChapter(selectedPart);
+            if (chapter != null) {
+                for (int i : ob) {
+                    BibleVerse bibleVerse = chapter.getVerse(i);
+                    if (bibleVerse != null) {
+                        verses.add(bibleVerse);
+                    }
+                }
+            }
+        }
+        return verses;
+    }
+
+    private static List<BibleVerse> getVersesByIndices_(List<VerseIndex> verseIndices, Bible bible) {
+        VerseIndexService verseIndexService = ServiceManager.getVerseIndexService();
+        List<BibleVerse> verses = new ArrayList<>();
+        List<Long> uniqueIndices = new ArrayList<>(verseIndices.size());
+        for (VerseIndex verseIndex : verseIndices) {
+            Long indexNumber = verseIndex.getIndexNumber();
+            if (!uniqueIndices.contains(indexNumber)) {
+                uniqueIndices.add(indexNumber);
+            }
+        }
+        for (Long index : uniqueIndices) {
+            List<BibleVerse> indices = verseIndexService.findByIndexAndBibleId(index, bible.getId());
+            for (BibleVerse bibleVerse : indices) {
+                if (!verses.contains(bibleVerse)) {
+                    verses.add(bibleVerse);
+                }
+            }
+        }
+        return verses;
+    }
+
+    public static String getBibleVerseWithReferenceText(List<VerseIndex> verseIndices, Bible parallelBible, int selectedBook, int selectedPart, ObservableList<Integer> ob) {
+        StringBuilder string = new StringBuilder();
+        List<BibleVerse> verses = getVersesByIndices(verseIndices, parallelBible, selectedBook, selectedPart, ob);
+        String s = getVersesAndReference(parallelBible, verses);
+        if (!s.trim().equals("[]") && !s.trim().isEmpty()) {
+            string.append("<color=\"").append(parallelBible.getColor().toString()).append("\">");
+            string.append(s);
+            string.append("</color>");
+        }
+        return string.toString();
+    }
+
+    private static String getVersesAndReference(Bible bible, List<BibleVerse> bibleVerses) {
+        Reference reference = new Reference();
+        reference.setBible(bible);
+        StringBuilder result = new StringBuilder();
+        for (BibleVerse bibleVerse : bibleVerses) {
+            result.append("\n");
+            if (bibleVerses.size() > 1) {
+                result.append(bibleVerse.getNumber()).append(". ");
+            }
+            result.append(bibleVerse.getText());
+            reference.addVerse(bibleVerse.getChapter().getBook(), bibleVerse.getChapter().getNumber(), bibleVerse.getNumber());
+        }
+        String versesText = result.toString();
+        if (versesText.length() == 0) {
+            return "";
+        }
+        result.append("\n");
+        Settings settings = Settings.getInstance();
+        if (settings.isReferenceItalic()) {
+            result.append("[");
+        }
+        result.append(reference.getReference());
+        if (settings.getBibleShortName() && bible.isShowAbbreviation()) {
+            result.append(" (").append(bible.getShortName()).append(")");
+        }
+        if (settings.isReferenceItalic()) {
+            result.append("]");
+        }
+        return result.toString();
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -675,7 +762,7 @@ public class BibleController {
             bookTextField.requestFocus();
             sendProjectionScreenText.setOnAction(event -> {
                 try {
-                    projectionScreenController.setText(referenceTextArea.getText(), ProjectionType.REFERENCE);
+                    projectionScreenController.setText(referenceTextArea.getText(), ProjectionType.REFERENCE, null);
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
                 }
@@ -1414,78 +1501,6 @@ public class BibleController {
         }
     }
 
-    private List<BibleVerse> getVersesByIndices(List<VerseIndex> verseIndices, Bible bible, int selectedBook, int selectedPart, ObservableList<Integer> ob) {
-        ServiceManager.getBibleService().checkHasVerseIndices(bible);
-        if (verseIndices != null && verseIndices.size() > 0 && bible.hasVerseIndices()) {
-            return getVersesByIndices_(verseIndices, bible);
-        }
-        List<BibleVerse> verses = new ArrayList<>();
-        Book book = bible.getBook(selectedBook);
-        if (book != null) {
-            Chapter chapter = book.getChapter(selectedPart);
-            if (chapter != null) {
-                for (int i : ob) {
-                    BibleVerse bibleVerse = chapter.getVerse(i);
-                    if (bibleVerse != null) {
-                        verses.add(bibleVerse);
-                    }
-                }
-            }
-        }
-        return verses;
-    }
-
-    private List<BibleVerse> getVersesByIndices_(List<VerseIndex> verseIndices, Bible bible) {
-        VerseIndexService verseIndexService = ServiceManager.getVerseIndexService();
-        List<BibleVerse> verses = new ArrayList<>();
-        List<Long> uniqueIndices = new ArrayList<>(verseIndices.size());
-        for (VerseIndex verseIndex : verseIndices) {
-            Long indexNumber = verseIndex.getIndexNumber();
-            if (!uniqueIndices.contains(indexNumber)) {
-                uniqueIndices.add(indexNumber);
-            }
-        }
-        for (Long index : uniqueIndices) {
-            List<BibleVerse> indices = verseIndexService.findByIndexAndBibleId(index, bible.getId());
-            for (BibleVerse bibleVerse : indices) {
-                if (!verses.contains(bibleVerse)) {
-                    verses.add(bibleVerse);
-                }
-            }
-        }
-        return verses;
-    }
-
-    private String getVersesAndReference(Bible bible, List<BibleVerse> bibleVerses) {
-        Reference reference = new Reference();
-        reference.setBible(bible);
-        StringBuilder result = new StringBuilder();
-        for (BibleVerse bibleVerse : bibleVerses) {
-            result.append("\n");
-            if (bibleVerses.size() > 1) {
-                result.append(bibleVerse.getNumber()).append(". ");
-            }
-            result.append(bibleVerse.getText());
-            reference.addVerse(bibleVerse.getChapter().getBook(), bibleVerse.getChapter().getNumber(), bibleVerse.getNumber());
-        }
-        String versesText = result.toString();
-        if (versesText.length() == 0) {
-            return "";
-        }
-        result.append("\n");
-        if (settings.isReferenceItalic()) {
-            result.append("[");
-        }
-        result.append(reference.getReference());
-        if (settings.getBibleShortName() && bible.isShowAbbreviation()) {
-            result.append(" (").append(bible.getShortName()).append(")");
-        }
-        if (settings.isReferenceItalic()) {
-            result.append("]");
-        }
-        return result.toString();
-    }
-
     private void verseSelected() {
         try {
             if (bible == null) {
@@ -1496,6 +1511,7 @@ public class BibleController {
             int iVerse;
             iVerse = getFirstFromSelectedIndices(ob);
             String text = null;
+            ProjectionDTO projectionDTO = new ProjectionDTO();
             if (selectedBook >= 0 && selectedPart >= 0 && iVerse >= 0) {
                 List<VerseIndex> verseIndices = new ArrayList<>();
                 List<BibleVerse> bibleVerses = new ArrayList<>(ob.size());
@@ -1507,17 +1523,12 @@ public class BibleController {
                         verseIndices.addAll(verseIndexList);
                     }
                 }
+                ProjectionAssembler.getInstance().setVerseIndices(projectionDTO, verseIndices);
                 string = new StringBuilder(getVersesAndReference(bible, bibleVerses).replaceFirst("\n", ""));
                 if (settings.isParallel()) {
                     for (Bible parallelBible : parallelBibles) {
-                        if (parallelBible.getParallelNumber() > 0) {
-                            List<BibleVerse> verses = getVersesByIndices(verseIndices, parallelBible, selectedBook, selectedPart, ob);
-                            String s = getVersesAndReference(parallelBible, verses);
-                            if (!s.trim().equals("[]") && !s.trim().isEmpty()) {
-                                string.append("<color=\"").append(parallelBible.getColor().toString()).append("\">");
-                                string.append(s);
-                                string.append("</color>");
-                            }
+                        if (parallelBible.isParallelSelected()) {
+                            string.append(getBibleVerseWithReferenceText(verseIndices, parallelBible, selectedBook, selectedPart, ob));
                         }
                     }
                 }
@@ -1528,7 +1539,8 @@ public class BibleController {
             }
             if (string.length() > 0) {
                 if (!settings.isShowReferenceOnly()) {
-                    projectionScreenController.setText(text, ProjectionType.BIBLE);
+                    //noinspection ConstantConditions
+                    projectionScreenController.setText(text, ProjectionType.BIBLE, projectionDTO);
                 }
                 for (int i : ob) {
                     if (i == -1) {
@@ -1539,7 +1551,7 @@ public class BibleController {
                 }
                 refreshReferenceTextArea();
                 if (settings.isShowReferenceOnly()) {
-                    projectionScreenController.setText(referenceTextArea.getText(), ProjectionType.REFERENCE);
+                    projectionScreenController.setText(referenceTextArea.getText(), ProjectionType.REFERENCE, projectionDTO);
                 }
             }
         } catch (Exception e) {

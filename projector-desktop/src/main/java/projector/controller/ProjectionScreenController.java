@@ -1,5 +1,6 @@
 package projector.controller;
 
+import com.bence.projector.common.dto.ProjectionDTO;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -72,6 +73,7 @@ public class ProjectionScreenController {
     private BibleController bibleController;
     private SongController songController;
     private ProjectionType projectionType = ProjectionType.BIBLE;
+    private ProjectionDTO projectionDTO;
     private ProjectionScreenController parentProjectionScreenController;
     private ProjectionScreenController doubleProjectionScreenController;
     private ProjectionScreenController previewProjectionScreenController;
@@ -205,7 +207,7 @@ public class ProjectionScreenController {
         if (isLock) {
             return;
         }
-        setText(activeText, projectionType);
+        setText(activeText, projectionType, projectionDTO);
         for (ProjectionScreenController projectionScreenController : getDoubleAndCanvasProjectionScreenController()) {
             projectionScreenController.reload();
         }
@@ -215,7 +217,7 @@ public class ProjectionScreenController {
         if (isLock) {
             return;
         }
-        setText(activeText, projectionType);
+        setText(activeText, projectionType, projectionDTO);
         setBackGroundColor();
         for (ProjectionScreenController projectionScreenController : getDoubleAndCanvasProjectionScreenController()) {
             projectionScreenController.repaint();
@@ -241,7 +243,7 @@ public class ProjectionScreenController {
                 try {
                     String timeTextFromDate = getTimeTextFromDate(getRemainedDate(finishedDate));
                     if (!timeTextFromDate.isEmpty() && !activeText.equals(timeTextFromDate)) {
-                        Platform.runLater(() -> setText(timeTextFromDate, ProjectionType.COUNTDOWN_TIMER));
+                        Platform.runLater(() -> setText(timeTextFromDate, ProjectionType.COUNTDOWN_TIMER, projectionDTO));
                     }
                     //noinspection BusyWait
                     Thread.sleep(200);
@@ -254,7 +256,11 @@ public class ProjectionScreenController {
         countDownTimerThread.start();
     }
 
-    public void setText(String newText, ProjectionType projectionType) {
+    public void setText2(String newText, ProjectionType projectionType) {
+        setText(newText, projectionType, null);
+    }
+
+    public void setText(String newText, ProjectionType projectionType, ProjectionDTO projectionDTO) {
         if (!newText.equals(INITIAL_DOT_TEXT)) {
             this.setTextCalled = true;
         }
@@ -264,18 +270,19 @@ public class ProjectionScreenController {
         Platform.runLater(() -> {
             this.projectionType = projectionType;
             activeText = newText;
+            this.projectionDTO = projectionDTO;
             if (previewProjectionScreenController != null) {
-                previewProjectionScreenController.setText(newText, projectionType);
+                previewProjectionScreenController.setText(newText, projectionType, projectionDTO);
             }
             if (isLock) {
                 return;
             }
             for (ProjectionScreenController projectionScreenController : getDoubleAndCanvasProjectionScreenController()) {
-                projectionScreenController.setText(newText, projectionType);
+                projectionScreenController.setText(newText, projectionType, projectionDTO);
             }
             if (projectionTextChangeListeners != null) {
                 for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
-                    projectionTextChangeListener.onSetText(newText, projectionType);
+                    projectionTextChangeListener.onSetText(newText, projectionType, projectionDTO);
                 }
             }
             Scene scene = pane.getScene();
@@ -440,7 +447,7 @@ public class ProjectionScreenController {
     private void setSomeInitializationForDoubleProjectionScreenController() {
         doubleProjectionScreenController.setBlank(isBlank);
         doubleProjectionScreenController.setParentProjectionScreenController(doubleProjectionScreenController);
-        doubleProjectionScreenController.setText(activeText, projectionType);
+        doubleProjectionScreenController.setText(activeText, projectionType, projectionDTO);
     }
 
     void createCustomStage(int width, int height) {
@@ -504,7 +511,7 @@ public class ProjectionScreenController {
                     doubleProjectionScreenController = null;
                 });
                 customStageController.setBlank(isBlank);
-                customStageController.setText(activeText, projectionType);
+                customStageController.setText(activeText, projectionType, projectionDTO);
             } catch (IOException e) {
                 LOG.error(e.getMessage(), e);
             }
@@ -578,7 +585,7 @@ public class ProjectionScreenController {
                     }
                     settings.save();
                 });
-                previewProjectionScreenController.setText(activeText, projectionType);
+                previewProjectionScreenController.setText(activeText, projectionType, projectionDTO);
             } catch (IOException e) {
                 LOG.error(e.getMessage(), e);
             }
@@ -613,7 +620,7 @@ public class ProjectionScreenController {
     }
 
     public void loadEmpty() {
-        setText("", projectionType);
+        setText("", projectionType, projectionDTO);
         setBackGroundColor();
     }
 
@@ -906,7 +913,7 @@ public class ProjectionScreenController {
     }
 
     public void setInitialDotText() {
-        setText(INITIAL_DOT_TEXT, ProjectionType.REFERENCE);
+        setText(INITIAL_DOT_TEXT, ProjectionType.REFERENCE, projectionDTO);
     }
 
     private List<ProjectionScreenController> getDoubleAndCanvasProjectionScreenController() {
