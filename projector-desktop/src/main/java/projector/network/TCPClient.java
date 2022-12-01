@@ -19,6 +19,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Enumeration;
@@ -121,6 +122,11 @@ public class TCPClient {
                                         }
                                     }
                                 }
+                            } catch (SocketException e) {
+                                if (!e.getMessage().contains("Socket closed")) {
+                                    LOG.error(e.getMessage(), e);
+                                }
+                                break;
                             } catch (Exception e) {
                                 LOG.error(e.getMessage(), e);
                                 break;
@@ -154,7 +160,11 @@ public class TCPClient {
             String s = getBibleVerseWithReferenceText(verseIndices, bible, 0, 0, null);
             text.append(s);
         }
-        return text.toString();
+        String s = text.toString().trim();
+        if (s.isEmpty()) {
+            return originalText;
+        }
+        return s;
     }
 
     private static List<VerseIndex> getFromIntegers(List<Long> verseIndexIntegers) {

@@ -228,7 +228,7 @@ public class BibleController {
         Book book = bible.getBook(selectedBook);
         if (book != null) {
             Chapter chapter = book.getChapter(selectedPart);
-            if (chapter != null) {
+            if (chapter != null && ob != null) {
                 for (int i : ob) {
                     BibleVerse bibleVerse = chapter.getVerse(i);
                     if (bibleVerse != null) {
