@@ -16,7 +16,7 @@ public class FavouriteSongAssembler implements GeneralAssembler<FavouriteSong, F
     public FavouriteSongDTO createDto(FavouriteSong favouriteSong) {
         FavouriteSongDTO favouriteSongDTO = new FavouriteSongDTO();
         favouriteSongDTO.setFavourite(favouriteSong.isFavourite());
-        favouriteSongDTO.setSongUuid(favouriteSong.getSong().getUuid());
+        favouriteSongDTO.setSongUuid(favouriteSong.getSongUuid());
         favouriteSongDTO.setModifiedDate(favouriteSong.getModifiedDate());
         favouriteSongDTO.setServerModifiedDate(favouriteSong.getServerModifiedDate());
         return favouriteSongDTO;

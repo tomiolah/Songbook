@@ -2,6 +2,7 @@ package com.bence.projector.server.config;
 
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.web.firewall.RequestRejectedException;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.Filter;
@@ -34,7 +35,11 @@ public class SimpleCORSFilter implements Filter {
         response.setHeader("Access-Control-Max-Age", "86400");
         response.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me");
 
-        chain.doFilter(req, res);
+        try {
+            chain.doFilter(req, res);
+        } catch (RequestRejectedException e) {
+            System.out.println("RequestRejectedException: " + e.getMessage());
+        }
     }
 
     @Override
