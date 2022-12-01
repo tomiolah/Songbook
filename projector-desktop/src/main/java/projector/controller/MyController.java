@@ -330,7 +330,7 @@ public class MyController {
 
     public void showHideProjectionScreen() {
         if (showProjectionScreenToggleButton.isSelected()) {
-            mainDesktop.setProjectionScreenStage();
+            mainDesktop.setProjectionScreenStage(true);
         } else {
             mainDesktop.hideProjectionScreen();
         }
@@ -373,5 +373,9 @@ public class MyController {
 
     public void createCustomCanvas() {
         projectionScreenController.createCustomStage(settings.getCustomCanvasWidth(), settings.getCustomCanvasHeight());
+    }
+
+    public void setShowProjectionScreenToggleButtonToggle(boolean selected) {
+        showProjectionScreenToggleButton.setSelected(selected);
     }
 }

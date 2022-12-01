@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class SettingsController {
+    public CheckBox customCanvasLoadOnStartCheckBox;
+    public CheckBox automaticProjectionScreensCheckBox;
     @FXML
     private ColorPicker songSecondTextColorPicker;
     @FXML
@@ -229,6 +231,8 @@ public class SettingsController {
         initializeNetworkButtons();
         progressLineThicknessSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, settings.getProgressLineThickness()));
         bibleShortNameCheckBox.setSelected(settings.getBibleShortName());
+        customCanvasLoadOnStartCheckBox.setSelected(settings.isCustomCanvasLoadOnStart());
+        automaticProjectionScreensCheckBox.setSelected(settings.isAutomaticProjectionScreens());
         customCanvasWidthTextField.setText(settings.getCustomCanvasWidth() + "");
         customCanvasHeightTextField.setText(settings.getCustomCanvasHeight() + "");
         shareOnLocalNetworkAutomaticallyCheckbox.setSelected(settings.isShareOnLocalNetworkAutomatically());
@@ -316,6 +320,8 @@ public class SettingsController {
             case "Light" -> settings.setSceneStyleFile("application.css");
             case "Dark" -> settings.setSceneStyleFile("applicationDark.css");
         }
+        settings.setCustomCanvasLoadOnStart(customCanvasLoadOnStartCheckBox.isSelected());
+        settings.setAutomaticProjectionScreens(automaticProjectionScreensCheckBox.isSelected());
         try {
             settings.setCustomCanvasWidth(getCustomCanvasSize(customCanvasWidthTextField));
             settings.setCustomCanvasHeight(getCustomCanvasSize(customCanvasHeightTextField));

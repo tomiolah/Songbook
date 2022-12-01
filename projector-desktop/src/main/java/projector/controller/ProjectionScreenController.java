@@ -746,6 +746,9 @@ public class ProjectionScreenController {
             previewProjectionScreenController.setLineSize(size);
         }
         if (!isLock) {
+            if (scene == null) {
+                return;
+            }
             double progressLineThickness = projectionScreenSettings.getProgressLineThickness();
             progressLine.setStrokeLineCap(StrokeLineCap.BUTT);
             if (!projectionScreenSettings.isProgressLinePositionIsTop()) {

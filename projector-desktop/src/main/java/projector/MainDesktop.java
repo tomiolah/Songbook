@@ -268,12 +268,16 @@ public class MainDesktop extends Application {
     }
 
     private void setProjectionScreen() {
+        myController.setShowProjectionScreenToggleButtonToggle(settings.isAutomaticProjectionScreens());
         screenObservableList = Screen.getScreens();
-        screenObservableList.addListener((ListChangeListener<Screen>) c -> setProjectionScreenStage());
-        setProjectionScreenStage();
+        screenObservableList.addListener((ListChangeListener<Screen>) c -> setProjectionScreenStageCheckAutomatic());
+        setProjectionScreenStageCheckAutomatic();
         primaryStage.setOnCloseRequest(we -> closeApplication());
         ApplicationUtil.getInstance().setListener(this::closeApplication);
         primarySceneEventHandler();
+        if (settings.isCustomCanvasLoadOnStart()) {
+            myController.createCustomCanvas();
+        }
     }
 
     private void closeApplication() {
@@ -316,7 +320,13 @@ public class MainDesktop extends Application {
         }
     }
 
-    public void setProjectionScreenStage() {
+    public void setProjectionScreenStageCheckAutomatic() {
+        if (settings.isAutomaticProjectionScreens()) {
+            setProjectionScreenStage(false);
+        }
+    }
+
+    public void setProjectionScreenStage(boolean fromToggleButton) {
         ListIterator<Screen> it = screenObservableList.listIterator(0);
         while (it.hasPrevious()) {
             it.previous();
@@ -325,7 +335,7 @@ public class MainDesktop extends Application {
             return;
         }
         mainScreen = it.next(); // primary screen
-        showProjectionScreenOnNextScreen(it);
+        showProjectionScreenOnNextScreen(it, fromToggleButton);
         int index = 0;
         while (it.hasNext()) {
             Screen nextScreen = it.next();
@@ -354,13 +364,13 @@ public class MainDesktop extends Application {
         return projectionScreenController;
     }
 
-    private void showProjectionScreenOnNextScreen(ListIterator<Screen> it) {
+    private void showProjectionScreenOnNextScreen(ListIterator<Screen> it, boolean fromToggleButton) {
         try {
             if (it.hasNext() && (canvasStage == null || !canvasStage.isShowing())) {
                 projectionScreenController.setPrimaryStageVariable(primaryStage);
                 createPopupForNextScreen(it.next(), projectionScreenController);
             } else {
-                createCanvasStage();
+                createCanvasStage(fromToggleButton);
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -443,7 +453,7 @@ public class MainDesktop extends Application {
         }
     }
 
-    private void createCanvasStage() {
+    private void createCanvasStage(boolean fromToggleButton) {
         Popup popup = projectionScreenController.getPopup();
         if (popup != null) {
             popup.getContent().clear();
@@ -496,6 +506,9 @@ public class MainDesktop extends Application {
             myController.onKeyPressed(event);
         });
         setSceneStyleSheet(scene);
+        if (fromToggleButton) {
+            canvasStage.show();
+        }
     }
 
     private void setSceneStyleSheet(Scene scene) {

@@ -393,8 +393,13 @@ public class SongController {
                             }
                         }
 
-                        int width = (int) projectionScreenController.getScene().getWidth();
-                        int height = (int) projectionScreenController.getScene().getHeight();
+                        Scene scene = projectionScreenController.getScene();
+                        int width = 0;
+                        int height = 0;
+                        if (scene != null) {
+                            width = (int) scene.getWidth();
+                            height = (int) scene.getHeight();
+                        }
                         if (width == 0) {
                             width = 16;
                             height = 9;
