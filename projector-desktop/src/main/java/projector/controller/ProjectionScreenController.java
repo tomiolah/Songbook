@@ -24,6 +24,8 @@ import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.MainDesktop;
 import projector.application.ProjectionScreenSettings;
 import projector.application.ProjectionType;
@@ -48,8 +50,11 @@ import static projector.utils.SceneUtils.getAStage;
 
 public class ProjectionScreenController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(ProjectionScreenController.class);
+
     private final List<ViewChangedListener> viewChangedListeners = new ArrayList<>();
     private final List<OnBlankListener> onBlankListeners = new ArrayList<>();
+    private final String INITIAL_DOT_TEXT = "<color=\"0xffffff0c\">.</color>";
     @FXML
     private MyTextFlow textFlow;
     @FXML
@@ -86,6 +91,7 @@ public class ProjectionScreenController {
     private Screen screen;
     private Stage primaryStage;
     private MainDesktop mainDesktop;
+    private boolean setTextCalled = false;
 
     public void initialize() {
         settings = Settings.getInstance();
@@ -138,7 +144,7 @@ public class ProjectionScreenController {
         this.songController = songController;
     }
 
-    void setBackGroundColor() {
+    public void setBackGroundColor() {
         if (previewProjectionScreenController != null) {
             previewProjectionScreenController.setBackGroundColor();
         }
@@ -227,7 +233,7 @@ public class ProjectionScreenController {
             try {
                 countDownTimerThread.join();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         }
         countDownTimerThread = new Thread(() -> {
@@ -240,7 +246,7 @@ public class ProjectionScreenController {
                     //noinspection BusyWait
                     Thread.sleep(200);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
+                    LOG.error(e.getMessage(), e);
                 }
             }
         });
@@ -249,6 +255,9 @@ public class ProjectionScreenController {
     }
 
     public void setText(String newText, ProjectionType projectionType) {
+        if (!newText.equals(INITIAL_DOT_TEXT)) {
+            this.setTextCalled = true;
+        }
         if (projectionType != ProjectionType.COUNTDOWN_TIMER) {
             countDownTimerRunning = false;
         }
@@ -400,11 +409,9 @@ public class ProjectionScreenController {
                         }
                     }
                 });
-                doubleProjectionScreenController.setBlank(isBlank);
-                doubleProjectionScreenController.setParentProjectionScreenController(doubleProjectionScreenController);
+                setSomeInitializationForDoubleProjectionScreenController();
             } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         } else {
             doubleProjectionScreenController.duplicate();
@@ -419,16 +426,21 @@ public class ProjectionScreenController {
                 Pane root = loader2.load();
                 doubleProjectionScreenController = loader2.getController();
                 doubleProjectionScreenController.setRoot(root);
-                ProjectionScreensUtil.getInstance().addDoubleProjectionScreenController(doubleProjectionScreenController);
-                doubleProjectionScreenController.setBlank(isBlank);
-                doubleProjectionScreenController.setParentProjectionScreenController(doubleProjectionScreenController);
+                ProjectionScreensUtil.getInstance().addAutomaticDoubleProjectionScreenController(doubleProjectionScreenController);
+                setSomeInitializationForDoubleProjectionScreenController();
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
             return doubleProjectionScreenController;
         } else {
             return doubleProjectionScreenController.duplicate2();
         }
+    }
+
+    private void setSomeInitializationForDoubleProjectionScreenController() {
+        doubleProjectionScreenController.setBlank(isBlank);
+        doubleProjectionScreenController.setParentProjectionScreenController(doubleProjectionScreenController);
+        doubleProjectionScreenController.setText(activeText, projectionType);
     }
 
     void createCustomStage(int width, int height) {
@@ -495,7 +507,7 @@ public class ProjectionScreenController {
                 doubleProjectionScreenController = customStageController;
                 doubleProjectionScreenController.setParentProjectionScreenController(doubleProjectionScreenController);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         } else {
             Stage stage = customStageController.getStage();
@@ -569,7 +581,7 @@ public class ProjectionScreenController {
                 });
                 previewProjectionScreenController.setText(activeText, projectionType);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         } else {
             final Stage stage = previewProjectionScreenController.getStage();
@@ -880,4 +892,18 @@ public class ProjectionScreenController {
         onBlankListeners.add(onBlankListener);
     }
 
+    public boolean isSetTextCalled() {
+        return setTextCalled;
+    }
+
+    public void close() {
+        if (popup != null) {
+            popup.hide();
+            popup = null;
+        }
+    }
+
+    public void setInitialDotText() {
+        setText(INITIAL_DOT_TEXT, ProjectionType.REFERENCE);
+    }
 }

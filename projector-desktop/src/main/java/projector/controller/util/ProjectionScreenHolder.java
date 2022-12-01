@@ -1,5 +1,6 @@
 package projector.controller.util;
 
+import javafx.scene.layout.HBox;
 import projector.application.ProjectionScreenSettings;
 import projector.controller.ProjectionScreenController;
 import projector.controller.listener.OnMainPaneSizeChangeListener;
@@ -9,12 +10,14 @@ public class ProjectionScreenHolder {
     private final ProjectionScreenSettings projectionScreenSettings;
     private ProjectionScreenController projectionScreenController;
     private String name;
-    private boolean doubleProjectionScreen = false;
     private PopupCreatedListener popupCreatedListener;
     private OnMainPaneSizeChangeListener onMainPaneSizeChangeListener = null;
     private double lastWidth = 0.0;
     private double lastHeight = 0.0;
     private Integer screenIndex = null;
+    private boolean openedAutomatically;
+    private javafx.scene.layout.HBox HBox;
+    private int doubleIndex;
 
     public ProjectionScreenHolder(ProjectionScreenController projectionScreenController, String name) {
         this.projectionScreenController = projectionScreenController;
@@ -36,14 +39,6 @@ public class ProjectionScreenHolder {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public boolean isDoubleProjectionScreen() {
-        return doubleProjectionScreen;
-    }
-
-    public void setDoubleProjectionScreen(boolean doubleProjectionScreen) {
-        this.doubleProjectionScreen = doubleProjectionScreen;
     }
 
     public ProjectionScreenSettings getProjectionScreenSettings() {
@@ -79,5 +74,34 @@ public class ProjectionScreenHolder {
 
     public void setScreenIndex(Integer index) {
         this.screenIndex = index;
+    }
+
+    public boolean isOpenedAutomatically() {
+        return openedAutomatically;
+    }
+
+    public void setOpenedAutomatically(boolean openedAutomatically) {
+        this.openedAutomatically = openedAutomatically;
+    }
+
+    public void close() {
+        projectionScreenController.close();
+        projectionScreenController = null;
+    }
+
+    public HBox getHBox() {
+        return HBox;
+    }
+
+    public void setHBox(HBox hBox) {
+        this.HBox = hBox;
+    }
+
+    public int getDoubleIndex() {
+        return doubleIndex;
+    }
+
+    public void setDoubleIndex(int doubleIndex) {
+        this.doubleIndex = doubleIndex;
     }
 }

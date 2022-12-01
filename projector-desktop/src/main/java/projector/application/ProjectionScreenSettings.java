@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class ProjectionScreenSettings {
 
@@ -135,6 +137,7 @@ public class ProjectionScreenSettings {
         this.color = color;
     }
 
+    @SuppressWarnings("unused")
     public BackgroundImage getBackgroundImage() {
         if (backgroundImage == null && useGlobalSettings) {
             return settings.getBackgroundImage();
@@ -144,14 +147,6 @@ public class ProjectionScreenSettings {
 
     public boolean isBackgroundImage() {
         return isaBoolean(getIsBackgroundImage());
-    }
-
-    public void setBackgroundImage(BackgroundImage backgroundImage) {
-        this.backgroundImage = backgroundImage;
-    }
-
-    public void setBackgroundImage(boolean isBackgroundImage) {
-        this.isBackgroundImage = isBackgroundImage;
     }
 
     public Boolean getIsBackgroundImage() {
@@ -268,7 +263,12 @@ public class ProjectionScreenSettings {
     }
 
     private String getFileName() {
-        return projectionScreenHolder.getName() + ".json";
+        String screensDirectory = "screens";
+        try {
+            Files.createDirectories(Paths.get(screensDirectory));
+        } catch (IOException ignored) {
+        }
+        return screensDirectory + "/" + projectionScreenHolder.getName() + ".json";
     }
 
     public String getFontWeightString() {

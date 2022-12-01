@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import projector.application.ApplicationUtil;
 import projector.application.ApplicationVersion;
 import projector.application.ProjectionScreenSettings;
-import projector.application.ProjectionType;
 import projector.application.Settings;
 import projector.application.Updater;
 import projector.controller.BibleController;
@@ -259,7 +258,7 @@ public class MainDesktop extends Application {
             setUserAgentStylesheet(null);
             stylesheets.add(url);
         });
-        projectionScreenController.setText("<color=\"0xffffff0c\">.</color>", ProjectionType.REFERENCE);
+        projectionScreenController.setInitialDotText();
         projectionScreenController.setBlank(false);
         Updater.getInstance().checkForUpdate();
         if (startDate != null) {
@@ -332,7 +331,8 @@ public class MainDesktop extends Application {
             Screen nextScreen = it.next();
             try {
                 ProjectionScreenController projectionScreenController = getProjectionScreenControllerOrDuplicate(index);
-                projectionScreenController.getProjectionScreenSettings().getProjectionScreenHolder().setScreenIndex(index + 2);
+                ProjectionScreenHolder projectionScreenHolder = projectionScreenController.getProjectionScreenSettings().getProjectionScreenHolder();
+                projectionScreenHolder.setScreenIndex(index + 2);
                 projectionScreenController.setPrimaryStageVariable(primaryStage);
                 createPopupForNextScreen(nextScreen, projectionScreenController);
             } catch (Exception e) {
@@ -340,6 +340,7 @@ public class MainDesktop extends Application {
             }
             ++index;
         }
+        ProjectionScreensUtil.getInstance().closeFromIndex(index);
     }
 
     private ProjectionScreenController getProjectionScreenControllerOrDuplicate(Integer index) {
@@ -379,7 +380,7 @@ public class MainDesktop extends Application {
         double canvasHeight = bounds.getHeight();
         projectionScreenController.setWidth(canvasWidth);
         projectionScreenController.setHeight(canvasHeight);
-        boolean loadEmpty = true;
+        boolean loadEmpty = !projectionScreenController.isSetTextCalled();
         Popup popup = projectionScreenController.getPopup();
         if (popup != null) {
             popup.getContent().clear();
@@ -402,13 +403,21 @@ public class MainDesktop extends Application {
         popup.show(primaryStage, positionX, positionY);
         popup.widthProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.intValue() != canvasWidth) {
-                projectionScreenController.getPopup().setWidth(canvasWidth);
+                Popup popup1 = projectionScreenController.getPopup();
+                if (popup1 == null) {
+                    return;
+                }
+                popup1.setWidth(canvasWidth);
                 projectionScreenController.setWidth(canvasWidth);
             }
         });
         popup.heightProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue.intValue() != canvasHeight) {
-                projectionScreenController.getPopup().setHeight(canvasHeight);
+                Popup popup1 = projectionScreenController.getPopup();
+                if (popup1 == null) {
+                    return;
+                }
+                popup1.setHeight(canvasHeight);
                 projectionScreenController.setHeight(canvasHeight);
             }
         });
@@ -423,6 +432,7 @@ public class MainDesktop extends Application {
         if (loadEmpty) {
             projectionScreenController.loadEmpty();
         }
+        projectionScreenController.setBackGroundColor();
         setSceneStyleSheet(scene);
         ProjectionScreenSettings projectionScreenSettings = projectionScreenController.getProjectionScreenSettings();
         if (projectionScreenSettings != null) {

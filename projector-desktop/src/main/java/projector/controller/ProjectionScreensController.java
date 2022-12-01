@@ -27,6 +27,7 @@ import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import projector.application.Settings;
+import projector.controller.listener.ProjectionScreenListener;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
 
@@ -131,7 +132,21 @@ public class ProjectionScreensController {
         for (ProjectionScreenHolder projectionScreenHolder : projectionScreenHolders) {
             addProjectionScreenHolderToVBox(projectionScreenHolder);
         }
-        projectionScreensUtil.addProjectionScreenListener(this::addProjectionScreenHolderToVBox);
+        projectionScreensUtil.addProjectionScreenListener(new ProjectionScreenListener() {
+            @Override
+            public void onNew(ProjectionScreenHolder projectionScreenHolder) {
+                addProjectionScreenHolderToVBox(projectionScreenHolder);
+            }
+
+            @Override
+            public void onRemoved(ProjectionScreenHolder projectionScreenHolder) {
+                removeProjectionScreenHolderFromVBox(projectionScreenHolder);
+            }
+        });
+    }
+
+    private void removeProjectionScreenHolderFromVBox(ProjectionScreenHolder projectionScreenHolder) {
+        vBox.getChildren().remove(projectionScreenHolder.getHBox());
     }
 
     private void initializeOnProjectionScreensTabSelection(Tab projectionScreensTab) {
@@ -169,6 +184,7 @@ public class ProjectionScreensController {
         ObservableList<Node> hBoxChildren = hBox.getChildren();
         hBoxChildren.add(vBoxLeft);
         hBoxChildren.add(getImageView(projectionScreenHolder));
+        projectionScreenHolder.setHBox(hBox);
         vBoxChildren.add(hBox);
         vBoxLeftChildren.add(getSecondRow(projectionScreenHolder));
     }
