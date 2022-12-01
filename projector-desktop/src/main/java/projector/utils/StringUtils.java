@@ -44,11 +44,12 @@ public class StringUtils {
             for (j = 0; j < bLength; ++j) {
                 if (c == b.charAt(j)) {
                     t[i + 1][j + 1] = t[i][j] + 1;
-                } else if (t[i + 1][j] > t[i][j + 1]) {
-                    t[i + 1][j + 1] = t[i + 1][j];
-                } else {
-                    t[i + 1][j + 1] = t[i][j + 1];
-                }
+                } else //noinspection ManualMinMaxCalculation
+                    if (t[i + 1][j] > t[i][j + 1]) {
+                        t[i + 1][j + 1] = t[i + 1][j];
+                    } else {
+                        t[i + 1][j + 1] = t[i][j + 1];
+                    }
             }
         }
         return t[a.length()][b.length()];
@@ -79,11 +80,12 @@ public class StringUtils {
             for (j = 0; j < bLength; ++j) {
                 if (c == b.charAt(j)) {
                     t[i + 1][j + 1] = t[i][j] + 1;
-                } else if (t[i + 1][j] > t[i][j + 1]) {
-                    t[i + 1][j + 1] = t[i + 1][j];
-                } else {
-                    t[i + 1][j + 1] = t[i][j + 1];
-                }
+                } else //noinspection ManualMinMaxCalculation
+                    if (t[i + 1][j] > t[i][j + 1]) {
+                        t[i + 1][j + 1] = t[i + 1][j];
+                    } else {
+                        t[i + 1][j + 1] = t[i][j + 1];
+                    }
             }
         }
         StringBuilder r = new StringBuilder();
@@ -128,11 +130,12 @@ public class StringUtils {
             for (j = 0; j < bLength; ++j) {
                 if (c == b.charAt(j)) {
                     t[i + 1][j + 1] = t[i][j] + 1;
-                } else if (t[i + 1][j] > t[i][j + 1]) {
-                    t[i + 1][j + 1] = t[i + 1][j];
-                } else {
-                    t[i + 1][j + 1] = t[i][j + 1];
-                }
+                } else //noinspection ManualMinMaxCalculation
+                    if (t[i + 1][j] > t[i][j + 1]) {
+                        t[i + 1][j + 1] = t[i + 1][j];
+                    } else {
+                        t[i + 1][j + 1] = t[i][j + 1];
+                    }
             }
         }
         StringBuilder r = new StringBuilder();

@@ -9,17 +9,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import static com.bence.projector.common.util.StringUtils.trimLongString;
 import static projector.utils.StringUtils.stripAccents;
 
 public class SongVerse extends BaseEntity {
 
+    private static final int MAX_TEXT_LENGTH = 1000;
     @Expose
-    @DatabaseField(width = 1000)
+    @DatabaseField(width = MAX_TEXT_LENGTH)
     private String text;
     @Expose
-    @DatabaseField(width = 1000)
+    @DatabaseField(width = MAX_TEXT_LENGTH)
     private String secondText;
-    @DatabaseField(width = 1000)
+    @DatabaseField(width = MAX_TEXT_LENGTH)
     private String strippedText;
     @Expose
     @DatabaseField
@@ -63,8 +65,8 @@ public class SongVerse extends BaseEntity {
     }
 
     public void setText(String text) {
-        this.text = text;
-        strippedText = stripAccents(text.toLowerCase());
+        this.text = trimLongString(text, MAX_TEXT_LENGTH);
+        strippedText = stripAccents(this.text.toLowerCase());
     }
 
     public boolean isChorus() {
@@ -86,10 +88,6 @@ public class SongVerse extends BaseEntity {
         this.repeated = repeated;
     }
 
-    public Song getMainSong() {
-        return mainSong;
-    }
-
     public void setMainSong(Song mainSong) {
         this.mainSong = mainSong;
     }
@@ -103,7 +101,7 @@ public class SongVerse extends BaseEntity {
     }
 
     public void setSecondText(String secondText) {
-        this.secondText = secondText;
+        this.secondText = trimLongString(secondText, MAX_TEXT_LENGTH);
     }
 
     public SectionType getSectionType() {
@@ -126,21 +124,14 @@ public class SongVerse extends BaseEntity {
     private String getSectionTypeString() {
         Settings settings = Settings.getInstance();
         ResourceBundle bundle = settings.getResourceBundle();
-        switch (getSectionType()) {
-            case INTRO:
-                return bundle.getString("letter_intro");
-            case VERSE:
-                return bundle.getString("letter_verse");
-            case PRE_CHORUS:
-                return bundle.getString("letter_pre_chorus");
-            case CHORUS:
-                return bundle.getString("letter_chorus");
-            case BRIDGE:
-                return bundle.getString("letter_bridge");
-            case CODA:
-                return bundle.getString("letter_coda");
-        }
-        return "";
+        return switch (getSectionType()) {
+            case INTRO -> bundle.getString("letter_intro");
+            case VERSE -> bundle.getString("letter_verse");
+            case PRE_CHORUS -> bundle.getString("letter_pre_chorus");
+            case CHORUS -> bundle.getString("letter_chorus");
+            case BRIDGE -> bundle.getString("letter_bridge");
+            case CODA -> bundle.getString("letter_coda");
+        };
     }
 
     private int getSongVerseCountBySectionType(SectionType sectionType) {
@@ -194,21 +185,14 @@ public class SongVerse extends BaseEntity {
     public String getSectionTypeString(SectionType sectionType) {
         Settings settings = Settings.getInstance();
         ResourceBundle bundle = settings.getResourceBundle();
-        switch (sectionType) {
-            case INTRO:
-                return bundle.getString("intro");
-            case VERSE:
-                return bundle.getString("verse");
-            case PRE_CHORUS:
-                return bundle.getString("pre_chorus");
-            case CHORUS:
-                return bundle.getString("chorus");
-            case BRIDGE:
-                return bundle.getString("bridge");
-            case CODA:
-                return bundle.getString("coda");
-        }
-        return "";
+        return switch (sectionType) {
+            case INTRO -> bundle.getString("intro");
+            case VERSE -> bundle.getString("verse");
+            case PRE_CHORUS -> bundle.getString("pre_chorus");
+            case CHORUS -> bundle.getString("chorus");
+            case BRIDGE -> bundle.getString("bridge");
+            case CODA -> bundle.getString("coda");
+        };
     }
 
     public boolean equals(SongVerse other) {
