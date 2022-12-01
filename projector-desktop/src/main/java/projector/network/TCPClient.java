@@ -153,18 +153,43 @@ public class TCPClient {
         List<Long> verseIndexIntegers = projectionDTO.getVerseIndices();
         List<VerseIndex> verseIndices = getFromIntegers(verseIndexIntegers);
         List<Bible> bibles = ServiceManager.getBibleService().findAll();
-        for (Bible bible : bibles) {
-            if (!bible.isParallelSelected()) {
-                continue;
-            }
-            String s = getBibleVerseWithReferenceText(verseIndices, bible, 0, 0, null);
-            text.append(s);
+        Bible preferred = getPreferredBible(projectionDTO, bibles);
+        if (preferred == null) {
+            return originalText;
         }
+        text.append(getBibleVerseWithReferenceText(verseIndices, preferred,
+                projectionDTO.getSelectedBook(), projectionDTO.getSelectedPart(), projectionDTO.getVerseIndicesByPart()));
         String s = text.toString().trim();
         if (s.isEmpty()) {
             return originalText;
         }
         return s;
+    }
+
+    private static Bible getPreferredBible(ProjectionDTO projectionDTO, List<Bible> bibles) {
+        String selectedBibleUuid = projectionDTO.getSelectedBibleUuid();
+        String selectedBibleName = projectionDTO.getSelectedBibleName();
+        Bible preferred = null;
+        for (Bible bible : bibles) {
+            if (!bible.isParallelSelected()) {
+                continue;
+            }
+            if (selectedBibleUuid != null) {
+                if (selectedBibleUuid.equals(bible.getUuid())) {
+                    return bible;
+                }
+            } else {
+                if (selectedBibleName != null && selectedBibleName.equals(bible.getName())) {
+                    return bible;
+                }
+            }
+            if (preferred == null) {
+                preferred = bible;
+            } else if (preferred.getParallelNumber() > bible.getParallelNumber()) {
+                preferred = bible;
+            }
+        }
+        return preferred;
     }
 
     private static List<VerseIndex> getFromIntegers(List<Long> verseIndexIntegers) {

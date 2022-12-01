@@ -1,6 +1,7 @@
 package projector.api.assembler;
 
 import com.bence.projector.common.dto.ProjectionDTO;
+import projector.model.Bible;
 import projector.model.VerseIndex;
 
 import java.util.ArrayList;
@@ -30,4 +31,14 @@ public class ProjectionAssembler {
         }
     }
 
+    public void setSelectedBible(ProjectionDTO projectionDTO, Bible bible) {
+        projectionDTO.setSelectedBibleUuid(bible.getUuid());
+        projectionDTO.setSelectedBibleName(bible.getName());
+    }
+
+    public void setSelectedVerses(ProjectionDTO projectionDTO, int selectedBook, int selectedPart, List<Integer> verseIndicesByPart) {
+        projectionDTO.setSelectedBook(selectedBook);
+        projectionDTO.setSelectedPart(selectedPart);
+        projectionDTO.setVerseIndicesByPart(verseIndicesByPart);
+    }
 }

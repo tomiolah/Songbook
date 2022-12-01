@@ -219,7 +219,7 @@ public class BibleController {
         return ob.get(0);
     }
 
-    public static List<BibleVerse> getVersesByIndices(List<VerseIndex> verseIndices, Bible bible, int selectedBook, int selectedPart, ObservableList<Integer> ob) {
+    public static List<BibleVerse> getVersesByIndices(List<VerseIndex> verseIndices, Bible bible, int selectedBook, int selectedPart, List<Integer> ob) {
         ServiceManager.getBibleService().checkHasVerseIndices(bible);
         if (verseIndices != null && verseIndices.size() > 0 && bible.hasVerseIndices()) {
             return getVersesByIndices_(verseIndices, bible);
@@ -261,7 +261,7 @@ public class BibleController {
         return verses;
     }
 
-    public static String getBibleVerseWithReferenceText(List<VerseIndex> verseIndices, Bible parallelBible, int selectedBook, int selectedPart, ObservableList<Integer> ob) {
+    public static String getBibleVerseWithReferenceText(List<VerseIndex> verseIndices, Bible parallelBible, int selectedBook, int selectedPart, List<Integer> ob) {
         StringBuilder string = new StringBuilder();
         List<BibleVerse> verses = getVersesByIndices(verseIndices, parallelBible, selectedBook, selectedPart, ob);
         String s = getVersesAndReference(parallelBible, verses);
@@ -1523,7 +1523,10 @@ public class BibleController {
                         verseIndices.addAll(verseIndexList);
                     }
                 }
-                ProjectionAssembler.getInstance().setVerseIndices(projectionDTO, verseIndices);
+                ProjectionAssembler projectionAssembler = ProjectionAssembler.getInstance();
+                projectionAssembler.setVerseIndices(projectionDTO, verseIndices);
+                projectionAssembler.setSelectedBible(projectionDTO, bible);
+                projectionAssembler.setSelectedVerses(projectionDTO, selectedBook, selectedPart, ob);
                 string = new StringBuilder(getVersesAndReference(bible, bibleVerses).replaceFirst("\n", ""));
                 if (settings.isParallel()) {
                     for (Bible parallelBible : parallelBibles) {
