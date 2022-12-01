@@ -32,6 +32,13 @@ public class FavouriteSong extends BaseEntity {
         this.song = song;
     }
 
+    public String getSongUuid() {
+        if (song == null) {
+            return null;
+        }
+        return song.getUuid();
+    }
+
     public Date getModifiedDate() {
         return modifiedDate;
     }

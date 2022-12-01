@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.mail.MessagingException;
-import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringWriter;
@@ -104,7 +103,8 @@ public class StackResource {
             template.process(createPattern(stack), writer);
 
             helper.getMimeMessage().setContent(writer.toString(), "text/html;charset=utf-8");
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         sender.send(message);
     }

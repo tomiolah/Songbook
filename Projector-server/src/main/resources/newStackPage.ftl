@@ -1,5 +1,5 @@
 <div>
-  <h3>Új verzió összekötés: </h3>
+  <h3>New stack: </h3>
 <#--noinspection FtlReferencesInspection-->
     <a href="${baseUrl}/admin/stack/${song1}">${id}</a>
   <br>
