@@ -143,27 +143,32 @@ public class TCPClient {
     }
 
     private static String getTextFromProjectionDTO(ProjectionDTO projectionDTO, String originalText) {
-        if (projectionDTO == null) {
+        try {
+            if (projectionDTO == null) {
+                return originalText;
+            }
+            if (!Settings.getInstance().isForIncomingDisplayOnlySelected()) {
+                return originalText;
+            }
+            StringBuilder text = new StringBuilder();
+            List<Long> verseIndexIntegers = projectionDTO.getVerseIndices();
+            List<VerseIndex> verseIndices = getFromIntegers(verseIndexIntegers);
+            List<Bible> bibles = ServiceManager.getBibleService().findAll();
+            Bible preferred = getPreferredBible(projectionDTO, bibles);
+            if (preferred == null) {
+                return originalText;
+            }
+            text.append(getBibleVerseWithReferenceText(verseIndices, preferred,
+                    projectionDTO.getSelectedBook(), projectionDTO.getSelectedPart(), projectionDTO.getVerseIndicesByPart()));
+            String s = text.toString().trim();
+            if (s.isEmpty()) {
+                return originalText;
+            }
+            return s;
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
             return originalText;
         }
-        if (!Settings.getInstance().isForIncomingDisplayOnlySelected()) {
-            return originalText;
-        }
-        StringBuilder text = new StringBuilder();
-        List<Long> verseIndexIntegers = projectionDTO.getVerseIndices();
-        List<VerseIndex> verseIndices = getFromIntegers(verseIndexIntegers);
-        List<Bible> bibles = ServiceManager.getBibleService().findAll();
-        Bible preferred = getPreferredBible(projectionDTO, bibles);
-        if (preferred == null) {
-            return originalText;
-        }
-        text.append(getBibleVerseWithReferenceText(verseIndices, preferred,
-                projectionDTO.getSelectedBook(), projectionDTO.getSelectedPart(), projectionDTO.getVerseIndicesByPart()));
-        String s = text.toString().trim();
-        if (s.isEmpty()) {
-            return originalText;
-        }
-        return s;
     }
 
     private static Bible getPreferredBible(ProjectionDTO projectionDTO, List<Bible> bibles) {
@@ -185,7 +190,7 @@ public class TCPClient {
             }
             if (preferred == null) {
                 preferred = bible;
-            } else if (preferred.getParallelNumber() > bible.getParallelNumber()) {
+            } else if (preferred.getParallelNumber() > bible.getParallelNumber() && bible.isParallelSelected()) {
                 preferred = bible;
             }
         }

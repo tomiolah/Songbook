@@ -266,9 +266,14 @@ public class BibleController {
         List<BibleVerse> verses = getVersesByIndices(verseIndices, parallelBible, selectedBook, selectedPart, ob);
         String s = getVersesAndReference(parallelBible, verses);
         if (!s.trim().equals("[]") && !s.trim().isEmpty()) {
-            string.append("<color=\"").append(parallelBible.getColor().toString()).append("\">");
+            Color color = parallelBible.getColor();
+            if (color != null) {
+                string.append("<color=\"").append(color).append("\">");
+            }
             string.append(s);
-            string.append("</color>");
+            if (color != null) {
+                string.append("</color>");
+            }
         }
         return string.toString();
     }
@@ -278,7 +283,9 @@ public class BibleController {
         reference.setBible(bible);
         StringBuilder result = new StringBuilder();
         for (BibleVerse bibleVerse : bibleVerses) {
-            result.append("\n");
+            if (result.length() > 0) {
+                result.append("\n");
+            }
             if (bibleVerses.size() > 1) {
                 result.append(bibleVerse.getNumber()).append(". ");
             }
@@ -688,7 +695,7 @@ public class BibleController {
                                 BibleVerse bibleVerse = bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().get(i);
                                 bibleVerses.add(bibleVerse);
                             }
-                            StringSelection stringSelection = new StringSelection(getVersesAndReference(bible, bibleVerses).replaceFirst("\n", ""));
+                            StringSelection stringSelection = new StringSelection(getVersesAndReference(bible, bibleVerses));
                             Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
                             clipboard.setContents(stringSelection, null);
                         }
@@ -1527,11 +1534,11 @@ public class BibleController {
                 projectionAssembler.setVerseIndices(projectionDTO, verseIndices);
                 projectionAssembler.setSelectedBible(projectionDTO, bible);
                 projectionAssembler.setSelectedVerses(projectionDTO, selectedBook, selectedPart, ob);
-                string = new StringBuilder(getVersesAndReference(bible, bibleVerses).replaceFirst("\n", ""));
+                string = new StringBuilder(getVersesAndReference(bible, bibleVerses));
                 if (settings.isParallel()) {
                     for (Bible parallelBible : parallelBibles) {
                         if (parallelBible.isParallelSelected()) {
-                            string.append(getBibleVerseWithReferenceText(verseIndices, parallelBible, selectedBook, selectedPart, ob));
+                            string.append("\n").append(getBibleVerseWithReferenceText(verseIndices, parallelBible, selectedBook, selectedPart, ob));
                         }
                     }
                 }
