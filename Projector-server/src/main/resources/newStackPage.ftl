@@ -1,7 +1,7 @@
 <div>
   <h3>New stack: </h3>
 <#--noinspection FtlReferencesInspection-->
-    <a href="${baseUrl}/admin/stack/${song1}">${id}</a>
+    <a href="${baseUrl}/admin/stack/${id}">${id}</a>
   <br>
 <#--noinspection FtlReferencesInspection-->
   <h3>Email: </h3><h4>${email}</h4>
