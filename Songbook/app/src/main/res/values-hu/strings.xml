@@ -134,4 +134,5 @@
     <string name="password_or_email_incorrect">Nem jó a jelszó vagy az e-mail cím</string>
     <string name="create_account">Regisztráció</string>
     <string name="upload_song">Ének feltöltése</string>
+    <string name="Couldnt_get_selected_language">Nem sikerült lekérni a kiválasztott nyelvet!</string>
 </resources>

@@ -23,8 +23,8 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
     private static final String TAG = SongRepositoryImpl.class.getSimpleName();
     private final DatabaseHelper databaseHelper;
 
-    private Dao<Song, Long> songDao;
-    private SongVerseRepository songVerseRepository;
+    private final Dao<Song, Long> songDao;
+    private final SongVerseRepository songVerseRepository;
 
     public SongRepositoryImpl(final Context context) {
         super(Song.class);
@@ -84,13 +84,11 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
     public void save(final List<Song> songs) {
         try {
             songDao.callBatchTasks(
-                    new Callable<Void>() {
-                        public Void call() {
-                            for (final Song song : songs) {
-                                save(song);
-                            }
-                            return null;
+                    (Callable<Void>) () -> {
+                        for (final Song song : songs) {
+                            save(song);
                         }
+                        return null;
                     });
         } catch (RepositoryException e) {
             String msg = "Could not save songs";
@@ -107,15 +105,13 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
     public void save(final List<Song> newSongs, final ProgressBar progressBar) {
         try {
             songDao.callBatchTasks(
-                    new Callable<Void>() {
-                        public Void call() {
-                            int i = 0;
-                            for (final Song song : newSongs) {
-                                save(song);
-                                progressBar.setProgress(++i);
-                            }
-                            return null;
+                    (Callable<Void>) () -> {
+                        int i = 0;
+                        for (final Song song : newSongs) {
+                            save(song);
+                            progressBar.setProgress(++i);
                         }
+                        return null;
                     });
         } catch (RepositoryException e) {
             String msg = "Could not save songs";
@@ -169,18 +165,15 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
     public void saveViews(final List<SongViewsDTO> songViewsDTOS) {
         try {
             TransactionManager.callInTransaction(databaseHelper.getConnectionSource(),
-                    new Callable<Void>() {
-                        @Override
-                        public Void call() throws Exception {
-                            if (songViewsDTOS.size() > 0) {
-                                for (SongViewsDTO verseIndex : songViewsDTOS) {
-                                    songDao.executeRaw("UPDATE song SET views = "
-                                            + verseIndex.getViews()
-                                            + " WHERE uuid = '" + verseIndex.getUuid() + "'");
-                                }
+                    (Callable<Void>) () -> {
+                        if (songViewsDTOS.size() > 0) {
+                            for (SongViewsDTO verseIndex : songViewsDTOS) {
+                                songDao.executeRaw("UPDATE song SET views = "
+                                        + verseIndex.getViews()
+                                        + " WHERE uuid = '" + verseIndex.getUuid() + "'");
                             }
-                            return null;
                         }
+                        return null;
                     });
         } catch (SQLException e) {
             String msg = "Could not save verseIndices";
@@ -219,6 +212,17 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
         long x = 0L;
         try {
             x = songDao.queryRawValue("SELECT SUM(accessedTimes) FROM song WHERE language_id = " + language.getId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return x;
+    }
+
+    @Override
+    public long countByLanguage(Language language) {
+        long x = 0L;
+        try {
+            x = songDao.queryRawValue("SELECT COUNT(id) FROM song WHERE language_id = " + language.getId());
         } catch (Exception e) {
             e.printStackTrace();
         }

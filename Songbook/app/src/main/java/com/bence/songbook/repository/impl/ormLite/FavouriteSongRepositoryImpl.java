@@ -37,6 +37,9 @@ public class FavouriteSongRepositoryImpl extends BaseRepositoryImpl<FavouriteSon
 
     @Override
     public FavouriteSong findFavouriteSongBySongUuid(String uuid) {
+        if (uuid == null) {
+            return null;
+        }
         String msg = "Could not find favouriteSong";
         try {
             songRepository = getSongRepository();
@@ -66,8 +69,15 @@ public class FavouriteSongRepositoryImpl extends BaseRepositoryImpl<FavouriteSon
 
     @Override
     public void save(FavouriteSong favourite) {
-        FavouriteSong favouriteSongBySongUuid = findFavouriteSongBySongUuid(favourite.getSong().getUuid());
-        if (favourite.getSong().getId() == null) {
+        if (favourite == null) {
+            return;
+        }
+        Song song = favourite.getSong();
+        if (song == null) {
+            return;
+        }
+        FavouriteSong favouriteSongBySongUuid = findFavouriteSongBySongUuid(song.getUuid());
+        if (song.getId() == null) {
             if (favouriteSongBySongUuid != null) {
                 favourite.setSong(favouriteSongBySongUuid.getSong());
                 favourite.setId(favouriteSongBySongUuid.getId());

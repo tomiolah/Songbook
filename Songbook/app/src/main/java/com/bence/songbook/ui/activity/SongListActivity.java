@@ -49,10 +49,11 @@ public class SongListActivity extends AppCompatActivity {
         setContentView(R.layout.activity_song_list);
         Toolbar toolbar = findViewById(R.id.toolbar);
         songList = memory.getPassingSongList();
+        if (songList == null) {
+            return;
+        }
         if (toolbar != null) {
-            if (songList != null) {
-                toolbar.setTitle(songList.getTitle());
-            }
+            toolbar.setTitle(songList.getTitle());
             setSupportActionBar(toolbar);
         }
         if (getSupportActionBar() != null) {

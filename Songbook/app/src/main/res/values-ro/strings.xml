@@ -134,4 +134,5 @@
     <string name="password_or_email_incorrect">Parola sau e-mailul e incorect</string>
     <string name="create_account">Creează cont</string>
     <string name="upload_song">Încărcați cântarea</string>
+    <string name="Couldnt_get_selected_language">Nu s-a putut obține limba selectată!</string>
 </resources>

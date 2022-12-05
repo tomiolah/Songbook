@@ -134,4 +134,5 @@
     <string name="password_or_email_incorrect">Passwort oder E-Mail falsch</string>
     <string name="create_account">Konto anlegen</string>
     <string name="upload_song">Lied hochladen</string>
+    <string name="Couldnt_get_selected_language">Ausgewählte Sprache konnte nicht abgerufen werden!</string>
 </resources>

@@ -20,4 +20,6 @@ public interface SongRepository extends BaseRepository<Song> {
     List<Song> findAllExceptAsDeleted();
 
     long sumAccessedTimesByLanguage(Language language);
+
+    long countByLanguage(Language language);
 }

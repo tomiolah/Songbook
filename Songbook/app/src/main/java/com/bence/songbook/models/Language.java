@@ -120,4 +120,8 @@ public class Language extends BaseEntity {
         }
         return size;
     }
+
+    public long getSongsCount(SongRepository songRepository) {
+        return songRepository.countByLanguage(this);
+    }
 }

@@ -38,7 +38,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
 
     private final Memory memory = Memory.getInstance();
     private int verseIndex;
-    private List<SongVerse> verseList;
+    private List<SongVerse> verseList = new ArrayList<>();
     private Song song;
     private long startTime;
     private long duration = 0;

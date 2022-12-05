@@ -32,7 +32,6 @@ import com.bence.songbook.repository.impl.ormLite.LanguageRepositoryImpl;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.service.UserService;
 import com.bence.songbook.ui.utils.Preferences;
-import com.bence.songbook.utils.Utility;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
@@ -120,7 +119,7 @@ public class NewSongActivity extends AppCompatActivity {
             } else if (l1 > l2) {
                 return -1;
             }
-            compare = Utility.compare(o1.getSongs().size(), o2.getSongs().size());
+            compare = Long.compare(o2.getSongsCount(songRepository), o1.getSongsCount(songRepository));
             if (compare != 0) {
                 return compare;
             }
@@ -245,6 +244,11 @@ public class NewSongActivity extends AppCompatActivity {
             Toast.makeText(this, R.string.too_short_text, Toast.LENGTH_SHORT).show();
             return;
         }
+        Language language = getLanguage(languages);
+        if (language == null) {
+            Toast.makeText(this, R.string.Couldnt_get_selected_language, Toast.LENGTH_SHORT).show();
+            return;
+        }
         String[] split = replaceAll.split("\n\n");
         List<SongVerse> songVerses = new ArrayList<>(split.length);
         List<Short> verseOrderList = new ArrayList<>();
@@ -274,12 +278,20 @@ public class NewSongActivity extends AppCompatActivity {
 
         song.setCreatedDate(new Date());
         song.setModifiedDate(new Date(123L)); // Means it's not uploaded yet
-        song.setLanguage(languages.get(languageSpinner.getSelectedItemPosition()));
+        song.setLanguage(language);
 
         Intent intent = new Intent(this, SongActivity.class);
         song.setNewSong(true);
         Memory.getInstance().setPassingSong(song);
         startActivityForResult(intent, SongActivity.NEW_SONG_REQUEST);
+    }
+
+    private Language getLanguage(List<Language> languages) {
+        int selectedItemPosition = languageSpinner.getSelectedItemPosition();
+        if (selectedItemPosition < 0 || selectedItemPosition >= languages.size()) {
+            return null;
+        }
+        return languages.get(selectedItemPosition);
     }
 
     private void saveSong() {

@@ -138,4 +138,5 @@
     <string name="password_or_email_incorrect">Password or email incorrect</string>
     <string name="create_account">Create account</string>
     <string name="upload_song">Upload song</string>
+    <string name="Couldnt_get_selected_language">Couldn\'t get selected language!</string>
 </resources>

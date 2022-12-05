@@ -56,6 +56,9 @@ public class LoadActivity extends AppCompatActivity {
         noInternetConnectionToast = Toast.makeText(getApplicationContext(), SERVER_IS_NOT_AVAILABLE, Toast.LENGTH_LONG);
         loadActivity = this;
         List<Language> languages = Memory.getInstance().getPassingLanguages();
+        if (languages == null) {
+            return;
+        }
         List<LanguageProgress> selectedLanguages = new ArrayList<>();
         for (Language language : languages) {
             selectedLanguages.add(new LanguageProgress(language));
