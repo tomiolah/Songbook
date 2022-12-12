@@ -40,8 +40,12 @@ public class UserProperties extends BaseEntity {
     }
 
     public NotificationByLanguage getNotificationByLanguage(Language language) {
+        if (language == null) {
+            return null;
+        }
         for (NotificationByLanguage notification : getNotifications()) {
-            if (notification.getLanguage().getUuid().equals(language.getUuid())) {
+            Language notificationLanguage = notification.getLanguage();
+            if (notificationLanguage != null && notificationLanguage.getUuid().equals(language.getUuid())) {
                 return notification;
             }
         }

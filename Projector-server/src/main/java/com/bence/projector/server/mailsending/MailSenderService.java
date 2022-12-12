@@ -60,8 +60,10 @@ public class MailSenderService {
             ensureUserProperties(user);
             Language language = songService.findOneByUuid(suggestion.getSongUuid()).getLanguage();
             NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
-            notificationByLanguage.getSuggestionStack().add(suggestion);
-            notificationByLanguageService.save(notificationByLanguage);
+            if (notificationByLanguage != null) {
+                notificationByLanguage.getSuggestionStack().add(suggestion);
+                notificationByLanguageService.save(notificationByLanguage);
+            }
             tryToSendAllPrevious();
         } catch (Exception e) {
             e.printStackTrace();
@@ -82,8 +84,10 @@ public class MailSenderService {
         ensureUserProperties(user);
         Language language = song.getLanguage();
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
-        notificationByLanguage.getNewSongStack().add(song);
-        notificationByLanguageService.save(notificationByLanguage);
+        if (notificationByLanguage != null) {
+            notificationByLanguage.getNewSongStack().add(song);
+            notificationByLanguageService.save(notificationByLanguage);
+        }
         tryToSendAllPrevious();
     }
 
@@ -105,6 +109,10 @@ public class MailSenderService {
     private void tryToSend(Language language, User user) {
         user = userService.findOneByUuid(user.getUuid());
         NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
+        if (notificationByLanguage == null) {
+            System.out.println("notificationByLanguage is null");
+            return;
+        }
         List<Suggestion> suggestionStack = notificationByLanguage.getSuggestionStack();
         int suggestionStackSize = suggestionStack.size();
         if (suggestionStackSize > 0 && notificationByLanguage.isSuggestions()) {
