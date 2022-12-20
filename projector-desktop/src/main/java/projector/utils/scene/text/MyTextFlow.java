@@ -8,13 +8,8 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.image.Image;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -31,6 +26,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+
+import static projector.controller.ProjectionScreenController.getBackgroundByPath;
 
 /**
  * Adds additional API to {@link TextFlow}.
@@ -569,8 +566,7 @@ public class MyTextFlow extends TextFlow {
 
     public void setBackGroundColor() {
         if (!projectionScreenSettings.isBackgroundImage()) {
-            BackgroundFill myBF = new BackgroundFill(projectionScreenSettings.getBackgroundColor(), new CornerRadii(1),
-                    new Insets(0.0, 0.0, 0.0, 0.0));
+            BackgroundFill myBF = new BackgroundFill(projectionScreenSettings.getBackgroundColor(), new CornerRadii(1), new Insets(0.0, 0.0, 0.0, 0.0));
             // then you set to your node
             super.setBackground(new Background(myBF));
         } else {
@@ -580,12 +576,10 @@ public class MyTextFlow extends TextFlow {
 
     private void setBackGroundImage(int height) {
         if (projectionScreenSettings.isBackgroundImage()) {
-            Image image = new Image(projectionScreenSettings.getBackgroundImagePath(), width, height, false, true);
-            BackgroundImage backgroundImage = new BackgroundImage(
-                    image, BackgroundRepeat.NO_REPEAT,
-                    BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
-            Background background = new Background(backgroundImage);
-            super.setBackground(background);
+            Background background = getBackgroundByPath(projectionScreenSettings.getBackgroundImagePath(), width, height);
+            if (background != null) {
+                super.setBackground(background);
+            }
         }
     }
 

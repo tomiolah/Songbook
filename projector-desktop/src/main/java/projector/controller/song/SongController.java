@@ -1474,8 +1474,16 @@ public class SongController {
     private void resizeSongList(int size) {
         try {
             int width1;
-            final int width = (int) projectionScreenController.getScene().getWidth();
-            int height = (int) projectionScreenController.getScene().getHeight();
+            Scene scene = projectionScreenController.getScene();
+            int width;
+            int height;
+            if (scene != null) {
+                width = (int) scene.getWidth();
+                height = (int) scene.getHeight();
+            } else {
+                width = 16;
+                height = 9;
+            }
             if (height < 10) {
                 height = 10;
             }

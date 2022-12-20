@@ -95,6 +95,19 @@ public class ProjectionScreenController {
     private MainDesktop mainDesktop;
     private boolean setTextCalled = false;
 
+    public static Background getBackgroundByPath(String backgroundImagePath, int width, int height) {
+        try {
+            Image image = new Image(backgroundImagePath, width, height, false, true);
+            BackgroundImage backgroundImage = new BackgroundImage(image, BackgroundRepeat.NO_REPEAT,
+                    BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+            return new Background(backgroundImage);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
     public void initialize() {
         settings = Settings.getInstance();
         mainPane.setOnMousePressed(e -> {
@@ -177,9 +190,10 @@ public class ProjectionScreenController {
                 w = (int) scene.getWidth();
                 h = (int) scene.getHeight();
             }
-            mainPane.setBackground(new Background(new BackgroundImage(
-                    new Image(projectionScreenSettings.getBackgroundImagePath(), w, h, false, true), BackgroundRepeat.NO_REPEAT,
-                    BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT)));
+            Background background = getBackgroundByPath(projectionScreenSettings.getBackgroundImagePath(), w, h);
+            if (background != null) {
+                mainPane.setBackground(background);
+            }
         }
     }
 
