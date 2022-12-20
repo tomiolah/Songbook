@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
@@ -12,7 +13,10 @@ import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Popup;
@@ -139,7 +143,7 @@ public class MainDesktop extends Application {
         primaryStage.setScene(primaryScene);
         primaryStage.show();
         primaryStage.setTitle("Projector");
-        primaryStage.setX(0);
+        primaryStage.setX(getScreenTrueMinXByTransparentStage());
         primaryStage.setY(0);
         myController.setPrimaryStage(primaryStage);
         setProjectionScreen();
@@ -149,6 +153,31 @@ public class MainDesktop extends Application {
         createPreview();
         myController.initialTabSelect();
         primaryStage.requestFocus();
+    }
+
+    private double getScreenTrueMinXByTransparentStage() {
+        try {
+            Stage stage = new Stage();
+            Pane root = new Pane();
+            Background background = new Background(new BackgroundFill(Color.TRANSPARENT, CornerRadii.EMPTY, Insets.EMPTY));
+            root.setBackground(background);
+            stage.setOpacity(0.001);
+            Scene scene = new Scene(root, 100, 100);
+            scene.setFill(Color.TRANSPARENT);
+            stage.setScene(scene);
+            stage.show();
+            double stageX;
+            try {
+                stage.setMaximized(true);
+                stageX = stage.getX();
+                stage.setMaximized(false);
+            } finally {
+                stage.close();
+            }
+            return stageX;
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     private void createPreview() {
@@ -182,6 +211,9 @@ public class MainDesktop extends Application {
             addStylesheetToSceneBySettings(primaryScene, getClass());
             primaryScene.setOnKeyPressed(event -> {
                 KeyCode keyCode = event.getCode();
+                // remote stepper codes:
+                // F5 - start
+                // . end
                 if (event.isControlDown()) {
                     if (keyCode == KeyCode.DIGIT1) {
                         myController.selectTab(1);
