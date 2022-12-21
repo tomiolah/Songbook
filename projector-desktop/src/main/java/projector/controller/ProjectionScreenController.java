@@ -95,11 +95,23 @@ public class ProjectionScreenController {
     private MainDesktop mainDesktop;
     private boolean setTextCalled = false;
 
-    public static Background getBackgroundByPath(String backgroundImagePath, int width, int height) {
+    public static BackgroundImage getBackgroundImageByPath(String backgroundImagePath, int width, int height) {
         try {
             Image image = new Image(backgroundImagePath, width, height, false, true);
-            BackgroundImage backgroundImage = new BackgroundImage(image, BackgroundRepeat.NO_REPEAT,
-                    BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+            return new BackgroundImage(image, BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT, BackgroundSize.DEFAULT);
+        } catch (IllegalArgumentException ignored) {
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public static Background getBackgroundByPath(String backgroundImagePath, int width, int height) {
+        try {
+            BackgroundImage backgroundImage = getBackgroundImageByPath(backgroundImagePath, width, height);
+            if (backgroundImage == null) {
+                return null;
+            }
             return new Background(backgroundImage);
         } catch (IllegalArgumentException ignored) {
         } catch (Exception e) {
@@ -168,8 +180,7 @@ public class ProjectionScreenController {
         }
         if (!projectionScreenSettings.isBackgroundImage()) {
             Color backgroundColor = projectionScreenSettings.getBackgroundColor();
-            BackgroundFill myBF = new BackgroundFill(backgroundColor, new CornerRadii(1),
-                    new Insets(0.0, 0.0, 0.0, 0.0));
+            BackgroundFill myBF = new BackgroundFill(backgroundColor, new CornerRadii(1), new Insets(0.0, 0.0, 0.0, 0.0));
             mainPane.setBackground(new Background(myBF));
         } else {
             setBackGroundImage();
@@ -422,11 +433,9 @@ public class ProjectionScreenController {
                     stage2.close();
                     if (doubleProjectionScreenController != null) {
                         ProjectionScreensUtil.getInstance().removeProjectionScreenController(doubleProjectionScreenController);
-                        doubleProjectionScreenController
-                                .setParentProjectionScreenController(parentProjectionScreenController);
+                        doubleProjectionScreenController.setParentProjectionScreenController(parentProjectionScreenController);
                         if (parentProjectionScreenController != null) {
-                            parentProjectionScreenController
-                                    .setDoubleProjectionScreenController(doubleProjectionScreenController);
+                            parentProjectionScreenController.setDoubleProjectionScreenController(doubleProjectionScreenController);
                         }
                     }
                 });
@@ -546,8 +555,7 @@ public class ProjectionScreenController {
 
                 previewProjectionScreenController = loader2.getController();
                 String title = Settings.getInstance().getResourceBundle().getString("Preview");
-                ProjectionScreenHolder projectionScreenHolder =
-                        ProjectionScreensUtil.getInstance().addProjectionScreenController(previewProjectionScreenController, title);
+                ProjectionScreenHolder projectionScreenHolder = ProjectionScreensUtil.getInstance().addProjectionScreenController(previewProjectionScreenController, title);
                 previewProjectionScreenController.setScreen(Screen.getPrimary());
                 projectionScreenHolder.setScreenIndex(0);
                 double ratio = getSceneAspectRatio(mainPane.getScene());

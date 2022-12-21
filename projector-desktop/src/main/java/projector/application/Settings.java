@@ -2,11 +2,6 @@ package projector.application;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.scene.image.Image;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
 import javafx.scene.paint.Color;
 import javafx.scene.text.FontWeight;
 import org.slf4j.Logger;
@@ -43,7 +38,6 @@ public class Settings {
     private boolean withAccents = false;
     private Color backgroundColor = Color.BLACK;
     private Color color = Color.WHITE;
-    private BackgroundImage backgroundImage;
     private String backgroundImagePath;
     private boolean isBackgroundImage = false;
     private boolean isFastMode = true;
@@ -143,16 +137,8 @@ public class Settings {
         this.color = color;
     }
 
-    public synchronized BackgroundImage getBackgroundImage() {
-        return backgroundImage;
-    }
-
     public synchronized boolean isBackgroundImage() {
         return isBackgroundImage;
-    }
-
-    public synchronized void setBackgroundImage(BackgroundImage backgroundImage) {
-        this.backgroundImage = backgroundImage;
     }
 
     public synchronized void setBackgroundImage(boolean isBackgroundImage) {
@@ -381,12 +367,6 @@ public class Settings {
             isBackgroundImage = parseBoolean(br.readLine());
             br.readLine();
             backgroundImagePath = br.readLine();
-            if (isBackgroundImage) {
-                BackgroundImage myBI = new BackgroundImage(new Image(backgroundImagePath, 1024, 768, false, true),
-                        BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT,
-                        BackgroundSize.DEFAULT);
-                setBackgroundImage(myBI);
-            }
             br.readLine();
             isFastMode = parseBoolean(br.readLine());
             br.readLine();

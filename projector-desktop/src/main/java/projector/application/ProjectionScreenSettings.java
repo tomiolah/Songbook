@@ -137,14 +137,6 @@ public class ProjectionScreenSettings {
         this.color = color;
     }
 
-    @SuppressWarnings("unused")
-    public BackgroundImage getBackgroundImage() {
-        if (backgroundImage == null && useGlobalSettings) {
-            return settings.getBackgroundImage();
-        }
-        return backgroundImage;
-    }
-
     public boolean isBackgroundImage() {
         return isaBoolean(getIsBackgroundImage());
     }

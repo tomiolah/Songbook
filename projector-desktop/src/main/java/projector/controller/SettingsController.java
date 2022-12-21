@@ -16,11 +16,6 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.image.Image;
-import javafx.scene.layout.BackgroundImage;
-import javafx.scene.layout.BackgroundPosition;
-import javafx.scene.layout.BackgroundRepeat;
-import javafx.scene.layout.BackgroundSize;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -291,10 +286,6 @@ public class SettingsController {
         settings.setProgressLineColor(progressLineColorPicker.getValue());
         if (imageRadioButton.isSelected()) {
             settings.setBackgroundImage(true);
-            BackgroundImage myBI = new BackgroundImage(new Image(imagePathTextField.getText(), 1024, 768, false, true),
-                    BackgroundRepeat.NO_REPEAT, BackgroundRepeat.NO_REPEAT, BackgroundPosition.DEFAULT,
-                    BackgroundSize.DEFAULT);
-            settings.setBackgroundImage(myBI);
             settings.setBackgroundImagePath(imagePathTextField.getText().trim());
         } else {
             settings.setBackgroundImage(false);
