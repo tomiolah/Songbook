@@ -71,13 +71,12 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
 
             @Override
             public void afterTextChanged(Editable s) {
-                final String youtubeId = parseYoutubeUrl(String.valueOf(s));
-                if (youtubeId.length() < 21 && youtubeId.length() > 9) {
-                    youTubeView.setVisibility(View.VISIBLE);
-                    if (youtubePlayer == null) {
-                        final Thread thread = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
+                try {
+                    final String youtubeId = parseYoutubeUrl(String.valueOf(s));
+                    if (youtubeId.length() < 21 && youtubeId.length() > 9) {
+                        youTubeView.setVisibility(View.VISIBLE);
+                        if (youtubePlayer == null) {
+                            final Thread thread = new Thread(() -> {
                                 while (youtubePlayer == null) {
                                     try {
                                         //noinspection BusyWait
@@ -88,13 +87,15 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
                                 }
                                 youtubePlayer.cueVideo(youtubeId);
                                 youtubePlayer.play();
-                            }
-                        });
-                        thread.start();
-                    } else {
-                        youtubePlayer.cueVideo(youtubeId);
-                        youtubePlayer.play();
+                            });
+                            thread.start();
+                        } else {
+                            youtubePlayer.cueVideo(youtubeId);
+                            youtubePlayer.play();
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -171,22 +172,18 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
             return;
         }
         suggestionDTO.setSongId(song.getUuid());
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                SuggestionApiBean suggestionApiBean = new SuggestionApiBean();
-                final SuggestionDTO uploadedSuggestion = suggestionApiBean.uploadSuggestion(suggestionDTO);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (uploadedSuggestion != null && !uploadedSuggestion.getUuid().trim().isEmpty()) {
-                            Toast.makeText(SuggestYouTubeActivity.this, R.string.successfully_uploaded, Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(SuggestYouTubeActivity.this, R.string.upload_failed, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
+        Thread thread = new Thread(() -> {
+            SuggestionApiBean suggestionApiBean = new SuggestionApiBean();
+            final SuggestionDTO uploadedSuggestion = suggestionApiBean.uploadSuggestion(suggestionDTO);
+            runOnUiThread(() -> {
+                int resId;
+                if (uploadedSuggestion != null && !uploadedSuggestion.getUuid().trim().isEmpty()) {
+                    resId = R.string.successfully_uploaded;
+                } else {
+                    resId = R.string.upload_failed;
+                }
+                Toast.makeText(SuggestYouTubeActivity.this, resId, Toast.LENGTH_SHORT).show();
+            });
         });
         thread.start();
         song.setYoutubeUrl(youtubeId);

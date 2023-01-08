@@ -60,11 +60,16 @@ public class SuggestEditsActivity extends AppCompatActivity {
         song = Memory.getInstance().getPassingSong();
         if (song == null) {
             finish();
+            return;
         }
         Intent intent = getIntent();
         String method = intent.getStringExtra("method");
         titleEditText = findViewById(R.id.title);
         textEditText = findViewById(R.id.text);
+        if (titleEditText == null) {
+            finish();
+            return;
+        }
         titleEditText.setText(song.getTitle());
         textEditText.setText(getText(song));
         if (method != null && method.equals("EDIT")) {

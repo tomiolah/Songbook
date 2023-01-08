@@ -377,7 +377,12 @@ public class SongActivity extends AppCompatActivity {
             songListElement.setNumber(songListElements.size());
             songListElement.setSongList(songList);
             songListElements.add(songListElement);
-            new SongListElementRepositoryImpl(SongActivity.this).save(songListElement);
+            try {
+                new SongListElementRepositoryImpl(SongActivity.this).save(songListElement);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+                e.printStackTrace();
+            }
             saveToSongListPopupWindow.dismiss();
         });
         //noinspection deprecation

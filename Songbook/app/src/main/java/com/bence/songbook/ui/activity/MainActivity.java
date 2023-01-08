@@ -694,7 +694,14 @@ public class MainActivity extends AppCompatActivity
         bottomSheetBehavior.setSkipCollapsed(true);
     }
 
+    private List<Song> copyListOfSongs(List<Song> songs) {
+        ArrayList<Song> songArrayList = new ArrayList<>(songs.size());
+        songArrayList.addAll(songs);
+        return songArrayList;
+    }
+
     private void uploadViewsFavourites() {
+        List<Song> songs = copyListOfSongs(this.songs);
         Thread uploadViews = new Thread(() -> {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
             Date lastUploadedViewsDate = new Date(sharedPreferences.getLong("lastUploadedViewsDate", 0));
@@ -1824,6 +1831,9 @@ public class MainActivity extends AppCompatActivity
         for (QueueSong queueSong : queue) {
             if (queueSong.getSong() != null) {
                 Long id = queueSong.getSong().getId();
+                if (id == null) {
+                    continue;
+                }
                 Song song = sparseArray.get(id);
                 if (song != null) {
                     queueSong.setSong(song);
