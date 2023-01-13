@@ -2,15 +2,30 @@ package projector.controller;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.geometry.Side;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.application.Settings;
+import projector.model.CountdownTime;
+import projector.service.CountdownTimeService;
+import projector.service.ServiceManager;
 
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.List;
 
+import static projector.utils.ContextMenuUtil.getDeleteMenuItem;
+import static projector.utils.ContextMenuUtil.initializeContextMenu;
+import static projector.utils.ContextMenuUtil.setContextMenuHideAction;
 import static projector.utils.CountDownTimerUtil.getRemainedDate;
 import static projector.utils.CountDownTimerUtil.getTimeTextFromDate;
 import static projector.utils.KeyEventUtil.getTextFromEvent;
@@ -18,13 +33,18 @@ import static projector.utils.KeyEventUtil.getTextFromEvent;
 
 public class UtilsController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(UtilsController.class);
     @FXML
     private Label countDownLabel;
     @FXML
     private TextField timeTextField;
     private ProjectionScreenController projectionScreenController;
+    private MouseButton lastMouseButton = null;
+    private MouseEvent lastMouseEvent = null;
+    private ContextMenu deleteContextMenu = null;
 
     public void initialize() {
+        loadCountdownTimes(true);
         timeTextField.addEventFilter(KeyEvent.KEY_TYPED, event -> {
             String text = getTextFromEvent(event);
             if (!text.matches("[0-9]") && (timeTextField.getText().contains(":") && text.equals(":"))) {
@@ -47,6 +67,76 @@ public class UtilsController {
         thread.start();
     }
 
+    private void loadCountdownTimes(boolean setFirst) {
+        try {
+            List<CountdownTime> countdownTimes = ServiceManager.getCountdownTimeService().findAll();
+            if (countdownTimes.size() > 0) {
+                countdownTimes.sort((o1, o2) -> Long.compare(o2.getCounter(), o1.getCounter()));
+                if (setFirst) {
+                    timeTextField.setText(countdownTimes.get(0).getTimeText());
+                }
+            }
+            createCountdownTimesMenu(countdownTimes);
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void createCountdownTimesMenu(List<CountdownTime> countdownTimes) {
+        final ContextMenu contextMenu = new ContextMenu();
+        setContextMenuHideAction(contextMenu, LOG);
+        List<MenuItem> menuItems = new ArrayList<>();
+        contextMenu.addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+            lastMouseEvent = event;
+            lastMouseButton = event.getButton();
+        });
+        for (CountdownTime countdownTime : countdownTimes) {
+            MenuItem menuItem = new MenuItem(countdownTime.getTimeText());
+            menuItem.setOnAction(event -> {
+                if (isLastRightClick()) {
+                    createDeleteMenu(countdownTime, contextMenu, menuItem);
+                } else {
+                    timeTextField.setText(countdownTime.getTimeText());
+                }
+            });
+            menuItems.add(menuItem);
+        }
+        contextMenu.getItems().addAll(menuItems);
+        timeTextField.setOnMouseClicked(event -> {
+            contextMenu.show(timeTextField, Side.BOTTOM, 0, 0);
+            hideDeleteContextMenu();
+        });
+    }
+
+    private void createDeleteMenu(CountdownTime countdownTime, ContextMenu mainContextMenu, MenuItem menuItem) {
+        if (lastMouseEvent == null) {
+            return;
+        }
+        hideDeleteContextMenu();
+        final ContextMenu contextMenu = new ContextMenu();
+        deleteContextMenu = contextMenu;
+        initializeContextMenu(contextMenu, LOG);
+        MenuItem deleteMenuItem = getDeleteMenuItem();
+        deleteMenuItem.setText(deleteMenuItem.getText() + " - " + countdownTime.getTimeText());
+        deleteMenuItem.setOnAction(event -> {
+            mainContextMenu.getItems().remove(menuItem);
+            ServiceManager.getCountdownTimeService().delete(countdownTime);
+        });
+        contextMenu.getItems().addAll(deleteMenuItem,
+                new MenuItem(Settings.getInstance().getResourceBundle().getString("Cancel")));
+        contextMenu.show(timeTextField, lastMouseEvent.getScreenX(), lastMouseEvent.getScreenY());
+    }
+
+    private void hideDeleteContextMenu() {
+        if (deleteContextMenu != null) {
+            deleteContextMenu.hide();
+        }
+    }
+
+    private boolean isLastRightClick() {
+        return lastMouseButton != null && lastMouseButton == MouseButton.SECONDARY;
+    }
+
     private void setCountDownValue() {
         String timeTextFromDate = getTimeTextFromDate(getRemainedDate(getFinishDate()));
         if (!timeTextFromDate.isEmpty() && !countDownLabel.getText().equals(timeTextFromDate)) {
@@ -55,25 +145,51 @@ public class UtilsController {
     }
 
     private Date getFinishDate() {
-        String timeTextFieldText = timeTextField.getText();
-        String[] split = timeTextFieldText.split(":");
-        if (split.length < 2) {
+        try {
+            String timeTextFieldText = getTimeTextFieldText();
+            String[] split = timeTextFieldText.split(":");
+            if (split.length < 2) {
+                return null;
+            }
+            long hour = Integer.parseInt(split[0]);
+            long minute = Integer.parseInt(split[1]);
+            Date now = new Date();
+            Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
+            calendar.setTime(now);   // assigns calendar to given date
+            long hourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
+            long minuteOfHour = calendar.get(Calendar.MINUTE);
+            long secondsOfMinute = calendar.get(Calendar.SECOND);
+            long millisecondsTo = (((hour - hourOfDay) * 60 - minuteOfHour + minute) * 60 - secondsOfMinute) * 1000;
+            return new Date(now.getTime() + millisecondsTo);
+        } catch (Exception e) {
             return null;
         }
-        long hour = Integer.parseInt(split[0]);
-        long minute = Integer.parseInt(split[1]);
-        Date now = new Date();
-        Calendar calendar = GregorianCalendar.getInstance(); // creates a new calendar instance
-        calendar.setTime(now);   // assigns calendar to given date
-        long hourOfDay = calendar.get(Calendar.HOUR_OF_DAY);
-        long minuteOfHour = calendar.get(Calendar.MINUTE);
-        long secondsOfMinute = calendar.get(Calendar.SECOND);
-        long millisecondsTo = (((hour - hourOfDay) * 60 - minuteOfHour + minute) * 60 - secondsOfMinute) * 1000;
-        return new Date(now.getTime() + millisecondsTo);
+    }
+
+    private String getTimeTextFieldText() {
+        return timeTextField.getText().trim();
     }
 
     public void onShowCountDownButtonEvent() {
         projectionScreenController.setCountDownTimer(getFinishDate());
+        String timeText = getTimeTextFieldText();
+        CountdownTimeService countdownTimeService = ServiceManager.getCountdownTimeService();
+        List<CountdownTime> countdownTimes = countdownTimeService.findAll();
+        CountdownTime countdownTime = findCountdownTimeByTimeText(countdownTimes, timeText);
+        countdownTime.setCounter(countdownTime.getCounter() + 1);
+        countdownTimeService.create(countdownTime);
+        loadCountdownTimes(false);
+    }
+
+    private CountdownTime findCountdownTimeByTimeText(List<CountdownTime> countdownTimes, String timeText) {
+        for (CountdownTime countdownTime : countdownTimes) {
+            if (countdownTime.getTimeText().equals(timeText)) {
+                return countdownTime;
+            }
+        }
+        CountdownTime countdownTime = new CountdownTime();
+        countdownTime.setTimeText(timeText);
+        return countdownTime;
     }
 
     public void setProjectionScreenController(ProjectionScreenController projectionScreenController) {

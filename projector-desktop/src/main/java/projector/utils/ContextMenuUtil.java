@@ -19,6 +19,10 @@ public class ContextMenuUtil {
                 LOG.error(e.getMessage(), e);
             }
         });
+        setContextMenuHideAction(contextMenu, LOG);
+    }
+
+    public static void setContextMenuHideAction(ContextMenu contextMenu, Logger LOG) {
         contextMenu.setOnAction(event -> {
             try {
                 contextMenu.hide();

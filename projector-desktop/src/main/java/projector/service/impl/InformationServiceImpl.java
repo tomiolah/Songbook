@@ -11,7 +11,7 @@ import java.util.List;
 
 public class InformationServiceImpl extends AbstractBaseService<Information> implements InformationService {
 
-    private InformationDAO informationDAO = DAOFactory.getInstance().getInformationDAO();
+    private final InformationDAO informationDAO = DAOFactory.getInstance().getInformationDAO();
 
     public InformationServiceImpl() {
         super(DAOFactory.getInstance().getInformationDAO());

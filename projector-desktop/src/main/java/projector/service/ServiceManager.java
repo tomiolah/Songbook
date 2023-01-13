@@ -1,6 +1,7 @@
 package projector.service;
 
 import projector.service.impl.BibleServiceImpl;
+import projector.service.impl.CountdownTimeServiceImpl;
 import projector.service.impl.InformationServiceImpl;
 import projector.service.impl.LanguageServiceImpl;
 import projector.service.impl.SongCollectionElementServiceImpl;
@@ -64,5 +65,9 @@ public class ServiceManager {
 
     public static InfoService getInfoService() {
         return new InfoServiceImpl();
+    }
+
+    public static CountdownTimeService getCountdownTimeService() {
+        return new CountdownTimeServiceImpl();
     }
 }

@@ -11,6 +11,7 @@ import projector.model.Bible;
 import projector.model.BibleVerse;
 import projector.model.Book;
 import projector.model.Chapter;
+import projector.model.CountdownTime;
 import projector.model.Information;
 import projector.model.Language;
 import projector.model.Song;
@@ -52,6 +53,7 @@ public class DatabaseHelper {
     private Dao<Chapter, Long> chapterDao;
     private Dao<BibleVerse, Long> bibleVerseDao;
     private Dao<VerseIndex, Long> verseIndexDao;
+    private Dao<CountdownTime, Long> countdownTimeDao;
 
     private DatabaseHelper() {
         try {
@@ -207,6 +209,7 @@ public class DatabaseHelper {
             TableUtils.createTableIfNotExists(connectionSource, Chapter.class);
             TableUtils.createTableIfNotExists(connectionSource, BibleVerse.class);
             TableUtils.createTableIfNotExists(connectionSource, VerseIndex.class);
+            TableUtils.createTableIfNotExists(connectionSource, CountdownTime.class);
             try {
                 getSongVerseDao().executeRaw("ALTER TABLE `SONGVERSE` ADD COLUMN secondText VARCHAR(1000);");
             } catch (Exception ignored) {
@@ -334,6 +337,13 @@ public class DatabaseHelper {
             verseIndexDao = DaoManager.createDao(connectionSource, VerseIndex.class);
         }
         return verseIndexDao;
+    }
+
+    Dao<CountdownTime, Long> getCountdownTimeDao() throws SQLException {
+        if (countdownTimeDao == null) {
+            countdownTimeDao = DaoManager.createDao(connectionSource, CountdownTime.class);
+        }
+        return countdownTimeDao;
     }
 
     ConnectionSource getConnectionSource() {
