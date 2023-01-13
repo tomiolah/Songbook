@@ -39,3 +39,4 @@ Projector-server/src/main/java/com/bence/projector/server/Import.java
 /Songbook/*.pem
 /Songbook/*.jks
 /Projector-server/src/main/resources/static/.well-known/acme-challenge/
+mysql/

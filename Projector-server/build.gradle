@@ -61,6 +61,9 @@ dependencies {
     implementationOnly 'org.apache.poi:poi-ooxml:4.1.0'
     implementationOnly group: 'org.apache.poi', name: 'poi-scratchpad', version: '4.1.0'
 
+    // OpenAPI & Swagger AutoDocs
+    // Source: https://www.baeldung.com/spring-rest-openapi-documentation
+    implementation 'org.springdoc:springdoc-openapi-ui:1.6.4'
 }
 
 sourceSets {
