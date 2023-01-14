@@ -3,6 +3,7 @@ package projector.controller;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
@@ -13,6 +14,7 @@ import javafx.scene.input.MouseEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.Settings;
+import projector.controller.util.AutomaticAction;
 import projector.model.CountdownTime;
 import projector.service.CountdownTimeService;
 import projector.service.ServiceManager;
@@ -22,11 +24,12 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.ResourceBundle;
 
 import static projector.utils.ContextMenuUtil.getDeleteMenuItem;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
 import static projector.utils.ContextMenuUtil.setContextMenuHideAction;
-import static projector.utils.CountDownTimerUtil.getRemainedDate;
+import static projector.utils.CountDownTimerUtil.getRemainedTime;
 import static projector.utils.CountDownTimerUtil.getTimeTextFromDate;
 import static projector.utils.KeyEventUtil.getTextFromEvent;
 
@@ -34,6 +37,7 @@ import static projector.utils.KeyEventUtil.getTextFromEvent;
 public class UtilsController {
 
     private static final Logger LOG = LoggerFactory.getLogger(UtilsController.class);
+    public ComboBox<String> actionComboBox;
     @FXML
     private Label countDownLabel;
     @FXML
@@ -44,6 +48,7 @@ public class UtilsController {
     private ContextMenu deleteContextMenu = null;
 
     public void initialize() {
+        initializeActionComboBox();
         loadCountdownTimes(true);
         timeTextField.addEventFilter(KeyEvent.KEY_TYPED, event -> {
             String text = getTextFromEvent(event);
@@ -67,19 +72,46 @@ public class UtilsController {
         thread.start();
     }
 
+    private void initializeActionComboBox() {
+        try {
+            ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
+            actionComboBox.getItems().addAll(
+                    "-",
+                    resourceBundle.getString("Empty"),
+                    resourceBundle.getString("Song title"));
+            actionComboBox.getSelectionModel().select(0);
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private AutomaticAction getSelectedAction() {
+        return switch (actionComboBox.getSelectionModel().getSelectedIndex()) {
+            case 0 -> AutomaticAction.NOTHING;
+            case 1 -> AutomaticAction.EMPTY;
+            case 2 -> AutomaticAction.SONG_TITLE;
+            default -> null;
+        };
+    }
+
     private void loadCountdownTimes(boolean setFirst) {
         try {
             List<CountdownTime> countdownTimes = ServiceManager.getCountdownTimeService().findAll();
             if (countdownTimes.size() > 0) {
                 countdownTimes.sort((o1, o2) -> Long.compare(o2.getCounter(), o1.getCounter()));
                 if (setFirst) {
-                    timeTextField.setText(countdownTimes.get(0).getTimeText());
+                    fillWithSelected(countdownTimes.get(0));
                 }
             }
             createCountdownTimesMenu(countdownTimes);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void fillWithSelected(CountdownTime countdownTime) {
+        timeTextField.setText(countdownTime.getTimeText());
+        actionComboBox.getSelectionModel().select(countdownTime.getSelectedAction().ordinal());
     }
 
     private void createCountdownTimesMenu(List<CountdownTime> countdownTimes) {
@@ -96,7 +128,7 @@ public class UtilsController {
                 if (isLastRightClick()) {
                     createDeleteMenu(countdownTime, contextMenu, menuItem);
                 } else {
-                    timeTextField.setText(countdownTime.getTimeText());
+                    fillWithSelected(countdownTime);
                 }
             });
             menuItems.add(menuItem);
@@ -138,7 +170,8 @@ public class UtilsController {
     }
 
     private void setCountDownValue() {
-        String timeTextFromDate = getTimeTextFromDate(getRemainedDate(getFinishDate()));
+        Long remainedTime = getRemainedTime(getFinishDate());
+        String timeTextFromDate = getTimeTextFromDate(remainedTime);
         if (!timeTextFromDate.isEmpty() && !countDownLabel.getText().equals(timeTextFromDate)) {
             Platform.runLater(() -> countDownLabel.setText(timeTextFromDate));
         }
@@ -171,12 +204,14 @@ public class UtilsController {
     }
 
     public void onShowCountDownButtonEvent() {
-        projectionScreenController.setCountDownTimer(getFinishDate());
+        AutomaticAction selectedAction = getSelectedAction();
+        projectionScreenController.setCountDownTimer(getFinishDate(), selectedAction);
         String timeText = getTimeTextFieldText();
         CountdownTimeService countdownTimeService = ServiceManager.getCountdownTimeService();
         List<CountdownTime> countdownTimes = countdownTimeService.findAll();
         CountdownTime countdownTime = findCountdownTimeByTimeText(countdownTimes, timeText);
         countdownTime.setCounter(countdownTime.getCounter() + 1);
+        countdownTime.setSelectedAction(selectedAction);
         countdownTimeService.create(countdownTime);
         loadCountdownTimes(false);
     }

@@ -238,6 +238,7 @@ public class DatabaseHelper {
             TableUtils.dropTable(connectionSource, Chapter.class, true);
             TableUtils.dropTable(connectionSource, BibleVerse.class, true);
             TableUtils.dropTable(connectionSource, VerseIndex.class, true);
+            TableUtils.dropTable(connectionSource, CountdownTime.class, true);
         } catch (final Exception e) {
             LOG.error("Unable to upgrade database", e);
         }

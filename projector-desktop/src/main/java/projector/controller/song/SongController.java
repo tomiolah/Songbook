@@ -653,10 +653,7 @@ public class SongController {
             songListView.setOnMouseClicked(event -> {
                 try {
                     if (event.getClickCount() == 2) {
-                        projectionScreenController.setText2(
-                                songListViewItems.get(songListView.getSelectionModel().getSelectedIndex()).getRawText(),
-                                ProjectionType.SONG);
-                        timeStart = System.currentTimeMillis();
+                        slideReSelect();
                     }
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
@@ -728,6 +725,17 @@ public class SongController {
             initializeSongs();
             initializeVerseOrderList();
             hideOpenLPImportButton();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void slideReSelect() {
+        try {
+            int selectedIndex = songListView.getSelectionModel().getSelectedIndex();
+            MyTextFlow myTextFlow = songListView.getItems().get(selectedIndex);
+            projectionScreenController.setText2(myTextFlow.getRawText(), ProjectionType.SONG);
+            timeStart = System.currentTimeMillis();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -2739,5 +2747,18 @@ public class SongController {
             }
         });
         thread.start();
+    }
+
+    public void selectSongTitle() {
+        try {
+            MultipleSelectionModel<MyTextFlow> selectionModel = songListView.getSelectionModel();
+            if (selectionModel.getSelectedIndex() == 0) {
+                slideReSelect();
+            } else {
+                selectionModel.clearAndSelect(0);
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 }

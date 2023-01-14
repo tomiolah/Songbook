@@ -34,6 +34,7 @@ import projector.application.Settings;
 import projector.controller.listener.OnBlankListener;
 import projector.controller.listener.ViewChangedListener;
 import projector.controller.song.SongController;
+import projector.controller.util.AutomaticAction;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
 import projector.utils.scene.text.MyTextFlow;
@@ -45,7 +46,7 @@ import java.util.Date;
 import java.util.List;
 
 import static projector.controller.MyController.calculateSizeByScale;
-import static projector.utils.CountDownTimerUtil.getRemainedDate;
+import static projector.utils.CountDownTimerUtil.getRemainedTime;
 import static projector.utils.CountDownTimerUtil.getTimeTextFromDate;
 import static projector.utils.SceneUtils.getAStage;
 
@@ -254,7 +255,7 @@ public class ProjectionScreenController {
         }
     }
 
-    public void setCountDownTimer(Date finishedDate) {
+    public void setCountDownTimer(Date finishedDate, AutomaticAction automaticAction) {
         countDownTimerRunning = false;
         if (countDownTimerThread != null) {
             try {
@@ -264,9 +265,15 @@ public class ProjectionScreenController {
             }
         }
         countDownTimerThread = new Thread(() -> {
-            while (countDownTimerRunning) {
+            while (countDownTimerRunning && settings.isApplicationRunning()) {
                 try {
-                    String timeTextFromDate = getTimeTextFromDate(getRemainedDate(finishedDate));
+                    Long remainedTime = getRemainedTime(finishedDate);
+                    if (remainedTime != null && remainedTime <= 0) {
+                        countDownTimerRunning = false;
+                        doTheAutomaticAction(automaticAction);
+                        break;
+                    }
+                    String timeTextFromDate = getTimeTextFromDate(remainedTime);
                     if (!timeTextFromDate.isEmpty() && !activeText.equals(timeTextFromDate)) {
                         Platform.runLater(() -> setText(timeTextFromDate, ProjectionType.COUNTDOWN_TIMER, projectionDTO));
                     }
@@ -279,6 +286,18 @@ public class ProjectionScreenController {
         });
         countDownTimerRunning = true;
         countDownTimerThread.start();
+    }
+
+    private void doTheAutomaticAction(AutomaticAction automaticAction) {
+        if (automaticAction == AutomaticAction.NOTHING) {
+            return;
+        }
+        Platform.runLater(() -> {
+            switch (automaticAction) {
+                case EMPTY -> setText("", ProjectionType.SONG, projectionDTO);
+                case SONG_TITLE -> songController.selectSongTitle();
+            }
+        });
     }
 
     public void setText2(String newText, ProjectionType projectionType) {

@@ -31,7 +31,7 @@ public class CountDownTimerUtil {
         return s;
     }
 
-    public static Long getRemainedDate(Date finishDate) {
+    public static Long getRemainedTime(Date finishDate) {
         Date now = new Date();
         if (finishDate == null) {
             return null;

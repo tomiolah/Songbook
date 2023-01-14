@@ -1,6 +1,7 @@
 package projector.model;
 
 import com.j256.ormlite.field.DatabaseField;
+import projector.controller.util.AutomaticAction;
 
 public class CountdownTime extends BaseEntity {
 
@@ -8,6 +9,8 @@ public class CountdownTime extends BaseEntity {
     private String timeText;
     @DatabaseField
     private Long counter;
+    @DatabaseField
+    private AutomaticAction selectedAction;
 
     public String getTimeText() {
         return timeText;
@@ -26,5 +29,13 @@ public class CountdownTime extends BaseEntity {
 
     public void setCounter(long counter) {
         this.counter = counter;
+    }
+
+    public AutomaticAction getSelectedAction() {
+        return selectedAction;
+    }
+
+    public void setSelectedAction(AutomaticAction selectedAction) {
+        this.selectedAction = selectedAction;
     }
 }
