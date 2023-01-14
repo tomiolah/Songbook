@@ -508,7 +508,10 @@ public class ProjectionScreenController {
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
                 Stage stage2 = getAStage(getClass());
                 stage2.setTitle("Custom Canvas");
-                ProjectionScreensUtil.getInstance().addProjectionScreenController(customStageController, stage2.getTitle());
+                ProjectionScreenHolder projectionScreenHolder =
+                        ProjectionScreensUtil.getInstance().addProjectionScreenController(customStageController, stage2.getTitle());
+                projectionScreenHolder.setScreenIndex(0);
+                customStageController.setScreen(Screen.getPrimary());
                 stage2.initStyle(StageStyle.TRANSPARENT);
                 scene2.setFill(Color.TRANSPARENT);
                 stage2.setScene(scene2);

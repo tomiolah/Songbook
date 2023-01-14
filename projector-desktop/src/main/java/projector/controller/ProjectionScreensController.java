@@ -247,7 +247,7 @@ public class ProjectionScreensController {
                     height = height * scale;
                 }
             }
-            sizeLabel.setText("(" + (int) (width) + " x " + (int) (height) + ")");
+            sizeLabel.setText("(" + (int) (Math.round(width)) + " x " + (int) (Math.round(height)) + ")");
         });
         HBox.setMargin(sizeLabel, new Insets(0, 0, 0, 12));
         ObservableList<Node> hBoxChildren = hBox.getChildren();

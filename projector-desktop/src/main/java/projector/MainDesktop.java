@@ -358,15 +358,23 @@ public class MainDesktop extends Application {
         }
     }
 
-    public void setProjectionScreenStage(boolean fromToggleButton) {
+    private ListIterator<Screen> getScreenListIteratorAndSetMainScreen() {
         ListIterator<Screen> it = screenObservableList.listIterator(0);
         while (it.hasPrevious()) {
             it.previous();
         }
         if (!it.hasNext()) {
-            return;
+            return null;
         }
         mainScreen = it.next(); // primary screen
+        return it;
+    }
+
+    public void setProjectionScreenStage(boolean fromToggleButton) {
+        ListIterator<Screen> it = getScreenListIteratorAndSetMainScreen();
+        if (it == null) {
+            return;
+        }
         showProjectionScreenOnNextScreen(it, fromToggleButton);
         int index = 0;
         while (it.hasNext()) {
@@ -500,6 +508,7 @@ public class MainDesktop extends Application {
         canvasStage = getAStage(getClass());
         canvasStage.setScene(scene);
         canvasStage.setTitle(Settings.getInstance().getResourceBundle().getString("Canvas"));
+        getScreenListIteratorAndSetMainScreen();
         projectionScreenController.setScreen(mainScreen);
         projectionScreenController.getProjectionScreenSettings().getProjectionScreenHolder().setScreenIndex(0);
         tmpStage = canvasStage;
