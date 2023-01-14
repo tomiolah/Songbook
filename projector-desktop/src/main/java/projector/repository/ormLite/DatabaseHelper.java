@@ -38,7 +38,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 15;
+    private final int DATABASE_VERSION = 16;
     private final ConnectionSource connectionSource;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
@@ -148,11 +148,18 @@ public class DatabaseHelper {
                         LOG.error(e.getMessage(), e);
                     }
                 }
-                //noinspection ConstantConditions
                 if (oldVersion <= 14) {
                     Dao<Bible, Long> bibleDao = getBibleDao();
                     try {
                         bibleDao.executeRaw("ALTER TABLE `bible` ADD COLUMN preferredByRemote INTEGER");
+                    } catch (Exception ignored) {
+                    }
+                }
+                //noinspection ConstantConditions
+                if (oldVersion <= 15) {
+                    Dao<SongCollection, Long> songCollectionDao = getSongCollectionDao();
+                    try {
+                        songCollectionDao.executeRaw("ALTER TABLE `songCollection` ADD COLUMN showInTitle BOOLEAN");
                     } catch (Exception ignored) {
                     }
                 }

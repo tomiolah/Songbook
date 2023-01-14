@@ -17,6 +17,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
@@ -106,11 +107,13 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
 
 import static com.bence.projector.common.converter.OpenLPXmlConverter.getXmlSongs;
 import static java.lang.Math.min;
+import static projector.controller.MessageDialogController.confirmDeletion;
 import static projector.utils.ContextMenuUtil.getDeleteMenuItem;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
 import static projector.utils.KeyEventUtil.getTextFromEvent;
@@ -280,6 +283,18 @@ public class SongController {
         }
     }
 
+    private static SongCollection getSongCollectionFromRepository(SongCollectionElement songCollectionElement) {
+        SongCollection songCollection = songCollectionElement.getSongCollection();
+        if (songCollection == null) {
+            return null;
+        }
+        SongCollection byUuid = ServiceManager.getSongCollectionService().findByUuid(songCollection.getUuid());
+        if (byUuid == null) {
+            return songCollection;
+        }
+        return byUuid;
+    }
+
     public synchronized void lazyInitialize() {
         if (initialized) {
             return;
@@ -343,7 +358,10 @@ public class SongController {
                             }
                             ObservableList<Node> children = textFlow.getChildren();
                             for (SongCollectionElement songCollectionElement : song.getSongCollectionElements()) {
-                                SongCollection songCollection = songCollectionElement.getSongCollection();
+                                SongCollection songCollection = getSongCollectionFromRepository(songCollectionElement);
+                                if (songCollection == null) {
+                                    continue;
+                                }
                                 Text collectionName = new Text(songCollection.getName() + " ");
                                 collectionName.setFill(Color.rgb(0, 9, 118));
                                 children.add(collectionName);
@@ -425,7 +443,10 @@ public class SongController {
                         myTextFlow.setOpacity(minOpacity);
                         StringBuilder selectedSongTitle = new StringBuilder();
                         for (SongCollectionElement songCollectionElement : selectedSong.getSongCollectionElements()) {
-                            SongCollection songCollection = songCollectionElement.getSongCollection();
+                            SongCollection songCollection = getSongCollectionFromRepository(songCollectionElement);
+                            if (songCollection == null || !songCollection.isShowInTitle()) {
+                                continue;
+                            }
                             selectedSongTitle.append(songCollection.getName());
                             selectedSongTitle.append(" ").append(songCollectionElement.getOrdinalNumber());
                             selectedSongTitle.append("\n");
@@ -2111,7 +2132,7 @@ public class SongController {
             });
             deleteMenuItem.setOnAction(event -> {
                 try {
-                    deleteSong(searchedSongListView.getSelectionModel().getSelectedItem());
+                    confirmDeletion(() -> deleteSong(searchedSongListView.getSelectionModel().getSelectedItem()), LOG, getClass());
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
                 }
@@ -2157,10 +2178,16 @@ public class SongController {
         try {
             final ContextMenu cm = new ContextMenu();
             initializeContextMenu(cm, LOG);
-            MenuItem editMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Edit"));
-            MenuItem deleteMenuItem = new MenuItem(Settings.getInstance().getResourceBundle().getString("Delete"));
-//            cm.getItems().addAll(editMenuItem, deleteMenuItem);
-            cm.getItems().addAll(deleteMenuItem);
+            ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
+            MenuItem editMenuItem = new MenuItem(resourceBundle.getString("Edit"));
+            CheckMenuItem showInTitleMenuItem = new CheckMenuItem(resourceBundle.getString("Show in title"));
+            MenuItem deleteMenuItem = new MenuItem(resourceBundle.getString("Delete"));
+            cm.getItems().addAll(showInTitleMenuItem, deleteMenuItem);
+            showInTitleMenuItem.setOnAction(event -> {
+                SongCollection songCollection = getSelectedSongCollection();
+                songCollection.setShowInTitle(!songCollection.isShowInTitle());
+                ServiceManager.getSongCollectionService().update(songCollection);
+            });
             editMenuItem.setOnAction(new EventHandler<>() {
 
                 @Override
@@ -2172,7 +2199,7 @@ public class SongController {
                         Pane root = loader.load();
                         NewSongCollectionController newSongCollectionController = loader.getController();
                         newSongCollectionController.setSongController(songController);
-                        newSongCollectionController.setEditing(true, songCollectionListView.getSelectionModel().getSelectedItem());
+                        newSongCollectionController.setEditing(true, getSelectedSongCollection());
                         newSongCollectionController.setSongs(songs);
                         Scene scene = new Scene(root);
                         setSceneStyleFile(scene);
@@ -2195,10 +2222,12 @@ public class SongController {
             });
             deleteMenuItem.setOnAction(event -> {
                 try {
-                    SongCollectionService SongCollectionService = ServiceManager.getSongCollectionService();
-                    SongCollection selectedItem = songCollectionListView.getSelectionModel().getSelectedItem();
-                    SongCollectionService.delete(selectedItem);
-                    songCollectionListView.getItems().remove(selectedItem);
+                    confirmDeletion(() -> {
+                        SongCollectionService SongCollectionService = ServiceManager.getSongCollectionService();
+                        SongCollection selectedItem = getSelectedSongCollection();
+                        SongCollectionService.delete(selectedItem);
+                        songCollectionListView.getItems().remove(selectedItem);
+                    }, LOG, getClass());
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
                 }
@@ -2207,6 +2236,8 @@ public class SongController {
             songCollectionListView.setOnMouseClicked(event -> {
                 try {
                     if (event.getButton() == MouseButton.SECONDARY && !songCollectionListView.getSelectionModel().getSelectedIndices().get(0).equals(0)) {
+                        SongCollection songCollection = getSelectedSongCollection();
+                        showInTitleMenuItem.setSelected(songCollection.isShowInTitle());
                         cm.show(songCollectionListView, event.getScreenX(), event.getScreenY());
                     } else {
                         cm.hide();
@@ -2218,6 +2249,10 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private SongCollection getSelectedSongCollection() {
+        return songCollectionListView.getSelectionModel().getSelectedItem();
     }
 
     void addSongCollections() {

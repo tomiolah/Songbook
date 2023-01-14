@@ -209,7 +209,11 @@ public class BibleController {
     }
 
     public static void setSceneStyleFile(Scene scene) {
-        Settings.getInstance().getBibleController().setStyleFile(scene);
+        try {
+            Settings.getInstance().getBibleController().setStyleFile(scene);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static Integer getFirstFromSelectedIndices(ObservableList<Integer> ob) {

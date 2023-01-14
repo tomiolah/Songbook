@@ -6,11 +6,17 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.application.Settings;
+import projector.controller.util.OnResultListener;
 
+import java.util.ResourceBundle;
+
+import static projector.controller.BibleController.setSceneStyleFile;
 import static projector.utils.SceneUtils.addIconToStage;
 import static projector.utils.SceneUtils.getAStage;
 
@@ -30,15 +36,35 @@ public class MessageDialogController {
             MessageDialogController controller = loader.getController();
             controller.setStage(stage);
             Scene scene = new Scene(borderPane, borderPane.getPrefWidth(), borderPane.getPrefHeight());
+            setSceneStyleFile(scene);
             stage.setScene(scene);
             addIconToStage(stage, aClass);
             stage.setTitle(title);
-            stage.show();
             return controller;
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
         return null;
+    }
+
+    public static void confirmDeletion(OnResultListener onResultListener, Logger log, Class<?> aClass) {
+        try {
+            ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
+            MessageDialogController messageDialog = MessageDialogController.getMessageDialog(aClass, resourceBundle.getString("Confirm deletion") + "!");
+            if (messageDialog == null) {
+                return;
+            }
+            Button confirmButton = new Button(resourceBundle.getString("Delete"));
+            messageDialog.addButton(confirmButton);
+            messageDialog.addCancelButton();
+            confirmButton.setOnAction(event -> {
+                messageDialog.close();
+                onResultListener.onResult();
+            });
+            messageDialog.showAndWait();
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
     }
 
     public void setStage(Stage stage) {
@@ -79,5 +105,10 @@ public class MessageDialogController {
 
     public void show() {
         stage.show();
+    }
+
+    public void showAndWait() {
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.showAndWait();
     }
 }

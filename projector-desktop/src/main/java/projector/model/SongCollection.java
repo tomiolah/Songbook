@@ -34,9 +34,10 @@ public class SongCollection extends BaseEntity {
     private List<Song> songs;
     private String strippedName;
     private String strippedShortName;
-    private String shortName;
     @DatabaseField
     private Boolean needUpload;
+    @DatabaseField
+    private Boolean showInTitle;
 
     public SongCollection() {
     }
@@ -137,14 +138,7 @@ public class SongCollection extends BaseEntity {
     }
 
     private String getShortName() {
-        if (shortName == null) {
-            return parseToShortName();
-        }
-        return shortName;
-    }
-
-    public void setShortName(String shortName) {
-        this.shortName = shortName;
+        return parseToShortName();
     }
 
     private String parseToShortName() {
@@ -182,10 +176,6 @@ public class SongCollection extends BaseEntity {
         return name;
     }
 
-    public Boolean getNeedUpload() {
-        return needUpload;
-    }
-
     public boolean isNeedUpload() {
         if (needUpload == null) {
             return false;
@@ -195,5 +185,13 @@ public class SongCollection extends BaseEntity {
 
     public void setNeedUpload(Boolean needUpload) {
         this.needUpload = needUpload;
+    }
+
+    public boolean isShowInTitle() {
+        return showInTitle == null || showInTitle;
+    }
+
+    public void setShowInTitle(Boolean showInTitle) {
+        this.showInTitle = showInTitle;
     }
 }
