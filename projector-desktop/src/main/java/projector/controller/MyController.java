@@ -6,8 +6,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.Menu;
-import javafx.scene.control.MenuBar;
+import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
@@ -28,6 +29,8 @@ import projector.network.TCPClient;
 import projector.network.TCPServer;
 import projector.remote.RemoteServer;
 import projector.utils.GlobalKeyListenerExample;
+import projector.utils.MarkTextFlow;
+import projector.utils.scene.text.MyTextFlow;
 
 import java.awt.*;
 import java.io.IOException;
@@ -39,10 +42,6 @@ import static projector.utils.SceneUtils.getAStage;
 public class MyController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MyController.class);
-    @FXML
-    private MenuBar menuBar;
-    @FXML
-    private Menu settingsMenu;
     @FXML
     private ToggleButton showProjectionScreenToggleButton;
     @FXML
@@ -136,7 +135,6 @@ public class MyController {
     public void initialize() {
         settings = Settings.getInstance();
         settings.setBibleController(bibleController);
-        initializeSettingsController();
         bibleSearchController.setBibleController(bibleController);
         bibleSearchController.setMainController(this);
         bibleController.setMainController(this);
@@ -144,14 +142,12 @@ public class MyController {
         bibleController.setBibleSearchController(bibleSearchController);
         bibleController.setRecentController(recentController);
         bibleController.setHistoryController(historyController);
-        bibleController.setSettingsController(settingsController);
         songController.setRecentController(recentController);
         scheduleController = new ScheduleController();
         songController.setScheduleController(scheduleController);
         recentController.setSongController(songController);
         recentController.setBibleController(bibleController);
         scheduleController.setSongController(songController);
-        settingsController.setSettings(settings);
         historyController.setBibleController(bibleController);
         blankButton.setFocusTraversable(false);
         lockButton.setFocusTraversable(false);
@@ -200,13 +196,14 @@ public class MyController {
         }
     }
 
-    private void initializeSettingsController() {
+    public void initializeSettingsController(Menu settingsMenu) {
         ResourceBundle resourceBundle = settings.getResourceBundle();
         String title = resourceBundle.getString("Settings");
         Label menuLabel = new Label(title);
         menuLabel.setOnMouseClicked(event -> onSettingsMenu());
         settingsMenu.setText("");
         settingsMenu.setGraphic(menuLabel);
+        settingsMenu.setOnAction(event -> onSettingsMenu());
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("/view/Settings.fxml"));
         loader.setResources(resourceBundle);
@@ -221,6 +218,8 @@ public class MyController {
             settingsStage.setTitle(title);
             settingsController = loader.getController();
             settingsController.setStage(settingsStage);
+            settingsController.setSettings(settings);
+            bibleController.setSettingsController(settingsController);
         } catch (IOException ignored) {
         }
     }
@@ -286,31 +285,35 @@ public class MyController {
     }
 
     public void goPrev() {
-        if (tabPane.getSelectionModel().getSelectedIndex() == 0) {
-            if (bibleController.getVerseListView().getSelectionModel().getSelectedIndex() - 1 >= 0) {
-                bibleController.getVerseListView().getSelectionModel()
-                        .clearAndSelect(bibleController.getVerseListView().getSelectionModel().getSelectedIndex() - 1);
+        int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
+        if (selectedIndex == 0) {
+            MultipleSelectionModel<MarkTextFlow> selectionModel = bibleController.getVerseListView().getSelectionModel();
+            int selectionModelSelectedIndex = selectionModel.getSelectedIndex();
+            if (selectionModelSelectedIndex - 1 >= 0) {
+                selectionModel.clearAndSelect(selectionModelSelectedIndex - 1);
             }
-        } else if (tabPane.getSelectionModel().getSelectedIndex() == 2) {
-            if (songController.getSongListView().getSelectionModel().getSelectedIndex() - 1 >= 0) {
-                songController.getSongListView().getSelectionModel()
-                        .clearAndSelect(songController.getSongListView().getSelectionModel().getSelectedIndex() - 1);
+        } else if (selectedIndex == 2) {
+            MultipleSelectionModel<MyTextFlow> selectionModel = songController.getSongListView().getSelectionModel();
+            int selectionModelSelectedIndex = selectionModel.getSelectedIndex();
+            if (selectionModelSelectedIndex - 1 >= 0) {
+                selectionModel.clearAndSelect(selectionModelSelectedIndex - 1);
             }
         }
     }
 
     public void goNext() {
-        if (tabPane.getSelectionModel().getSelectedIndex() == 0) {
-            if (bibleController.getVerseListView().getSelectionModel().getSelectedIndex() + 1 < bibleController
-                    .getVerseListView().getItems().size()) {
-                bibleController.getVerseListView().getSelectionModel()
-                        .clearAndSelect(bibleController.getVerseListView().getSelectionModel().getSelectedIndex() + 1);
+        int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
+        if (selectedIndex == 0) {
+            ListView<MarkTextFlow> verseListView = bibleController.getVerseListView();
+            MultipleSelectionModel<MarkTextFlow> selectionModel = verseListView.getSelectionModel();
+            if (selectionModel.getSelectedIndex() + 1 < verseListView.getItems().size()) {
+                selectionModel.clearAndSelect(selectionModel.getSelectedIndex() + 1);
             }
-        } else if (tabPane.getSelectionModel().getSelectedIndex() == 2) {
-            if (songController.getSongListView().getSelectionModel().getSelectedIndex() + 1 < songController
-                    .getSongListView().getItems().size()) {
-                songController.getSongListView().getSelectionModel()
-                        .clearAndSelect(songController.getSongListView().getSelectionModel().getSelectedIndex() + 1);
+        } else if (selectedIndex == 2) {
+            ListView<MyTextFlow> songListView = songController.getSongListView();
+            MultipleSelectionModel<MyTextFlow> selectionModel = songListView.getSelectionModel();
+            if (selectionModel.getSelectedIndex() + 1 < songListView.getItems().size()) {
+                selectionModel.clearAndSelect(selectionModel.getSelectedIndex() + 1);
             }
             songController.selectNextSongFromScheduleIfLastIndex();
         }
