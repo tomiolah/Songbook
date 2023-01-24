@@ -632,7 +632,6 @@ public class ProjectionScreenController {
                     }
                     settings.save();
                 });
-                previewProjectionScreenController.setText(activeText, projectionType, projectionDTO);
             } catch (IOException | NullPointerException e) {
                 LOG.error(e.getMessage(), e);
             }
@@ -643,6 +642,9 @@ public class ProjectionScreenController {
             stage.setWidth(settings.getPreviewWidth());
             stage.setHeight(settings.getPreviewHeight());
             stage.show();
+        }
+        if (previewProjectionScreenController != null) {
+            previewProjectionScreenController.setText(activeText, projectionType, projectionDTO);
         }
     }
 
