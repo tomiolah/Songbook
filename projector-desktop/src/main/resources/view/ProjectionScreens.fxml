@@ -24,7 +24,6 @@
                                     <Insets left="12.0"/>
                                 </HBox.margin>
                             </Label>
-
                             <ToggleButton maxHeight="5.0" mnemonicParsing="false"
                                           prefHeight="5.0" text="%Blank">
                                 <HBox.margin>
