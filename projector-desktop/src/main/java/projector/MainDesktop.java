@@ -208,6 +208,9 @@ public class MainDesktop extends Application {
             primaryScene = new Scene(root, settings.getMainWidth(), settings.getMainHeight());
             WindowController windowController = createWindowController(getClass(), primaryScene, primaryStage);
             addSettingsMenu(windowController);
+            if (windowController != null) {
+                windowController.setOnCloseListener(() -> ApplicationUtil.getInstance().closeApplication());
+            }
             primaryScene = primaryStage.getScene();
             primaryScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
                 if (event.isAltDown()) {
