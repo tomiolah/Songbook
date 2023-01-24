@@ -35,6 +35,7 @@ import projector.utils.scene.text.MyTextFlow;
 import java.awt.*;
 import java.io.IOException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
 
 import static projector.controller.BibleController.setSceneStyleFile;
 import static projector.utils.SceneUtils.getAStage;
@@ -126,6 +127,8 @@ public class MyController {
             GlobalKeyListenerExample nativeKeyListener = new GlobalKeyListenerExample();
             nativeKeyListener.setProjectionScreenController(projectionScreenController);
             GlobalScreen.addNativeKeyListener(nativeKeyListener);
+            java.util.logging.Logger logger = java.util.logging.Logger.getLogger(GlobalScreen.class.getPackage().getName());
+            logger.setLevel(Level.OFF);
         } catch (Exception ex) {
             System.err.println("There was a problem registering the native hook.");
             System.err.println(ex.getMessage());
