@@ -2,6 +2,7 @@ package projector.utils;
 
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import projector.application.Settings;
@@ -46,6 +47,17 @@ public class SceneUtils {
         Stage stage = getAStage(aClass);
         createWindowController(aClass, scene, stage);
         return stage;
+    }
+
+    public static Stage getCustomStage2(Class<?> aClass, Scene scene, double width, double height) {
+        Stage stage = getCustomStage(aClass, scene);
+        stage.setWidth(width);
+        stage.setHeight(height);
+        return stage;
+    }
+
+    public static Stage getCustomStage3(Class<?> aClass, Pane root) {
+        return getCustomStage2(aClass, new Scene(root), root.getPrefWidth(), root.getPrefHeight());
     }
 
     public static WindowController createWindowController(Class<?> aClass, Scene scene, Stage stage) {

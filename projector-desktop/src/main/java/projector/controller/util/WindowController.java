@@ -18,6 +18,7 @@ import projector.controller.listener.OnCloseListener;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 
 public class WindowController {
 
@@ -44,6 +45,12 @@ public class WindowController {
         loader.setResources(Settings.getInstance().getResourceBundle());
         try {
             StackPane root = loader.load();
+            URL resource = aClass.getResource("/view/" + Settings.getInstance().getSceneStyleFile());
+            if (resource != null) {
+                ObservableList<String> stylesheets = root.getStylesheets();
+                stylesheets.clear();
+                stylesheets.add(resource.toExternalForm());
+            }
             WindowController windowController = loader.getController();
             windowController.root = root;
             windowController.setup(stage, scene);

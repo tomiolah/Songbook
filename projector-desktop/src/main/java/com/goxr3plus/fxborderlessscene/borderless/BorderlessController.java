@@ -338,8 +338,7 @@ public class BorderlessController {
                 if (!snap.get()) {
                     return;
                 }
-
-                if ((MouseButton.PRIMARY.equals(m.getButton())) && (m.getScreenX() != eventSource.x)) {
+                if ((MouseButton.PRIMARY.equals(m.getButton())) && ((eventSource.x != null) && m.getScreenX() != eventSource.x)) {
                     Rectangle2D screen = Screen.getScreensForRectangle(m.getScreenX(), m.getScreenY(), 1, 1).get(0).getVisualBounds();
 
                     // Aero Snap Left.

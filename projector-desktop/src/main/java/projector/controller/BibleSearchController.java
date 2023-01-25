@@ -4,7 +4,6 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -23,6 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
+
+import static projector.controller.BibleController.addTextWithBackGround;
+import static projector.controller.BibleController.setFoundTextColor;
+import static projector.controller.BibleController.setGeneralTextColor;
+import static projector.controller.BibleController.setReferenceTextColor;
 
 public class BibleSearchController {
 
@@ -173,7 +177,7 @@ public class BibleSearchController {
                         if (contains(text2, text3)) {
                             TextFlow textFlow = new TextFlow();
                             Text reference = new Text(book.getShortOrTitle() + " " + (iPart + 1) + ":" + (iVerse + 1) + " ");
-                            reference.setFill(Color.rgb(5, 30, 70));
+                            setReferenceTextColor(reference);
                             textFlow.getChildren().add(reference);
                             char[] chars = stripAccents(verse).toLowerCase().toCharArray();
                             char[] searchTextChars = text3.toCharArray();
@@ -190,13 +194,13 @@ public class BibleSearchController {
                                         if (verseIndex == searchTextChars.length) {
                                             if (lastAddedIndex != fromIndex) {
                                                 Text text1 = new Text(verse.substring(lastAddedIndex, fromIndex));
+                                                setGeneralTextColor(text1);
                                                 textFlow.getChildren().add(text1);
                                             }
                                             Text foundText = new Text(verse.substring(fromIndex, i + 1));
-                                            foundText.setFill(Color.rgb(164, 0, 17));
+                                            setFoundTextColor(foundText);
                                             foundText.setFont(Font.font(foundText.getFont().getFamily(), FontWeight.BOLD, foundText.getFont().getSize() + 1));
-                                            foundText.getStyleClass().add("found");
-                                            textFlow.getChildren().add(foundText);
+                                            addTextWithBackGround(textFlow, foundText);
                                             lastAddedIndex = i + 1;
                                             verseIndex = 0;
                                         }
@@ -210,6 +214,7 @@ public class BibleSearchController {
                             }
                             if (lastAddedIndex < verse.length()) {
                                 Text text1 = new Text(verse.substring(lastAddedIndex));
+                                setGeneralTextColor(text1);
                                 textFlow.getChildren().add(text1);
                             }
                             textFlow.setTextAlignment(TextAlignment.JUSTIFY);
