@@ -12,7 +12,7 @@ public class ProjectorVersionUtil {
         projectorVersion.setVersion("3.2.0");
         projectorVersion.setCreatedDate(new Date());
         projectorVersion.setDescription("Performance improvements and bug fixes.");
-        projectorVersion.setVersionId(52);
+        projectorVersion.setVersionId(53);
         projectorVersionRepository.save(projectorVersion);
     }
 }
