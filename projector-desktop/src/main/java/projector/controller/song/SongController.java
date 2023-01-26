@@ -2374,7 +2374,8 @@ public class SongController {
             newSongController.setPreviewProjectionScreenController(previewProjectionScreenController);
             Scene scene2 = new Scene(root2, 400, 300);
             setSceneStyleFile2(scene2);
-
+            Stage stage2 = getCustomStage2(getClass(), scene2, scene2.getWidth(), scene2.getHeight());
+            scene2 = stage2.getScene();
             scene2.widthProperty().addListener((observable, oldValue, newValue) -> {
                 try {
                     previewProjectionScreenController.repaint();
@@ -2389,8 +2390,6 @@ public class SongController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            Stage stage2 = getAStage(getClass());
-            stage2.setScene(scene2);
 
             stage2.setX(0);
             stage2.setY(0);

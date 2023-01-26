@@ -57,7 +57,7 @@
 }
 
 .text-area .content {
-    -fx-background-color: -textFieldBackgroundColor;
+    -fx-background-color: #383838;
 }
 
 .list-cell {
@@ -298,9 +298,7 @@
     -fx-border-width: 2px 0px 2px 0px;
 } */
 
-.border-pane,
-.h-box,
-.v-box,
+.title-bar,
 .minimize-button,
 .close-button {
     -fx-background-color: -titleBarBackgroundColor !important;
@@ -320,4 +318,20 @@
 
 .windowTitleFocused {
     -fx-text-fill: rgb(180, 180, 180);
+}
+
+.split-pane-divider {
+    -fx-background-color: #202020;
+}
+
+.split-pane-divider:hover {
+    -fx-background-color: #181e24;
+}
+
+.scroll-pane,
+.scroll-pane > .viewport,
+.border-pane,
+.h-box,
+.v-box {
+    -fx-background-color: -generalBackgroundColor;   
 }

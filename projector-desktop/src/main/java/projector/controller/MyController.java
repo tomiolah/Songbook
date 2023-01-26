@@ -37,8 +37,7 @@ import java.io.IOException;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 
-import static projector.controller.BibleController.setSceneStyleFile;
-import static projector.utils.SceneUtils.getAStage;
+import static projector.utils.SceneUtils.getCustomStage;
 
 public class MyController {
 
@@ -214,10 +213,10 @@ public class MyController {
             Pane root = loader.load();
             GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
             int height = gd.getDisplayMode().getHeight();
-            Scene scene = new Scene(root, 850, calculateSizeByScale(height - 100));
-            setSceneStyleFile(scene);
-            settingsStage = getAStage(getClass());
-            settingsStage.setScene(scene);
+            Scene scene = new Scene(root);
+            settingsStage = getCustomStage(getClass(), scene);
+            settingsStage.setWidth(850);
+            settingsStage.setHeight(calculateSizeByScale(height - 100));
             settingsStage.setTitle(title);
             settingsController = loader.getController();
             settingsController.setStage(settingsStage);

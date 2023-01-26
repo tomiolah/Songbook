@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <BorderPane prefHeight="560" prefWidth="800" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1"
+            styleClass="border-pane"
             fx:controller="projector.controller.UtilsController">
     <center>
     </center>
@@ -15,7 +16,7 @@
             <center>
                 <HBox alignment="CENTER" prefHeight="50.0" prefWidth="100.0" spacing="10.0"
                       BorderPane.alignment="CENTER">
-                    <TextField fx:id="timeTextField" prefHeight="25.0" prefWidth="44.0" text="15:45"/>
+                    <TextField fx:id="timeTextField" prefHeight="25.0" prefWidth="50.0" text="15:45"/>
                     <Button mnemonicParsing="false" onAction="#onShowCountDownButtonEvent" text="Show countdown"/>
                     <Label fx:id="countDownLabel" text="04:59"/>
                     <ComboBox fx:id="actionComboBox" prefWidth="110.0"/>

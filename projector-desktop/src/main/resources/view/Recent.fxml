@@ -5,6 +5,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <BorderPane
         xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/8"
+        styleClass="border-pane"
         fx:controller="projector.controller.RecentController">
     <center>
         <ListView fx:id="listView" BorderPane.alignment="CENTER"/>
