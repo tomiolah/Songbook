@@ -61,7 +61,13 @@ public class SceneUtils {
     }
 
     public static WindowController createWindowController(Class<?> aClass, Scene scene, Stage stage) {
-        stage.initStyle(StageStyle.UNDECORATED);
+        try {
+            if (stage.getStyle() != StageStyle.UNDECORATED) {
+                stage.initStyle(StageStyle.UNDECORATED);
+            }
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        }
         WindowController windowController = WindowController.getInstance(aClass, stage, scene);
         if (windowController == null) {
             return null;

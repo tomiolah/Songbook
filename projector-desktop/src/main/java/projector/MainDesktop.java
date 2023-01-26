@@ -132,9 +132,9 @@ public class MainDesktop extends Application {
         FirstSetupController firstSetupController = loader.getController();
         firstSetupController.setListener(() -> start2(primaryStage));
         Scene scene = new Scene(borderPane, borderPane.getPrefWidth(), borderPane.getPrefHeight());
-        primaryStage.setScene(scene);
-        Class<?> aClass = getClass();
-        addIconToStage(primaryStage, aClass);
+        createWindowController(getClass(), scene, primaryStage);
+        primaryStage.setWidth(borderPane.getPrefWidth());
+        primaryStage.setHeight(borderPane.getPrefHeight());
         primaryStage.setTitle("Projector - setup");
         primaryStage.show();
     }
