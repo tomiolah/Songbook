@@ -2,6 +2,7 @@ package projector.controller.util;
 
 import com.goxr3plus.fxborderlessscene.borderless.BorderlessScene;
 import javafx.collections.ObservableList;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -13,6 +14,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import projector.application.Settings;
 import projector.controller.listener.OnCloseListener;
 
@@ -86,6 +88,10 @@ public class WindowController {
         });
 
         exit.setOnAction(a -> {
+            EventHandler<WindowEvent> onCloseRequest = stage.getOnCloseRequest();
+            if (onCloseRequest != null) {
+                onCloseRequest.handle(null);
+            }
             stage.close();
             if (onCloseListener != null) {
                 onCloseListener.onClose();
