@@ -65,6 +65,7 @@ public class MainDesktop extends Application {
     private Settings settings;
     private Date startDate;
     private Screen mainScreen;
+    private WindowController windowController;
 
     public static void main(String[] args) {
         launch(args);
@@ -206,7 +207,7 @@ public class MainDesktop extends Application {
             BibleController bibleController = myController.getBibleController();
             SongController songController = myController.getSongController();
             primaryScene = new Scene(root, settings.getMainWidth(), settings.getMainHeight());
-            WindowController windowController = createWindowController(getClass(), primaryScene, primaryStage);
+            windowController = createWindowController(getClass(), primaryScene, primaryStage);
             addSettingsMenu(windowController);
             primaryScene = primaryStage.getScene();
             primaryScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
@@ -297,6 +298,7 @@ public class MainDesktop extends Application {
             String url = resource.toExternalForm();
             setUserAgentStylesheet(null);
             stylesheets.add(url);
+            windowController.setStylesheet(url);
         });
         projectionScreenController.setInitialDotText();
         projectionScreenController.setBlank(false);

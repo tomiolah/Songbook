@@ -164,7 +164,7 @@ public class BibleController {
 
     private static String strip(String s) {
         try {
-            s = stripAccents(s).replaceAll("[^a-zA-Z]", "").toLowerCase(Locale.US).trim();
+            s = stripAccents(s).replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.US).trim();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -1187,6 +1187,9 @@ public class BibleController {
                             text3 = strip(text);
                         }
                         text3 = text3.replace("]", "").replace("[", "");
+                        if (text3.isEmpty()) {
+                            return;
+                        }
                         List<TextFlow> tmpSearchListView = new ArrayList<>();
                         final Chapter chapter = bible.getBooks().get(selectedBook).getChapters().get(selectedPart);
                         int found = 0;

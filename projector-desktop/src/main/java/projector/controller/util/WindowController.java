@@ -127,4 +127,13 @@ public class WindowController {
         return menuBar;
     }
 
+    public void setStylesheet(String stylesheet) {
+        StackPane pane = getRoot();
+        if (pane == null) {
+            return;
+        }
+        ObservableList<String> stylesheets = pane.getStylesheets();
+        stylesheets.clear();
+        stylesheets.add(stylesheet);
+    }
 }
