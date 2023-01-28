@@ -335,3 +335,7 @@
 .v-box {
     -fx-background-color: -generalBackgroundColor;   
 }
+
+.toggle-button:selected {
+    -fx-background-color: #1e1e1e;
+ }

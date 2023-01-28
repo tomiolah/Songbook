@@ -160,6 +160,7 @@ public class BibleController {
     private Date lastUpdateSelected;
     private boolean initialized = false;
     private boolean wasSelectionChange;
+    private boolean splitDividersInitialized = false;
 
     private static String strip(String s) {
         try {
@@ -1040,6 +1041,7 @@ public class BibleController {
             });
             horizontalSplitPane.setDividerPositions(settings.getBibleTabHorizontalSplitPaneDividerPosition());
             verticalSplitPane.setDividerPositions(settings.getBibleTabVerticalSplitPaneDividerPosition());
+            splitDividersInitialized = true;
             SplitPane.setResizableWithParent(verticalSplitPane, false);
             nextButton.setOnAction(event -> setNextVerse());
             nextButton.addEventHandler(KeyEvent.KEY_PRESSED, new NextButtonEventHandler(nextButton, LOG) {
@@ -1651,8 +1653,10 @@ public class BibleController {
     void onClose() {
         try {
             Settings settings = this.settings;
-            settings.setBibleTabHorizontalSplitPaneDividerPosition(horizontalSplitPane.getDividerPositions()[0]);
-            settings.setBibleTabVerticalSplitPaneDividerPosition(verticalSplitPane.getDividerPositions()[0]);
+            if (splitDividersInitialized) {
+                settings.setBibleTabHorizontalSplitPaneDividerPosition(horizontalSplitPane.getDividerPositions()[0]);
+                settings.setBibleTabVerticalSplitPaneDividerPosition(verticalSplitPane.getDividerPositions()[0]);
+            }
             settings.save();
             if (bible != null) {
                 bible.setUsage(bible.getUsage() + 1);
