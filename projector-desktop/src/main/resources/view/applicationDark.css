@@ -62,22 +62,33 @@
 
 .list-cell {
     -fx-text-fill: -textColor;
+    -fx-border-width: 1;
+    -fx-border-radius: 2, 2, 2, 2;
 }
 
 .list-cell:even {
     -fx-background-color: #303030;
+    -fx-border-color: #303030;
 }
 
 .list-cell:even:filled:hover {
     -fx-background-color: #3f3f3f;
+    -fx-border-color: #3f3f3f;
 }
 
 .list-cell:odd {
     -fx-background-color: #313131;
+    -fx-border-color: #313131;
 }
 
 .list-cell:odd:filled:hover {
     -fx-background-color: #3f3f3f;
+    -fx-border-color: #3f3f3f;
+}
+
+.list-cell:filled:focused {
+    -fx-border-width: 1;
+    -fx-border-radius: 2, 2, 2, 2;
 }
 
 #verseListView .list-cell:filled:focused {
