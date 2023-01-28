@@ -7,6 +7,8 @@ import javafx.scene.control.ContextMenu;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.Dragboard;
 import javafx.scene.input.KeyCode;
@@ -39,8 +41,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
+import static projector.controller.BibleController.setGeneralTextColor;
 import static projector.controller.song.SongController.setSongCollections;
 import static projector.controller.song.SongController.setTextFlowsText;
+import static projector.utils.ColorUtil.getVisitedTextColor;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
 
 public class ScheduleController {
@@ -48,12 +52,13 @@ public class ScheduleController {
     private final String $id$_ = "$id$ ";
     private final String $uuid$_ = "$uuid$ ";
     private final String prefix = "scheduleListView:move:";
-    private final KeyCombination keyShiftUp = new KeyCodeCombination(KeyCode.UP, KeyCombination.SHIFT_DOWN);
-    private final KeyCombination keyShiftDown = new KeyCodeCombination(KeyCode.DOWN, KeyCombination.SHIFT_DOWN);
+    private final KeyCombination keyAltUp = new KeyCodeCombination(KeyCode.UP, KeyCombination.ALT_DOWN);
+    private final KeyCombination keyAltDown = new KeyCodeCombination(KeyCode.DOWN, KeyCombination.ALT_DOWN);
     @FXML
     private ListView<ScheduleSong> listView;
     private SongController songController;
     private int selectedIndex;
+    private boolean pauseSelectionListener = false;
 
     int getSelectedIndex() {
         return selectedIndex;
@@ -68,9 +73,9 @@ public class ScheduleController {
     }
 
     public void initialize() {
-
+        listView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         final ObservableList<ScheduleSong> items = listView.getItems();
-        listView.setCellFactory(param -> new ListCell<ScheduleSong>() {
+        listView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(ScheduleSong item, boolean empty) {
                 try {
@@ -116,6 +121,7 @@ public class ScheduleController {
                                 if (index != -1) {
                                     ScheduleSong scheduleSong = items.get(index);
                                     int otherIndex = item.getListViewIndex();
+                                    pauseSelectionListener = true;
                                     if (otherIndex < index) {
                                         for (int i = index; i > otherIndex; --i) {
                                             ScheduleSong element = items.get(i - 1);
@@ -133,6 +139,8 @@ public class ScheduleController {
                                         scheduleSong.setListViewIndex(otherIndex);
                                         items.set(otherIndex, scheduleSong);
                                     }
+                                    listView.getSelectionModel().clearAndSelect(otherIndex);
+                                    pauseSelectionListener = false;
                                 }
                                 event.setDropCompleted(true);
                             }
@@ -144,6 +152,7 @@ public class ScheduleController {
                             textFlow = new TextFlow();
                             ObservableList<Node> children = textFlow.getChildren();
                             Text text = new Text(song.getTitle());
+                            setGeneralTextColor(text);
                             children.add(text);
                             item.setText(text);
                         } else {
@@ -166,6 +175,9 @@ public class ScheduleController {
             }
         });
         listView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if (pauseSelectionListener) {
+                return;
+            }
             if (listView.getSelectionModel().getSelectedIndex() != -1) {
                 selectedIndex = listView.getSelectionModel().getSelectedIndex();
             }
@@ -173,7 +185,7 @@ public class ScheduleController {
             if (newValue != null) {
                 String text = newValue.getSong().getTitle();
                 if (!text.isEmpty()) {
-                    setTextColor(selectedItem, Color.rgb(0, 0, 128));
+                    setTextColor(selectedItem, getVisitedTextColor());
                     songController.selectSong(newValue.getSong());
                 }
             }
@@ -279,26 +291,10 @@ public class ScheduleController {
             }
         });
         listView.setOnKeyPressed(event -> {
-            if (keyShiftUp.match(event)) {
-                int selectedIndex = listView.getSelectionModel().getSelectedIndex();
-                if (selectedIndex > 0) {
-                    ScheduleSong tmp = listView.getSelectionModel().getSelectedItem();
-                    listView.getSelectionModel().clearSelection();
-                    listView.getSelectionModel().select(selectedIndex - 1);
-                    setTextColor(listView.getSelectionModel().getSelectedItem(), Color.rgb(72, 57, 0));
-                    items.remove(selectedIndex);
-                    items.add(selectedIndex - 1, tmp);
-                }
-            } else if (keyShiftDown.match(event)) {
-                int selectedIndex = listView.getSelectionModel().getSelectedIndex();
-                if (selectedIndex < items.size() - 1) {
-                    ScheduleSong tmp = listView.getSelectionModel().getSelectedItem();
-                    listView.getSelectionModel().clearSelection();
-                    listView.getSelectionModel().select(selectedIndex + 1);
-                    setTextColor(listView.getSelectionModel().getSelectedItem(), Color.rgb(72, 57, 0));
-                    items.remove(selectedIndex);
-                    items.add(selectedIndex + 1, tmp);
-                }
+            if (keyAltUp.match(event)) {
+                moveUp();
+            } else if (keyAltDown.match(event)) {
+                moveDown();
             }
         });
 
@@ -325,23 +321,29 @@ public class ScheduleController {
     private void moveUp() {
         int selectedIndex = listView.getSelectionModel().getSelectedIndex();
         if (selectedIndex > 0) {
-            setTextColor(listView.getSelectionModel().getSelectedItem(), Color.rgb(72, 57, 0));
-            ScheduleSong tmp = listView.getSelectionModel().getSelectedItem();
-            listView.getSelectionModel().clearSelection();
-            listView.getItems().remove(selectedIndex);
-            listView.getItems().add(selectedIndex - 1, tmp);
+            moveByIndex(selectedIndex, selectedIndex - 1);
         }
     }
 
     private void moveDown() {
         int selectedIndex = listView.getSelectionModel().getSelectedIndex();
-        if (selectedIndex < listView.getItems().size() - 1) {
-            setTextColor(listView.getSelectionModel().getSelectedItem(), Color.rgb(72, 57, 0));
-            ScheduleSong tmp = listView.getSelectionModel().getSelectedItem();
-            listView.getSelectionModel().clearSelection();
-            listView.getItems().remove(selectedIndex);
-            listView.getItems().add(selectedIndex + 1, tmp);
+        if (0 <= selectedIndex && selectedIndex < listView.getItems().size() - 1) {
+            moveByIndex(selectedIndex, selectedIndex + 1);
         }
+    }
+
+    private void moveByIndex(int selectedIndex, int newIndex) {
+        pauseSelectionListener = true;
+        MultipleSelectionModel<ScheduleSong> selectionModel = listView.getSelectionModel();
+        ObservableList<ScheduleSong> items = listView.getItems();
+        ScheduleSong scheduleSongOnNewIndex = items.get(newIndex);
+        scheduleSongOnNewIndex.setListViewIndex(selectedIndex);
+        ScheduleSong scheduleSong = items.get(selectedIndex);
+        items.remove(selectedIndex);
+        items.add(newIndex, scheduleSong);
+        scheduleSong.setListViewIndex(newIndex);
+        selectionModel.clearAndSelect(newIndex);
+        pauseSelectionListener = false;
     }
 
     void addSong(Song song) {

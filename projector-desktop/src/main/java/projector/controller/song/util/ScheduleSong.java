@@ -17,4 +17,9 @@ public class ScheduleSong extends SongTextFlow {
     public void setListViewIndex(int listViewIndex) {
         this.listViewIndex = listViewIndex;
     }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

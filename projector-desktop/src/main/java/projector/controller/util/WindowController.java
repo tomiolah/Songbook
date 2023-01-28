@@ -16,7 +16,6 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import projector.application.Settings;
-import projector.controller.listener.OnCloseListener;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +38,6 @@ public class WindowController {
 
     private BorderlessScene borderlessScene;
     private StackPane root;
-    private OnCloseListener onCloseListener;
 
     public static WindowController getInstance(Class<?> aClass, Stage stage, Scene scene) {
         FXMLLoader loader = new FXMLLoader();
@@ -93,9 +91,6 @@ public class WindowController {
                 onCloseRequest.handle(null);
             }
             stage.close();
-            if (onCloseListener != null) {
-                onCloseListener.onClose();
-            }
         });
         minimize.setOnAction(a -> stage.setIconified(true));
         maximizeNormalize.setOnAction(a -> borderlessScene.maximizeStage());
@@ -132,7 +127,4 @@ public class WindowController {
         return menuBar;
     }
 
-    public void setOnCloseListener(OnCloseListener onCloseListener) {
-        this.onCloseListener = onCloseListener;
-    }
 }

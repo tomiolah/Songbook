@@ -5,7 +5,7 @@ import javafx.scene.text.TextFlow;
 import projector.model.Song;
 
 public abstract class SongTextFlow {
-    private Song song;
+    private final Song song;
     private TextFlow textFlow;
     private Text text;
 
@@ -31,5 +31,10 @@ public abstract class SongTextFlow {
 
     public void setText(Text text) {
         this.text = text;
+    }
+
+    @Override
+    public String toString() {
+        return song.toString();
     }
 }

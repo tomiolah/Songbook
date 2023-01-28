@@ -19,4 +19,8 @@ public class ColorUtil {
     public static Color getReferenceTextColor() {
         return Color.rgb(200, 224, 255);
     }
+
+    public static Color getVisitedTextColor() {
+        return Color.rgb(187, 148, 255);
+    }
 }
