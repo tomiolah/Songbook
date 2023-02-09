@@ -21,12 +21,20 @@ import java.util.GregorianCalendar;
 import java.util.Set;
 import java.util.TreeSet;
 
+import static projector.controller.BibleController.setGeneralTextColor;
+
 public class HistoryController {
 
     @FXML
     private ListView<TextFlow> listView;
     private Bible bible;
     private BibleController bibleController;
+
+    private static Text getGeneralText() {
+        Text text = new Text();
+        setGeneralTextColor(text);
+        return text;
+    }
 
     void setBibleController(BibleController bibleController) {
         this.bibleController = bibleController;
@@ -46,7 +54,7 @@ public class HistoryController {
             String strLine;
             boolean bibleInitialized = false;
             while ((strLine = br.readLine()) != null) {
-                Text dateText = new Text();
+                Text dateText = getGeneralText();
                 try {
                     SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy");
                     Date date = simpleDateFormat.parse(strLine);
@@ -88,7 +96,7 @@ public class HistoryController {
                         System.out.println(strLine);
                     }
                 }
-                Text verses = new Text();
+                Text verses = getGeneralText();
                 try {
                     if (bible == null && !bibleInitialized) {
                         bibleInitialized = true;
@@ -112,6 +120,7 @@ public class HistoryController {
                         stringBuilder.append(title).append("\n");
                     }
                     Text songsText = new Text(songTitles.size() > 0 ? stringBuilder.toString() : "");
+                    setGeneralTextColor(songsText);
                     TextFlow textFlow = new TextFlow();
                     textFlow.getChildren().addAll(dateText, verses, songsText);
                     historyList.add(textFlow);

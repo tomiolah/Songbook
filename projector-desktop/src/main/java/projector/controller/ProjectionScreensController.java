@@ -38,9 +38,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
-import static projector.controller.BibleController.setSceneStyleFile;
 import static projector.controller.MyController.calculateSizeByScale;
-import static projector.utils.SceneUtils.getAStage;
+import static projector.utils.SceneUtils.getCustomStage;
 
 public class ProjectionScreensController {
 
@@ -293,10 +292,10 @@ public class ProjectionScreensController {
                     Pane root = loader.load();
                     GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
                     int height = gd.getDisplayMode().getHeight();
-                    Scene scene = new Scene(root, 850, calculateSizeByScale(height - 100));
-                    setSceneStyleFile(scene);
-                    Stage settingsStage = getAStage(getClass());
-                    settingsStage.setScene(scene);
+                    Scene scene = new Scene(root);
+                    Stage settingsStage = getCustomStage(getClass(), scene);
+                    settingsStage.setWidth(850);
+                    settingsStage.setHeight(calculateSizeByScale(height - 100));
                     settingsStage.setTitle(title);
                     ProjectionScreenSettingsController settingsController = loader.getController();
                     settingsController.setProjectionScreenHolder(projectionScreenHolder);

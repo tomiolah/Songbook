@@ -2,8 +2,6 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.ToggleButton?>
@@ -12,23 +10,16 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="300"
-            minWidth="400" prefHeight="600"
-            prefWidth="800" xmlns="http://javafx.com/javafx/8.0.171"
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" minHeight="300"
+            minWidth="400" xmlns="http://javafx.com/javafx/8.0.171"
             fx:controller="projector.controller.MyController">
     <top>
     </top>
     <center>
         <AnchorPane>
-            <MenuBar fx:id="menuBar" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                     AnchorPane.topAnchor="0.0" prefHeight="34">
-                <Menu fx:id="settingsMenu" mnemonicParsing="false" text="%Settings" onAction="#onSettingsMenu"
-                      onShowing="#onSettingsMenu">
-                </Menu>
-            </MenuBar>
             <TabPane fx:id="tabPane" prefHeight="600" prefWidth="800" tabClosingPolicy="UNAVAILABLE"
                      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                     AnchorPane.topAnchor="34.0">
+                     AnchorPane.topAnchor="0.0">
                 <Tab fx:id="bibleTab" closable="false" text="%Bible">
                     <fx:include fx:id="bible" source="Bible.fxml"/>
                 </Tab>

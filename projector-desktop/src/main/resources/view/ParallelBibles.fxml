@@ -21,7 +21,7 @@
         </BorderPane>
     </center>
     <bottom>
-        <BorderPane prefHeight="51.0" prefWidth="400.0" BorderPane.alignment="CENTER">
+        <BorderPane prefHeight="51.0" prefWidth="400.0" BorderPane.alignment="CENTER" styleClass="border-pane">
             <center>
                 <CheckBox fx:id="forIncomingDisplayOnlySelected" mnemonicParsing="false"
                           text="%For incoming display only selected" BorderPane.alignment="CENTER"/>

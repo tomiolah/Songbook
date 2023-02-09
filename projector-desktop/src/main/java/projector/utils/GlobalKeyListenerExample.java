@@ -17,12 +17,16 @@ public class GlobalKeyListenerExample implements NativeKeyListener {
 
     private ProjectionScreenController projectionScreenController;
     private boolean controlPressed = false;
+    private boolean metaPressed = false;
 
     public void nativeKeyPressed(NativeKeyEvent e) {
         int keyCode = e.getKeyCode();
         System.out.println("Key Pressed: " + NativeKeyEvent.getKeyText(keyCode));
         if (keyCode == NativeKeyEvent.VC_CONTROL) {
             controlPressed = true;
+        }
+        if (keyCode == NativeKeyEvent.VC_META) {
+            metaPressed = true;
         }
         //if (keyCode == NativeKeyEvent.VC_ESCAPE) {
         //    try {
@@ -55,8 +59,14 @@ public class GlobalKeyListenerExample implements NativeKeyListener {
                 ex.printStackTrace();
             }
         }
+        if (metaPressed && keyCode == NativeKeyEvent.VC_LEFT) {
+            System.out.println("TO Left");
+        }
         if (keyCode == NativeKeyEvent.VC_CONTROL) {
             controlPressed = false;
+        }
+        if (keyCode == NativeKeyEvent.VC_META) {
+            metaPressed = false;
         }
         System.out.println("Key Released: " + NativeKeyEvent.getKeyText(keyCode));
     }

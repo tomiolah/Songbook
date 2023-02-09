@@ -10,6 +10,7 @@ import javafx.geometry.Rectangle2D;
 import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Menu;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
@@ -37,6 +38,7 @@ import projector.controller.ProjectionScreenController;
 import projector.controller.song.SongController;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
+import projector.controller.util.WindowController;
 
 import java.io.IOException;
 import java.net.URL;
@@ -46,6 +48,7 @@ import java.util.ListIterator;
 import static java.lang.Thread.sleep;
 import static projector.utils.SceneUtils.addIconToStage;
 import static projector.utils.SceneUtils.addStylesheetToSceneBySettings;
+import static projector.utils.SceneUtils.createWindowController;
 import static projector.utils.SceneUtils.getAStage;
 
 public class MainDesktop extends Application {
@@ -62,6 +65,7 @@ public class MainDesktop extends Application {
     private Settings settings;
     private Date startDate;
     private Screen mainScreen;
+    private WindowController windowController;
 
     public static void main(String[] args) {
         launch(args);
@@ -129,21 +133,23 @@ public class MainDesktop extends Application {
         FirstSetupController firstSetupController = loader.getController();
         firstSetupController.setListener(() -> start2(primaryStage));
         Scene scene = new Scene(borderPane, borderPane.getPrefWidth(), borderPane.getPrefHeight());
-        primaryStage.setScene(scene);
-        Class<?> aClass = getClass();
-        addIconToStage(primaryStage, aClass);
+        createWindowController(getClass(), scene, primaryStage);
+        primaryStage.setWidth(borderPane.getPrefWidth());
+        primaryStage.setHeight(borderPane.getPrefHeight());
         primaryStage.setTitle("Projector - setup");
         primaryStage.show();
     }
 
     public void start2(Stage primaryStage) {
+        Settings.shouldBeNull();
         loadInBackGround();
         addIconToStage(primaryStage, getClass());
         primaryStage.setMinHeight(600);
-        primaryStage.setScene(primaryScene);
+        primaryStage.setWidth(settings.getMainWidth());
+        primaryStage.setHeight(settings.getMainHeight());
         primaryStage.show();
         primaryStage.setTitle("Projector");
-        primaryStage.setX(getScreenTrueMinXByTransparentStage());
+        primaryStage.setX(0);
         primaryStage.setY(0);
         myController.setPrimaryStage(primaryStage);
         setProjectionScreen();
@@ -155,6 +161,7 @@ public class MainDesktop extends Application {
         primaryStage.requestFocus();
     }
 
+    @SuppressWarnings("unused")
     private double getScreenTrueMinXByTransparentStage() {
         try {
             Stage stage = new Stage();
@@ -187,7 +194,6 @@ public class MainDesktop extends Application {
     }
 
     public void loadInBackGround() {
-        Settings.shouldBeNull();
         Updater.getInstance().saveApplicationStartedWithVersion();
         primaryScene = null;
         settings = Settings.getInstance();
@@ -201,6 +207,9 @@ public class MainDesktop extends Application {
             BibleController bibleController = myController.getBibleController();
             SongController songController = myController.getSongController();
             primaryScene = new Scene(root, settings.getMainWidth(), settings.getMainHeight());
+            windowController = createWindowController(getClass(), primaryScene, primaryStage);
+            addSettingsMenu(windowController);
+            primaryScene = primaryStage.getScene();
             primaryScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
                 if (event.isAltDown()) {
                     event.consume();
@@ -289,6 +298,7 @@ public class MainDesktop extends Application {
             String url = resource.toExternalForm();
             setUserAgentStylesheet(null);
             stylesheets.add(url);
+            windowController.setStylesheet(url);
         });
         projectionScreenController.setInitialDotText();
         projectionScreenController.setBlank(false);
@@ -297,6 +307,21 @@ public class MainDesktop extends Application {
             Date date1 = new Date();
             LOG.info((date1.getTime() - startDate.getTime()) + " ms");
         }
+    }
+
+    private void addSettingsMenu(WindowController windowController) {
+        Menu settingsMenu = getSettingsMenu();
+        if (windowController != null) {
+            windowController.getMenuBar().getMenus().add(settingsMenu);
+        }
+        myController.initializeSettingsController(settingsMenu);
+    }
+
+    private Menu getSettingsMenu() {
+        Menu settingsMenu = new Menu();
+        settingsMenu.setMnemonicParsing(false);
+        settingsMenu.setText(settings.getResourceBundle().getString("Settings"));
+        return settingsMenu;
     }
 
     private void setProjectionScreen() {
@@ -316,9 +341,8 @@ public class MainDesktop extends Application {
         System.out.println("Stage is closing");
         Settings settings = Settings.getInstance();
         settings.setApplicationRunning(false);
-        Scene scene = primaryStage.getScene();
-        settings.setMainHeight(scene.getHeight());
-        settings.setMainWidth(scene.getWidth());
+        settings.setMainHeight(primaryStage.getHeight());
+        settings.setMainWidth(primaryStage.getWidth());
         settings.save();
         settings.setApplicationRunning(false);
         if (tmpStage != null) {

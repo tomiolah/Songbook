@@ -19,11 +19,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import static projector.controller.BibleController.setGeneralTextColor;
+
 public class RecentController {
 
+    private final boolean isBlank = false;
     @FXML
     private ListView<String> listView;
-
     private SongController songController;
     private BibleController bibleController;
     private List<ProjectionType> typeList;
@@ -34,7 +36,6 @@ public class RecentController {
     private List<String> verseNumbersListText;
     private List<List<Integer>> verseNumbersList;
     private int searchSelected;
-    private boolean isBlank;
 
     public void initialize() {
         typeList = new LinkedList<>();
@@ -97,23 +98,21 @@ public class RecentController {
                             bibleController.getVerseListView().getSelectionModel().select(i);
                         }
                         bibleController.setSelecting(false);
-                        // bibleController.getFullVersListView().getSelectionModel()
-                        // .select(versI.get(index).intValue());
                         bibleController.getVerseListView().scrollTo(versI.get(index));
                         // bibleController.getFullVersListView().scrollTo(versI.get(index));
                     }
                 }
             }
         });
-        listView.setCellFactory(new Callback<ListView<String>, ListCell<String>>() {
+        listView.setCellFactory(new Callback<>() {
             @Override
             public ListCell<String> call(final ListView<String> list) {
-                return new ListCell<String>() {
+                return new ListCell<>() {
                     {
                         Text text = new Text();
                         text.wrappingWidthProperty().bind(list.widthProperty().subtract(50));
                         text.textProperty().bind(itemProperty());
-
+                        setGeneralTextColor(text);
                         super.setPrefWidth(0.0);
                         setGraphic(text);
                     }
@@ -134,22 +133,6 @@ public class RecentController {
                 verseNumbersListText.add("");
                 ArrayList<Integer> tmp = new ArrayList<>();
                 tmp.add(-1);
-                verseNumbersList.add(tmp);
-            }
-        }
-    }
-
-    public void addRecentBibleVerse(String text, int book, int part, int vers) {
-        if (!isBlank) {
-            if (!text.trim().isEmpty()) {
-                typeList.add(ProjectionType.BIBLE);
-                listView.getItems().add(text);
-                bookI.add(book);
-                partI.add(part);
-                versI.add(vers);
-                verseNumbersListText.add((vers + 1) + "");
-                ArrayList<Integer> tmp = new ArrayList<>();
-                tmp.add(vers);
                 verseNumbersList.add(tmp);
             }
         }
@@ -181,10 +164,6 @@ public class RecentController {
 
     void setSearchSelected(int searchSelected) {
         this.searchSelected = searchSelected;
-    }
-
-    public void setBlank(boolean isBlank) {
-        this.isBlank = isBlank;
     }
 
     public void close() {
