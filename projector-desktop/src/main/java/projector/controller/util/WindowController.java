@@ -11,18 +11,32 @@ import javafx.scene.control.Label;
 import javafx.scene.control.MenuBar;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.BorderStroke;
+import javafx.scene.layout.BorderStrokeStyle;
+import javafx.scene.layout.BorderWidths;
+import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.StackPane;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.application.Settings;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 
-public class WindowController {
+import static projector.utils.ColorUtil.getMainBorderColor;
 
+public class WindowController {
+    private static final Logger LOG = LoggerFactory.getLogger(WindowController.class);
+
+    @SuppressWarnings("unused")
+    @FXML
+    private StackPane mainStackPane;
     @FXML
     private MenuBar menuBar;
     @FXML
@@ -34,7 +48,7 @@ public class WindowController {
     @FXML
     private Button exit;
     @FXML
-    private BorderPane borderPane;
+    private BorderPane mainBorderPane;
 
     private BorderlessScene borderlessScene;
     private StackPane root;
@@ -120,7 +134,19 @@ public class WindowController {
     }
 
     private void setScene(Scene scene) {
-        borderPane.setCenter(scene.getRoot());
+        mainBorderPane.setCenter(scene.getRoot());
+        setBorderWidth();
+    }
+
+    private void setBorderWidth() {
+        try {
+            Screen screen = Screen.getPrimary();
+            double scaleX = screen.getOutputScaleX();
+            Border border = new Border(new BorderStroke(getMainBorderColor(), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1 / scaleX)));
+            mainBorderPane.setBorder(border);
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
     public MenuBar getMenuBar() {
