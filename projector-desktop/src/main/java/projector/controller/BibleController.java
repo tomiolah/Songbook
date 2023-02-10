@@ -78,10 +78,13 @@ import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
 import static projector.controller.song.SongController.getKeyEventEventHandler;
+import static projector.utils.ColorUtil.getGeneralTextColor;
+import static projector.utils.ColorUtil.getReferenceTextColor;
 import static projector.utils.ContextMenuUtil.getDeleteMenuItem;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
 import static projector.utils.KeyEventUtil.getTextFromEvent;
 import static projector.utils.SceneUtils.getAStage;
+import static projector.utils.SceneUtils.getCustomStage2;
 
 @SuppressWarnings("ResultOfMethodCallIgnored")
 public class BibleController {
@@ -157,10 +160,11 @@ public class BibleController {
     private Date lastUpdateSelected;
     private boolean initialized = false;
     private boolean wasSelectionChange;
+    private boolean splitDividersInitialized = false;
 
     private static String strip(String s) {
         try {
-            s = stripAccents(s).replaceAll("[^a-zA-Z]", "").toLowerCase(Locale.US).trim();
+            s = stripAccents(s).replaceAll("[^a-zA-Z0-9]", "").toLowerCase(Locale.US).trim();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -313,6 +317,24 @@ public class BibleController {
             result.append("]");
         }
         return result.toString();
+    }
+
+    public static void setReferenceTextColor(Text reference) {
+        reference.setFill(getReferenceTextColor());
+    }
+
+    public static void setGeneralTextColor(Text text) {
+        text.setFill(getGeneralTextColor());
+    }
+
+    public static void setFoundTextColor(Text foundText) {
+        setGeneralTextColor(foundText);
+    }
+
+    public static void addTextWithBackGround(TextFlow textFlow, Text foundText) {
+        TextFlow foundTextFlow = new TextFlow(foundText);
+        foundTextFlow.getStyleClass().add("found");
+        textFlow.getChildren().add(foundTextFlow);
     }
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -1019,6 +1041,7 @@ public class BibleController {
             });
             horizontalSplitPane.setDividerPositions(settings.getBibleTabHorizontalSplitPaneDividerPosition());
             verticalSplitPane.setDividerPositions(settings.getBibleTabVerticalSplitPaneDividerPosition());
+            splitDividersInitialized = true;
             SplitPane.setResizableWithParent(verticalSplitPane, false);
             nextButton.setOnAction(event -> setNextVerse());
             nextButton.addEventHandler(KeyEvent.KEY_PRESSED, new NextButtonEventHandler(nextButton, LOG) {
@@ -1126,11 +1149,12 @@ public class BibleController {
             verseListView.getItems().clear();
             if (selectedPart >= 0 && selectedBook >= 0) {
                 for (int i = 0; i < bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().size(); ++i) {
-                    final String text = (i + 1) + ".	" + bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().get(i);
+                    final String s = (i + 1) + ".	" + bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().get(i);
                     TextFlow textFlow = new TextFlow();
-                    final Text e = new Text(text);
-                    e.setFont(verseFont);
-                    textFlow.getChildren().add(e);
+                    final Text text = new Text(s);
+                    text.setFont(verseFont);
+                    setGeneralTextColor(text);
+                    textFlow.getChildren().add(text);
                     textFlow.setTextAlignment(TextAlignment.LEFT);
                     textFlow.setPrefWidth(verseListView.getWidth() - verseRightMargin);
                     MarkTextFlow markTextFlow = new MarkTextFlow(textFlow);
@@ -1163,23 +1187,18 @@ public class BibleController {
                             text3 = strip(text);
                         }
                         text3 = text3.replace("]", "").replace("[", "");
+                        if (text3.isEmpty()) {
+                            return;
+                        }
                         List<TextFlow> tmpSearchListView = new ArrayList<>();
                         final Chapter chapter = bible.getBooks().get(selectedBook).getChapters().get(selectedPart);
                         int found = 0;
                         for (int i = 0; i < chapter.getVerses().size(); ++i) {
-//							String text2;
                             String verse = chapter.getVerses().get(i).getText();
-//							if (Settings.getInstance().isWithAccents()) {
-//								text2 = chapter.getVerses()[i];
-//							} else {
-//								text2 = strip(chapter.getVerses()[i]);
-//							}
-//                    if (contains(text2, text3)) {
-//                    }
                             TextFlow textFlow = new TextFlow();
                             Text reference = new Text((i + 1) + ".	");
                             reference.setFont(verseFont);
-                            reference.setFill(Color.rgb(5, 30, 70));
+                            setReferenceTextColor(reference);
                             textFlow.getChildren().add(reference);
                             char[] chars = stripAccents(verse).toLowerCase().toCharArray();
                             char[] searchTextChars = text3.toCharArray();
@@ -1196,14 +1215,14 @@ public class BibleController {
                                         if (verseIndex == searchTextChars.length) {
                                             if (lastAddedIndex != fromIndex) {
                                                 Text text1 = new Text(verse.substring(lastAddedIndex, fromIndex));
+                                                setGeneralTextColor(text1);
                                                 text1.setFont(verseFont);
                                                 textFlow.getChildren().add(text1);
                                             }
                                             Text foundText = new Text(verse.substring(fromIndex, j + 1));
-                                            foundText.setFill(Color.rgb(164, 0, 17));
-                                            foundText.setFont(Font.font(verseFont.getFamily(), FontWeight.BOLD, verseFont.getSize() + 1));
-                                            foundText.getStyleClass().add("found");
-                                            textFlow.getChildren().add(foundText);
+                                            setFoundTextColor(foundText);
+                                            foundText.setFont(Font.font(verseFont.getFamily(), FontWeight.BOLD, verseFont.getSize()));
+                                            addTextWithBackGround(textFlow, foundText);
                                             lastAddedIndex = j + 1;
                                             verseIndex = 0;
                                             ++found;
@@ -1218,6 +1237,7 @@ public class BibleController {
                             }
                             if (lastAddedIndex < verse.length()) {
                                 Text text1 = new Text(verse.substring(lastAddedIndex));
+                                setGeneralTextColor(text1);
                                 text1.setFont(verseFont);
                                 textFlow.getChildren().add(text1);
                             }
@@ -1233,8 +1253,8 @@ public class BibleController {
                                 foundLabel.setText(found1 + ": " + finalFound);
                                 //TODO try not to clear
                                 verseListView.getItems().clear();
-                                for (TextFlow i : tmpSearchListView) {
-                                    verseListView.getItems().add(new MarkTextFlow(i));
+                                for (TextFlow textFlow : tmpSearchListView) {
+                                    verseListView.getItems().add(new MarkTextFlow(textFlow));
                                 }
                             } catch (Exception e) {
                                 LOG.error(e.getMessage(), e);
@@ -1636,8 +1656,10 @@ public class BibleController {
     void onClose() {
         try {
             Settings settings = this.settings;
-            settings.setBibleTabHorizontalSplitPaneDividerPosition(horizontalSplitPane.getDividerPositions()[0]);
-            settings.setBibleTabVerticalSplitPaneDividerPosition(verticalSplitPane.getDividerPositions()[0]);
+            if (splitDividersInitialized) {
+                settings.setBibleTabHorizontalSplitPaneDividerPosition(horizontalSplitPane.getDividerPositions()[0]);
+                settings.setBibleTabVerticalSplitPaneDividerPosition(verticalSplitPane.getDividerPositions()[0]);
+            }
             settings.save();
             if (bible != null) {
                 bible.setUsage(bible.getUsage() + 1);
@@ -1684,8 +1706,7 @@ public class BibleController {
             ParallelBiblesController controller = loader.getController();
             Scene scene = new Scene(root);
             setStyleFile(scene);
-            Stage stage = getAStage(getClass());
-            stage.setScene(scene);
+            Stage stage = getCustomStage2(getClass(), scene, root.getPrefWidth(), root.getPrefHeight());
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Parallel"));
             controller.initialize(bibleListView.getItems());
             controller.setBibleController(this);

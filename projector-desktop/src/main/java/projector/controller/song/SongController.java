@@ -114,10 +114,14 @@ import java.util.TreeSet;
 import static com.bence.projector.common.converter.OpenLPXmlConverter.getXmlSongs;
 import static java.lang.Math.min;
 import static projector.controller.MessageDialogController.confirmDeletion;
+import static projector.utils.ColorUtil.getCollectionNameColor;
+import static projector.utils.ColorUtil.getSongTitleColor;
 import static projector.utils.ContextMenuUtil.getDeleteMenuItem;
 import static projector.utils.ContextMenuUtil.initializeContextMenu;
 import static projector.utils.KeyEventUtil.getTextFromEvent;
 import static projector.utils.SceneUtils.getAStage;
+import static projector.utils.SceneUtils.getCustomStage2;
+import static projector.utils.SceneUtils.getCustomStage3;
 import static projector.utils.StringUtils.stripAccents;
 
 public class SongController {
@@ -340,17 +344,17 @@ public class SongController {
             });
             searchedSongListView.setCellFactory(param -> new ListCell<>() {
                 @Override
-                protected void updateItem(SearchedSong item, boolean empty) {
+                protected void updateItem(SearchedSong searchedSong, boolean empty) {
                     try {
-                        super.updateItem(item, empty);
-                        if (item == null) {
+                        super.updateItem(searchedSong, empty);
+                        if (searchedSong == null) {
                             setGraphic(null);
-                        } else if (empty || item.getSong().getTitle() == null) {
-                            TextFlow textFlow = setTextFlowsText(item, item.getTextFlow());
+                        } else if (empty || searchedSong.getSong().getTitle() == null) {
+                            TextFlow textFlow = setTextFlowsText(searchedSong, searchedSong.getTextFlow());
                             setGraphic(textFlow);
                         } else {
-                            Song song = item.getSong();
-                            TextFlow textFlow = item.getTextFlow();
+                            Song song = searchedSong.getSong();
+                            TextFlow textFlow = searchedSong.getTextFlow();
                             if (textFlow == null) {
                                 textFlow = new TextFlow();
                             } else {
@@ -363,15 +367,17 @@ public class SongController {
                                     continue;
                                 }
                                 Text collectionName = new Text(songCollection.getName() + " ");
-                                collectionName.setFill(Color.rgb(0, 9, 118));
+                                collectionName.setFill(getCollectionNameColor());
                                 children.add(collectionName);
                                 Text ordinalNumber = new Text(songCollectionElement.getOrdinalNumber() + "\n");
-                                ordinalNumber.setFill(Color.rgb(54, 0, 255));
+                                ordinalNumber.setFill(getCollectionNameColor());
                                 children.add(ordinalNumber);
                             }
-                            children.add(new Text(song.getTitle()));
-                            if (item.getFoundAtVerse() != null) {
-                                Text text = new Text(item.getFoundAtVerse());
+                            Text title = new Text(song.getTitle());
+                            title.setFill(getSongTitleColor());
+                            children.add(title);
+                            if (searchedSong.getFoundAtVerse() != null) {
+                                Text text = new Text(searchedSong.getFoundAtVerse());
                                 text.setFill(Color.rgb(17, 150, 0));
                                 children.add(text);
                             }
@@ -1085,6 +1091,9 @@ public class SongController {
     }
 
     private String getColorizedStringByLastSearchedText(String text) {
+        if (!searchInTextCheckBox.isSelected()) {
+            return text;
+        }
         StringBuilder s = new StringBuilder();
         char[] lastSearch = stripAccents(lastSearchText.toLowerCase()).toCharArray();
         if (lastSearch.length == 0) {
@@ -2050,13 +2059,7 @@ public class SongController {
                         newSongController.setSongController(songController);
                         newSongController.setSelectedSong(selectedItem);
                         newSongController.setTitleTextFieldText(selectedSong.getTitle());
-                        Scene scene = new Scene(root);
-                        URL resource = getClass().getResource("/view/" + settings.getSceneStyleFile());
-                        if (resource != null) {
-                            scene.getStylesheets().add(resource.toExternalForm());
-                        }
-                        Stage stage = getAStage(getClass());
-                        stage.setScene(scene);
+                        Stage stage = getCustomStage3(getClass(), root);
                         stage.setTitle(Settings.getInstance().getResourceBundle().getString("Song Edit"));
                         stage.show();
 
@@ -2071,10 +2074,10 @@ public class SongController {
                         if (resource1 != null) {
                             scene2.getStylesheets().add(resource1.toExternalForm());
                         }
+                        Stage stage2 = getCustomStage2(getClass(), scene2, root2.getWidth(), root2.getHeight());
+                        scene2 = stage2.getScene();
                         scene2.widthProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
                         scene2.heightProperty().addListener((observable, oldValue, newValue) -> previewProjectionScreenController.repaint());
-                        Stage stage2 = getAStage(getClass());
-                        stage2.setScene(scene2);
 
                         stage2.setX(0);
                         stage2.setY(0);
@@ -2358,11 +2361,8 @@ public class SongController {
             Pane root = loader.load();
             NewSongController newSongController = loader.getController();
             newSongController.setSongController(songController);
-            newSongController.setRoot(root);
-            Scene scene = new Scene(root);
-            setSceneStyleFile2(scene);
-            Stage stage = getAStage(getClass());
-            stage.setScene(scene);
+            newSongController.setRoot(root); // only for testing
+            Stage stage = getCustomStage3(getClass(), root);
             stage.setTitle(Settings.getInstance().getResourceBundle().getString("Song Edit"));
             stage.show();
 
@@ -2374,7 +2374,8 @@ public class SongController {
             newSongController.setPreviewProjectionScreenController(previewProjectionScreenController);
             Scene scene2 = new Scene(root2, 400, 300);
             setSceneStyleFile2(scene2);
-
+            Stage stage2 = getCustomStage2(getClass(), scene2, scene2.getWidth(), scene2.getHeight());
+            scene2 = stage2.getScene();
             scene2.widthProperty().addListener((observable, oldValue, newValue) -> {
                 try {
                     previewProjectionScreenController.repaint();
@@ -2389,8 +2390,6 @@ public class SongController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            Stage stage2 = getAStage(getClass());
-            stage2.setScene(scene2);
 
             stage2.setX(0);
             stage2.setY(0);

@@ -61,7 +61,6 @@ public class BorderlessScene extends Scene {
 
             // StageStyle
             StageStyle stageStyle = stage.getStyle();
-            stage.initStyle(stageStyle);
             if (stageStyle == StageStyle.UTILITY) {
                 setSnapEnabled(false);
                 setResizable(false);

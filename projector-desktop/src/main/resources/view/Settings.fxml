@@ -198,7 +198,8 @@
                             </center>
                         </BorderPane>
                         <HBox GridPane.columnSpan="2" GridPane.rowIndex="23">
-                            <ToggleButton fx:id="allowRemoteButton" onAction="#allowRemoteButtonOnAction"
+                            <ToggleButton visible="false" fx:id="allowRemoteButton"
+                                          onAction="#allowRemoteButtonOnAction"
                                           text="%Allow remote"/>
                         </HBox>
                     </GridPane>
@@ -207,7 +208,7 @@
         </ScrollPane>
     </center>
     <bottom>
-        <HBox alignment="TOP_RIGHT">
+        <HBox alignment="TOP_RIGHT" styleClass="h-box">
             <Button mnemonicParsing="false" onAction="#onSaveButtonAction" text="%Save"/>
             <padding>
                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0"/>

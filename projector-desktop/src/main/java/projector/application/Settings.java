@@ -766,6 +766,11 @@ public class Settings {
         this.sceneStyleFile = sceneStyleFile;
     }
 
+    public boolean isDarkTheme() {
+        String s = getSceneStyleFile();
+        return s != null && s.equals("applicationDark.css");
+    }
+
     public int getCustomCanvasWidth() {
         return customCanvasWidth;
     }
