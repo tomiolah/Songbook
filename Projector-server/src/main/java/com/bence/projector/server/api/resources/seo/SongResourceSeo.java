@@ -3,6 +3,7 @@ package com.bence.projector.server.api.resources.seo;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.service.SongService;
+import org.hibernate.HibernateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -40,7 +41,7 @@ public class SongResourceSeo {
         }
         model.addAttribute("title", song.getTitle());
         if (principal == null) {
-            setSongTextLines(song); // for lazy loading
+            song = setSongTextLines(song); // for lazy loading
             addExtraInfo(model, song);
         } else {
             setEmptyLines(song);
@@ -109,10 +110,24 @@ public class SongResourceSeo {
         }
     }
 
-    private void setSongTextLines(Song song) {
+    private Song setSongTextLines_(Song song) {
         for (SongVerse songVerse : song.getVerses()) {
             songVerse.setTextLines();
         }
+        return song;
+    }
+
+    private Song setSongTextLines(Song song) {
+        try {
+            return setSongTextLines_(song);
+        } catch (HibernateException e) {
+            if (e.getMessage().contains("collection was evicted")) {
+                return setSongTextLines_(songService.reloadSong(song));
+            } else {
+                e.printStackTrace();
+            }
+        }
+        return song;
     }
 
     private String getDescriptionText(Song song) {

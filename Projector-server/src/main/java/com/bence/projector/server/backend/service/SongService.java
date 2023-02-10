@@ -57,4 +57,6 @@ public interface SongService extends BaseService<Song> {
     Song findOneByUuid(String uuid);
 
     void startThreadFindForSong(String uuid);
+
+    Song reloadSong(Song song);
 }

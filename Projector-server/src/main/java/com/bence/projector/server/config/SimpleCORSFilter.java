@@ -39,6 +39,8 @@ public class SimpleCORSFilter implements Filter {
             chain.doFilter(req, res);
         } catch (RequestRejectedException e) {
             System.out.println("RequestRejectedException: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            System.out.println("IllegalStateException: " + e.getMessage());
         }
     }
 

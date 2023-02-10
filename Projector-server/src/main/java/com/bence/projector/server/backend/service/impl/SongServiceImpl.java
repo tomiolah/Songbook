@@ -669,6 +669,14 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         }).start();
     }
 
+    @Override
+    public Song reloadSong(Song song) {
+        String uuid = song.getUuid();
+        songsHashMap.remove(uuid);
+        startThreadFindForSong(uuid);
+        return findOneByUuid(uuid);
+    }
+
     private Song getFromMapOrAddToMap(Song song) {
         HashMap<String, Song> songsHashMap = getSongsHashMap();
         String id = song.getUuid();
