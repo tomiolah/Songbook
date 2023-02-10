@@ -65,7 +65,7 @@
     <string name="no_description">Descrierea lipsește!</string>
     <string name="reverse">Invers</string>
     <string name="by_title">După titlu</string>
-    <string name="by_created_date">După data dreată</string>
+    <string name="by_created_date">După data creată</string>
     <string name="by_collection">După colecție</string>
     <string name="short_collection_name">Abrevierea numelui colecției</string>
     <string name="no_change">Nici o schimbare</string>
