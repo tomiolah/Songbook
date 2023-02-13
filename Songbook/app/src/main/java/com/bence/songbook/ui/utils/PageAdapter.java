@@ -1,10 +1,11 @@
 package com.bence.songbook.ui.utils;
 
+import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentStatePagerAdapter;
-import android.view.ViewGroup;
 
 import com.bence.songbook.models.Song;
 import com.bence.songbook.ui.fragment.SongFragment;
@@ -14,8 +15,8 @@ import java.util.List;
 
 public class PageAdapter extends FragmentStatePagerAdapter {
 
-    private List<Song> songs;
-    private List<SongFragment> fragments;
+    private final List<Song> songs;
+    private final List<SongFragment> fragments;
 
     public PageAdapter(FragmentManager fm, List<Song> songs) {
         super(fm);
@@ -26,17 +27,16 @@ public class PageAdapter extends FragmentStatePagerAdapter {
         }
     }
 
+    @NonNull
     @Override
     public Fragment getItem(int position) {
-        if (position < 0) {
-            return null;
-        }
-        if (songs.size() > position) {
-            SongFragment fragment = new SongFragment().setSong(songs.get(position));
+        SongFragment songFragment = new SongFragment();
+        if (0 <= position && position < songs.size()) {
+            SongFragment fragment = songFragment.setSong(songs.get(position));
             fragments.set(position, fragment);
             return fragment;
         }
-        return new SongFragment();
+        return songFragment;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class PageAdapter extends FragmentStatePagerAdapter {
 
     @NonNull
     @Override
-    public Object instantiateItem(ViewGroup container, int position) {
+    public Object instantiateItem(@NonNull ViewGroup container, int position) {
         SongFragment ret = (SongFragment) super.instantiateItem(container, position);
         if (ret.getSong() == null) {
             SongFragment songFragment = fragments.get(position);

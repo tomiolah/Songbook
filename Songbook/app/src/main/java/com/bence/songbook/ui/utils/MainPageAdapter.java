@@ -12,22 +12,21 @@ import java.util.List;
 
 public class MainPageAdapter extends FragmentStatePagerAdapter {
 
-    private List<Song> songs;
+    private final List<Song> songs;
 
     public MainPageAdapter(FragmentManager fm, List<Song> songs) {
         super(fm);
         this.songs = songs;
     }
 
+    @NonNull
     @Override
     public Fragment getItem(int position) {
-        if (position < 0) {
-            return null;
+        MainSongFragment mainSongFragment = new MainSongFragment();
+        if (0 <= position && position < songs.size()) {
+            return mainSongFragment.setSong(songs.get(position));
         }
-        if (songs.size() > position) {
-            return new MainSongFragment().setSong(songs.get(position));
-        }
-        return new MainSongFragment();
+        return mainSongFragment;
     }
 
     @Override
