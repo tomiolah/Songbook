@@ -6,8 +6,8 @@ import android.util.Log;
 import com.bence.songbook.models.LoggedInUser;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.LoggedInUserRepository;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.bence.songbook.repository.exception.RepositoryException;
-import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 
@@ -18,7 +18,7 @@ public class LoggedInUserRepositoryImpl extends BaseRepositoryImpl<LoggedInUser>
         super(LoggedInUser.class);
         try {
             DatabaseHelper databaseHelper = DatabaseHelper.getInstance(context);
-            Dao<LoggedInUser, Long> loggedInUserDao = databaseHelper.getLoggedInUserDao();
+            CustomDao<LoggedInUser, Long> loggedInUserDao = databaseHelper.getLoggedInUserDao();
             super.setDao(loggedInUserDao);
         } catch (SQLException e) {
             String msg = "Failed to initialize LoggedInUserRepository";

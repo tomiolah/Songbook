@@ -6,15 +6,15 @@ import android.util.Log;
 import com.bence.songbook.models.SongList;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.SongListRepository;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.bence.songbook.repository.exception.RepositoryException;
-import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
 
 public class SongListRepositoryImpl extends AbstractRepository<SongList> implements SongListRepository {
     private static final String TAG = SongListRepositoryImpl.class.getSimpleName();
-    private final Dao<SongList, Long> songListDao;
+    private final CustomDao<SongList, Long> songListDao;
 
     public SongListRepositoryImpl(Context context) {
         super(SongList.class);

@@ -8,8 +8,8 @@ import com.bence.songbook.models.Song;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongRepository;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.bence.songbook.repository.exception.RepositoryException;
-import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -17,7 +17,7 @@ import java.util.List;
 
 public class FavouriteSongRepositoryImpl extends BaseRepositoryImpl<FavouriteSong> implements FavouriteSongRepository {
     private static final String TAG = FavouriteSongRepositoryImpl.class.getSimpleName();
-    private final Dao<FavouriteSong, Long> favouriteSongDao;
+    private final CustomDao<FavouriteSong, Long> favouriteSongDao;
     private final Context context;
     private SongRepository songRepository;
 

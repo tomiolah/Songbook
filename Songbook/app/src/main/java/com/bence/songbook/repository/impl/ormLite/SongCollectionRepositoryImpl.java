@@ -10,8 +10,8 @@ import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.SongCollectionElementRepository;
 import com.bence.songbook.repository.SongCollectionRepository;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.bence.songbook.repository.exception.RepositoryException;
-import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -19,13 +19,13 @@ import java.util.List;
 
 public class SongCollectionRepositoryImpl extends AbstractRepository<SongCollection> implements SongCollectionRepository {
     private static final String TAG = SongCollectionRepositoryImpl.class.getSimpleName();
-    private SongCollectionElementRepository songCollectionElementRepository;
+    private final SongCollectionElementRepository songCollectionElementRepository;
 
     public SongCollectionRepositoryImpl(Context context) {
         super(SongCollection.class);
         try {
             DatabaseHelper databaseHelper = DatabaseHelper.getInstance(context);
-            Dao<SongCollection, Long> songCollectionDao = databaseHelper.getSongCollectionDao();
+            CustomDao<SongCollection, Long> songCollectionDao = databaseHelper.getSongCollectionDao();
             super.setDao(songCollectionDao);
             songCollectionElementRepository = new SongCollectionElementRepositoryImpl(context);
         } catch (SQLException e) {

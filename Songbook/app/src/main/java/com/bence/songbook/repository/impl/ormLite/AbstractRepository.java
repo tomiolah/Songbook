@@ -4,6 +4,7 @@ import android.util.Log;
 
 import com.bence.songbook.models.BaseEntity;
 import com.bence.songbook.repository.BaseRepository;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.bence.songbook.repository.exception.RepositoryException;
 import com.j256.ormlite.dao.Dao;
 
@@ -14,7 +15,7 @@ public abstract class AbstractRepository<T extends BaseEntity> implements BaseRe
     private static final String TAG = AbstractRepository.class.getSimpleName();
     private final String clazzName;
     private Dao<T, Long> dao;
-    private String clazzNames;
+    private final String clazzNames;
 
     AbstractRepository(Class<T> clazz) {
         clazzName = clazz.getSimpleName().toLowerCase();
@@ -91,7 +92,7 @@ public abstract class AbstractRepository<T extends BaseEntity> implements BaseRe
         }
     }
 
-    void setDao(Dao<T, Long> dao) {
-        this.dao = dao;
+    void setDao(CustomDao<T, Long> dao) {
+        this.dao = dao.getDao();
     }
 }

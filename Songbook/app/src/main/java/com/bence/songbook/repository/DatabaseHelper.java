@@ -18,8 +18,8 @@ import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongList;
 import com.bence.songbook.models.SongListElement;
 import com.bence.songbook.models.SongVerse;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
-import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
@@ -34,16 +34,16 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     private static DatabaseHelper instance;
     private Context context;
 
-    private Dao<Song, Long> songDao;
-    private Dao<SongVerse, Long> songVerseDao;
-    private Dao<Language, Long> languageDao;
-    private Dao<SongCollection, Long> songCollectionDao;
-    private Dao<SongCollectionElement, Long> songCollectionElementDao;
-    private Dao<FavouriteSong, Long> favouriteSongDao;
-    private Dao<QueueSong, Long> queueSongDao;
-    private Dao<SongList, Long> songListDao;
-    private Dao<SongListElement, Long> songListElementDao;
-    private Dao<LoggedInUser, Long> loggedInUserDao;
+    private CustomDao<Song, Long> songDao;
+    private CustomDao<SongVerse, Long> songVerseDao;
+    private CustomDao<Language, Long> languageDao;
+    private CustomDao<SongCollection, Long> songCollectionDao;
+    private CustomDao<SongCollectionElement, Long> songCollectionElementDao;
+    private CustomDao<FavouriteSong, Long> favouriteSongDao;
+    private CustomDao<QueueSong, Long> queueSongDao;
+    private CustomDao<SongList, Long> songListDao;
+    private CustomDao<SongListElement, Long> songListElementDao;
+    private CustomDao<LoggedInUser, Long> loggedInUserDao;
 
     private DatabaseHelper(final Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION, R.raw.ormlite_config);
@@ -59,8 +59,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     }
 
     @Override
-    public void onCreate(final SQLiteDatabase sqliteDatabase,
-                         final ConnectionSource connectionSource) {
+    public void onCreate(final SQLiteDatabase sqliteDatabase, final ConnectionSource connectionSource) {
         try {
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
             sharedPreferences.edit().putInt("songDataBaseVersion", 13).apply();
@@ -89,8 +88,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
     }
 
     @Override
-    public void onUpgrade(final SQLiteDatabase sqliteDatabase,
-                          final ConnectionSource connectionSource, final int oldVer, final int newVer) {
+    public void onUpgrade(final SQLiteDatabase sqliteDatabase, final ConnectionSource connectionSource, final int oldVer, final int newVer) {
         try {
             if (oldVer < newVer) {
                 SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
@@ -165,8 +163,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
                 }
             }
         } catch (final Exception e) {
-            Log.e(TAG,
-                    "Unable to upgrade database from version " + oldVer + " to new " + newVer, e);
+            Log.e(TAG, "Unable to upgrade database from version " + oldVer + " to new " + newVer, e);
         }
         try {
             onCreate(sqliteDatabase, connectionSource);
@@ -175,7 +172,7 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         }
     }
 
-    private void executeSafe(Dao<Language, Long> dao, String statement) {
+    private void executeSafe(CustomDao<Language, Long> dao, String statement) {
         try {
             dao.executeRaw(statement);
         } catch (Exception e) {
@@ -183,72 +180,76 @@ public class DatabaseHelper extends OrmLiteSqliteOpenHelper {
         }
     }
 
-    public Dao<Song, Long> getSongDao() throws SQLException {
+    public CustomDao<Song, Long> getSongDao() throws SQLException {
         if (songDao == null) {
-            songDao = getDao(Song.class);
+            songDao = getCustomDao(Song.class);
         }
         return songDao;
     }
 
-    public Dao<SongVerse, Long> getSongVerseDao() throws SQLException {
+    private <T> CustomDao<T, Long> getCustomDao(Class<T> aClass) throws SQLException {
+        return new CustomDao<>(getDao(aClass));
+    }
+
+    public CustomDao<SongVerse, Long> getSongVerseDao() throws SQLException {
         if (songVerseDao == null) {
-            songVerseDao = getDao(SongVerse.class);
+            songVerseDao = getCustomDao(SongVerse.class);
         }
         return songVerseDao;
     }
 
-    public Dao<Language, Long> getLanguageDao() throws SQLException {
+    public CustomDao<Language, Long> getLanguageDao() throws SQLException {
         if (languageDao == null) {
-            languageDao = getDao(Language.class);
+            languageDao = getCustomDao(Language.class);
         }
         return languageDao;
     }
 
-    public Dao<SongCollection, Long> getSongCollectionDao() throws SQLException {
+    public CustomDao<SongCollection, Long> getSongCollectionDao() throws SQLException {
         if (songCollectionDao == null) {
-            songCollectionDao = getDao(SongCollection.class);
+            songCollectionDao = getCustomDao(SongCollection.class);
         }
         return songCollectionDao;
     }
 
-    public Dao<SongCollectionElement, Long> getSongCollectionElementDao() throws SQLException {
+    public CustomDao<SongCollectionElement, Long> getSongCollectionElementDao() throws SQLException {
         if (songCollectionElementDao == null) {
-            songCollectionElementDao = getDao(SongCollectionElement.class);
+            songCollectionElementDao = getCustomDao(SongCollectionElement.class);
         }
         return songCollectionElementDao;
     }
 
-    public Dao<FavouriteSong, Long> getFavouriteSongDao() throws SQLException {
+    public CustomDao<FavouriteSong, Long> getFavouriteSongDao() throws SQLException {
         if (favouriteSongDao == null) {
-            favouriteSongDao = getDao(FavouriteSong.class);
+            favouriteSongDao = new CustomDao<>(getDao(FavouriteSong.class));
         }
         return favouriteSongDao;
     }
 
-    public Dao<QueueSong, Long> getQueueSongDao() throws SQLException {
+    public CustomDao<QueueSong, Long> getQueueSongDao() throws SQLException {
         if (queueSongDao == null) {
-            queueSongDao = getDao(QueueSong.class);
+            queueSongDao = getCustomDao(QueueSong.class);
         }
         return queueSongDao;
     }
 
-    public Dao<SongList, Long> getSongListDao() throws SQLException {
+    public CustomDao<SongList, Long> getSongListDao() throws SQLException {
         if (songListDao == null) {
-            songListDao = getDao(SongList.class);
+            songListDao = getCustomDao(SongList.class);
         }
         return songListDao;
     }
 
-    public Dao<SongListElement, Long> getSongListElementDao() throws SQLException {
+    public CustomDao<SongListElement, Long> getSongListElementDao() throws SQLException {
         if (songListElementDao == null) {
-            songListElementDao = getDao(SongListElement.class);
+            songListElementDao = getCustomDao(SongListElement.class);
         }
         return songListElementDao;
     }
 
-    public Dao<LoggedInUser, Long> getLoggedInUserDao() throws SQLException {
+    public CustomDao<LoggedInUser, Long> getLoggedInUserDao() throws SQLException {
         if (loggedInUserDao == null) {
-            loggedInUserDao = getDao(LoggedInUser.class);
+            loggedInUserDao = getCustomDao(LoggedInUser.class);
         }
         return loggedInUserDao;
     }

@@ -6,17 +6,16 @@ import android.util.Log;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.SongVerseRepository;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.bence.songbook.repository.exception.RepositoryException;
-import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 public class SongVerseRepositoryImpl extends AbstractRepository<SongVerse> implements SongVerseRepository {
     private static final String TAG = SongVerseRepositoryImpl.class.getSimpleName();
 
-    private Dao<SongVerse, Long> songVerseDao;
+    private final CustomDao<SongVerse, Long> songVerseDao;
 
     SongVerseRepositoryImpl(final Context context) {
         super(SongVerse.class);
@@ -47,11 +46,7 @@ public class SongVerseRepositoryImpl extends AbstractRepository<SongVerse> imple
         String msg = "Could not find all songVerses";
         try {
             return songVerseDao.callBatchTasks(
-                    new Callable<List<SongVerse>>() {
-                        public List<SongVerse> call() throws SQLException {
-                            return songVerseDao.queryForAll();
-                        }
-                    });
+                    songVerseDao::queryForAll);
         } catch (final SQLException e) {
             Log.e(TAG, msg);
             throw new RepositoryException(msg, e);

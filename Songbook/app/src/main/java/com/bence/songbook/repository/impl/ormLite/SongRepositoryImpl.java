@@ -10,8 +10,8 @@ import com.bence.songbook.models.Song;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.SongRepository;
 import com.bence.songbook.repository.SongVerseRepository;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.bence.songbook.repository.exception.RepositoryException;
-import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.misc.TransactionManager;
 
 import java.sql.SQLException;
@@ -23,7 +23,7 @@ public class SongRepositoryImpl extends AbstractRepository<Song> implements Song
     private static final String TAG = SongRepositoryImpl.class.getSimpleName();
     private final DatabaseHelper databaseHelper;
 
-    private final Dao<Song, Long> songDao;
+    private final CustomDao<Song, Long> songDao;
     private final SongVerseRepository songVerseRepository;
 
     public SongRepositoryImpl(final Context context) {

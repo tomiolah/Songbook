@@ -6,8 +6,8 @@ import android.util.Log;
 import com.bence.songbook.models.Language;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.LanguageRepository;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.bence.songbook.repository.exception.RepositoryException;
-import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -20,7 +20,7 @@ public class LanguageRepositoryImpl extends AbstractRepository<Language> impleme
         super(Language.class);
         try {
             DatabaseHelper databaseHelper = DatabaseHelper.getInstance(context);
-            Dao<Language, Long> languageDao = databaseHelper.getLanguageDao();
+            CustomDao<Language, Long> languageDao = databaseHelper.getLanguageDao();
             super.setDao(languageDao);
         } catch (SQLException e) {
             String msg = "Failed to initialize LanguageRepository";

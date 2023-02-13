@@ -6,8 +6,8 @@ import android.util.Log;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.QueueSongRepository;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.bence.songbook.repository.exception.RepositoryException;
-import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 
@@ -18,7 +18,7 @@ public class QueueSongRepositoryImpl extends BaseRepositoryImpl<QueueSong> imple
         super(QueueSong.class);
         try {
             DatabaseHelper databaseHelper = DatabaseHelper.getInstance(context);
-            Dao<QueueSong, Long> queueSongDao = databaseHelper.getQueueSongDao();
+            CustomDao<QueueSong, Long> queueSongDao = databaseHelper.getQueueSongDao();
             super.setDao(queueSongDao);
         } catch (SQLException e) {
             String msg = "Failed to initialize QueueSongRepository";

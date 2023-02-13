@@ -11,8 +11,8 @@ android {
         minSdkVersion 16
         //noinspection OldTargetApi
         targetSdkVersion 31
-        versionCode 110
-        versionName '2.12.12'
+        versionCode 111
+        versionName '2.12.13'
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
     }

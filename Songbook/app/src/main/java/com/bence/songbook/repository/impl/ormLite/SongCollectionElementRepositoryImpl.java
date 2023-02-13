@@ -7,8 +7,8 @@ import android.widget.ProgressBar;
 import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.repository.DatabaseHelper;
 import com.bence.songbook.repository.SongCollectionElementRepository;
+import com.bence.songbook.repository.dao.CustomDao;
 import com.bence.songbook.repository.exception.RepositoryException;
-import com.j256.ormlite.dao.Dao;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import java.util.List;
 
 public class SongCollectionElementRepositoryImpl extends AbstractRepository<SongCollectionElement> implements SongCollectionElementRepository {
     private static final String TAG = SongCollectionElementRepositoryImpl.class.getSimpleName();
-    private final Dao<SongCollectionElement, Long> songCollectionDao;
+    private final CustomDao<SongCollectionElement, Long> songCollectionDao;
 
     public SongCollectionElementRepositoryImpl(Context context) {
         super(SongCollectionElement.class);
