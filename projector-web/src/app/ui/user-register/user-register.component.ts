@@ -15,7 +15,6 @@ export class UserRegisterComponent implements OnInit {
   @ViewChild('email', { static: false }) emailElement: ElementRef;
 
   userForm: FormGroup;
-  submitted = false;
   model = new User();
   reEnteredPassword = '';
   firstName = '';
@@ -61,7 +60,6 @@ export class UserRegisterComponent implements OnInit {
   }
 
   onSubmit() {
-    this.submitted = true;
     this.model.email = this.userForm.value.email;
     this.model.surname = this.userForm.value.surname;
     this.model.firstName = this.userForm.value.firstName;

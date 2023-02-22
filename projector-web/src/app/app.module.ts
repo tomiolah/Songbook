@@ -96,6 +96,7 @@ import { SongCollectionElementComponent } from './ui/song-collection-element/son
 import { ActivateComponent } from './ui/activate/activate.component';
 import { NewSongCollectionComponent } from './ui/new-song-collection/new-song-collection.component';
 import { EditTitleComponent } from './ui/edit-title/edit-title.component';
+import { AccountComponent } from './ui/account/account.component';
 
 @NgModule({
   exports: [
@@ -182,6 +183,7 @@ export class PlunkerMaterialModule {
     ActivateComponent,
     NewSongCollectionComponent,
     EditTitleComponent,
+    AccountComponent,
   ],
   imports: [
     BrowserModule,

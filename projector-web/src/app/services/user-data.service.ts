@@ -33,9 +33,14 @@ export class UserDataService {
     return this.api.getAll(User, 'admin/api/users');
   }
 
-  update(user: User) {
+  updateAsAdmin(user: User) {
     user.id = user.uuid;
     return this.api.update(User, 'admin/api/user/', user);
+  }
+
+  update(user: User) {
+    user.id = user.uuid;
+    return this.api.update(User, 'user/api/user/', user);
   }
 
   requireForgottenToken(email: string) {

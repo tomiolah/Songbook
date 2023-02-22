@@ -110,16 +110,48 @@ public class UserResource {
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/admin/api/user/{id}")
-    public ResponseEntity<Object> updateUser(@PathVariable final String id, @RequestBody final UserDTO userDTO, HttpServletRequest httpServletRequest) {
+    public ResponseEntity<Object> updateUserAsAdmin(@PathVariable final String id, @RequestBody final UserDTO userDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         User user = userService.findOneByUuid(id);
         if (user != null) {
             Date modifiedDate = user.getModifiedDate();
-            if (modifiedDate != null && modifiedDate.compareTo(userDTO.getModifiedDate()) != 0) {
+            if (isModifiedDate(modifiedDate, userDTO.getModifiedDate())) {
                 return new ResponseEntity<>("Already modified", HttpStatus.CONFLICT);
             }
-            userDTO.setModifiedDate(new Date());
+            user.setModifiedDate(new Date());
             userAssembler.updateModel(user, userDTO);
+            final User savedUser = userService.save(user);
+            if (savedUser != null) {
+                return new ResponseEntity<>(userAssembler.createDto(user), HttpStatus.ACCEPTED);
+            }
+        } else {
+            return new ResponseEntity<>("No user with this id", HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>("Could not update", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private boolean isModifiedDate(Date modifiedDate, Date newModifiedDate) {
+        if (modifiedDate == null) {
+            return newModifiedDate != null;
+        }
+        if (newModifiedDate == null) {
+            return true;
+        }
+        return modifiedDate.compareTo(newModifiedDate) != 0;
+    }
+
+    @RequestMapping(method = RequestMethod.PUT, value = "/user/api/user/{uuid}")
+    public ResponseEntity<Object> updateUser(@PathVariable final String uuid, @RequestBody final UserDTO userDTO, HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        User user = userService.findOneByUuid(uuid);
+        if (user != null) {
+            Date modifiedDate = user.getModifiedDate();
+            if (isModifiedDate(modifiedDate, userDTO.getModifiedDate())) {
+                return new ResponseEntity<>("Already modified", HttpStatus.CONFLICT);
+            }
+            user.setModifiedDate(new Date());
+            user.setSurname(userDTO.getSurname());
+            user.setFirstName(userDTO.getFirstName());
             final User savedUser = userService.save(user);
             if (savedUser != null) {
                 return new ResponseEntity<>(userAssembler.createDto(user), HttpStatus.ACCEPTED);

@@ -157,7 +157,7 @@ export class UserComponent implements OnInit, OnDestroy {
   }
 
   private update(updateUser: User) {
-    this.userService.update(updateUser).subscribe(() => {
+    this.userService.updateAsAdmin(updateUser).subscribe(() => {
       this.setOriginalUser(updateUser);
     }, (err) => {
       checkAuthenticationError(this.ngOnInit, this, err, this.dialog);

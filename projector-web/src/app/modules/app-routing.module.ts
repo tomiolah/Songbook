@@ -22,6 +22,7 @@ import { VersionLinkListComponent } from '../ui/version-link-list/version-link-l
 import { VersionLinkComponent } from '../ui/version-link/version-link.component';
 import { ActivateComponent } from '../ui/activate/activate.component';
 import { NewSongCollectionComponent } from '../ui/new-song-collection/new-song-collection.component';
+import { AccountComponent } from '../ui/account/account.component';
 
 export const appRoutes: Routes = [
   {
@@ -64,6 +65,7 @@ export const appRoutes: Routes = [
   { path: 'desktop-app', component: ProjectorComponent },
   { path: 'forgottenPassword', component: ForgottenPasswordComponent },
   { path: 'changePasswordByToken', component: ChangePasswordByTokenComponent },
+  { path: 'account', component: AccountComponent },
   { path: '**', component: NotFoundComponent },
 ];
 

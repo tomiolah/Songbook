@@ -32,9 +32,9 @@
         </a>
       </ng-container>
 
-      <a mat-tab-link (click)="auth.logout()" routerLink="/login" id="logout">
-        <mat-icon class="material-icon">power_settings_new</mat-icon>
-        {{'Logout'}}
+      <a mat-tab-link routerLink="/account">
+        <mat-icon class="material-icon">account_circle</mat-icon>
+        {{accountName}}
       </a>
     </div>
   </nav>

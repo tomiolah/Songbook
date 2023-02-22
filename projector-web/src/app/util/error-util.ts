@@ -57,3 +57,12 @@ export function checkAuthenticationError<T, TResult>(callbackFn: (this: T) => TR
     openAuthenticateDialog(callbackFn, thisArg, dialog);
   }
 }
+
+export function generalError<T>(callbackFn: (this: T) => any, thisArg: T, err, dialog: MatDialog, snackBar: MatSnackBar): any;
+export function generalError<T, TResult>(callbackFn: (this: T) => TResult, thisArg: T, err, dialog: MatDialog, snackBar: MatSnackBar) {
+  if (ErrorUtil.errorIsNeededLogin(err)) {
+    openAuthenticateDialog(callbackFn, thisArg, dialog);
+  } else {
+    ErrorUtil.showError(err, snackBar);
+  }
+}

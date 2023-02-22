@@ -12,6 +12,8 @@ class MenuTab {
   title = '';
 }
 
+const ACCOUNT = 'Account';
+
 @Component({
   selector: 'app-menu-tabs',
   templateUrl: './menu-tabs.component.html',
@@ -47,6 +49,8 @@ export class MenuTabsComponent implements OnInit {
     { link: '/desktop-app', icon: 'devices', title: 'Desktop app' },
   ];
 
+  accountName = ACCOUNT;
+
   constructor(
     public auth: AuthService,
     iconRegistry: MatIconRegistry,
@@ -56,6 +60,7 @@ export class MenuTabsComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.checkActivatedMenuTab();
     setInterval(() => this.checkActivatedMenuTab(), 2000);
   }
 
@@ -68,6 +73,10 @@ export class MenuTabsComponent implements OnInit {
         }
       } else {
         this.removeActivateMenuTab();
+      }
+      this.accountName = user.surname + ' ' + user.firstName;
+      if (this.accountName.trim() == '') {
+        this.accountName = ACCOUNT;
       }
     }
   }
