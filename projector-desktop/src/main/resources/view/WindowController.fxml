@@ -10,7 +10,8 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
-<StackPane fx:id="mainStackPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="464.0" prefWidth="754.0"
+<StackPane fx:id="mainStackPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="464.0"
+           prefWidth="754.0"
            stylesheets="@applicationDark.css" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="projector.controller.util.WindowController">
     <BorderPane fx:id="mainBorderPane">
@@ -30,6 +31,11 @@
                         <Cursor fx:constant="MOVE"/>
                     </cursor>
                 </Label>
+                <Button fx:id="signInButton" focusTraversable="false" maxHeight="-Infinity" maxWidth="-Infinity"
+                        minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="29.0"
+                        visible="false" managed="false"
+                        style="-fx-background-radius: 0;" styleClass="minimize-button" text="%Sign In">
+                </Button>
                 <Button fx:id="minimize" focusTraversable="false" maxHeight="-Infinity" maxWidth="-Infinity"
                         minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" prefHeight="29.0"
                         prefWidth="45.0" style="-fx-background-radius: 0;" styleClass="minimize-button">

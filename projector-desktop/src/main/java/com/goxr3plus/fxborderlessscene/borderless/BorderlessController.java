@@ -130,8 +130,12 @@ public class BorderlessController {
         }
 
         if (maximized.get()) {
-            stage.setWidth(prevSize.x);
-            stage.setHeight(prevSize.y);
+            if (prevSize.x != null) {
+                stage.setWidth(prevSize.x);
+            }
+            if (prevSize.y != null) {
+                stage.setHeight(prevSize.y);
+            }
             stage.setX(prevPos.x);
             stage.setY(prevPos.y);
             setMaximized(false);
@@ -142,10 +146,13 @@ public class BorderlessController {
                 prevSize.y = stage.getHeight();
                 prevPos.x = stage.getX();
                 prevPos.y = stage.getY();
-            } else if (!screen.contains(prevPos.x, prevPos.y)) {
-                if (prevSize.x > screen.getWidth()) prevSize.x = screen.getWidth() - 20;
-
-                if (prevSize.y > screen.getHeight()) prevSize.y = screen.getHeight() - 20;
+            } else if (prevSize.x == null || prevSize.y == null || !screen.contains(prevPos.x, prevPos.y)) {
+                if (prevSize.x == null || prevSize.x > screen.getWidth()) {
+                    prevSize.x = screen.getWidth() - 20;
+                }
+                if (prevSize.y == null || prevSize.y > screen.getHeight()) {
+                    prevSize.y = screen.getHeight() - 20;
+                }
 
                 prevPos.x = screen.getMinX() + (screen.getWidth() - prevSize.x) / 2;
                 prevPos.y = screen.getMinY() + (screen.getHeight() - prevSize.y) / 2;
@@ -176,8 +183,12 @@ public class BorderlessController {
                 delta.y = m.getSceneY(); //getY()
 
                 if (maximized.get() || snapped) {
-                    delta.x = prevSize.x * (m.getSceneX() / stage.getWidth());//(m.getX() / stage.getWidth())
-                    delta.y = prevSize.y * (m.getSceneY() / stage.getHeight());//(m.getY() / stage.getHeight())
+                    if (prevSize.x != null) {
+                        delta.x = prevSize.x * (m.getSceneX() / stage.getWidth());
+                    }
+                    if (prevSize.y != null) {
+                        delta.y = prevSize.y * (m.getSceneY() / stage.getHeight());
+                    }
                 } else {
                     prevSize.x = stage.getWidth();
                     prevSize.y = stage.getHeight();
@@ -211,8 +222,12 @@ public class BorderlessController {
 
                 // Aero Snap off.
                 if (maximized.get()) {
-                    stage.setWidth(prevSize.x);
-                    stage.setHeight(prevSize.y);
+                    if (prevSize.x != null) {
+                        stage.setWidth(prevSize.x);
+                    }
+                    if (prevSize.y != null) {
+                        stage.setHeight(prevSize.y);
+                    }
                     setMaximized(false);
                 }
 
@@ -365,11 +380,13 @@ public class BorderlessController {
 
                     // Aero Snap Top ||  Aero Snap Bottom
                     else if (m.getScreenY() <= screen.getMinY() || m.getScreenY() >= screen.getMaxY() - 1) {
-                        if (!screen.contains(prevPos.x, prevPos.y)) {
-                            if (prevSize.x > screen.getWidth()) prevSize.x = screen.getWidth() - 20;
-
-                            if (prevSize.y > screen.getHeight()) prevSize.y = screen.getHeight() - 20;
-
+                        if (prevSize.x == null || prevSize.y == null || !screen.contains(prevPos.x, prevPos.y)) {
+                            if (prevSize.x == null || prevSize.x > screen.getWidth()) {
+                                prevSize.x = screen.getWidth() - 20;
+                            }
+                            if (prevSize.y == null || prevSize.y > screen.getHeight()) {
+                                prevSize.y = screen.getHeight() - 20;
+                            }
                             prevPos.x = screen.getMinX() + (screen.getWidth() - prevSize.x) / 2;
                             prevPos.y = screen.getMinY() + (screen.getHeight() - prevSize.y) / 2;
                         }
@@ -397,8 +414,12 @@ public class BorderlessController {
     }
 
     private void snapOff() {
-        stage.setWidth(prevSize.x);
-        stage.setHeight(prevSize.y);
+        if (prevSize.x != null) {
+            stage.setWidth(prevSize.x);
+        }
+        if (prevSize.y != null) {
+            stage.setHeight(prevSize.y);
+        }
         snapped = false;
     }
 
@@ -443,7 +464,9 @@ public class BorderlessController {
                 // Vertical resize.
                 if (direction.startsWith("top")) {
                     if (snapped) {
-                        stage.setHeight(prevSize.y);
+                        if (prevSize.y != null) {
+                            stage.setHeight(prevSize.y);
+                        }
                         snapped = false;
                     } else {
                         double newHeight = stage.getY() - m.getScreenY() + stage.getHeight();
@@ -454,7 +477,9 @@ public class BorderlessController {
                     }
                 } else if (direction.startsWith(bottom)) {
                     if (snapped) {
-                        stage.setY(prevPos.y);
+                        if (prevSize.y != null) {
+                            stage.setY(prevPos.y);
+                        }
                         snapped = false;
                     } else {
                         double newHeight = m.getSceneY();

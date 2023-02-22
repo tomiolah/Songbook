@@ -14,6 +14,7 @@ import projector.model.Chapter;
 import projector.model.CountdownTime;
 import projector.model.Information;
 import projector.model.Language;
+import projector.model.LoggedInUser;
 import projector.model.Song;
 import projector.model.SongBook;
 import projector.model.SongBookSong;
@@ -22,6 +23,7 @@ import projector.model.SongCollectionElement;
 import projector.model.SongVerse;
 import projector.model.VerseIndex;
 import projector.repository.RepositoryException;
+import projector.repository.dao.CustomDao;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -38,7 +40,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 16;
+    private final int DATABASE_VERSION = 17;
     private final ConnectionSource connectionSource;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
@@ -54,6 +56,7 @@ public class DatabaseHelper {
     private Dao<BibleVerse, Long> bibleVerseDao;
     private Dao<VerseIndex, Long> verseIndexDao;
     private Dao<CountdownTime, Long> countdownTimeDao;
+    private CustomDao<LoggedInUser, Long> loggedInUserDao;
 
     private DatabaseHelper() {
         try {
@@ -155,7 +158,6 @@ public class DatabaseHelper {
                     } catch (Exception ignored) {
                     }
                 }
-                //noinspection ConstantConditions
                 if (oldVersion <= 15) {
                     Dao<SongCollection, Long> songCollectionDao = getSongCollectionDao();
                     try {
@@ -217,6 +219,7 @@ public class DatabaseHelper {
             TableUtils.createTableIfNotExists(connectionSource, BibleVerse.class);
             TableUtils.createTableIfNotExists(connectionSource, VerseIndex.class);
             TableUtils.createTableIfNotExists(connectionSource, CountdownTime.class);
+            TableUtils.createTableIfNotExists(connectionSource, LoggedInUser.class);
             try {
                 getSongVerseDao().executeRaw("ALTER TABLE `SONGVERSE` ADD COLUMN secondText VARCHAR(1000);");
             } catch (Exception ignored) {
@@ -246,6 +249,7 @@ public class DatabaseHelper {
             TableUtils.dropTable(connectionSource, BibleVerse.class, true);
             TableUtils.dropTable(connectionSource, VerseIndex.class, true);
             TableUtils.dropTable(connectionSource, CountdownTime.class, true);
+            TableUtils.dropTable(connectionSource, LoggedInUser.class, true);
         } catch (final Exception e) {
             LOG.error("Unable to upgrade database", e);
         }
@@ -354,6 +358,18 @@ public class DatabaseHelper {
         return countdownTimeDao;
     }
 
+    public CustomDao<LoggedInUser, Long> getLoggedInUserDao() throws SQLException {
+        if (loggedInUserDao == null) {
+            loggedInUserDao = getCustomDao(LoggedInUser.class);
+        }
+        return loggedInUserDao;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private <T> CustomDao<T, Long> getCustomDao(Class<T> aClass) throws SQLException {
+        return new CustomDao<>(DaoManager.createDao(connectionSource, aClass));
+    }
+
     ConnectionSource getConnectionSource() {
         return connectionSource;
     }
@@ -380,5 +396,4 @@ public class DatabaseHelper {
             throw new RepositoryException(msg, e);
         }
     }
-
 }

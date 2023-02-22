@@ -209,6 +209,7 @@ public class MainDesktop extends Application {
             primaryScene = new Scene(root, settings.getMainWidth(), settings.getMainHeight());
             windowController = createWindowController(getClass(), primaryScene, primaryStage);
             addSettingsMenu(windowController);
+            windowController.showSignInButton();
             primaryScene = primaryStage.getScene();
             primaryScene.addEventHandler(KeyEvent.KEY_PRESSED, event -> {
                 if (event.isAltDown()) {

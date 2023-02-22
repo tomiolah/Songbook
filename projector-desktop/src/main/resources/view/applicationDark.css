@@ -350,3 +350,8 @@
 .toggle-button:selected {
     -fx-background-color: #1e1e1e;
 }
+
+#accountPopupPane {
+    -fx-border-color: #000000;
+    -fx-border-width: 1;
+}

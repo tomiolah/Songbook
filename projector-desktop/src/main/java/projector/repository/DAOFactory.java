@@ -36,4 +36,6 @@ public abstract class DAOFactory {
     public abstract InfoRepository getInfoDAO();
 
     public abstract CountdownTimeRepository getCountdownTimeDAO();
+
+    public abstract LoggedInUserRepository getLoggedInUserDAO();
 }

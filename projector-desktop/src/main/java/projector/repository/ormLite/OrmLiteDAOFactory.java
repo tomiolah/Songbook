@@ -5,6 +5,7 @@ import projector.repository.CountdownTimeRepository;
 import projector.repository.DAOFactory;
 import projector.repository.InformationDAO;
 import projector.repository.LanguageRepository;
+import projector.repository.LoggedInUserRepository;
 import projector.repository.SongBookDAO;
 import projector.repository.SongCollectionElementRepository;
 import projector.repository.SongCollectionRepository;
@@ -146,6 +147,16 @@ public class OrmLiteDAOFactory extends DAOFactory {
     public CountdownTimeRepository getCountdownTimeDAO() {
         try {
             return new CountdownTimeRepositoryImpl();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public LoggedInUserRepository getLoggedInUserDAO() {
+        try {
+            return new LoggedInUserRepositoryImpl();
         } catch (SQLException e) {
             e.printStackTrace();
         }
