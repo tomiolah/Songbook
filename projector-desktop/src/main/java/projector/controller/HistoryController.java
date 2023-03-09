@@ -92,8 +92,7 @@ public class HistoryController {
                     try {
                         strLine = strLine.replace("</color>", "");
                         reference.addVerse(strLine);
-                    } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
-                        System.out.println(strLine);
+                    } catch (NumberFormatException | ArrayIndexOutOfBoundsException ignored) {
                     }
                 }
                 Text verses = getGeneralText();

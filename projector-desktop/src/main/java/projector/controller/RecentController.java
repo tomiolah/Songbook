@@ -37,6 +37,14 @@ public class RecentController {
     private List<List<Integer>> verseNumbersList;
     private int searchSelected;
 
+    private static void writeLineNoEmptyLine(BufferedWriter bw, String s) throws IOException {
+        s = s.replaceAll("\n", "");
+        if (s.trim().isEmpty()) {
+            return;
+        }
+        bw.write(s + System.lineSeparator());
+    }
+
     public void initialize() {
         typeList = new LinkedList<>();
         bookI = new LinkedList<>();
@@ -175,13 +183,12 @@ public class RecentController {
                 bw.write(date + System.lineSeparator());
                 for (int i = 0; i < bookI.size(); ++i) {
                     if (bookI.get(i) != -1) {
-                        bw.write((bookI.get(i) + 1) + " " + (partI.get(i) + 1) + " " + verseNumbersListText.get(i)
-                                + System.lineSeparator());
+                        writeLineNoEmptyLine(bw, (bookI.get(i) + 1) + " " + (partI.get(i) + 1) + " " + verseNumbersListText.get(i));
                     }
                 }
                 bw.write(System.lineSeparator());
                 for (String title : songTitles) {
-                    bw.write(title + System.lineSeparator());
+                    writeLineNoEmptyLine(bw, title);
                 }
                 bw.write(System.lineSeparator());
             }
