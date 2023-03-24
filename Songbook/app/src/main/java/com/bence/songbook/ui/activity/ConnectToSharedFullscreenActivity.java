@@ -11,7 +11,6 @@ import android.view.animation.AnimationUtils;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
-import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.network.TCPClient;
 import com.bence.songbook.ui.utils.OnSwipeTouchListener;
 
@@ -69,6 +68,7 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
 
             @Override
             public void performTouchLeftRight(MotionEvent event) {
+                //noinspection IntegerDivisionInFloatingPointContext
                 if (event.getX() < mContentView.getWidth() / 2) {
                     setPreviousVerse();
                 } else {
@@ -80,23 +80,17 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
             Intent intent = getIntent();
             String connectToShared = intent.getStringExtra("connectToShared");
             if (connectToShared != null && !connectToShared.isEmpty()) {
-                TCPClient.connectToShared(this, connectToShared, new ProjectionTextChangeListener() {
-                    @Override
-                    public void onSetText(final String text) {
-                        try {
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    setText(text);
-                                    if (textIndex < 0 || !texts.get(textIndex).equals(text)) {
-                                        textIndex = texts.size();
-                                        texts.add(text);
-                                    }
-                                }
-                            });
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+                TCPClient.connectToShared(this, connectToShared, text -> {
+                    try {
+                        runOnUiThread(() -> {
+                            setText(text);
+                            if (textIndex < 0 || !texts.get(textIndex).equals(text)) {
+                                textIndex = texts.size();
+                                texts.add(text);
+                            }
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 });
             }

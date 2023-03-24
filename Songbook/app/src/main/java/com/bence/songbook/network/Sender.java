@@ -11,6 +11,9 @@ import java.net.SocketException;
 import java.util.List;
 
 class Sender {
+
+    public static final String START_PROJECTION_DTO = "start 'projectionDTO'";
+    public static final String END_PROJECTION_DTO = "end 'projectionDTO'";
     private final String TAG = Sender.class.getName();
     private final Thread writer;
     private final DataOutputStream outToClient;
@@ -36,16 +39,19 @@ class Sender {
                                     + "start 'projectionType'\n"
                                     + "SONG" + "\n"
                                     + "end 'projectionType'\n";
+                            //noinspection CharsetObjectCanBeUsed
                             outToClient.write(s.getBytes("UTF-8"));
                         } catch (SocketException e) {
                             String message = e.getMessage();
-                            if (message.equals("Socket closed")) {
-                                projectionTextChangeListeners.remove(this);
-                                close();
-                                return;
-                            } else if (!message.equals("Connection reset by peer: socket write error") &&
-                                    !message.equals("Software caused connection abort: socket write error")) {
-                                Log.e(TAG, message, e);
+                            if (message != null) {
+                                if (message.equals("Socket closed")) {
+                                    projectionTextChangeListeners.remove(this);
+                                    close();
+                                    return;
+                                } else if (!message.equals("Connection reset by peer: socket write error") &&
+                                        !message.equals("Software caused connection abort: socket write error")) {
+                                    Log.e(TAG, message, e);
+                                }
                             }
                             projectionTextChangeListeners.remove(this);
                         } catch (Exception e) {
@@ -59,21 +65,18 @@ class Sender {
             }
         });
         writer.start();
-        reader = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    inFromClient.readLine();
+        reader = new Thread(() -> {
+            try {
+                inFromClient.readLine();
 //                while (!s.equals("Finished")) {
 //                    s = inFromClient.readLine();
 //                }
-                    close();
-                } catch (SocketException e) {
+                close();
+            } catch (SocketException e) {
 //                    if (e.getMessage().equals("Socket closed")) {
 //                    }
-                } catch (Exception e) {
-                    close();
-                }
+            } catch (Exception e) {
+                close();
             }
         });
         reader.start();
@@ -107,7 +110,7 @@ class Sender {
                 outToClient.writeBytes("Finished\n");
             }
         } catch (SocketException e) {
-            if (e.getMessage().equals("Socket closed")) {
+            if ("Socket closed".equals(e.getMessage())) {
                 return;
             }
             Log.e(TAG, e.getMessage(), e);

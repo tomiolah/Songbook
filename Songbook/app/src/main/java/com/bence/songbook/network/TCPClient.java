@@ -1,8 +1,14 @@
 package com.bence.songbook.network;
 
+import static com.bence.songbook.network.Sender.END_PROJECTION_DTO;
+import static com.bence.songbook.network.Sender.START_PROJECTION_DTO;
+
 import android.util.Log;
 
+import com.bence.projector.common.dto.ProjectionDTO;
 import com.bence.songbook.ui.activity.ConnectToSharedFullscreenActivity;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -24,63 +30,72 @@ public class TCPClient {
         if (thread != null) {
             close();
         }
-        thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (openIp != null) {
-                        clientSocket = new Socket(openIp, PORT);
-                        inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
-                        outToServer = new DataOutputStream(clientSocket.getOutputStream());
-                        reader = new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                String fromServer;
-                                while (true) {
-                                    try {
+        thread = new Thread(() -> {
+            try {
+                if (openIp != null) {
+                    clientSocket = new Socket(openIp, PORT);
+                    //noinspection CharsetObjectCanBeUsed
+                    inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), "UTF-8"));
+                    outToServer = new DataOutputStream(clientSocket.getOutputStream());
+                    reader = new Thread(() -> {
+                        String fromServer;
+                        while (true) {
+                            try {
+                                fromServer = inFromServer.readLine();
+                                if (fromServer == null) {
+                                    close();
+                                    return;
+                                }
+                                if (fromServer.equals("Finished")) {
+                                    outToServer.close();
+                                    outToServer = null;
+                                    close();
+                                    connectToSharedFullscreenActivity.finish();
+                                    return;
+                                }
+                                if (fromServer.equals("start 'text'")) {
+                                    String text = readTextToEndS("end 'text'");
+                                    fromServer = inFromServer.readLine();
+                                    ProjectionDTO projectionDTO;
+                                    if (fromServer.equals(START_PROJECTION_DTO)) {
+                                        projectionDTO = readProjectionDTO();
+                                        text = getTextFromProjectionDTO(projectionDTO, text);
                                         fromServer = inFromServer.readLine();
-                                        if (fromServer == null) {
-                                            close();
-                                            return;
+                                    }
+                                    if (fromServer.equals("start 'projectionType'")) {
+                                        //noinspection unused
+                                        String projectionTypeName = inFromServer.readLine();
+                                        fromServer = inFromServer.readLine();
+                                        if (fromServer.equals("end 'projectionType'")) {
+                                            projectionTextChangeListener.onSetText(text);
                                         }
-                                        if (fromServer.equals("Finished")) {
-                                            outToServer.close();
-                                            outToServer = null;
-                                            close();
-                                            connectToSharedFullscreenActivity.finish();
-                                            return;
-                                        }
-                                        if (fromServer.equals("start 'text'")) {
-                                            StringBuilder text = new StringBuilder(inFromServer.readLine());
-                                            fromServer = inFromServer.readLine();
-                                            while (!fromServer.equals("end 'text'")) {
-                                                text.append("\n").append(fromServer);
-                                                fromServer = inFromServer.readLine();
-                                            }
-                                            fromServer = inFromServer.readLine();
-                                            if (fromServer.equals("start 'projectionType'")) {
-                                                inFromServer.readLine();
-                                                fromServer = inFromServer.readLine();
-                                                if (fromServer.equals("end 'projectionType'")) {
-                                                    projectionTextChangeListener.onSetText(text.toString());
-                                                }
-                                            }
-                                        }
-                                    } catch (Exception e) {
-                                        Log.e(TAG, e.getMessage(), e);
-                                        break;
                                     }
                                 }
+                            } catch (Exception e) {
+                                Log.e(TAG, e.getMessage(), e);
+                                break;
                             }
-                        });
-                        reader.start();
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, e.getMessage(), e);
+                        }
+                    });
+                    reader.start();
                 }
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage(), e);
             }
         });
         thread.start();
+    }
+
+    private static String getTextFromProjectionDTO(ProjectionDTO projectionDTO, String originalText) {
+        try {
+            if (projectionDTO == null) {
+                return originalText;
+            }
+            return originalText;
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
+            return originalText;
+        }
     }
 
     public synchronized static void close() {
@@ -102,5 +117,33 @@ public class TCPClient {
             reader.interrupt();
         }
         thread.interrupt();
+    }
+
+    private static ProjectionDTO readProjectionDTO() throws IOException {
+        String text = readTextToEndS(END_PROJECTION_DTO);
+        return getProjectionDTOFromJson(text);
+    }
+
+    private static String readTextToEndS(String endS) throws IOException {
+        String fromServer;
+        StringBuilder text = new StringBuilder(inFromServer.readLine());
+        fromServer = inFromServer.readLine();
+        while (!fromServer.equals(endS)) {
+            text.append("\n").append(fromServer);
+            fromServer = inFromServer.readLine();
+        }
+        return text.toString();
+    }
+
+    public static Gson getGson() {
+        return new GsonBuilder()
+                .serializeNulls()
+                .excludeFieldsWithoutExposeAnnotation()
+                .create();
+    }
+
+    private static ProjectionDTO getProjectionDTOFromJson(String json) {
+        Gson gson = getGson();
+        return gson.fromJson(json, ProjectionDTO.class);
     }
 }
