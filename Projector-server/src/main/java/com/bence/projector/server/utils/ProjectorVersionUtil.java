@@ -9,10 +9,10 @@ import java.util.Date;
 public class ProjectorVersionUtil {
     public static void createNewProjectorVersion(ProjectorVersionRepository projectorVersionRepository) {
         ProjectorVersion projectorVersion = new ProjectorVersion();
-        projectorVersion.setVersion("3.2.2");
+        projectorVersion.setVersion("3.2.3");
         projectorVersion.setCreatedDate(new Date());
-        projectorVersion.setDescription("Default system window decorations is replaced by a custom title bar. Better dark theme applied.");
-        projectorVersion.setVersionId(55);
+        projectorVersion.setDescription("Performance improvements and bug fixes.");
+        projectorVersion.setVersionId(56);
         projectorVersionRepository.save(projectorVersion);
     }
 }
