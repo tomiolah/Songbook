@@ -165,8 +165,11 @@ public class Song extends BaseEntity {
         List<Short> verseOrderList = getVerseOrderList();
         List<SongVerse> songVerses = new ArrayList<>(verseOrderList.size());
         List<SongVerse> verses = getVerses();
+        int size = verses.size();
         for (Short index : verseOrderList) {
-            songVerses.add(verses.get(index));
+            if (size > index) {
+                songVerses.add(verses.get(index));
+            }
         }
         return songVerses;
     }
