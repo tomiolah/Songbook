@@ -48,6 +48,7 @@ public class Song extends AbstractModel {
     private Song backUp;
     private Boolean isBackUp;
     private Boolean reviewerErased;
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
     @Transient
     private String beforeId;
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "newSongStack")
@@ -338,10 +339,6 @@ public class Song extends AbstractModel {
         this.reviewerErased = reviewerErased;
     }
 
-    public String getBeforeId() {
-        return beforeId;
-    }
-
     public void setBeforeId(String beforeId) {
         this.beforeId = beforeId;
     }
@@ -407,5 +404,19 @@ public class Song extends AbstractModel {
             songListElements = new ArrayList<>();
         }
         return songListElements;
+    }
+
+    @SuppressWarnings("unused")
+    public List<SongVerse> getSongVersesByVerseOrder() {
+        List<Short> verseOrderList = getVerseOrderList();
+        List<SongVerse> songVerses = new ArrayList<>(verseOrderList.size());
+        List<SongVerse> verses = getVerses();
+        int size = verses.size();
+        for (Short index : verseOrderList) {
+            if (size > index) {
+                songVerses.add(verses.get(index));
+            }
+        }
+        return songVerses;
     }
 }
