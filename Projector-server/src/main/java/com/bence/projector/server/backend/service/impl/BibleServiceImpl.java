@@ -36,6 +36,12 @@ public class BibleServiceImpl extends BaseServiceImpl<Bible> implements BibleSer
     }
 
     @Override
+    public void saveToBooks(Bible bible) {
+        super.save(bible);
+        bookService.save(bible.getBooks());
+    }
+
+    @Override
     public Bible save(Bible bible) {
         return saveABibleTransactional(bible);
     }
@@ -74,6 +80,7 @@ public class BibleServiceImpl extends BaseServiceImpl<Bible> implements BibleSer
         return models;
     }
 
+    @SuppressWarnings("unused")
     public void deleteByUuid(String id) {
         Bible bible = findOneByUuid(id);
         if (bible == null) {

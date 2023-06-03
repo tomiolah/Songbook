@@ -5,4 +5,6 @@ import com.bence.projector.server.backend.model.Bible;
 public interface BibleService extends BaseService<Bible> {
 
     Bible findOneByUuid(String uuid);
+
+    void saveToBooks(Bible bible);
 }

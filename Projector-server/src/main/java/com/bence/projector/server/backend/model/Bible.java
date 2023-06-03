@@ -82,9 +82,15 @@ public class Bible extends AbstractModel {
         this.modifiedDate = modifiedDate;
     }
 
+    @SuppressWarnings("unused")
     public void linkToVerseIndices() {
         for (Book book : getBooks()) {
             book.linkBibleToVerseIndices(this);
         }
+    }
+
+    @Override
+    public String toString() {
+        return name;
     }
 }
