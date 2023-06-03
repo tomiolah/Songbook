@@ -1,6 +1,7 @@
 package projector.repository.ormLite;
 
 import projector.repository.BibleRepository;
+import projector.repository.BookRepository;
 import projector.repository.CountdownTimeRepository;
 import projector.repository.DAOFactory;
 import projector.repository.InformationDAO;
@@ -97,6 +98,16 @@ public class OrmLiteDAOFactory extends DAOFactory {
     public BibleRepository getBibleDAO() {
         try {
             return new BibleRepositoryImpl();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public BookRepository getBookDAO() {
+        try {
+            return new BookRepositoryImpl();
         } catch (SQLException e) {
             e.printStackTrace();
         }

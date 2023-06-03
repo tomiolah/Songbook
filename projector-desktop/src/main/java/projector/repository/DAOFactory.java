@@ -27,6 +27,8 @@ public abstract class DAOFactory {
 
     public abstract BibleRepository getBibleDAO();
 
+    public abstract BookRepository getBookDAO();
+
     public abstract VerseIndexRepository getVerseIndexDAO();
 
     public abstract BooksRepository getBooksDAO();

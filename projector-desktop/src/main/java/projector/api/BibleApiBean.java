@@ -38,6 +38,21 @@ public class BibleApiBean {
         return doCallBible(call);
     }
 
+    public Bible updateBible(Bible bible) {
+        Call<BibleDTO> call = bibleApi.getBible(bible.getUuid());
+        try {
+            BibleDTO bibleDTO = call.execute().body();
+            if (bibleDTO != null) {
+                return bibleAssembler.updateModel(bible, bibleDTO);
+            }
+        } catch (UnknownHostException e) {
+            return null;
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
     private List<Bible> executeBiblesCall(Call<List<BibleDTO>> call) {
         try {
             List<BibleDTO> bibleDTOs = call.execute().body();

@@ -79,10 +79,7 @@ public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
         return updateModel(bible, bibleDTO);
     }
 
-    @Override
-    public Bible updateModel(Bible bible, BibleDTO bibleDTO) {
-        bible.setCreatedDate(bibleDTO.getCreatedDate());
-        bible.setModifiedDate(bibleDTO.getModifiedDate());
+    private void createBibleBooks(Bible bible, BibleDTO bibleDTO) {
         ArrayList<Book> books = new ArrayList<>();
         for (BookDTO bookDTO : bibleDTO.getBooks()) {
             Book book = new Book();
@@ -116,11 +113,22 @@ public class BibleAssembler implements GeneralAssembler<Bible, BibleDTO> {
             books.add(book);
         }
         bible.setBooks(books);
+    }
+
+    private void updateBibleFields(Bible bible, BibleDTO bibleDTO) {
+        bible.setCreatedDate(bibleDTO.getCreatedDate());
+        bible.setModifiedDate(bibleDTO.getModifiedDate());
         bible.setName(bibleDTO.getName());
         bible.setShortName(bibleDTO.getShortName());
         if (bibleDTO.getLanguageUuid() != null) {
             bible.setLanguage(ServiceManager.getLanguageService().findByUuid(bibleDTO.getLanguageUuid()));
         }
+    }
+
+    @Override
+    public Bible updateModel(Bible bible, BibleDTO bibleDTO) {
+        updateBibleFields(bible, bibleDTO);
+        createBibleBooks(bible, bibleDTO);
         return bible;
     }
 
