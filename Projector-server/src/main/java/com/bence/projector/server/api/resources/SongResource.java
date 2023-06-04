@@ -46,6 +46,7 @@ import static com.bence.projector.server.api.resources.StatisticsResource.saveSt
 import static com.bence.projector.server.api.resources.UserPropertiesResource.getUserFromPrincipalAndUserService;
 import static com.bence.projector.server.utils.SetLanguages.printLanguageWords;
 import static com.bence.projector.server.utils.SetLanguages.setLanguagesForUnknown;
+import static com.bence.projector.server.utils.SongUtil.getLastModifiedSong;
 
 @RestController
 public class SongResource {
@@ -106,6 +107,11 @@ public class SongResource {
         Date now = new Date();
         Date beforeOneWeak = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7);
         return song.getCreatedDate().after(beforeOneWeak);
+    }
+
+    private static void setVersionGroupAndDate(Song song, Date date, Song versionGroup) {
+        song.setVersionGroup(versionGroup);
+        song.setModifiedDate(date);
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs")
@@ -683,19 +689,46 @@ public class SongResource {
             }
             if (size1 < size2) {
                 for (Song song : allByVersionGroup1) {
-                    song.setVersionGroup(songService.findOneByUuid(song2VersionGroup));
-                    song.setModifiedDate(date);
+                    setVersionGroupAndDate(song, date, songService.findOneByUuid(song2VersionGroup));
                 }
                 songService.saveAllByRepository(allByVersionGroup1);
             } else {
                 for (Song song : allByVersionGroup2) {
-                    song.setVersionGroup(songService.findOneByUuid(song1VersionGroup));
-                    song.setModifiedDate(date);
+                    setVersionGroupAndDate(song, date, songService.findOneByUuid(song1VersionGroup));
                 }
                 songService.saveAllByRepository(allByVersionGroup2);
             }
         }
         return new ResponseEntity<>("Merged", HttpStatus.ACCEPTED);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "admin/api/songVersionGroup/remove/{songId}")
+    public ResponseEntity<Object> removeFromSongVersionGroup(@PathVariable("songId") String songId, HttpServletRequest httpServletRequest) {
+        Song song = songRepository.findOneByUuid(songId);
+        if (song == null) {
+            return new ResponseEntity<>("Null", HttpStatus.NO_CONTENT);
+        }
+        saveStatistics(httpServletRequest, statisticsService);
+        String songVersionGroup = getUuidFromVersionGroupSong(song);
+        Date date = new Date();
+        if (songVersionGroup != null) {
+            setVersionGroupAndDate(song, date, null);
+            songRepository.save(song);
+        } else {
+            List<Song> allByVersionGroup = songService.findAllByVersionGroup(song.getUuid());
+            Song lastModifiedSong = getLastModifiedSong(allByVersionGroup);
+            List<Song> modifiedSongs = new ArrayList<>();
+            for (Song aSong : allByVersionGroup) {
+                if (!aSong.equals(song) && !aSong.equals(lastModifiedSong)) {
+                    setVersionGroupAndDate(aSong, date, lastModifiedSong);
+                    modifiedSongs.add(aSong);
+                }
+            }
+            setVersionGroupAndDate(lastModifiedSong, date, null);
+            modifiedSongs.add(lastModifiedSong);
+            songService.saveAllByRepository(modifiedSongs);
+        }
+        return new ResponseEntity<>("Removed", HttpStatus.ACCEPTED);
     }
 
     private String getUuidFromVersionGroupSong(Song song) {

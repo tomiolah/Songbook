@@ -20,7 +20,8 @@
       <div *ngIf="conditionForShowingCollection()">
         <div *ngIf="collections != undefined">
           <div *ngFor="let collection of collections">
-            <p *ngFor="let collectionElement of collection.songCollectionElements" (click)="onCollectionElementClick(collectionElement, collection)">
+            <p *ngFor="let collectionElement of collection.songCollectionElements"
+              (click)="onCollectionElementClick(collectionElement, collection)">
               {{collection.name + " " + collectionElement.ordinalNumber}}
             </p>
           </div>
@@ -201,6 +202,9 @@
     </button>
     <button *ngIf="markedForVersionSong!==null && !marked" mat-button (click)="mergeVersionGroup()">
       Merge with: {{markedForVersionSong.title}}
+    </button>
+    <button *ngIf="versionGroupRemovable()" mat-button (click)="removeVersionGroup()">
+      Remove from version group
     </button>
   </div>
   <div *ngIf="songsByVersionGroup.length>0">

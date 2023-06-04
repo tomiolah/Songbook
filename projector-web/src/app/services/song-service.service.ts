@@ -384,6 +384,10 @@ export class SongService {
     return this.api.post(user + '/api/songVersionGroup/' + songId1 + '/' + songId2);
   }
 
+  removeVersionGroup(songId) {
+    return this.api.post('admin/api/songVersionGroup/remove/' + songId);
+  }
+
   getSongsByVersionGroup(id) {
     return this.api.getAll(Song, '/api/songs/versionGroup/' + id);
   }

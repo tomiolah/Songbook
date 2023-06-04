@@ -14,7 +14,7 @@ import { SongCollectionDataService } from '../../services/song-collection-data.s
 import { SuggestionDataService } from '../../services/suggestion-data.service';
 import { Suggestion } from '../../models/suggestion';
 import { SongCollectionElementComponent } from '../song-collection-element/song.collection.element';
-import { checkAuthenticationError, ErrorUtil, openAuthenticateDialog } from '../../util/error-util';
+import { checkAuthenticationError, ErrorUtil, generalError, openAuthenticateDialog } from '../../util/error-util';
 
 @Component({
   selector: 'app-song',
@@ -319,6 +319,32 @@ export class SongComponent implements OnInit, OnDestroy {
         }
       }
     );
+  }
+
+  removeVersionGroup() {
+    this.songService.removeVersionGroup(this.song.uuid).subscribe(
+      (res) => {
+        if (res.status === 202) {
+          this.ngOnInit();
+          this.snackBar.open(this.song.title + ' removed from version group', 'Close', {
+            duration: 4000
+          })
+        } else {
+          console.log(res);
+        }
+      },
+      (err) => {
+        generalError(this.removeVersionGroup, this, err, this.dialog, this.snackBar);
+      }
+    );
+  }
+
+  versionGroupRemovable(): boolean {
+    const user = this.auth.getUser();
+    if (user == null || !user.isAdmin()) {
+      return false;
+    }
+    return this.songsByVersionGroup.length > 0;
   }
 
   openShareDialog(): void {
