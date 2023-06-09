@@ -8,6 +8,7 @@ import com.bence.projector.common.dto.SongTitleDTO;
 import com.bence.projector.common.dto.SongViewsDTO;
 import com.bence.projector.server.api.assembler.SongAssembler;
 import com.bence.projector.server.api.assembler.SongTitleAssembler;
+import com.bence.projector.server.api.resources.util.UserPrincipalUtil;
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.NotificationByLanguage;
 import com.bence.projector.server.backend.model.Role;
@@ -165,11 +166,30 @@ public class SongResource {
         return songTitleAssembler.createDtoList(songs);
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/user/api/songTitles/language/{languageId}")
+    public ResponseEntity<Object> getAllSongTitlesByMyUploads(Principal principal, HttpServletRequest httpServletRequest, @PathVariable("languageId") String languageId) {
+        saveStatistics(httpServletRequest, statisticsService);
+        User user = UserPrincipalUtil.getUserFromPrincipalAndUserService(principal, userService);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        List<Song> songs = songService.findAllByLanguageAndUser(languageId, user);
+        return new ResponseEntity<>(songTitleAssembler.createDtoList(songs), HttpStatus.ACCEPTED);
+    }
+
     @RequestMapping(method = RequestMethod.GET, value = "/api/songTitlesInReview/language/{languageId}")
-    public ResponseEntity<Object> getAllSongTitlesInReview(HttpServletRequest httpServletRequest, @PathVariable("languageId") String languageId) {
+    public ResponseEntity<Object> getAllSongTitlesInReview(HttpServletRequest httpServletRequest, @PathVariable("languageId") String languageId, @RequestParam(required = false) Boolean myUploads, Principal principal) {
         saveStatistics(httpServletRequest, statisticsService);
         Language language = languageService.findOneByUuid(languageId);
-        final List<Song> all = songService.findAllInReviewByLanguage(language);
+        List<Song> all = songService.findAllInReviewByLanguage(language);
+        if (myUploads != null && myUploads) {
+            User user = UserPrincipalUtil.getUserFromPrincipalAndUserService(principal, userService);
+            if (user != null) {
+                all = songService.filterSongsByCreatedEmail(all, user.getEmail());
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        }
         return new ResponseEntity<>(songTitleAssembler.createDtoList(all), HttpStatus.ACCEPTED);
     }
 
@@ -335,9 +355,23 @@ public class SongResource {
             Thread thread = new Thread(() -> sendEmail(song));
             thread.start();
             SongDTO dto = songAssembler.createDto(savedSong);
+            updateUserWhenCreatedSong(user);
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>("Could not create", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private void updateUserWhenCreatedSong(User user) {
+        try {
+            if (user.isHadUploadedSongs()) {
+                return;
+            }
+            user.setHadUploadedSongs(true);
+            user.setModifiedDate(new Date());
+            userService.save(user);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void sendEmail(Song song) {

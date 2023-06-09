@@ -33,6 +33,7 @@ public class User extends AbstractModel {
     private String activationCode;
     private Date modifiedDate;
     private Date createdDate;
+    private Boolean hadUploadedSongs;
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "REVIEW_LANGUAGES")
     private List<Language> reviewLanguages;
@@ -256,5 +257,13 @@ public class User extends AbstractModel {
 
     public boolean hasUserProperties() {
         return userProperties != null && userProperties.getId() != null;
+    }
+
+    public boolean isHadUploadedSongs() {
+        return hadUploadedSongs != null && hadUploadedSongs;
+    }
+
+    public void setHadUploadedSongs(Boolean hadUploadedSongs) {
+        this.hadUploadedSongs = hadUploadedSongs;
     }
 }

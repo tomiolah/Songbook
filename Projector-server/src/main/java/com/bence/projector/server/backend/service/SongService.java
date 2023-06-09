@@ -15,6 +15,8 @@ public interface SongService extends BaseService<Song> {
 
     List<Song> findAllByLanguageAndModifiedDate(String languageId, Date date);
 
+    List<Song> findAllByLanguageAndUser(String languageId, User user);
+
     List<Song> findAllByUploadedTrueAndDeletedTrueAndNotBackup();
 
     List<Song> findAllSimilar(Song song);
@@ -59,4 +61,6 @@ public interface SongService extends BaseService<Song> {
     void startThreadFindForSong(String uuid);
 
     Song reloadSong(Song song);
+
+    List<Song> filterSongsByCreatedEmail(List<Song> songs, String createdByEmail);
 }

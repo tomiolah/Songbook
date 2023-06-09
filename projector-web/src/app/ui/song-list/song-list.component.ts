@@ -14,6 +14,8 @@ import { Title } from "@angular/platform-browser";
 import { User } from '../../models/user';
 import { SELECTED_LANGUGAGE } from '../../util/constants';
 import { compress, decompress } from 'lz-string';
+import { generalError } from '../../util/error-util';
+import { MatDialog, MatSnackBar } from '@angular/material';
 
 @Component({
   selector: 'app-song-list',
@@ -36,7 +38,9 @@ export class SongListComponent implements OnInit {
   selectedLanguage: Language;
   oldLanguagesKey = 'languages_v2';
   languagesKey = 'languages_v3';
+  myUploadsCheck = false;
   private songListComponent_songsType = 'songListComponent_songsType';
+  private songListComponent_myUploadsCheck = 'songListComponent_myUploadsCheck';
   private _subscription: Subscription;
 
   constructor(private songService: SongService,
@@ -44,7 +48,10 @@ export class SongListComponent implements OnInit {
     private languageDataService: LanguageDataService,
     private titleService: Title,
     private activatedRoute: ActivatedRoute,
-    public auth: AuthService) {
+    public auth: AuthService,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar,
+  ) {
     localStorage.setItem(this.oldLanguagesKey, '');
     this.songControl = new FormControl();
     this.songTitles = [];
@@ -87,6 +94,7 @@ export class SongListComponent implements OnInit {
     if (this.songsType === null) {
       this.songsType = Song.PUBLIC;
     }
+    this.myUploadsCheck = localStorage.getItem(this.songListComponent_myUploadsCheck) == 'true';
     this.songControl.valueChanges.subscribe(value => {
       for (const song of this.songTitles) {
         if (song == undefined) {
@@ -243,10 +251,14 @@ export class SongListComponent implements OnInit {
     this.loadSongs();
   }
 
-  selectLanguage(language: Language) {
+  private resolveOldSubscription() {
     if (this._subscription != undefined) {
       this._subscription.unsubscribe();
     }
+  }
+
+  selectLanguage(language: Language) {
+    this.resolveOldSubscription();
     let languages: Language[] = JSON.parse(this.getFromLocalStorage(this.languagesKey));
     for (let lang of languages) {
       if (lang.uuid === language.uuid) {
@@ -364,9 +376,12 @@ export class SongListComponent implements OnInit {
           this.loadPublicSongs();
           return;
         }
-        this.songService.getAllInReviewSongsByLanguage(this.selectedLanguage).subscribe(
+        this.songService.getAllInReviewSongsByLanguage(this.selectedLanguage, this.myUploadsCheck).subscribe(
           (songTitles) => {
             this.setSongTitles(songTitles);
+          }, (error) => {
+            this.setSongTitles([]);
+            generalError(this.loadSongs, this, error, this.dialog, this.snackBar);
           }
         );
         break;
@@ -389,7 +404,18 @@ export class SongListComponent implements OnInit {
   }
 
   private loadPublicSongs() {
-    this.selectLanguage(this.selectedLanguage);
+    if (!this.myUploadsCheck) {
+      this.selectLanguage(this.selectedLanguage);
+    } else {
+      this.loadPublicSongsByMyUploads();
+    }
+  }
+
+  private loadPublicSongsByMyUploads() {
+    this.resolveOldSubscription();
+    this._subscription = this.songService.getAllSongTitlesByMyUploads(this.selectedLanguage).subscribe(songTitles => {
+      this.setSongTitles(songTitles);
+    });
   }
 
   private setSongTitles(songTitles: Song[]) {
@@ -491,6 +517,22 @@ export class SongListComponent implements OnInit {
   hasRoleForSongReview() {
     const user: User = this.auth.getUser();
     return this.auth.isLoggedIn && user.hasReviewerRoleForLanguage(this.selectedLanguage);
+  }
+
+  showMyUploads(): boolean {
+    if (!this.auth.isLoggedIn) {
+      return false;
+    }
+    const user: User = this.auth.getUser();
+    if (user == null) {
+      return false;
+    }
+    return user.hadUploadedSongs;
+  }
+
+  onChangeMyUploadsCheck() {
+    localStorage.setItem(this.songListComponent_myUploadsCheck, this.myUploadsCheck.toString());
+    this.loadSongs();
   }
 }
 

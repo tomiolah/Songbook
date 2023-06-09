@@ -172,6 +172,15 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     }
 
     @Override
+    public List<Song> findAllByLanguageAndUser(String languageId, User user) {
+        List<Song> returningSongs = new ArrayList<>();
+        Language language = languageService.findOneByUuid(languageId);
+        List<Song> songs = songRepository.findAllByLanguageAndCreatedByEmail(language, user.getEmail());
+        addSongs(songs, returningSongs);
+        return returningSongs;
+    }
+
+    @Override
     public List<Song> findAllByUploadedTrueAndDeletedTrueAndNotBackup() {
         List<Song> allByUploadedTrueAndDeletedTrue = new LinkedList<>();
         for (Song song : getSongs()) {
@@ -675,6 +684,20 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         songsHashMap.remove(uuid);
         startThreadFindForSong(uuid);
         return findOneByUuid(uuid);
+    }
+
+    @Override
+    public List<Song> filterSongsByCreatedEmail(List<Song> songs, String createdByEmail) {
+        if (createdByEmail == null) {
+            return songs;
+        }
+        List<Song> filtered = new ArrayList<>();
+        for (Song song : songs) {
+            if (createdByEmail.equals(song.getCreatedByEmail())) {
+                filtered.add(song);
+            }
+        }
+        return filtered;
     }
 
     private Song getFromMapOrAddToMap(Song song) {

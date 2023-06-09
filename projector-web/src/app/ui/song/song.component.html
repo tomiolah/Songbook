@@ -8,9 +8,13 @@
   </div>
   <div *ngIf="auth.getUser().isAdmin() || hasReviewerRoleForSong">
     <br>
-    <h4 *ngIf="song.deleted && !song.reviewerErased">
-      Song is in review.
-    </h4>
+    <mat-card *ngIf="song.deleted && !song.reviewerErased">
+      <mat-card-content>
+        <h4>
+          Song is in review.
+        </h4>
+      </mat-card-content>
+    </mat-card>
   </div>
   <br>
   <mat-card>
