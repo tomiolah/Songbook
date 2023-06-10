@@ -236,6 +236,7 @@ public class SongController {
     private List<FavouriteSong> favouriteSongs;
     private boolean starButtonPreviousStateWithStar = false;
     private boolean pauseSortOrFilter = false;
+    private boolean versionsButtonPreviousStateWithStar = false;
 
     public SongController() {
         songService = ServiceManager.getSongService();
@@ -347,6 +348,21 @@ public class SongController {
         };
     }
 
+    private static boolean hasDifferentFavourite(List<Song> versionGroupSongs, Song selectedSong) {
+        if (selectedSong == null || versionGroupSongs == null) {
+            return false;
+        }
+        if (selectedSong.isFavourite()) {
+            return false;
+        }
+        for (Song song : versionGroupSongs) {
+            if (!selectedSong.equivalent(song) && song.isFavourite()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public synchronized void lazyInitialize() {
         if (initialized) {
             return;
@@ -446,12 +462,14 @@ public class SongController {
                         if (versionGroup == null) {
                             versionGroup = selectedSong.getUuid();
                         }
+                        List<Song> allByVersionGroup = null;
                         if (versionGroup != null) {
-                            List<Song> allByVersionGroup = songService.findAllByVersionGroup(versionGroup);
+                            allByVersionGroup = songService.findAllByVersionGroup(versionGroup);
                             if (allByVersionGroup.size() > 1) {
                                 showVersionsButton.setVisible(true);
                             }
                         }
+                        checkForFavouriteInVersionGroup(allByVersionGroup, selectedSong);
 
                         Scene scene = projectionScreenController.getScene();
                         int width = 0;
@@ -790,6 +808,29 @@ public class SongController {
             initializeStarButton();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void checkForFavouriteInVersionGroup(List<Song> versionGroupSongs, Song selectedSong) {
+        boolean hasDifferentFavourite = hasDifferentFavourite(versionGroupSongs, selectedSong);
+        if (hasDifferentFavourite == versionsButtonPreviousStateWithStar) {
+            return;
+        }
+        String path;
+        versionsButtonPreviousStateWithStar = hasDifferentFavourite;
+        if (versionsButtonPreviousStateWithStar) {
+            path = "versions_star.png";
+        } else {
+            path = "versions.png";
+        }
+        InputStream resourceAsStream = getClass().getResourceAsStream("/icons/" + path);
+        if (resourceAsStream != null) {
+            ImageView imageView = new ImageView(new Image(resourceAsStream));
+            imageView.setFitHeight(40.0);
+            imageView.setFitWidth(27.0);
+            imageView.setPickOnBounds(true);
+            imageView.setPreserveRatio(true);
+            showVersionsButton.setGraphic(imageView);
         }
     }
 

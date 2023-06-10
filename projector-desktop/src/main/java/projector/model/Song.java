@@ -469,4 +469,15 @@ public class Song extends BaseEntity {
     public void setDownloadedSeparately(boolean downloadedSeparately) {
         this.downloadedSeparately = downloadedSeparately;
     }
+
+    public boolean equivalent(Song other) {
+        boolean equivalent = super.equivalent(other);
+        if (!equivalent && other != null) {
+            String uuid = getUuid();
+            if (uuid != null && uuid.equals(other.getUuid())) {
+                return true;
+            }
+        }
+        return equivalent;
+    }
 }
