@@ -3,6 +3,7 @@ package projector.service;
 import projector.service.impl.BibleServiceImpl;
 import projector.service.impl.BookServiceImpl;
 import projector.service.impl.CountdownTimeServiceImpl;
+import projector.service.impl.FavouriteSongServiceImpl;
 import projector.service.impl.InformationServiceImpl;
 import projector.service.impl.LanguageServiceImpl;
 import projector.service.impl.LoggedInUserServiceImpl;
@@ -80,5 +81,9 @@ public class ServiceManager {
 
     public static LoggedInUserService getLoggedInUserService() {
         return new LoggedInUserServiceImpl();
+    }
+
+    public static FavouriteSongService getFavouriteSongService() {
+        return new FavouriteSongServiceImpl();
     }
 }

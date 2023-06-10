@@ -34,13 +34,22 @@ import projector.api.UserApiBean;
 import projector.application.Settings;
 import projector.controller.AccountPopupController;
 import projector.controller.LoginController;
+import projector.controller.MyController;
+import projector.model.FavouriteSong;
+import projector.model.Language;
 import projector.model.LoggedInUser;
+import projector.model.Song;
+import projector.service.FavouriteSongService;
+import projector.service.LanguageService;
 import projector.service.LoggedInUserService;
 import projector.service.ServiceManager;
+import projector.service.SongService;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import static projector.utils.ColorUtil.getMainBorderColor;
 import static projector.utils.SceneUtils.getCustomStage3;
@@ -99,7 +108,7 @@ public class WindowController {
         }
     }
 
-    private static FXMLLoader getViewLoader(String fileName) {
+    private static FXMLLoader getViewLoader(@SuppressWarnings("SameParameterValue") String fileName) {
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(MainDesktop.class.getResource("/view/" + fileName + ".fxml"));
         loader.setResources(Settings.getInstance().getResourceBundle());
@@ -273,6 +282,7 @@ public class WindowController {
             accountPopupController.setOnLogout(() -> {
                 accountPopup.hide();
                 checkSignIn();
+                clearUserData();
             });
             accountPopup = new Popup();
             ObservableList<Node> content = accountPopup.getContent();
@@ -298,10 +308,48 @@ public class WindowController {
             if (text.trim().isEmpty()) {
                 text = "Account";
             }
+            syncUserData();
         } else {
             text = Settings.getInstance().getResourceBundle().getString("Sign In");
         }
         String finalText = text;
         Platform.runLater(() -> signInButton.setText(finalText));
+    }
+
+    private void clearUserData() {
+        new Thread(() -> {
+            clearFavouriteSongs();
+            clearLanguagesFavouriteSongLastServerModifiedDate();
+            MyController.getInstance().getSongController().reloadInitialSongs();
+        }).start();
+    }
+
+    private void clearFavouriteSongs() {
+        FavouriteSongService favouriteSongService = ServiceManager.getFavouriteSongService();
+        List<FavouriteSong> favouriteSongs = favouriteSongService.findAll();
+        List<Song> modifiedSongs = new ArrayList<>();
+        SongService songService = ServiceManager.getSongService();
+        for (FavouriteSong favouriteSong : favouriteSongs) {
+            Song song = songService.getFromMemoryOrSongNoUpdate(favouriteSong.getSong());
+            if (song != null) {
+                song.setFavourite(null);
+                modifiedSongs.add(song);
+            }
+        }
+        songService.create(modifiedSongs);
+        favouriteSongService.delete(favouriteSongs);
+    }
+
+    private void clearLanguagesFavouriteSongLastServerModifiedDate() {
+        LanguageService languageService = ServiceManager.getLanguageService();
+        List<Language> languages = languageService.findAll();
+        for (Language language : languages) {
+            language.setFavouriteSongLastServerModifiedDate(null);
+        }
+        languageService.create(languages);
+    }
+
+    private void syncUserData() {
+        ServiceManager.getFavouriteSongService().syncFavouritesFromServer(() -> MyController.getInstance().getSongController().onFavouritesUpdated());
     }
 }

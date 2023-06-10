@@ -40,4 +40,6 @@ public abstract class DAOFactory {
     public abstract CountdownTimeRepository getCountdownTimeDAO();
 
     public abstract LoggedInUserRepository getLoggedInUserDAO();
+
+    public abstract FavouriteSongRepository getFavouriteSongDAO();
 }

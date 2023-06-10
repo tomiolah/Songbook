@@ -126,6 +126,7 @@ public class SongCollection extends BaseEntity {
                 if (song != null) {
                     song.addToSongCollections(this);
                     song.addToSongCollectionElements(songCollectionElement);
+                    songCollectionElement.setSong(song);
                     songs.add(song);
                 }
             }

@@ -42,6 +42,7 @@ import static projector.utils.SceneUtils.getCustomStage;
 public class MyController {
 
     private static final Logger LOG = LoggerFactory.getLogger(MyController.class);
+    private static MyController instance = null;
     @FXML
     private ToggleButton showProjectionScreenToggleButton;
     @FXML
@@ -86,6 +87,10 @@ public class MyController {
     private Tab projectionScreensTab;
     private MainDesktop mainDesktop;
     private Stage settingsStage;
+
+    public static MyController getInstance() {
+        return instance;
+    }
 
     public static double calculateSizeByScale(int size) {
         double screenScale = screenScale();
@@ -135,6 +140,7 @@ public class MyController {
     }
 
     public void initialize() {
+        instance = this;
         settings = Settings.getInstance();
         settings.setBibleController(bibleController);
         bibleSearchController.setBibleController(bibleController);

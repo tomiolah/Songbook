@@ -28,17 +28,17 @@ public class SongServiceImpl extends AbstractBaseService<Song> implements SongSe
     @Override
     public Song findByUuid(String uuid) {
         Song song = super.findByUuid(uuid);
-        return getSongFromHashMap(song);
+        return getFromMemoryOrSong(song);
     }
 
-    private Song getSongFromHashMap(Song song) {
+    private Song getSongFromHashMap(Song song, boolean updateMap) {
         if (song == null) {
             return null;
         }
         Long id = song.getId();
         if (hashMap.containsKey(id)) {
             return hashMap.get(id);
-        } else {
+        } else if (updateMap) {
             hashMap.put(id, song);
         }
         return song;
@@ -47,7 +47,7 @@ public class SongServiceImpl extends AbstractBaseService<Song> implements SongSe
     @Override
     public Song findById(Long id) {
         Song song = super.findById(id);
-        return getSongFromHashMap(song);
+        return getFromMemoryOrSong(song);
     }
 
     @Override
@@ -64,7 +64,7 @@ public class SongServiceImpl extends AbstractBaseService<Song> implements SongSe
     private List<Song> getSongsFromHashMap(List<Song> songList) {
         List<Song> songs = new ArrayList<>(songList.size());
         for (Song song : songList) {
-            songs.add(getSongFromHashMap(song));
+            songs.add(getFromMemoryOrSong(song));
         }
         return songs;
     }
@@ -116,7 +116,7 @@ public class SongServiceImpl extends AbstractBaseService<Song> implements SongSe
     public Song findByTitle(String title) {
         try {
             Song song = songDAO.findByTitle(title);
-            return getSongFromHashMap(song);
+            return getFromMemoryOrSong(song);
         } catch (RepositoryException e) {
             LOG.error(e.getMessage(), e);
             throw new ServiceException(e.getMessage(), e);
@@ -156,6 +156,11 @@ public class SongServiceImpl extends AbstractBaseService<Song> implements SongSe
 
     @Override
     public Song getFromMemoryOrSong(Song song) {
-        return getSongFromHashMap(song);
+        return getSongFromHashMap(song, true);
+    }
+
+    @Override
+    public Song getFromMemoryOrSongNoUpdate(Song song) {
+        return getSongFromHashMap(song, false);
     }
 }

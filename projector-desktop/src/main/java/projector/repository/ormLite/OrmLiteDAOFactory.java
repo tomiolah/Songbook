@@ -4,6 +4,7 @@ import projector.repository.BibleRepository;
 import projector.repository.BookRepository;
 import projector.repository.CountdownTimeRepository;
 import projector.repository.DAOFactory;
+import projector.repository.FavouriteSongRepository;
 import projector.repository.InformationDAO;
 import projector.repository.LanguageRepository;
 import projector.repository.LoggedInUserRepository;
@@ -168,6 +169,16 @@ public class OrmLiteDAOFactory extends DAOFactory {
     public LoggedInUserRepository getLoggedInUserDAO() {
         try {
             return new LoggedInUserRepositoryImpl();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    @Override
+    public FavouriteSongRepository getFavouriteSongDAO() {
+        try {
+            return new FavouriteSongRepositoryImpl();
         } catch (SQLException e) {
             e.printStackTrace();
         }

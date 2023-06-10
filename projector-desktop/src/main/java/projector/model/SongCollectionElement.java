@@ -11,6 +11,7 @@ public class SongCollectionElement extends BaseEntity {
     @Expose
     @DatabaseField
     private String songUuid;
+    private transient Song song;
     @DatabaseField(foreign = true, index = true, foreignAutoRefresh = true, maxForeignAutoRefreshLevel = 1)
     private SongCollection songCollection;
 
@@ -56,5 +57,13 @@ public class SongCollectionElement extends BaseEntity {
 
     public void setSongCollection(SongCollection songCollection) {
         this.songCollection = songCollection;
+    }
+
+    public void setSong(Song song) {
+        this.song = song;
+    }
+
+    public Song getSong() {
+        return song;
     }
 }

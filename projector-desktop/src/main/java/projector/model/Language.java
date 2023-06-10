@@ -7,6 +7,7 @@ import projector.service.ServiceManager;
 import projector.service.SongService;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class Language extends BaseEntity {
@@ -17,6 +18,8 @@ public class Language extends BaseEntity {
     private String nativeName;
     @DatabaseField
     private boolean selected;
+    @DatabaseField
+    private Date favouriteSongDate;
     @ForeignCollectionField
     private ForeignCollection<Song> songForeignCollection;
     private List<Song> songs;
@@ -62,8 +65,10 @@ public class Language extends BaseEntity {
     }
 
     public void setSongs(List<Song> songs) {
-        for (Song song : songs) {
-            song.setLanguage(this);
+        if (songs != null) {
+            for (Song song : songs) {
+                song.setLanguage(this);
+            }
         }
         this.songs = songs;
     }
@@ -74,5 +79,16 @@ public class Language extends BaseEntity {
             return nativeName;
         }
         return nativeName + " - " + englishName;
+    }
+
+    public Date getFavouriteSongLastServerModifiedDate() {
+        if (favouriteSongDate == null) {
+            return new Date(0);
+        }
+        return favouriteSongDate;
+    }
+
+    public void setFavouriteSongLastServerModifiedDate(Date favouriteSongLastServerModifiedDate) {
+        this.favouriteSongDate = favouriteSongLastServerModifiedDate;
     }
 }

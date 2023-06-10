@@ -32,6 +32,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlendMode;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.Dragboard;
@@ -72,6 +74,8 @@ import projector.controller.song.util.OrderMethod;
 import projector.controller.song.util.ScheduleSong;
 import projector.controller.song.util.SearchedSong;
 import projector.controller.song.util.SongTextFlow;
+import projector.controller.util.UserService;
+import projector.model.FavouriteSong;
 import projector.model.Language;
 import projector.model.Song;
 import projector.model.SongCollection;
@@ -79,6 +83,7 @@ import projector.model.SongCollectionElement;
 import projector.model.SongVerse;
 import projector.remote.SongReadRemoteListener;
 import projector.remote.SongRemoteListener;
+import projector.service.FavouriteSongService;
 import projector.service.ServiceException;
 import projector.service.ServiceManager;
 import projector.service.SongCollectionService;
@@ -93,6 +98,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.Type;
@@ -168,6 +174,8 @@ public class SongController {
     @FXML
     private CheckBox searchInTextCheckBox;
     @FXML
+    private CheckBox favoritesCheckBox;
+    @FXML
     private ListView<SearchedSong> searchedSongListView;
     @FXML
     private ListView<MyTextFlow> songListView;
@@ -196,6 +204,8 @@ public class SongController {
     @FXML
     private CheckBox aspectRatioCheckBox;
     @FXML
+    private Button starButton;
+    @FXML
     private TextField authorTextField;
     private ProjectionScreenController projectionScreenController;
     private ProjectionScreenController previewProjectionScreenController;
@@ -223,6 +233,9 @@ public class SongController {
     private SongReadRemoteListener songReadRemoteListener;
     private boolean initialized = false;
     private boolean synchronizingVerseOrderListSelection = false;
+    private List<FavouriteSong> favouriteSongs;
+    private boolean starButtonPreviousStateWithStar = false;
+    private boolean pauseSortOrFilter = false;
 
     public SongController() {
         songService = ServiceManager.getSongService();
@@ -248,6 +261,7 @@ public class SongController {
                     Song song = hashMap.get(songUuid);
                     song.addToSongCollections(songCollection);
                     song.addToSongCollectionElements(songCollectionElement);
+                    songCollectionElement.setSong(song);
                 }
             }
         }
@@ -299,6 +313,40 @@ public class SongController {
         return byUuid;
     }
 
+    private static Comparator<Song> getSongComparatorByAscendingByTitle() {
+        return Comparator.comparing(l -> l.getStrippedTitle().toLowerCase());
+    }
+
+    private static Comparator<Song> getSongComparatorByDescendingByTitle() {
+        return (l, r) -> r.getStrippedTitle().toLowerCase().compareTo(l.getStrippedTitle().toLowerCase());
+    }
+
+    private static Comparator<Song> getSongComparatorByModifiedDate() {
+        return (l, r) -> r.getModifiedDate().compareTo(l.getModifiedDate());
+    }
+
+    private static Comparator<Song> getSongComparatorByPublished() {
+        return (l, r) -> {
+            if (l.isPublished() && !r.isPublished()) {
+                return 1;
+            } else if (!l.isPublished() && r.isPublished()) {
+                return -1;
+            }
+            return 0;
+        };
+    }
+
+    private static Comparator<Song> getSongComparatorByRelevanceOrder() {
+        return (lhs, rhs) -> {
+            Integer scoreL = lhs.getScore();
+            Integer scoreR = rhs.getScore();
+            if (scoreL.equals(scoreR)) {
+                return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
+            }
+            return scoreR.compareTo(scoreL);
+        };
+    }
+
     public synchronized void lazyInitialize() {
         if (initialized) {
             return;
@@ -331,17 +379,8 @@ public class SongController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            searchInTextCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                try {
-                    if (newValue) {
-                        search(lastSearchText);
-                    } else {
-                        titleSearch(lastSearchText);
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
+            searchInTextCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> searchAgainBySearchOption(newValue));
+            favoritesCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> searchAgain());
             searchedSongListView.setCellFactory(param -> new ListCell<>() {
                 @Override
                 protected void updateItem(SearchedSong searchedSong, boolean empty) {
@@ -375,7 +414,7 @@ public class SongController {
                             }
                             Text title = new Text(song.getTitle());
                             title.setFill(getSongTitleColor());
-                            children.add(title);
+                            addFavouriteStarImageForFavourite(song, children, title);
                             if (searchedSong.getFoundAtVerse() != null) {
                                 Text text = new Text(searchedSong.getFoundAtVerse());
                                 text.setFill(Color.rgb(17, 150, 0));
@@ -394,10 +433,7 @@ public class SongController {
                     MultipleSelectionModel<SearchedSong> selectionModel = searchedSongListView.getSelectionModel();
                     int index = selectionModel.selectedIndexProperty().get();
                     if (index >= 0) {
-                        if (activeSongVerseTime != null && activeSongVerseTime.getVersTimes() != null
-                                && activeSongVerseTime.getVersTimes().length > previousSelectedVerseIndex
-                                && previousSelectedVerseIndex >= 0
-                                && activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] == 0.0) {
+                        if (activeSongVerseTime != null && activeSongVerseTime.getVersTimes() != null && activeSongVerseTime.getVersTimes().length > previousSelectedVerseIndex && previousSelectedVerseIndex >= 0 && activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] == 0.0) {
                             double x = System.currentTimeMillis() - timeStart;
                             x /= 1000;
                             activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
@@ -519,6 +555,7 @@ public class SongController {
                         }
                         settingTheAuthor(selectedSong);
                         settingTheVerseOrder(selectedSong);
+                        settingTheStarButtonBySong(selectedSong);
                     }
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
@@ -543,9 +580,7 @@ public class SongController {
                     if (keyCode == KeyCode.DOWN) {
                         selectNextSongFromScheduleIfLastIndex();
                     }
-                    if (keyCode == KeyCode.DOWN || keyCode == KeyCode.UP || keyCode == KeyCode.HOME
-                            || keyCode == KeyCode.END || keyCode == KeyCode.PAGE_DOWN
-                            || keyCode == KeyCode.PAGE_UP) {
+                    if (keyCode == KeyCode.DOWN || keyCode == KeyCode.UP || keyCode == KeyCode.HOME || keyCode == KeyCode.END || keyCode == KeyCode.PAGE_DOWN || keyCode == KeyCode.PAGE_UP) {
                         double x = System.currentTimeMillis() - timeStart;
                         if (x < 700) {
                             event.consume();
@@ -589,8 +624,7 @@ public class SongController {
                                 LOG.error(e.getMessage(), e);
                             }
                         }
-                        if (timeStart != 0 && previousSelectedVerseIndex >= 0
-                                && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
+                        if (timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
                             double x = System.currentTimeMillis() - timeStart;
                             x /= 1000;
                             activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
@@ -622,8 +656,7 @@ public class SongController {
                         projectionScreenController.setLineSize((double) lastIndex / (songListViewItems.size() - 2));
                         projectionScreenController.setText2(tmpTextBuffer.toString(), ProjectionType.SONG);
                     }
-                    if (recentController != null && !recentController.getLastItemText().equals(activeSongVerseTime.getSongTitle()) &&
-                            ob.size() > 0) {
+                    if (recentController != null && !recentController.getLastItemText().equals(activeSongVerseTime.getSongTitle()) && ob.size() > 0) {
                         recentController.addRecentSong(activeSongVerseTime.getSongTitle(), ProjectionType.SONG);
                     }
                     timeStart = System.currentTimeMillis();
@@ -636,8 +669,7 @@ public class SongController {
                                     double x;
                                     //noinspection InfiniteLoopStatement
                                     do {
-                                        if (!isBlank && timeStart != 0 && previousSelectedVerseIndex >= 0
-                                                && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
+                                        if (!isBlank && timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
                                             x = System.currentTimeMillis() - timeStart;
                                             x /= 1000;
                                             double sum = 0.0;
@@ -706,12 +738,15 @@ public class SongController {
                 try {
                     if (newValue != null) {
                         selectedSongCollection = newValue;
+                        if (pauseSortOrFilter) {
+                            return;
+                        }
                         sortSongs(selectedSongCollection.getSongs());
-                    }
-                    switch (lastSearching) {
-                        case IN_SONG -> search(lastSearchText);
-                        case IN_TITLE -> titleSearch(lastSearchText);
-                        case IN_TITLE_START_WITH -> titleSearchStartWith(lastSearchText);
+                        switch (lastSearching) {
+                            case IN_SONG -> search(lastSearchText);
+                            case IN_TITLE -> titleSearch(lastSearchText);
+                            case IN_TITLE_START_WITH -> titleSearchStartWith(lastSearchText);
+                        }
                     }
                 } catch (Exception e) {
                     LOG.error(e.getMessage(), e);
@@ -752,6 +787,101 @@ public class SongController {
             initializeSongs();
             initializeVerseOrderList();
             hideOpenLPImportButton();
+            initializeStarButton();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void settingTheStarButtonBySong(Song song) {
+        if (!starButton.isVisible()) {
+            return;
+        }
+        if (song.isFavourite() == starButtonPreviousStateWithStar) {
+            return;
+        }
+        changeStarButtonImage(song);
+    }
+
+    private void changeStarButtonImage(Song song) {
+        String startFile;
+        starButtonPreviousStateWithStar = song.isFavourite();
+        if (starButtonPreviousStateWithStar) {
+            startFile = "star.png";
+        } else {
+            startFile = "star_border_black.png";
+        }
+        InputStream resourceAsStream = getClass().getResourceAsStream("/icons/" + startFile);
+        if (resourceAsStream != null) {
+            ImageView imageView = new ImageView(new Image(resourceAsStream));
+            imageView.setFitHeight(20.0);
+            imageView.setFitWidth(13.5);
+            imageView.setPickOnBounds(true);
+            imageView.setPreserveRatio(true);
+            starButton.setGraphic(imageView);
+        }
+    }
+
+    private void initializeStarButton() {
+        starButton.setOnAction(event -> {
+            if (selectedSong == null) {
+                return;
+            }
+            selectedSong.setFavourite(!selectedSong.isFavourite());
+            FavouriteSong favourite = selectedSong.getFavourite();
+            favourite.setModifiedDate(new Date());
+            favourite.setUploadedToServer(false);
+            favourite.setFavouritePublished(favourite.isFavouriteNotPublished());
+            FavouriteSongService favouriteSongService = ServiceManager.getFavouriteSongService();
+            favouriteSongService.create(favourite);
+            favouriteSongService.syncFavourites();
+            changeStarButtonImage(selectedSong);
+            searchedSongListView.refresh();
+        });
+        checkStarButtonVisibilityByLoggedIn();
+    }
+
+    private void checkStarButtonVisibilityByLoggedIn() {
+        setStarButtonVisibility(UserService.getInstance().isLoggedIn());
+    }
+
+    private void setStarButtonVisibility(boolean b) {
+        starButton.setManaged(b);
+        starButton.setVisible(b);
+    }
+
+    private void addFavouriteStarImageForFavourite(Song song, ObservableList<Node> children, Text title) {
+        if (!song.isFavourite()) {
+            children.add(title);
+            return;
+        }
+        InputStream resourceAsStream = getClass().getResourceAsStream("/icons/star.png");
+        if (resourceAsStream != null) {
+            ImageView imageView = new ImageView(new Image(resourceAsStream));
+            double fitSize = 16.0;
+            imageView.setFitHeight(fitSize);
+            imageView.setFitWidth(fitSize);
+            imageView.setPickOnBounds(true);
+            imageView.setPreserveRatio(true);
+            BorderPane borderPane = new BorderPane();
+            borderPane.setLeft(title);
+            borderPane.setRight(imageView);
+            borderPane.setPrefWidth(Math.max(searchedSongListView.getWidth() - 25, 10));
+            children.add(borderPane);
+        }
+    }
+
+    private void searchAgain() {
+        searchAgainBySearchOption(searchInTextCheckBox.isSelected());
+    }
+
+    private void searchAgainBySearchOption(Boolean newValue) {
+        try {
+            if (newValue) {
+                search(lastSearchText);
+            } else {
+                titleSearch(lastSearchText);
+            }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
@@ -1026,7 +1156,9 @@ public class SongController {
         if (language != null) {
             Language languageInComboBox = findLanguageInComboBox(language);
             if (languageInComboBox != null) {
-                languageInComboBox.getSongs().add(song);
+                List<Song> comboBoxSongs = languageInComboBox.getSongs();
+                comboBoxSongs.add(song);
+                sortSongs(comboBoxSongs);
             }
         }
     }
@@ -1065,6 +1197,7 @@ public class SongController {
                         Song song = songHashMap.get(songUuid);
                         song.addToSongCollections(songCollection);
                         song.addToSongCollectionElements(songCollectionElement);
+                        songCollectionElement.setSong(song);
                         if (hashMap.containsKey(songUuid)) {
                             songs.add(song);
                             hashMap.remove(songUuid);
@@ -1141,13 +1274,7 @@ public class SongController {
 
     private void initializeSortComboBox() {
         try {
-            sortComboBox.getItems().addAll(
-                    OrderMethod.RELEVANCE,
-                    OrderMethod.ASCENDING_BY_TITLE,
-                    OrderMethod.DESCENDING_BY_TITLE,
-                    OrderMethod.BY_MODIFIED_DATE,
-                    OrderMethod.BY_PUBLISHED,
-                    OrderMethod.BY_COLLECTION);
+            sortComboBox.getItems().addAll(OrderMethod.RELEVANCE, OrderMethod.ASCENDING_BY_TITLE, OrderMethod.DESCENDING_BY_TITLE, OrderMethod.BY_MODIFIED_DATE, OrderMethod.BY_PUBLISHED, OrderMethod.BY_COLLECTION);
             SingleSelectionModel<OrderMethod> selectionModel = sortComboBox.getSelectionModel();
             selectionModel.selectFirst();
             selectionModel.select(settings.getSongOrderMethod());
@@ -1209,7 +1336,9 @@ public class SongController {
                 }
             }
             selectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                settings.setSongSelectedLanguage(newValue);
+                if (newValue != null) {
+                    settings.setSongSelectedLanguage(newValue);
+                }
                 readSongs();
                 addAllSongs();
                 addSongCollections();
@@ -1415,8 +1544,7 @@ public class SongController {
                 }
             });
             thread.start();
-            try (FileOutputStream stream = new FileOutputStream("data/songs.version");
-                 BufferedWriter br = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
+            try (FileOutputStream stream = new FileOutputStream("data/songs.version"); BufferedWriter br = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
                 br.write("1\n");
             } catch (IOException e) {
                 e.printStackTrace();
@@ -1425,8 +1553,7 @@ public class SongController {
     }
 
     private int getOldVersion() {
-        try (FileInputStream stream = new FileInputStream("data/songs.version");
-             BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+        try (FileInputStream stream = new FileInputStream("data/songs.version"); BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             return Integer.parseInt(br.readLine());
         } catch (FileNotFoundException | NumberFormatException ignored) {
             List<Song> all = songService.findAll();
@@ -1582,7 +1709,7 @@ public class SongController {
     private void search(String text) {
         try {
             lastSearching = LastSearching.IN_SONG;
-            List<Song> songs = selectedSongCollection.getSongs();
+            List<Song> songs = getFilteredSongs();
             if (text.trim().isEmpty()) {
                 ObservableList<SearchedSong> items = searchedSongListView.getItems();
                 items.clear();
@@ -1670,6 +1797,59 @@ public class SongController {
         }
     }
 
+    private List<Song> getFilteredSongs() {
+        List<Song> songs = selectedSongCollection.getSongs();
+        setFavouriteSongs(songs);
+        songs = filterSongsByFavourites(songs);
+        return songs;
+    }
+
+    private List<FavouriteSong> getFavouriteSongs() {
+        if (favouriteSongs == null) {
+            favouriteSongs = ServiceManager.getFavouriteSongService().findAll();
+        }
+        return favouriteSongs;
+    }
+
+    private void setFavouriteSongs(List<Song> songs) {
+        List<FavouriteSong> favouriteSongs = getFavouriteSongs();
+        setFavouritesForSongs(songs, favouriteSongs);
+    }
+
+    private List<Song> filterSongsByFavourites(List<Song> songs) {
+        if (!favoritesCheckBox.isSelected()) {
+            return songs;
+        }
+        List<Song> filtered = new ArrayList<>();
+        for (Song song : songs) {
+            if (song.isFavourite()) {
+                filtered.add(song);
+            }
+        }
+        return filtered;
+    }
+
+    private HashMap<String, Song> getStringSongHashMap(List<Song> songs) {
+        HashMap<String, Song> hashMap = new HashMap<>(songs.size());
+        for (Song song : songs) {
+            hashMap.put(song.getUuid(), song);
+        }
+        return hashMap;
+    }
+
+    private void setFavouritesForSongs(List<Song> songs, List<FavouriteSong> favouriteSongs) {
+        HashMap<String, Song> hashMap = getStringSongHashMap(songs);
+        for (FavouriteSong favouriteSong : favouriteSongs) {
+            if (favouriteSong.getSong() != null) {
+                String songUuid = favouriteSong.getSong().getUuid();
+                if (hashMap.containsKey(songUuid)) {
+                    Song song = hashMap.get(songUuid);
+                    song.setFavourite(favouriteSong);
+                }
+            }
+        }
+    }
+
     private void titleSearch(String text) {
         try {
             text = text.trim();
@@ -1703,7 +1883,7 @@ public class SongController {
             }
             remainingText = stripAccents(remainingText);
             text = stripAccents(text);
-            List<Song> songs = selectedSongCollection.getSongs();
+            List<Song> songs = getFilteredSongs();
             boolean wasOrdinalNumber = false;
             for (Song song : songs) {
                 boolean contains = false;
@@ -1757,7 +1937,7 @@ public class SongController {
             lastSearchText = text;
             ObservableList<SearchedSong> items = searchedSongListView.getItems();
             items.clear();
-            List<Song> songs = selectedSongCollection.getSongs();
+            List<Song> songs = getFilteredSongs();
             for (Song song : songs) {
                 if (song.getTitle().equals(text)) {
                     SearchedSong searchedSong = new SearchedSong(song);
@@ -1785,7 +1965,6 @@ public class SongController {
     public void initializeSongs() {
         try {
             readSongs();
-            sortSongs(songs);
             addAllSongs();
             addSongCollections();
         } catch (Exception e) {
@@ -1798,7 +1977,9 @@ public class SongController {
             Language songSelectedLanguage = settings.getSongSelectedLanguage();
             if (songSelectedLanguage != null) {
                 songs = songSelectedLanguage.getSongs();
+                setFavouriteSongs(songs);
                 setSongCollections(songs);
+                sortSongs(songs);
             }
         } catch (ServiceException e) {
             LOG.error(e.getMessage(), e);
@@ -1824,35 +2005,40 @@ public class SongController {
 
     private void sortSongs(List<Song> songs) {
         try {
-            OrderMethod selectedItem = sortComboBox.getSelectionModel().getSelectedItem();
-            if (selectedItem.equals(OrderMethod.RELEVANCE)) {
-                sortSongsByRelevanceOrder(songs);
-            } else if (selectedItem.equals(OrderMethod.ASCENDING_BY_TITLE)) {
-                songs.sort(Comparator.comparing(l -> l.getStrippedTitle().toLowerCase()));
-            } else if (selectedItem.equals(OrderMethod.DESCENDING_BY_TITLE)) {
-                songs.sort((l, r) -> r.getStrippedTitle().toLowerCase().compareTo(l.getStrippedTitle().toLowerCase()));
-            } else if (selectedItem.equals(OrderMethod.BY_MODIFIED_DATE)) {
-                songs.sort((l, r) -> r.getModifiedDate().compareTo(l.getModifiedDate()));
-            } else if (selectedItem.equals(OrderMethod.BY_PUBLISHED)) {
-                songs.sort((l, r) -> {
-                    if (l.isPublished() && !r.isPublished()) {
-                        return 1;
-                    } else if (!l.isPublished() && r.isPublished()) {
-                        return -1;
-                    }
-                    return 0;
-                });
-            } else if (selectedItem.equals(OrderMethod.BY_COLLECTION)) {
-                songs.sort((l, r) -> {
-                    List<SongCollectionElement> lSongCollectionElements = l.getSongCollectionElements();
-                    List<SongCollectionElement> rSongCollectionElements = r.getSongCollectionElements();
-                    return compareSongCollectionElements(lSongCollectionElements, rSongCollectionElements);
-                });
+            Comparator<Song> songComparator = getSongComparator();
+            if (songComparator != null) {
+                songs.sort(songComparator);
             }
-
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private Comparator<Song> getSongComparator() {
+        OrderMethod selectedItem = sortComboBox.getSelectionModel().getSelectedItem();
+        Comparator<Song> songComparator = null;
+        if (selectedItem == null || selectedItem.equals(OrderMethod.RELEVANCE)) {
+            songComparator = getSongComparatorByRelevanceOrder();
+        } else if (selectedItem.equals(OrderMethod.ASCENDING_BY_TITLE)) {
+            songComparator = getSongComparatorByAscendingByTitle();
+        } else if (selectedItem.equals(OrderMethod.DESCENDING_BY_TITLE)) {
+            songComparator = getSongComparatorByDescendingByTitle();
+        } else if (selectedItem.equals(OrderMethod.BY_MODIFIED_DATE)) {
+            songComparator = getSongComparatorByModifiedDate();
+        } else if (selectedItem.equals(OrderMethod.BY_PUBLISHED)) {
+            songComparator = getSongComparatorByPublished();
+        } else if (selectedItem.equals(OrderMethod.BY_COLLECTION)) {
+            songComparator = getSongComparatorByCollection();
+        }
+        return songComparator;
+    }
+
+    private Comparator<Song> getSongComparatorByCollection() {
+        return (l, r) -> {
+            List<SongCollectionElement> lSongCollectionElements = l.getSongCollectionElements();
+            List<SongCollectionElement> rSongCollectionElements = r.getSongCollectionElements();
+            return compareSongCollectionElements(lSongCollectionElements, rSongCollectionElements);
+        };
     }
 
     private int compareSongCollectionElements(List<SongCollectionElement> lSongCollectionElements, List<SongCollectionElement> rSongCollectionElements) {
@@ -1878,8 +2064,7 @@ public class SongController {
         return 0;
     }
 
-    private int compareSongCollectionElementsFirstByOrdinalNumber(List<SongCollectionElement> lSongCollectionElements, List<SongCollectionElement> rSongCollectionElements, String collectionName,
-                                                                  String ordinalNumber, int ordinalNumberInt) {
+    private int compareSongCollectionElementsFirstByOrdinalNumber(List<SongCollectionElement> lSongCollectionElements, List<SongCollectionElement> rSongCollectionElements, String collectionName, String ordinalNumber, int ordinalNumberInt) {
         int lSize = lSongCollectionElements.size();
         int rSize = rSongCollectionElements.size();
         if (lSize != rSize) {
@@ -1994,20 +2179,11 @@ public class SongController {
         if (compareOrdinalNumber != 0) {
             return compareOrdinalNumber;
         }
-        SongCollection lSongCollection = lSongCollectionElement.getSongCollection();
-        SongCollection rSongCollection = rSongCollectionElement.getSongCollection();
-        return lSongCollection.getStrippedName().compareTo(rSongCollection.getStrippedName());
+        return getSongComparator().compare(lSongCollectionElement.getSong(), rSongCollectionElement.getSong());
     }
 
     private void sortSongsByRelevanceOrder(List<Song> songs) {
-        songs.sort((lhs, rhs) -> {
-            Integer scoreL = lhs.getScore();
-            Integer scoreR = rhs.getScore();
-            if (scoreL.equals(scoreR)) {
-                return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
-            }
-            return scoreR.compareTo(scoreL);
-        });
+        songs.sort(getSongComparatorByRelevanceOrder());
     }
     //        }
     //            }
@@ -2260,44 +2436,53 @@ public class SongController {
 
     void addSongCollections() {
         try {
-            ObservableList<SongCollection> items = songCollectionListView.getItems();
-            items.clear();
-            SongCollection allSongCollections = new SongCollection(Settings.getInstance().getResourceBundle().getString("All"));
-            allSongCollections.setSongs(songs);
-            selectedSongCollection = allSongCollections;
-            items.add(allSongCollections);
-            songCollectionListView.getSelectionModel().selectFirst();
+            pauseSortOrFilter = true;
             try {
-                Date date = new Date();
-                List<SongCollection> songCollections = songCollectionService.findAll();
-                Date date2 = new Date();
-                System.out.println(date2.getTime() - date.getTime());
-                songCollections.sort((l, r) -> {
-                    if (l.getSongs().size() < r.getSongs().size()) {
-                        return 1;
-                    } else if (l.getSongs().size() > r.getSongs().size()) {
-                        return -1;
-                    }
-                    return 0;
-                });
-                Language songSelectedLanguage = settings.getSongSelectedLanguage();
-                if (songSelectedLanguage != null) {
-                    Long id = songSelectedLanguage.getId();
-                    for (SongCollection songCollection : songCollections) {
-                        checkSongCollectionLanguage(songCollection);
-                        Language language = songCollection.getLanguage();
-                        if (language != null && language.getId().equals(id)) {
-                            items.add(songCollection);
-                        }
-                    }
-                }
-                boolean value = items.size() != 1;
-                songCollectionListView.setVisible(value);
-                songCollectionListView.setManaged(value);
-            } catch (ServiceException e) {
-                LOG.error(e.getMessage(), e);
+                addSongCollections_();
+            } finally {
+                pauseSortOrFilter = false;
             }
         } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void addSongCollections_() {
+        ObservableList<SongCollection> items = songCollectionListView.getItems();
+        items.clear();
+        SongCollection allSongCollections = new SongCollection(Settings.getInstance().getResourceBundle().getString("All"));
+        allSongCollections.setSongs(songs);
+        selectedSongCollection = allSongCollections;
+        items.add(allSongCollections);
+        songCollectionListView.getSelectionModel().selectFirst();
+        try {
+            Date date = new Date();
+            List<SongCollection> songCollections = songCollectionService.findAll();
+            Date date2 = new Date();
+            System.out.println(date2.getTime() - date.getTime());
+            songCollections.sort((l, r) -> {
+                if (l.getSongs().size() < r.getSongs().size()) {
+                    return 1;
+                } else if (l.getSongs().size() > r.getSongs().size()) {
+                    return -1;
+                }
+                return 0;
+            });
+            Language songSelectedLanguage = settings.getSongSelectedLanguage();
+            if (songSelectedLanguage != null) {
+                Long id = songSelectedLanguage.getId();
+                for (SongCollection songCollection : songCollections) {
+                    checkSongCollectionLanguage(songCollection);
+                    Language language = songCollection.getLanguage();
+                    if (language != null && language.getId().equals(id)) {
+                        items.add(songCollection);
+                    }
+                }
+            }
+            boolean value = items.size() != 1;
+            songCollectionListView.setVisible(value);
+            songCollectionListView.setManaged(value);
+        } catch (ServiceException e) {
             LOG.error(e.getMessage(), e);
         }
     }
@@ -2523,10 +2708,7 @@ public class SongController {
     public void onBlankButtonSelected(boolean isSelected) {
         try {
             if (isSelected) {
-                if (activeSongVerseTime != null && activeSongVerseTime.getVersTimes() != null
-                        && activeSongVerseTime.getVersTimes().length > previousSelectedVerseIndex
-                        && previousSelectedVerseIndex >= 0
-                        && activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] == 0.0) {
+                if (activeSongVerseTime != null && activeSongVerseTime.getVersTimes() != null && activeSongVerseTime.getVersTimes().length > previousSelectedVerseIndex && previousSelectedVerseIndex >= 0 && activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] == 0.0) {
                     double x = System.currentTimeMillis() - timeStart;
                     x /= 1000;
                     activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
@@ -2603,8 +2785,7 @@ public class SongController {
                     ofStream = new FileOutputStream(selectedFile);
                     BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(ofStream, StandardCharsets.UTF_8));
 
-                    Gson gson = new GsonBuilder().serializeNulls()
-                            .excludeFieldsWithoutExposeAnnotation().create();
+                    Gson gson = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
                     for (Song song : songs) {
                         song.getVerses();
                     }
@@ -2643,8 +2824,7 @@ public class SongController {
                         s.append(readLine);
                         readLine = br.readLine();
                     }
-                    Gson gson = new GsonBuilder().serializeNulls()
-                            .excludeFieldsWithoutExposeAnnotation().create();
+                    Gson gson = new GsonBuilder().serializeNulls().excludeFieldsWithoutExposeAnnotation().create();
                     ArrayList<Song> songArrayList;
                     Type listType = new TypeToken<ArrayList<Song>>() {
                     }.getType();
@@ -2794,5 +2974,27 @@ public class SongController {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    public void onFavouritesUpdated() {
+        Platform.runLater(() -> {
+            initializeWithNullSomeLazzyFields();
+            searchAgain();
+            checkStarButtonVisibilityByLoggedIn();
+        });
+    }
+
+    private void initializeWithNullSomeLazzyFields() {
+        favouriteSongs = null;
+    }
+
+    public void reloadInitialSongs() {
+        Platform.runLater(() -> {
+            initializeWithNullSomeLazzyFields();
+            settings.getSongSelectedLanguage().setSongs(null);
+            initializeSongs();
+            initializeLanguageComboBox();
+            checkStarButtonVisibilityByLoggedIn();
+        });
     }
 }
