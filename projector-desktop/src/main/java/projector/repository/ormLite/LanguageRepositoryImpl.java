@@ -8,6 +8,6 @@ import java.sql.SQLException;
 class LanguageRepositoryImpl extends AbstractBaseRepository<Language> implements LanguageRepository {
 
     LanguageRepositoryImpl() throws SQLException {
-        super(Language.class, DatabaseHelper.getInstance().getLanguageDao());
+        super(Language.class, DatabaseHelper.getInstance().getLanguageDao().getDao());
     }
 }

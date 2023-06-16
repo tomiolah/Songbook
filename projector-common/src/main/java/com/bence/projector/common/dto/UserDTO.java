@@ -12,6 +12,7 @@ public class UserDTO extends BaseDTO {
     private boolean activated;
     private Date modifiedDate;
     private List<LanguageDTO> reviewLanguages;
+    private boolean hadUploadedSongs;
 
     public String getEmail() {
         return email;
@@ -37,32 +38,28 @@ public class UserDTO extends BaseDTO {
         this.role = role;
     }
 
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
     public String getSurname() {
         return surname;
     }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 
     public String getFirstName() {
         return firstName;
     }
 
-    public void setActivated(boolean activated) {
-        this.activated = activated;
-    }
-
-    public void setModifiedDate(Date modifiedDate) {
-        this.modifiedDate = modifiedDate;
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public Date getModifiedDate() {
         return modifiedDate;
+    }
+
+    public void setModifiedDate(Date modifiedDate) {
+        this.modifiedDate = modifiedDate;
     }
 
     public List<LanguageDTO> getReviewLanguages() {
@@ -75,5 +72,17 @@ public class UserDTO extends BaseDTO {
 
     public boolean isActivated() {
         return activated;
+    }
+
+    public void setActivated(boolean activated) {
+        this.activated = activated;
+    }
+
+    public boolean isHadUploadedSongs() {
+        return hadUploadedSongs;
+    }
+
+    public void setHadUploadedSongs(boolean hadUploadedSongs) {
+        this.hadUploadedSongs = hadUploadedSongs;
     }
 }

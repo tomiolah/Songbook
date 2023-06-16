@@ -86,10 +86,7 @@ public class DownloadLanguagesController {
                 stage.setScene(scene);
                 stage.setTitle(Settings.getInstance().getResourceBundle().getString("Download songs"));
                 stage.show();
-                stage.setOnCloseRequest(event1 -> {
-                    songController.initializeSongs();
-                    songController.initializeLanguageComboBox();
-                });
+                stage.setOnCloseRequest(event1 -> songController.reloadInitialSongs());
                 this.stage.close();
             } catch (Exception e) {
                 LOG.error(e.getMessage(), e);

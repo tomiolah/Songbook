@@ -43,6 +43,7 @@ public class UserAssembler implements GeneralAssembler<User, UserDTO> {
         }
         userDTO.setReviewLanguages(languageDTOS);
         userDTO.setModifiedDate(user.getModifiedDate());
+        userDTO.setHadUploadedSongs(user.isHadUploadedSongs());
         return userDTO;
     }
 

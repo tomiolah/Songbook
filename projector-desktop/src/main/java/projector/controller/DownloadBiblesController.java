@@ -13,7 +13,9 @@ import org.slf4j.LoggerFactory;
 import projector.api.BibleApiBean;
 import projector.application.Settings;
 import projector.model.Bible;
+import projector.model.Book;
 import projector.service.BibleService;
+import projector.service.BookService;
 import projector.service.ServiceManager;
 
 import java.awt.*;
@@ -30,42 +32,66 @@ import static projector.utils.BibleImport.bibleImportFromSQLite;
 
 public class DownloadBiblesController {
     private static final Logger LOG = LoggerFactory.getLogger(DownloadBiblesController.class);
+    private final List<Bible> updateNeededBibles = new ArrayList<>();
     @FXML
     private Label label;
     @FXML
     private Button selectButton;
     @FXML
+    private Button updateButton;
+    @FXML
     private VBox listView;
     private List<Bible> bibles;
     private List<CheckBox> checkBoxes;
+    private HashMap<String, CheckBox> checkBoxHashMap;
     private BibleService bibleService;
     private Stage stage;
     private BibleController bibleController;
+    private BookService bookService;
 
     public void initialize() {
         bibleService = ServiceManager.getBibleService();
+        bookService = ServiceManager.getBookService();
         bibles = bibleService.findAll();
-        checkBoxes = new ArrayList<>(bibles.size());
+        int initialCapacity = bibles.size();
+        checkBoxes = new ArrayList<>(initialCapacity);
+        checkBoxHashMap = new HashMap<>(initialCapacity);
         for (Bible bible : bibles) {
             addBibleToVBox(bible);
         }
         BibleApiBean bibleApiBean = new BibleApiBean();
+        updateButton.setVisible(false);
         Thread thread = new Thread(() -> {
             List<Bible> onlineBibles = bibleApiBean.getBibleTitles();
             if (onlineBibles == null) {
                 noInternetMessage();
                 return;
             }
-            HashMap<String, Boolean> hashMap = new HashMap<>();
+            HashMap<String, Bible> hashMap = new HashMap<>();
             for (Bible bible : bibles) {
-                hashMap.put(bible.getUuid(), true);
-            }
-            for (Bible bible : onlineBibles) {
-                if (!hashMap.containsKey(bible.getUuid())) {
-                    addBibleToVBox(bible);
-                    bibles.add(bible);
+                String bibleUuid = bible.getUuid();
+                if (bibleUuid != null) {
+                    hashMap.put(bibleUuid, bible);
                 }
             }
+            for (Bible onlineBible : onlineBibles) {
+                Bible bible = hashMap.get(onlineBible.getUuid());
+                if (bible == null) {
+                    addBibleToVBox(onlineBible);
+                    bibles.add(onlineBible);
+                } else {
+                    if (bible.getModifiedDate().before(onlineBible.getModifiedDate())) {
+                        updateNeededBibles.add(bible);
+                        CheckBox checkBox = checkBoxHashMap.get(bible.getUuid());
+                        String s = Settings.getInstance().getResourceBundle().getString("Update available");
+                        Platform.runLater(() -> checkBox.setText(checkBox.getText() + " (" + s + ")"));
+                    }
+                }
+            }
+            if (updateNeededBibles.size() > 0) {
+                updateButton.setVisible(true);
+            }
+            Platform.runLater(() -> label.setText(""));
         });
         thread.start();
         selectButton.setOnAction(event -> {
@@ -80,14 +106,39 @@ public class DownloadBiblesController {
                             thread1 = saveBibleInThread(thread1, bible);
                         }
                     }
-                    if (thread1 != null) {
-                        try {
-                            thread1.join();
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
+                    waitAndCloseStage(thread1);
+                });
+                thread2.start();
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        setOnUpdateButton(bibleApiBean);
+    }
+
+    private void waitAndCloseStage(Thread thread1) {
+        if (thread1 != null) {
+            try {
+                thread1.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        closeDownloadBibleStage();
+    }
+
+    private void setOnUpdateButton(BibleApiBean bibleApiBean) {
+        updateButton.setOnAction(event -> {
+            try {
+                updateButton.setDisable(true);
+                Thread thread2 = new Thread(() -> {
+                    Thread thread1 = null;
+                    for (Bible updateNeededBible : updateNeededBibles) {
+                        List<Book> oldBooks = updateNeededBible.getBooks();
+                        Bible bible = bibleApiBean.updateBible(updateNeededBible);
+                        thread1 = updateBibleInThread(thread1, bible, oldBooks);
                     }
-                    closeDownloadBibleStage();
+                    waitAndCloseStage(thread1);
                 });
                 thread2.start();
             } catch (Exception e) {
@@ -96,10 +147,29 @@ public class DownloadBiblesController {
         });
     }
 
+    private Thread updateBibleInThread(Thread thread, Bible bible, List<Book> oldBooks) {
+        if (bible == null) {
+            return null;
+        }
+        try {
+            if (thread != null) {
+                thread.join();
+            }
+            thread = new Thread(() -> {
+                bookService.delete(oldBooks);
+                bibleService.create(bible); // we need to save also the books
+            });
+            thread.start();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        return thread;
+    }
+
     private void closeDownloadBibleStage() {
         if (stage != null) {
             Platform.runLater(() -> {
-                bibleController.initializeBibles();
+                bibleController.initializeBiblesWithoutSameSizeCheck();
                 this.stage.close();
             });
         }
@@ -128,6 +198,10 @@ public class DownloadBiblesController {
         checkBox.setDisable(b);
         Platform.runLater(() -> listView.getChildren().add(checkBox));
         checkBoxes.add(checkBox);
+        String bibleUuid = bible.getUuid();
+        if (bibleUuid != null) {
+            checkBoxHashMap.put(bibleUuid, checkBox);
+        }
     }
 
     private void noInternetMessage() {

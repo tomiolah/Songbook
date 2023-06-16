@@ -16,4 +16,6 @@ public interface SongService extends CrudService<Song> {
     void saveFavouriteCount(List<SongFavouritesDTO> songFavouritesDTOS);
 
     Song getFromMemoryOrSong(Song song);
+
+    Song getFromMemoryOrSongNoUpdate(Song song);
 }

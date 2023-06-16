@@ -93,7 +93,7 @@ public class DownloadSongsController {
 
     public void initialize() {
         conflictGridPane.setVisible(false);
-        newSongListView.setCellFactory(param -> new ListCell<Song>() {
+        newSongListView.setCellFactory(param -> new ListCell<>() {
             @Override
             protected void updateItem(Song item, boolean empty) {
                 super.updateItem(item, empty);
@@ -222,17 +222,6 @@ public class DownloadSongsController {
         }
     }
 
-    private void saveLocalSongAndUpdateDates(Song song, Song localSong) {
-        localSong.setServerModifiedDate(song.getServerModifiedDate());
-        localSong.setCreatedDate(song.getCreatedDate());
-        localSong.setModifiedDate(song.getModifiedDate());
-        localSong.setVersionGroup(song.getVersionGroup());
-        localSong.setLanguage(song.getLanguage());
-        localSong.setPublished(true);
-        localSong.setUuid(song.getUuid());
-        songService.create(localSong);
-    }
-
     private int getSelectedLanguageSize() {
         int count = 0;
         for (Language language : languages) {
@@ -312,6 +301,7 @@ public class DownloadSongsController {
             alert.setTitle(resourceBundle.getString("Completed"));
             alert.setHeaderText(resourceBundle.getString("Close the window to finish!"));
             alert.showAndWait();
+            Platform.runLater(() -> downloadingLabel.setText(resourceBundle.getString("Completed")));
         }
     }
 
@@ -348,6 +338,7 @@ public class DownloadSongsController {
         });
     }
 
+    @SuppressWarnings("unused")
     private boolean equals(Song song, Song localSong) {
         if (!song.getTitle().equals(localSong.getTitle())) {
             return false;

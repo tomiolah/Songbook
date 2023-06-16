@@ -2,6 +2,7 @@ import { AuthenticateComponent } from '../ui/authenticate/authenticate.component
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialogRef } from '@angular/material/dialog';
+import { currentUser } from './local-storage';
 
 export class ErrorUtil {
 
@@ -26,7 +27,7 @@ class DialogUtil {
 }
 
 export function getAuthenticateDialogRef(dialog: MatDialog): MatDialogRef<AuthenticateComponent, any> {
-  const user = JSON.parse(localStorage.getItem('currentUser'));
+  const user = currentUser();
   if (user == null) {
     return;
   }

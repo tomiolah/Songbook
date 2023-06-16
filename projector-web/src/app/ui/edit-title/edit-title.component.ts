@@ -52,6 +52,7 @@ export class EditTitleComponent implements OnInit {
     return s != 'a' &&
       s != 'an' &&
       s != 'and' &&
+      s != 'as' &&
       s != 'by' &&
       s != 'but' &&
       s != 'for' &&
@@ -59,10 +60,17 @@ export class EditTitleComponent implements OnInit {
       s != 'into' &&
       s != 'nor' &&
       s != 'of' &&
+      s != 'on' &&
       s != 'or' &&
       s != 'the' &&
       s != 'to' &&
-      s != 'upon';
+      s != 'until' &&
+      s != 'unto' &&
+      s != 'up' &&
+      s != 'upon' &&
+      s != 'with' &&
+      s != 'within' &&
+      s != 'without';
   }
 
   private lastWord(splitWithDelimiters: string[], index: number): boolean {

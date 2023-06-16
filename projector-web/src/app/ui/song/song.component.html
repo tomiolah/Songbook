@@ -8,9 +8,13 @@
   </div>
   <div *ngIf="auth.getUser().isAdmin() || hasReviewerRoleForSong">
     <br>
-    <h4 *ngIf="song.deleted && !song.reviewerErased">
-      Song is in review.
-    </h4>
+    <mat-card *ngIf="song.deleted && !song.reviewerErased">
+      <mat-card-content>
+        <h4>
+          Song is in review.
+        </h4>
+      </mat-card-content>
+    </mat-card>
   </div>
   <br>
   <mat-card>
@@ -20,7 +24,8 @@
       <div *ngIf="conditionForShowingCollection()">
         <div *ngIf="collections != undefined">
           <div *ngFor="let collection of collections">
-            <p *ngFor="let collectionElement of collection.songCollectionElements" (click)="onCollectionElementClick(collectionElement, collection)">
+            <p *ngFor="let collectionElement of collection.songCollectionElements"
+              (click)="onCollectionElementClick(collectionElement, collection)">
               {{collection.name + " " + collectionElement.ordinalNumber}}
             </p>
           </div>
@@ -201,6 +206,9 @@
     </button>
     <button *ngIf="markedForVersionSong!==null && !marked" mat-button (click)="mergeVersionGroup()">
       Merge with: {{markedForVersionSong.title}}
+    </button>
+    <button *ngIf="versionGroupRemovable()" mat-button (click)="removeVersionGroup()">
+      Remove from version group
     </button>
   </div>
   <div *ngIf="songsByVersionGroup.length>0">

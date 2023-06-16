@@ -15,7 +15,9 @@ ext {
     junitVersion = '5.8.2'
 }
 
+//noinspection GroovyUnusedAssignment
 sourceCompatibility = '17'
+//noinspection GroovyUnusedAssignment
 targetCompatibility = '17'
 
 tasks.withType(JavaCompile) {
@@ -95,7 +97,7 @@ runtime {
         installerOptions += ['--resource-dir', "src/main/resources"]
         installerOptions += ['--vendor', 'Bence']
         imageName = "Projector"
-        appVersion = "3.2.2"
+        appVersion = "3.2.5"
         jvmArgs = [
                 '-Djava.net.preferIPv4Stack=true'
         ]

@@ -3,6 +3,7 @@ package projector.utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -78,6 +79,7 @@ public class TextEncoder {
             cipher.init(Cipher.DECRYPT_MODE, getSecretKey(), iv);
             byte[] decoded = Base64.getDecoder().decode(encodedText);
             return new String(cipher.doFinal(decoded));
+        } catch (BadPaddingException ignored) {
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }

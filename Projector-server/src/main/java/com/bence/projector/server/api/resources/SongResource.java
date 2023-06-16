@@ -8,6 +8,7 @@ import com.bence.projector.common.dto.SongTitleDTO;
 import com.bence.projector.common.dto.SongViewsDTO;
 import com.bence.projector.server.api.assembler.SongAssembler;
 import com.bence.projector.server.api.assembler.SongTitleAssembler;
+import com.bence.projector.server.api.resources.util.UserPrincipalUtil;
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.NotificationByLanguage;
 import com.bence.projector.server.backend.model.Role;
@@ -46,6 +47,7 @@ import static com.bence.projector.server.api.resources.StatisticsResource.saveSt
 import static com.bence.projector.server.api.resources.UserPropertiesResource.getUserFromPrincipalAndUserService;
 import static com.bence.projector.server.utils.SetLanguages.printLanguageWords;
 import static com.bence.projector.server.utils.SetLanguages.setLanguagesForUnknown;
+import static com.bence.projector.server.utils.SongUtil.getLastModifiedSong;
 
 @RestController
 public class SongResource {
@@ -108,6 +110,11 @@ public class SongResource {
         return song.getCreatedDate().after(beforeOneWeak);
     }
 
+    private static void setVersionGroupAndDate(Song song, Date date, Song versionGroup) {
+        song.setVersionGroup(versionGroup);
+        song.setModifiedDate(date);
+    }
+
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs")
     public List<SongDTO> findAll(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
@@ -159,11 +166,30 @@ public class SongResource {
         return songTitleAssembler.createDtoList(songs);
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/user/api/songTitles/language/{languageId}")
+    public ResponseEntity<Object> getAllSongTitlesByMyUploads(Principal principal, HttpServletRequest httpServletRequest, @PathVariable("languageId") String languageId) {
+        saveStatistics(httpServletRequest, statisticsService);
+        User user = UserPrincipalUtil.getUserFromPrincipalAndUserService(principal, userService);
+        if (user == null) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        List<Song> songs = songService.findAllByLanguageAndUser(languageId, user);
+        return new ResponseEntity<>(songTitleAssembler.createDtoList(songs), HttpStatus.ACCEPTED);
+    }
+
     @RequestMapping(method = RequestMethod.GET, value = "/api/songTitlesInReview/language/{languageId}")
-    public ResponseEntity<Object> getAllSongTitlesInReview(HttpServletRequest httpServletRequest, @PathVariable("languageId") String languageId) {
+    public ResponseEntity<Object> getAllSongTitlesInReview(HttpServletRequest httpServletRequest, @PathVariable("languageId") String languageId, @RequestParam(required = false) Boolean myUploads, Principal principal) {
         saveStatistics(httpServletRequest, statisticsService);
         Language language = languageService.findOneByUuid(languageId);
-        final List<Song> all = songService.findAllInReviewByLanguage(language);
+        List<Song> all = songService.findAllInReviewByLanguage(language);
+        if (myUploads != null && myUploads) {
+            User user = UserPrincipalUtil.getUserFromPrincipalAndUserService(principal, userService);
+            if (user != null) {
+                all = songService.filterSongsByCreatedEmail(all, user.getEmail());
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        }
         return new ResponseEntity<>(songTitleAssembler.createDtoList(all), HttpStatus.ACCEPTED);
     }
 
@@ -329,9 +355,23 @@ public class SongResource {
             Thread thread = new Thread(() -> sendEmail(song));
             thread.start();
             SongDTO dto = songAssembler.createDto(savedSong);
+            updateUserWhenCreatedSong(user);
             return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
         }
         return new ResponseEntity<>("Could not create", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private void updateUserWhenCreatedSong(User user) {
+        try {
+            if (user.isHadUploadedSongs()) {
+                return;
+            }
+            user.setHadUploadedSongs(true);
+            user.setModifiedDate(new Date());
+            userService.save(user);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void sendEmail(Song song) {
@@ -683,19 +723,46 @@ public class SongResource {
             }
             if (size1 < size2) {
                 for (Song song : allByVersionGroup1) {
-                    song.setVersionGroup(songService.findOneByUuid(song2VersionGroup));
-                    song.setModifiedDate(date);
+                    setVersionGroupAndDate(song, date, songService.findOneByUuid(song2VersionGroup));
                 }
                 songService.saveAllByRepository(allByVersionGroup1);
             } else {
                 for (Song song : allByVersionGroup2) {
-                    song.setVersionGroup(songService.findOneByUuid(song1VersionGroup));
-                    song.setModifiedDate(date);
+                    setVersionGroupAndDate(song, date, songService.findOneByUuid(song1VersionGroup));
                 }
                 songService.saveAllByRepository(allByVersionGroup2);
             }
         }
         return new ResponseEntity<>("Merged", HttpStatus.ACCEPTED);
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "admin/api/songVersionGroup/remove/{songId}")
+    public ResponseEntity<Object> removeFromSongVersionGroup(@PathVariable("songId") String songId, HttpServletRequest httpServletRequest) {
+        Song song = songRepository.findOneByUuid(songId);
+        if (song == null) {
+            return new ResponseEntity<>("Null", HttpStatus.NO_CONTENT);
+        }
+        saveStatistics(httpServletRequest, statisticsService);
+        String songVersionGroup = getUuidFromVersionGroupSong(song);
+        Date date = new Date();
+        if (songVersionGroup != null) {
+            setVersionGroupAndDate(song, date, null);
+            songRepository.save(song);
+        } else {
+            List<Song> allByVersionGroup = songService.findAllByVersionGroup(song.getUuid());
+            Song lastModifiedSong = getLastModifiedSong(allByVersionGroup);
+            List<Song> modifiedSongs = new ArrayList<>();
+            for (Song aSong : allByVersionGroup) {
+                if (!aSong.equals(song) && !aSong.equals(lastModifiedSong)) {
+                    setVersionGroupAndDate(aSong, date, lastModifiedSong);
+                    modifiedSongs.add(aSong);
+                }
+            }
+            setVersionGroupAndDate(lastModifiedSong, date, null);
+            modifiedSongs.add(lastModifiedSong);
+            songService.saveAllByRepository(modifiedSongs);
+        }
+        return new ResponseEntity<>("Removed", HttpStatus.ACCEPTED);
     }
 
     private String getUuidFromVersionGroupSong(Song song) {

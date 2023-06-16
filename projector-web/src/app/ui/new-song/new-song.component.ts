@@ -10,6 +10,7 @@ import { DomSanitizer, SafeResourceUrl, Title } from "@angular/platform-browser"
 import { CdkDragDrop, moveItemInArray, copyArrayItem } from '@angular/cdk/drag-drop';
 import { addNewVerse_, calculateOrder_ } from '../../util/song.utils';
 import { checkAuthenticationError } from '../../util/error-util';
+import { AuthService } from '../../services/auth.service';
 
 export function replace(value: string) {
   let newValue: string = value.trim();
@@ -114,6 +115,7 @@ export class NewSongComponent implements OnInit {
     private songService: SongService,
     private router: Router,
     private languageDataService: LanguageDataService,
+    private auth: AuthService,
     private titleService: Title,
     private dialog: MatDialog,
     iconRegistry: MatIconRegistry,
@@ -338,6 +340,7 @@ export class NewSongComponent implements OnInit {
     }
     this.songService.createSong(this.song).subscribe(
       (song) => {
+        this.updateUserWhenCreatedSong();
         // noinspection JSIgnoredPromiseFromCall
         this.router.navigate(['/song/' + song.uuid]);
       },
@@ -345,6 +348,12 @@ export class NewSongComponent implements OnInit {
         checkAuthenticationError(this.insertNewSong, this, err, this.dialog);
       }
     );
+  }
+
+  private updateUserWhenCreatedSong() {
+    const user = this.auth.getUser();
+    user.hadUploadedSongs = true;
+    this.auth.setUserToLocalStorage(user);
   }
 
   private setVerseOrderListFromSectionOrder() {

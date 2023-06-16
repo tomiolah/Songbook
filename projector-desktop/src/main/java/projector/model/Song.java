@@ -65,6 +65,7 @@ public class Song extends BaseEntity {
     private List<Short> verseOrderList;
     @DatabaseField
     private Boolean downloadedSeparately;
+    private transient FavouriteSong favourite;
 
     public Song() {
     }
@@ -165,8 +166,11 @@ public class Song extends BaseEntity {
         List<Short> verseOrderList = getVerseOrderList();
         List<SongVerse> songVerses = new ArrayList<>(verseOrderList.size());
         List<SongVerse> verses = getVerses();
+        int size = verses.size();
         for (Short index : verseOrderList) {
-            songVerses.add(verses.get(index));
+            if (size > index) {
+                songVerses.add(verses.get(index));
+            }
         }
         return songVerses;
     }
@@ -295,6 +299,11 @@ public class Song extends BaseEntity {
     }
 
     public void setSongCollectionElements(List<SongCollectionElement> songCollectionElements) {
+        if (songCollectionElements != null) {
+            for (SongCollectionElement element : songCollectionElements) {
+                element.setSong(this);
+            }
+        }
         this.songCollectionElements = songCollectionElements;
     }
 
@@ -384,6 +393,9 @@ public class Song extends BaseEntity {
         if (l < 2592000000L) {
             score += 4 * ((1 - (double) l / 2592000000L));
         }
+        if (isFavourite()) {
+            score = (int) Math.max(score + 10, score * 1.1);
+        }
         return score;
     }
 
@@ -411,6 +423,29 @@ public class Song extends BaseEntity {
         return false;
     }
 
+    public boolean isFavourite() {
+        return favourite != null && favourite.isFavourite();
+    }
+
+    public FavouriteSong getFavourite() {
+        return favourite;
+    }
+
+    public void setFavourite(boolean favourite) {
+        if (this.favourite == null) {
+            this.favourite = new FavouriteSong();
+            this.favourite.setSong(this);
+        }
+        this.favourite.setFavourite(favourite);
+    }
+
+    public void setFavourite(FavouriteSong favouriteSong) {
+        this.favourite = favouriteSong;
+        if (favouriteSong != null) {
+            favouriteSong.setSong(this);
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder text = new StringBuilder(this.title);
@@ -433,5 +468,16 @@ public class Song extends BaseEntity {
 
     public void setDownloadedSeparately(boolean downloadedSeparately) {
         this.downloadedSeparately = downloadedSeparately;
+    }
+
+    public boolean equivalent(Song other) {
+        boolean equivalent = super.equivalent(other);
+        if (!equivalent && other != null) {
+            String uuid = getUuid();
+            if (uuid != null && uuid.equals(other.getUuid())) {
+                return true;
+            }
+        }
+        return equivalent;
     }
 }

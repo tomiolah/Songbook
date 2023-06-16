@@ -3,9 +3,12 @@ package com.bence.projector.server.utils;
 import com.bence.projector.common.model.SectionType;
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
+import com.bence.projector.server.backend.model.SongCollection;
+import com.bence.projector.server.backend.model.SongCollectionElement;
 import com.bence.projector.server.backend.model.SongVerse;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.LanguageService;
+import com.bence.projector.server.backend.service.SongCollectionService;
 import com.bence.projector.server.backend.service.SongService;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -27,7 +30,218 @@ import java.util.Objects;
 
 import static com.bence.projector.server.utils.StringUtils.formatSongs;
 
+@SuppressWarnings({"unused", "CommentedOutCode"})
 public class ImportSongs {
+
+    private static final String ENGLISH_LANGUAGE_UUID = "5a2d25458c270b37345af0c5";
+    private static final String HUNGARIAN_LANGUAGE_UUID = "5a2d253b8c270b37345af0c3";
+
+    public static List<Song> importBGyESongs(LanguageService languageService, SongService songService, SongCollectionService songCollectionService) {
+        List<Song> songs = new ArrayList<>();
+        FileInputStream inputStream;
+        try {
+            inputStream = new FileInputStream("BaptistaGyulekezetiEnekeskonyv.txt");
+            BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+            String line = br.readLine();
+            int songsCounter = 0;
+            int verseCount = 0;
+            Song song = null;
+            List<SongVerse> verseSections = null;
+            SongVerse verseSection = null;
+            StringBuilder verseSectionText = new StringBuilder();
+            Language hungarianLanguage = findHungarianLanguage(languageService);
+            SongCollection bGyESongCollection = songCollectionService.findOneByUuid("bd536b6e-abe9-490e-a428-b8772af650a0");
+            List<SongCollectionElement> bGyESongCollectionElements = bGyESongCollection.getSongCollectionElements();
+            while (line != null) {
+                line = line.trim();
+                boolean isTitleLine = isTitleLine(line, songsCounter);
+                if (isTitleLine) {
+                    setRemainedDataToSong(songs, song, verseSections, verseSection, verseSectionText);
+                    ++songsCounter;
+                    song = new Song();
+                    song.setUploaded(true);
+                    song.setCreatedDate(new Date());
+                    song.setModifiedDate(song.getCreatedDate());
+                    song.setLanguage(hungarianLanguage);
+                    verseSections = new ArrayList<>();
+                    song.setVerses(verseSections);
+                    String title = line.replaceFirst(songsCounter + " - ", "");
+                    song.setTitle(title);
+
+                    SongCollectionElement songCollectionElement = new SongCollectionElement();
+                    songCollectionElement.setSong(song);
+                    songCollectionElement.setSongCollection(bGyESongCollection);
+                    songCollectionElement.setOrdinalNumber(songsCounter + "");
+                    bGyESongCollectionElements.add(songCollectionElement);
+                    songsCounter = corrigateSongsCounter(songsCounter);
+                    verseCount = 0;
+                } else {
+                    boolean isNewSection = isSectionLine(line, verseCount);
+                    if (isNewSection) {
+                        if (verseSections != null) {
+                            if (verseSection != null) {
+                                verseSection.setText(verseSectionText.toString());
+                                verseSectionText = new StringBuilder();
+                            }
+                            verseSection = new SongVerse();
+                            verseSections.add(verseSection);
+                            verseSection.setSectionType(getSectionTypeByLine(line));
+                            if (verseSection.getSectionType() == SectionType.VERSE) {
+                                ++verseCount;
+                            }
+                        }
+                    } else {
+                        verseSectionText.append("\n").append(line);
+                    }
+                }
+                line = br.readLine();
+            }
+            setRemainedDataToSong(songs, song, verseSections, verseSection, verseSectionText);
+            System.out.println(songs.size());
+            checkForSimilar(songs, songService);
+            prepareSongs2(songs);
+            // printSongs(bGyESongCollectionElements);
+            songService.save(songs);
+            bGyESongCollection.setModifiedDate(new Date());
+            songCollectionService.save(bGyESongCollection);
+        } catch (IOException ignored) {
+        }
+        return songs;
+    }
+
+    private static void checkForSimilar(List<Song> songs, SongService songService) {
+        HashMap<String, Collection<Song>> hashMap = new HashMap<>();
+        Language language = null;
+        for (Song song : songs) {
+            if (language == null) {
+                language = song.getLanguage();
+            }
+            Collection<Song> languageSongs = getLanguageSongs(language, songService, hashMap);
+            List<Song> allSimilar = songService.findAllSimilar(song, false, languageSongs);
+            if (allSimilar != null && allSimilar.size() > 0) {
+                song.setDeleted(true);
+            }
+        }
+    }
+
+    // private static void printSongs(List<SongCollectionElement> songCollectionElements) {
+    // try {
+    //     PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(
+    //             new FileOutputStream("output.txt"), "UTF-8")));
+    //
+    //     for (SongCollectionElement songCollectionElement : songCollectionElements) {
+    //         Song song = songCollectionElement.getSong();
+    //         writer.println(songCollectionElement.getOrdinalNumber() + " - " + song.getTitle());
+    //         int verseIndex = 0;
+    //         for (SongVerse section : song.getSongVersesByVerseOrder()) {
+    //             if (section.getSectionType() == SectionType.VERSE) {
+    //                 ++verseIndex;
+    //                 writer.println(verseIndex + ".");
+    //             } else {
+    //                 writer.println("Refrén");
+    //             }
+    //             writer.println(section.getText());
+    //             writer.println();
+    //         }
+    //         writer.println();
+    //     }
+    //
+    //     writer.close();
+    //
+    // } catch (IOException e) {
+    //     e.printStackTrace();
+    // }
+    // }
+
+    private static void setRemainedDataToSong(List<Song> songs, Song song, List<SongVerse> verseSections, SongVerse verseSection, StringBuilder verseSectionText) {
+        addSongToList(songs, song);
+        setSectionText(verseSections, verseSection, verseSectionText);
+    }
+
+    private static void setSectionText(List<SongVerse> verseSections, SongVerse verseSection, StringBuilder verseSectionText) {
+        if (verseSections != null) {
+            if (verseSection != null) {
+                verseSection.setText(verseSectionText.toString());
+            }
+        }
+    }
+
+    private static void prepareSongs2(List<Song> songs) {
+        formatSongs(songs);
+        corrigateTitles(songs);
+        setVerseOrderForSongs(songs);
+    }
+
+    private static void setVerseOrderForSongs(List<Song> songs) {
+        for (Song song : songs) {
+            setVerseOrderForSong(song);
+        }
+    }
+
+    private static void setVerseOrderForSong(Song song) {
+        HashMap<String, SectionHolder> hashMap = new HashMap<>();
+        short sectionIndex = 0;
+        List<Short> verseOrderList = new ArrayList<>();
+        List<SongVerse> sectionsWithoutDuplicates = new ArrayList<>();
+        for (SongVerse section : song.getVerses()) {
+            String text = section.getText();
+            SectionHolder sectionHolder = new SectionHolder();
+            if (!hashMap.containsKey(text)) {
+                sectionHolder.songVerse = section;
+                sectionHolder.sectionNumber = sectionIndex++;
+                hashMap.put(text, sectionHolder);
+                sectionsWithoutDuplicates.add(section);
+            } else {
+                sectionHolder = hashMap.get(text);
+            }
+            verseOrderList.add(sectionHolder.sectionNumber);
+        }
+        song.setVerseOrderList(verseOrderList);
+        song.setVerses(sectionsWithoutDuplicates);
+    }
+
+    private static void addSongToList(List<Song> songs, Song song) {
+        if (song != null) {
+            songs.add(song);
+        }
+    }
+
+    private static int corrigateSongsCounter(int songsCounter) {
+        if (songsCounter == 432) {
+            return 433; // because this is skipped
+        }
+        return songsCounter;
+    }
+
+    private static SectionType getSectionTypeByLine(String line) {
+        if (isChorusLine(line)) {
+            return SectionType.CHORUS;
+        } else {
+            return SectionType.VERSE;
+        }
+    }
+
+    private static boolean isSectionLine(String line, int verseCount) {
+        if (isNextVerseSection(line, verseCount)) {
+            return true;
+        }
+        return isChorusLine(line);
+    }
+
+    private static boolean isChorusLine(String line) {
+        return line.equals("Refrén");
+    }
+
+    private static boolean isNextVerseSection(String line, int verseCount) {
+        if (line.equals((verseCount + 1) + ".")) {
+            return true;
+        }
+        return line.matches("[0-9]\\.");
+    }
+
+    private static boolean isTitleLine(String line, int songsCount) {
+        return line.startsWith((songsCount + 1) + " - ");
+    }
 
     public static List<Song> importJsonSongs(LanguageService languageService, SongService songService) {
         List<Song> songs = new ArrayList<>();
@@ -87,7 +301,11 @@ public class ImportSongs {
     }
 
     private static Language findEnglishLanguage(LanguageService languageService) {
-        return languageService.findOneByUuid("5a2d25458c270b37345af0c5");
+        return languageService.findOneByUuid(ENGLISH_LANGUAGE_UUID);
+    }
+
+    private static Language findHungarianLanguage(LanguageService languageService) {
+        return languageService.findOneByUuid(HUNGARIAN_LANGUAGE_UUID);
     }
 
     private static void prepareSongs(List<Song> songs, ArrayList<ISong> songArrayList, Language swahiliLanguage) {
@@ -134,7 +352,17 @@ public class ImportSongs {
     private static void corrigateTitles(List<Song> songs) {
         //        Map<String, Boolean> upperWords = gatherWordsWithStartUpper(songs);
         for (Song song : songs) {
-            song.setTitle(upperTitleWithUpperWords(song.getTitle()));
+            Language songLanguage = song.getLanguage();
+            String songLanguageUuid = songLanguage.getUuid();
+            String songTitle = song.getTitle();
+            if (songLanguageUuid.equals(ENGLISH_LANGUAGE_UUID)) {
+                song.setTitle(upperTitleWithUpperWords(songTitle));
+            } else if (songLanguageUuid.equals(HUNGARIAN_LANGUAGE_UUID)) {
+                String capitalize = capitalize(songTitle);
+                if (!capitalize.equals(songTitle)) {
+                    song.setTitle(capitalize);
+                }
+            }
         }
     }
 
@@ -232,6 +460,11 @@ public class ImportSongs {
             }
         }
         return hashMap;
+    }
+
+    private static class SectionHolder {
+        SongVerse songVerse;
+        short sectionNumber;
     }
 
     public static class IVerse {

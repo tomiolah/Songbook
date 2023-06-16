@@ -1274,30 +1274,54 @@ public class BibleController {
     void initializeBibles() {
         try {
             Bible previouslySelectedBible = this.bible;
-            lazyInitialize();
-            BibleService bibleService = ServiceManager.getBibleService();
-            List<Bible> bibles = bibleService.findAll();
-            bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
-            int biblesCount = bibles.size();
-            ObservableList<Bible> items = bibleListView.getItems();
-            if (biblesCount == 0) {
-                items.clear();
-                downloadBibles();
+            List<Bible> bibles = checkForBibles();
+            if (bibles == null) {
                 return;
             }
-            if (items.size() == biblesCount) {
+            if (bibleListView.getItems().size() == bibles.size()) {
                 return;
             }
-            items.clear();
-            items.addAll(bibles);
-            parallelBibles.clear();
-            parallelBibles.addAll(bibles);
-            selectBibleInListView(previouslySelectedBible);
-            addAllBooks();
-            historyController.setBible(bible);
+            clearAndAddBibles(previouslySelectedBible, bibles);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    public void initializeBiblesWithoutSameSizeCheck() {
+        try {
+            Bible previouslySelectedBible = this.bible;
+            List<Bible> bibles = checkForBibles();
+            if (bibles == null) {
+                return;
+            }
+            clearAndAddBibles(previouslySelectedBible, bibles);
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private List<Bible> checkForBibles() {
+        lazyInitialize();
+        BibleService bibleService = ServiceManager.getBibleService();
+        List<Bible> bibles = bibleService.findAll();
+        bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
+        if (bibles.size() == 0) {
+            bibleListView.getItems().clear();
+            downloadBibles();
+            return null;
+        }
+        return bibles;
+    }
+
+    private void clearAndAddBibles(Bible previouslySelectedBible, List<Bible> bibles) {
+        ObservableList<Bible> items = bibleListView.getItems();
+        items.clear();
+        items.addAll(bibles);
+        parallelBibles.clear();
+        parallelBibles.addAll(bibles);
+        selectBibleInListView(previouslySelectedBible);
+        addAllBooks();
+        historyController.setBible(bible);
     }
 
     private void selectBibleInListView(Bible previouslySelectedBible) {

@@ -12,6 +12,7 @@ import projector.model.BibleVerse;
 import projector.model.Book;
 import projector.model.Chapter;
 import projector.model.CountdownTime;
+import projector.model.FavouriteSong;
 import projector.model.Information;
 import projector.model.Language;
 import projector.model.LoggedInUser;
@@ -40,7 +41,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
-    private final int DATABASE_VERSION = 17;
+    private final int DATABASE_VERSION = 18;
     private final ConnectionSource connectionSource;
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
@@ -49,7 +50,7 @@ public class DatabaseHelper {
     private Dao<Information, Long> informationDao;
     private Dao<SongCollection, Long> songCollectionDao;
     private Dao<SongCollectionElement, Long> songCollectionElementDao;
-    private Dao<Language, Long> languageDao;
+    private CustomDao<Language, Long> languageDao;
     private Dao<Bible, Long> bibleDao;
     private Dao<Book, Long> bookDao;
     private Dao<Chapter, Long> chapterDao;
@@ -57,6 +58,7 @@ public class DatabaseHelper {
     private Dao<VerseIndex, Long> verseIndexDao;
     private Dao<CountdownTime, Long> countdownTimeDao;
     private CustomDao<LoggedInUser, Long> loggedInUserDao;
+    private CustomDao<FavouriteSong, Long> favouriteSongDao;
 
     private DatabaseHelper() {
         try {
@@ -165,6 +167,10 @@ public class DatabaseHelper {
                     } catch (Exception ignored) {
                     }
                 }
+                //noinspection ConstantConditions
+                if (oldVersion <= 17) {
+                    executeSafe(getLanguageDao(), "ALTER TABLE `language` ADD COLUMN favouriteSongDate DATETIME");
+                }
                 saveNewVersion();
             }
             onCreate(connectionSource);
@@ -180,6 +186,14 @@ public class DatabaseHelper {
             instance = new DatabaseHelper();
         }
         return instance;
+    }
+
+    private void executeSafe(CustomDao<Language, Long> dao, @SuppressWarnings("SameParameterValue") String statement) {
+        try {
+            dao.executeRaw(statement);
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
     private void saveNewVersion() {
@@ -220,6 +234,7 @@ public class DatabaseHelper {
             TableUtils.createTableIfNotExists(connectionSource, VerseIndex.class);
             TableUtils.createTableIfNotExists(connectionSource, CountdownTime.class);
             TableUtils.createTableIfNotExists(connectionSource, LoggedInUser.class);
+            TableUtils.createTableIfNotExists(connectionSource, FavouriteSong.class);
             try {
                 getSongVerseDao().executeRaw("ALTER TABLE `SONGVERSE` ADD COLUMN secondText VARCHAR(1000);");
             } catch (Exception ignored) {
@@ -250,6 +265,7 @@ public class DatabaseHelper {
             TableUtils.dropTable(connectionSource, VerseIndex.class, true);
             TableUtils.dropTable(connectionSource, CountdownTime.class, true);
             TableUtils.dropTable(connectionSource, LoggedInUser.class, true);
+            TableUtils.dropTable(connectionSource, FavouriteSong.class, true);
         } catch (final Exception e) {
             LOG.error("Unable to upgrade database", e);
         }
@@ -309,9 +325,9 @@ public class DatabaseHelper {
         return songCollectionElementDao;
     }
 
-    Dao<Language, Long> getLanguageDao() throws SQLException {
+    CustomDao<Language, Long> getLanguageDao() throws SQLException {
         if (languageDao == null) {
-            languageDao = DaoManager.createDao(connectionSource, Language.class);
+            languageDao = getCustomDao(Language.class);
         }
         return languageDao;
     }
@@ -363,6 +379,13 @@ public class DatabaseHelper {
             loggedInUserDao = getCustomDao(LoggedInUser.class);
         }
         return loggedInUserDao;
+    }
+
+    public CustomDao<FavouriteSong, Long> getFavouriteSongDao() throws SQLException {
+        if (favouriteSongDao == null) {
+            favouriteSongDao = getCustomDao(FavouriteSong.class);
+        }
+        return favouriteSongDao;
     }
 
     @SuppressWarnings("SameParameterValue")

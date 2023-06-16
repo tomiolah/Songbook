@@ -14,6 +14,7 @@ export class User extends BaseModel {
   modifiedDate: number;
   createdDate: number;
   reviewLanguages: Language[];
+  hadUploadedSongs = false;
 
   nr: number;
 

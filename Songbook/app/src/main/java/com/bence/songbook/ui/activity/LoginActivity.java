@@ -42,47 +42,29 @@ public class LoginActivity extends AppCompatActivity {
             supportActionBar.setDisplayShowHomeEnabled(true);
         }
         FloatingActionButton fab = findViewById(R.id.fabSubmit);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                login();
-            }
-        });
+        fab.setOnClickListener(view -> login());
     }
 
     private void login() {
         final LoginDTO loginDTO = getLoginDTO();
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                LoginApiBean loginApiBean = new LoginApiBean();
-                if (!loginApiBean.login(loginDTO)) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(LoginActivity.this, R.string.try_again_later, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                    return;
-                }
-                UserApiBean userApiBean = new UserApiBean();
-                UserDTO userDTO = userApiBean.getLoggedInUser();
-                if (userDTO != null) {
-                    LoggedInUserRepositoryImpl loggedInUserRepository = new LoggedInUserRepositoryImpl(LoginActivity.this);
-                    LoggedInUser loggedInUser = new LoggedInUser();
-                    loggedInUser.setEmail(userDTO.getEmail());
-                    loggedInUser.setPassword(loginDTO.getPassword());
-                    loggedInUserRepository.save(loggedInUser);
-                    setResult(RESULT_LOGGED_IN);
-                    finish();
-                } else {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            Toast.makeText(LoginActivity.this, R.string.password_or_email_incorrect, Toast.LENGTH_SHORT).show();
-                        }
-                    });
-                }
+        Thread thread = new Thread(() -> {
+            LoginApiBean loginApiBean = new LoginApiBean();
+            if (!loginApiBean.login(loginDTO)) {
+                runOnUiThread(() -> Toast.makeText(LoginActivity.this, R.string.try_again_later, Toast.LENGTH_SHORT).show());
+                return;
+            }
+            UserApiBean userApiBean = new UserApiBean();
+            UserDTO userDTO = userApiBean.getLoggedInUser();
+            if (userDTO != null) {
+                LoggedInUserRepositoryImpl loggedInUserRepository = new LoggedInUserRepositoryImpl(LoginActivity.this);
+                LoggedInUser loggedInUser = new LoggedInUser();
+                loggedInUser.setEmail(userDTO.getEmail());
+                loggedInUser.setPassword(loginDTO.getPassword());
+                loggedInUserRepository.save(loggedInUser);
+                setResult(RESULT_LOGGED_IN);
+                finish();
+            } else {
+                runOnUiThread(() -> Toast.makeText(LoginActivity.this, R.string.password_or_email_incorrect, Toast.LENGTH_SHORT).show());
             }
         });
         thread.start();

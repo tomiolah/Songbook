@@ -145,6 +145,12 @@
                                                 <Insets bottom="4.0"/>
                                             </padding>
                                         </CheckBox>
+                                        <CheckBox fx:id="favoritesCheckBox" mnemonicParsing="false"
+                                                  text="Favourites" BorderPane.alignment="CENTER">
+                                            <padding>
+                                                <Insets bottom="4.0"/>
+                                            </padding>
+                                        </CheckBox>
                                         <Button fx:id="showVersionsButton" contentDisplay="CENTER" graphicTextGap="0.0"
                                                 layoutX="815.0" layoutY="163.0" maxHeight="-Infinity"
                                                 maxWidth="-Infinity" mnemonicParsing="false" prefHeight="32.0"
@@ -276,6 +282,24 @@
                                                 </ToggleButton>
                                                 <CheckBox fx:id="aspectRatioCheckBox" text="%Aspect ratio"
                                                           BorderPane.alignment="CENTER"/>
+                                                <Button fx:id="starButton" contentDisplay="CENTER"
+                                                        graphicTextGap="0.0" layoutX="815.0" layoutY="163.0"
+                                                        maxHeight="-Infinity" maxWidth="-Infinity"
+                                                        mnemonicParsing="false" prefHeight="20.0" prefWidth="20.0"
+                                                        textAlignment="CENTER">
+                                                    <graphic>
+                                                        <ImageView fitHeight="20.0" fitWidth="13.5" pickOnBounds="true"
+                                                                   preserveRatio="true">
+                                                            <Image url="@../../icons/star_border_black.png"/>
+                                                        </ImageView>
+                                                    </graphic>
+                                                    <tooltip>
+                                                        <Tooltip text="%Set as favourite"/>
+                                                    </tooltip>
+                                                    <padding>
+                                                        <Insets bottom="4.0" left="4.0" right="4.0" top="4.0"/>
+                                                    </padding>
+                                                </Button>
                                             </HBox>
                                         </right>
                                         <bottom>

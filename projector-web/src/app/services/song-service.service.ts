@@ -342,8 +342,16 @@ export class SongService {
     return this.api.getAll(Song, 'api/songTitlesAfterModifiedDate/' + modifiedDate + '/language/' + selectedLanguage);
   }
 
-  getAllInReviewSongsByLanguage(selectedLanguage: Language) {
-    return this.api.getAll(Song, 'api/songTitlesInReview/language/' + selectedLanguage.uuid);
+  getAllSongTitlesByMyUploads(language: Language) {
+    return this.api.getAll(Song, 'user/api/songTitles/language/' + language.uuid);
+  }
+
+  getAllInReviewSongsByLanguage(selectedLanguage: Language, myUploads: boolean) {
+    let url = 'api/songTitlesInReview/language/' + selectedLanguage.uuid;
+    if (myUploads) {
+      url = url + '?myUploads=true';
+    }
+    return this.api.getAll(Song, url);
   }
 
   getAllSongTitlesReviewedByUser(user: User) {
@@ -382,6 +390,10 @@ export class SongService {
 
   mergeVersionGroup(songId1, songId2, user) {
     return this.api.post(user + '/api/songVersionGroup/' + songId1 + '/' + songId2);
+  }
+
+  removeVersionGroup(songId: string) {
+    return this.api.post('admin/api/songVersionGroup/remove/' + songId);
   }
 
   getSongsByVersionGroup(id) {

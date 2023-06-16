@@ -1,7 +1,9 @@
 package projector.service;
 
 import projector.service.impl.BibleServiceImpl;
+import projector.service.impl.BookServiceImpl;
 import projector.service.impl.CountdownTimeServiceImpl;
+import projector.service.impl.FavouriteSongServiceImpl;
 import projector.service.impl.InformationServiceImpl;
 import projector.service.impl.LanguageServiceImpl;
 import projector.service.impl.LoggedInUserServiceImpl;
@@ -32,6 +34,7 @@ public class ServiceManager {
         return new SongVerseServiceImpl();
     }
 
+    @SuppressWarnings("unused")
     public static InformationService getInformationService() {
         return new InformationServiceImpl();
     }
@@ -46,6 +49,10 @@ public class ServiceManager {
 
     public static BibleService getBibleService() {
         return new BibleServiceImpl();
+    }
+
+    public static BookService getBookService() {
+        return new BookServiceImpl();
     }
 
     public static VerseIndexService getVerseIndexService() {
@@ -74,5 +81,9 @@ public class ServiceManager {
 
     public static LoggedInUserService getLoggedInUserService() {
         return new LoggedInUserServiceImpl();
+    }
+
+    public static FavouriteSongService getFavouriteSongService() {
+        return new FavouriteSongServiceImpl();
     }
 }

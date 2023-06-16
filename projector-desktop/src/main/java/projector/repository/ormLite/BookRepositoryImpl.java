@@ -13,7 +13,7 @@ import java.util.List;
 class BookRepositoryImpl extends AbstractBaseRepository<Book> implements BookRepository {
 
     private static final Logger LOG = LoggerFactory.getLogger(BookRepositoryImpl.class);
-    private ChapterRepository chapterRepository;
+    private final ChapterRepository chapterRepository;
 
     BookRepositoryImpl() throws SQLException {
         super(Book.class, DatabaseHelper.getInstance().getBookDao());

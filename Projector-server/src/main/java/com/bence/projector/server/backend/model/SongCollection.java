@@ -112,4 +112,9 @@ public class SongCollection extends AbstractModel {
     public void setUploaded(Boolean uploaded) {
         this.uploaded = uploaded;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

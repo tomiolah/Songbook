@@ -7,7 +7,8 @@ import { Router } from '@angular/router';
 import { User } from '../../models/user';
 import { AuthService } from '../../services/auth.service';
 import { UserDataService } from '../../services/user-data.service';
-import { generalError } from '../../util/error-util';
+import { ErrorUtil, generalError } from '../../util/error-util';
+import { currentUser } from '../../util/local-storage';
 
 @Component({
   selector: 'app-account',
@@ -48,6 +49,7 @@ export class AccountComponent implements OnInit {
 
   ngOnInit() {
     this.titleService.setTitle('Account');
+    this.userDataService.getLoggedInUser();
     this.userDataService.getLoggedInUser().subscribe(
       (user) => {
         this.auth.setUserAlsoToLocalStorage(user);
@@ -55,7 +57,16 @@ export class AccountComponent implements OnInit {
         this.showForm = true;
       },
       (err) => {
-        generalError(this.ngOnInit, this, err, this.dialog, this.snackBar);
+        if (!ErrorUtil.errorIsNeededLogin(err)) {
+          generalError(this.ngOnInit, this, err, this.dialog, this.snackBar);
+        } else {
+          const user = currentUser();
+          this.auth.logout();
+          if (user == null) {
+            return;
+          }
+          this.router.navigate(['/login', user.email]);
+        }
       }
     );
   }
