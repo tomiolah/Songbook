@@ -34,6 +34,7 @@ public class LoginApiBean {
         return false;
     }
 
+    @SuppressWarnings("UnusedReturnValue")
     public boolean logout() {
         Call<Void> logoutCall = loginApi.logout();
         try {
@@ -49,6 +50,7 @@ public class LoginApiBean {
         List<String> cookieStrings = headers.values("Set-Cookie");
         List<Cookie> cookies = null;
         for (String cookieString : cookieStrings) {
+            //noinspection resource
             Cookie cookie = Cookie.parse(execute.raw().request().url(), cookieString);
             if (cookie == null) {
                 continue;
