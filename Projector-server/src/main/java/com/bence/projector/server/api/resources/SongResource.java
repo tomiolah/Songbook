@@ -377,11 +377,16 @@ public class SongResource {
     private void sendEmail(Song song) {
         Language language = song.getLanguage();
         List<User> reviewers = userService.findAllReviewersByLanguage(language);
+        boolean was = false;
         for (User user : reviewers) {
             NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(language);
             if (notificationByLanguage != null && notificationByLanguage.isNewSongs()) {
                 mailSenderService.sendEmailNewSongToUser(song, user);
+                was = true;
             }
+        }
+        if (was) {
+            mailSenderService.tryToSendAllPrevious();
         }
     }
 

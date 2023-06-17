@@ -64,7 +64,6 @@ public class MailSenderService {
                 notificationByLanguage.getSuggestionStack().add(suggestion);
                 notificationByLanguageService.save(notificationByLanguage);
             }
-            tryToSendAllPrevious();
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println(user.getEmail());
@@ -88,7 +87,6 @@ public class MailSenderService {
             notificationByLanguage.getNewSongStack().add(song);
             notificationByLanguageService.save(notificationByLanguage);
         }
-        tryToSendAllPrevious();
     }
 
     public void tryToSendAllPrevious() {

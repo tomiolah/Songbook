@@ -122,11 +122,16 @@ public class SuggestionResource {
     private void sendEmail(Suggestion suggestion) {
         Song song = songService.findOneByUuid(suggestion.getSongUuid());
         List<User> reviewers = userService.findAllReviewersByLanguage(song.getLanguage());
+        boolean was = false;
         for (User user : reviewers) {
             NotificationByLanguage notificationByLanguage = user.getNotificationByLanguage(song.getLanguage());
             if (notificationByLanguage != null && notificationByLanguage.isSuggestions()) {
                 mailSenderService.sendEmailSuggestionToUser(suggestion, user);
+                was = true;
             }
+        }
+        if (was) {
+            mailSenderService.tryToSendAllPrevious();
         }
     }
 
