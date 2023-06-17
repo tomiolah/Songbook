@@ -135,4 +135,7 @@
     <string name="create_account">Creează cont</string>
     <string name="upload_song">Încărcați cântarea</string>
     <string name="Couldnt_get_selected_language">Nu s-a putut obține limba selectată!</string>
+    <string name="Are_you_sure_you_want_to_delete">Sigur dorești să ștergi?</string>
+    <string name="Yes">Da</string>
+    <string name="No">Nu</string>
 </resources>

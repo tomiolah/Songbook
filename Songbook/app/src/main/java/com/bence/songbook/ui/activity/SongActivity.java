@@ -29,6 +29,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
@@ -280,14 +281,6 @@ public class SongActivity extends AppCompatActivity {
             startActivity(Intent.createChooser(share, "Share song!"));
         } else if (itemId == R.id.action_youtube) {
             Intent intent = new Intent(this, YoutubeActivity.class);
-            Song copiedSong = new Song();
-            copiedSong.setUuid(song.getUuid());
-            copiedSong.setId(song.getId());
-            copiedSong.setTitle(song.getTitle());
-            copiedSong.setVerses(song.getVerses());
-            copiedSong.setSongCollection(song.getSongCollection());
-            copiedSong.setSongCollectionElement(song.getSongCollectionElement());
-            copiedSong.setYoutubeUrl(song.getYoutubeUrl());
             startActivity(intent);
         } else if (itemId == R.id.action_add_to_queue) {
             QueueSongRepositoryImpl queueSongRepository = new QueueSongRepositoryImpl(this);
@@ -325,6 +318,15 @@ public class SongActivity extends AppCompatActivity {
     }
 
     private void setSongAsDeleted() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage(getString(R.string.Are_you_sure_you_want_to_delete))
+                .setPositiveButton(getString(R.string.Yes), (dialog, id) -> performDeleteOperation())
+                .setNegativeButton(getString(R.string.No), (dialog, id) -> dialog.dismiss());
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+    private void performDeleteOperation() {
         song.setAsDeleted(!song.isAsDeleted());
         SongRepository songRepository = new SongRepositoryImpl(this);
         songRepository.save(song);

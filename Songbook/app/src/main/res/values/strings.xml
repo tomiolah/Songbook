@@ -139,4 +139,7 @@
     <string name="create_account">Create account</string>
     <string name="upload_song">Upload song</string>
     <string name="Couldnt_get_selected_language">Couldn\'t get selected language!</string>
+    <string name="Are_you_sure_you_want_to_delete">Are you sure you want to delete?</string>
+    <string name="Yes">Yes</string>
+    <string name="No">No</string>
 </resources>
