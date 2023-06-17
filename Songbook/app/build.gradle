@@ -11,8 +11,8 @@ android {
         minSdkVersion 16
         //noinspection OldTargetApi
         targetSdkVersion 31
-        versionCode 112
-        versionName '2.12.14'
+        versionCode 113
+        versionName '2.12.15'
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
     }
@@ -45,7 +45,6 @@ dependencies {
     implementation 'com.j256.ormlite:ormlite-android:4.48'
     implementation 'com.j256.ormlite:ormlite-jdbc:4.48'
 //    implementation 'com.google.firebase:firebase-core:16.0.3'
-    implementation files('libs/YouTubeAndroidPlayerApi.jar')
     implementation "com.google.android.gms:play-services-auth:$play_services_version"
     implementation "com.google.android.gms:play-services-drive:$play_services_version"
     implementation 'androidx.multidex:multidex:2.0.1'

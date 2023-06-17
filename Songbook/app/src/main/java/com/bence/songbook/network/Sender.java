@@ -40,7 +40,8 @@ class Sender {
                                     + "SONG" + "\n"
                                     + "end 'projectionType'\n";
                             //noinspection CharsetObjectCanBeUsed
-                            outToClient.write(s.getBytes("UTF-8"));
+                            byte[] bytes = s.getBytes("UTF-8");
+                            outToClient.write(bytes);
                         } catch (SocketException e) {
                             String message = e.getMessage();
                             if (message != null) {

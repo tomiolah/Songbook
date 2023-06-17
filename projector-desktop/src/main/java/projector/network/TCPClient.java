@@ -252,6 +252,10 @@ public class TCPClient {
             if (clientSocket != null) {
                 clientSocket.close();
             }
+        } catch (SocketException e) {
+            if (!"Socket closed".equals(e.getMessage())) {
+                LOG.error(e.getMessage(), e);
+            }
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
         }

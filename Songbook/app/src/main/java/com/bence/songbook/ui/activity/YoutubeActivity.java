@@ -1,11 +1,10 @@
 package com.bence.songbook.ui.activity;
 
 import static android.graphics.text.LineBreaker.BREAK_STRATEGY_SIMPLE;
+import static com.bence.songbook.ui.utils.YouTubeIFrame.setYouTubeIFrameToWebView;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,9 +14,13 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AnimationUtils;
+import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
@@ -27,20 +30,14 @@ import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.ui.utils.OnSwipeTouchListener;
-import com.bence.songbook.utils.Config;
-import com.google.android.youtube.player.YouTubeBaseActivity;
-import com.google.android.youtube.player.YouTubeInitializationResult;
-import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayer.Provider;
-import com.google.android.youtube.player.YouTubePlayerView;
+import com.bence.songbook.ui.utils.Preferences;
 
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener {
+public class YoutubeActivity extends AppCompatActivity {
 
-    protected static final int RECOVERY_REQUEST = 1;
     private static final int UI_ANIMATION_DELAY = 300;
     private final Handler mHideHandler = new Handler();
     private final Runnable mShowPart2Runnable = () -> {
@@ -65,7 +62,6 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
         }
     };
     private final Runnable mHideRunnable = this::hide;
-    private YouTubePlayerView youTubeView;
     private Song song;
     private int verseIndex;
     private List<SongVerse> verseList;
@@ -75,16 +71,14 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
     private Date lastDatePressedAtEnd = null;
     private boolean show_title_switch;
 
-    @SuppressLint("CutPasteId")
+    @SuppressLint("ClickableViewAccessibility")
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        setTheme(Preferences.getTheme(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.youtube_activity);
 
-        Intent intent = getIntent();
         song = Memory.getInstance().getPassingSong();
-        youTubeView = findViewById(R.id.youtube_view);
-        youTubeView.initialize(Config.getInstance().getYouTubeApiKey(this), this);
         try {
             textView = findViewById(R.id.fullscreen_content);
             textView.setSingleLine(false);
@@ -118,10 +112,8 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
             List<SongVerse> verses = song.getSongVersesByVerseOrder();
             verseList = new ArrayList<>(verses.size());
             verseList.addAll(verses);
-            verseIndex = intent.getIntExtra("verseIndex", 0);
-
-            final View mContentView = findViewById(R.id.fullscreen_content);
-            mContentView.setOnTouchListener(new OnSwipeTouchListener(this) {
+            verseIndex = 0;
+            textView.setOnTouchListener(new OnSwipeTouchListener(this) {
 
                 public void onSwipeLeft() {
                     setNextVerse();
@@ -139,7 +131,7 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
                 @Override
                 public void performTouchLeftRight(MotionEvent event) {
                     //noinspection IntegerDivisionInFloatingPointContext
-                    if (event.getX() < mContentView.getWidth() / 2) {
+                    if (event.getX() < textView.getWidth() / 2) {
                         setPreviousVerse();
                     } else {
                         setNextVerse();
@@ -180,70 +172,8 @@ public class YoutubeActivity extends YouTubeBaseActivity implements YouTubePlaye
         } catch (Exception e) {
             Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
         }
-    }
-
-    @Override
-    public void onInitializationSuccess(Provider provider, final YouTubePlayer player, boolean wasRestored) {
-        player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
-            @Override
-            public void onLoading() {
-            }
-
-            @Override
-            public void onLoaded(String s) {
-            }
-
-            @Override
-            public void onAdStarted() {
-            }
-
-            @Override
-            public void onVideoStarted() {
-            }
-
-            @Override
-            public void onVideoEnded() {
-            }
-
-            @Override
-            public void onError(YouTubePlayer.ErrorReason errorReason) {
-                if (errorReason == YouTubePlayer.ErrorReason.UNAUTHORIZED_OVERLAY) {
-                    hide();
-                    player.play();
-//                } else {
-//                    System.out.println(errorReason);
-                }
-            }
-        });
-        if (!wasRestored) {
-            if (song != null) {
-                player.cueVideo(song.getYoutubeUrl());
-            }
-        }
-    }
-
-    @Override
-    public void onInitializationFailure(Provider provider, YouTubeInitializationResult errorReason) {
-        if (errorReason.isUserRecoverableError()) {
-            errorReason.getErrorDialog(this, RECOVERY_REQUEST).show();
-        } else {
-            String error = String.format("Error initializing YouTube player: %s", errorReason);
-            Toast.makeText(this, error, Toast.LENGTH_LONG).show();
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=" + song.getYoutubeUrl())));
-            finish();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == RECOVERY_REQUEST) {
-            // Retry initialization if user performed a recovery action
-            getYouTubePlayerProvider().initialize(Config.getInstance().getYouTubeApiKey(this), this);
-        }
-    }
-
-    protected Provider getYouTubePlayerProvider() {
-        return youTubeView;
+        WebView webView = findViewById(R.id.webView);
+        setYouTubeIFrameToWebView(webView, song.getYoutubeUrl());
     }
 
     @Override

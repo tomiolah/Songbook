@@ -1,6 +1,6 @@
 package com.bence.songbook.ui.activity;
 
-import static com.bence.songbook.ui.activity.YoutubeActivity.RECOVERY_REQUEST;
+import static com.bence.songbook.ui.utils.YouTubeIFrame.setYouTubeIFrameToWebView;
 
 import android.annotation.SuppressLint;
 import android.content.ClipData;
@@ -12,14 +12,19 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.bence.projector.common.dto.SuggestionDTO;
 import com.bence.songbook.Memory;
@@ -32,20 +37,16 @@ import com.bence.songbook.service.UserService;
 import com.bence.songbook.ui.utils.CheckSongForUpdate;
 import com.bence.songbook.ui.utils.CheckSongForUpdateListener;
 import com.bence.songbook.ui.utils.Preferences;
-import com.bence.songbook.utils.Config;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.youtube.player.YouTubeBaseActivity;
-import com.google.android.youtube.player.YouTubeInitializationResult;
-import com.google.android.youtube.player.YouTubePlayer;
-import com.google.android.youtube.player.YouTubePlayerView;
 
-public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTubePlayer.OnInitializedListener {
+public class SuggestYouTubeActivity extends AppCompatActivity {
+    private static final String TAG = SuggestYouTubeActivity.class.getSimpleName();
 
     private Song song;
-    private YouTubePlayerView youTubeView;
+    private WebView youTubeView;
     private EditText youtubeEditText;
-    private YouTubePlayer youtubePlayer;
-    private boolean activityPaused = false;
+    private CharSequence initialClipboardContent;
+    private boolean initialClipboardContentReceived;
 
     @SuppressLint("CutPasteId")
     @Override
@@ -54,7 +55,6 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_suggest_youtube);
         youTubeView = findViewById(R.id.youtube_view);
-        youTubeView.initialize(Config.getInstance().getYouTubeApiKey(this), this);
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> submit());
         song = Memory.getInstance().getPassingSong();
@@ -75,23 +75,8 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
                     final String youtubeId = parseYoutubeUrl(String.valueOf(s));
                     if (youtubeId.length() < 21 && youtubeId.length() > 9) {
                         youTubeView.setVisibility(View.VISIBLE);
-                        if (youtubePlayer == null) {
-                            final Thread thread = new Thread(() -> {
-                                while (youtubePlayer == null) {
-                                    try {
-                                        //noinspection BusyWait
-                                        Thread.sleep(100);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                youtubePlayer.cueVideo(youtubeId);
-                                youtubePlayer.play();
-                            });
-                            thread.start();
-                        } else {
-                            youtubePlayer.cueVideo(youtubeId);
-                            youtubePlayer.play();
+                        if (youTubeView != null) {
+                            setYouTubeIFrameToWebView(youTubeView, youtubeId);
                         }
                     }
                 } catch (Exception e) {
@@ -109,6 +94,12 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         textEditText.setKeyListener(null);
         textEditText.setFocusable(false);
         textEditText.setCursorVisible(false);
+        checkForSongUpdate();
+        initializeBackButton();
+        initialClipboardContentReceived = false;
+    }
+
+    private void openYoutubeApp() {
         Toast.makeText(this, getString(R.string.select_youtube_video), Toast.LENGTH_LONG).show();
         try {
             Intent youtubeIntent = new Intent(Intent.ACTION_SEARCH);
@@ -120,6 +111,9 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
             Uri parse = Uri.parse("https://www.youtube.com/results?search_query=" + song.getTitle().replace(" ", "+"));
             startActivity(new Intent(Intent.ACTION_VIEW, parse));
         }
+    }
+
+    private void checkForSongUpdate() {
         if (song.getUuid() != null && !song.getUuid().isEmpty()) {
             LayoutInflater layoutInflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
             CheckSongForUpdate.getInstance().addListener(new CheckSongForUpdateListener(layoutInflater) {
@@ -138,6 +132,11 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
                 }
             }, song);
         }
+    }
+
+    private void initializeBackButton() {
+        Button backButton = findViewById(R.id.backButton);
+        backButton.setOnClickListener(this::onBackButtonClick);
     }
 
     private String getText(Song song) {
@@ -208,96 +207,46 @@ public class SuggestYouTubeActivity extends YouTubeBaseActivity implements YouTu
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    public void onInitializationSuccess(YouTubePlayer.Provider provider,
-                                        final YouTubePlayer player, boolean wasRestored) {
-        player.setPlayerStateChangeListener(new YouTubePlayer.PlayerStateChangeListener() {
-            @Override
-            public void onLoading() {
-            }
-
-            @Override
-            public void onLoaded(String s) {
-            }
-
-            @Override
-            public void onAdStarted() {
-            }
-
-            @Override
-            public void onVideoStarted() {
-            }
-
-            @Override
-            public void onVideoEnded() {
-            }
-
-            @Override
-            public void onError(YouTubePlayer.ErrorReason errorReason) {
-                if (errorReason == YouTubePlayer.ErrorReason.UNAUTHORIZED_OVERLAY) {
-                    player.play();
-//                } else {
-//                    System.out.println(errorReason);
-                }
-            }
-        });
-        youtubePlayer = player;
-        if (!wasRestored) {
+    private CharSequence getClipboardText() {
+        ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+        if (clipboard != null) {
             try {
-                player.cueVideo(song.getYoutubeUrl());
+                ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+                return item.getText();
             } catch (Exception ignored) {
             }
         }
+        return null;
     }
 
-    @Override
-    public void onInitializationFailure(YouTubePlayer.Provider
-                                                provider, YouTubeInitializationResult errorReason) {
-        if (errorReason.isUserRecoverableError()) {
-            errorReason.getErrorDialog(this, RECOVERY_REQUEST).show();
-        } else {
-            String error = String.format("Error initializing YouTube player: %s", errorReason);
-            Toast.makeText(this, error, Toast.LENGTH_LONG).show();
-            startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("https://www.youtube.com/watch?v=" + song.getYoutubeUrl())));
-            finish();
-        }
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == RECOVERY_REQUEST) {
-            // Retry initialization if user performed a recovery action
-            getYouTubePlayerProvider().initialize(Config.getInstance().getYouTubeApiKey(this), this);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (activityPaused) {
-            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-            if (clipboard != null) {
-                try {
-                    ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
-                    CharSequence pasteData = item.getText();
-                    if (pasteData != null) {
-                        youtubeEditText.setText(pasteData);
-                    }
-                } catch (Exception ignored) {
-                }
+    private void setTextFromClipboard() {
+        try {
+            CharSequence pasteData = getClipboardText();
+            if (pasteData != null && !pasteData.equals(initialClipboardContent)) {
+                youtubeEditText.setText(pasteData);
             }
-            activityPaused = false;
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage());
+        }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            if (!initialClipboardContentReceived) {
+                initialClipboardContentReceived = true;
+                initialClipboardContent = getClipboardText();
+                openYoutubeApp();
+            } else {
+                setTextFromClipboard();
+            }
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        activityPaused = true;
-    }
-
-    protected YouTubePlayer.Provider getYouTubePlayerProvider() {
-        return youTubeView;
     }
 
     public void onBackButtonClick(View view) {

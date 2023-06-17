@@ -135,4 +135,7 @@
     <string name="create_account">Konto anlegen</string>
     <string name="upload_song">Lied hochladen</string>
     <string name="Couldnt_get_selected_language">Ausgewählte Sprache konnte nicht abgerufen werden!</string>
+    <string name="Are_you_sure_you_want_to_delete">Möchten Sie wirklich löschen?</string>
+    <string name="Yes">Ja</string>
+    <string name="No">Nein</string>
 </resources>

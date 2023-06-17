@@ -45,7 +45,7 @@ public class FavouriteSongRepositoryImpl extends BaseRepositoryImpl<FavouriteSon
             songRepository = getSongRepository();
             Song byUUID = songRepository.findByUUID(uuid);
             if (byUUID != null) {
-                ArrayList<FavouriteSong> favouriteSongs = (ArrayList<FavouriteSong>) favouriteSongDao.queryForEq("song_id", byUUID.getId());
+                ArrayList<FavouriteSong> favouriteSongs = favouriteSongDao.queryForEq("song_id", byUUID.getId());
                 if (favouriteSongs != null && favouriteSongs.size() > 0) {
                     return favouriteSongs.get(0);
                 }

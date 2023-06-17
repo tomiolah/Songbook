@@ -32,46 +32,40 @@ public class FavouriteSongService {
     }
 
     public void syncFavourites(final Context context) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (!UserService.getInstance().isLoggedIn(context)) {
-                    return;
-                }
-                FavouriteSongRepositoryImpl favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
-                List<FavouriteSong> favouriteSongs = favouriteSongRepository.findAll();
-                List<FavouriteSong> notUploadedFavouriteSongs = getNotUploadedFavouriteSongs(favouriteSongs);
-                if (notUploadedFavouriteSongs.size() == 0) {
-                    return;
-                }
-                FavouriteSongApiBean favouriteSongApiBean = new FavouriteSongApiBean(context);
-                List<FavouriteSongDTO> favouriteSongDTOS = favouriteSongApiBean.uploadFavouriteSongs(notUploadedFavouriteSongs);
-                if (favouriteSongDTOS != null) {
-                    setUploadedToServer(notUploadedFavouriteSongs, favouriteSongRepository);
-                }
+        Thread thread = new Thread(() -> {
+            if (!UserService.getInstance().isLoggedIn(context)) {
+                return;
+            }
+            FavouriteSongRepositoryImpl favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
+            List<FavouriteSong> favouriteSongs = favouriteSongRepository.findAll();
+            List<FavouriteSong> notUploadedFavouriteSongs = getNotUploadedFavouriteSongs(favouriteSongs);
+            if (notUploadedFavouriteSongs.size() == 0) {
+                return;
+            }
+            FavouriteSongApiBean favouriteSongApiBean = new FavouriteSongApiBean(context);
+            List<FavouriteSongDTO> favouriteSongDTOS = favouriteSongApiBean.uploadFavouriteSongs(notUploadedFavouriteSongs);
+            if (favouriteSongDTOS != null) {
+                setUploadedToServer(notUploadedFavouriteSongs, favouriteSongRepository);
             }
         });
         thread.start();
     }
 
     public void syncFavouritesFromServer(final Context context, final FavouriteSongUpdateListener favouriteSongUpdateListener) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                FavouriteSongApiBean favouriteSongApiBean = new FavouriteSongApiBean(context);
-                List<Language> selectedLanguages = getSelectedLanguages(context);
-                Date serverModifiedDate = getServerModifiedDateByLanguages(selectedLanguages);
-                List<FavouriteSongDTO> favouriteSongDTOS = favouriteSongApiBean.getFavouriteSongs(serverModifiedDate);
-                if (favouriteSongDTOS != null) {
-                    if (favouriteSongDTOS.size() > 0) {
-                        FavouriteSongRepositoryImpl favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
-                        List<FavouriteSong> favouriteSongs = favouriteSongRepository.findAll();
-                        List<FavouriteSong> appliedFavouriteSongs = applyFavouriteSongs(favouriteSongs, favouriteSongDTOS, context);
-                        favouriteSongRepository.save(appliedFavouriteSongs);
-                        saveLastServerModifiedDate(selectedLanguages, serverModifiedDate, favouriteSongDTOS, context);
-                        if (favouriteSongUpdateListener != null) {
-                            favouriteSongUpdateListener.onUpdated();
-                        }
+        Thread thread = new Thread(() -> {
+            FavouriteSongApiBean favouriteSongApiBean = new FavouriteSongApiBean(context);
+            List<Language> selectedLanguages = getSelectedLanguages(context);
+            Date serverModifiedDate = getServerModifiedDateByLanguages(selectedLanguages);
+            List<FavouriteSongDTO> favouriteSongDTOS = favouriteSongApiBean.getFavouriteSongs(serverModifiedDate);
+            if (favouriteSongDTOS != null) {
+                if (favouriteSongDTOS.size() > 0) {
+                    FavouriteSongRepositoryImpl favouriteSongRepository = new FavouriteSongRepositoryImpl(context);
+                    List<FavouriteSong> favouriteSongs = favouriteSongRepository.findAll();
+                    List<FavouriteSong> appliedFavouriteSongs = applyFavouriteSongs(favouriteSongs, favouriteSongDTOS, context);
+                    favouriteSongRepository.save(appliedFavouriteSongs);
+                    saveLastServerModifiedDate(selectedLanguages, serverModifiedDate, favouriteSongDTOS, context);
+                    if (favouriteSongUpdateListener != null) {
+                        favouriteSongUpdateListener.onUpdated();
                     }
                 }
             }
@@ -120,9 +114,7 @@ public class FavouriteSongService {
         return appliedFavouriteSongs;
     }
 
-    private FavouriteSong createOrUploadFavouriteSong(HashMap<String, FavouriteSong> hashMap,
-                                                      FavouriteSongDTO favouriteSongDTO,
-                                                      FavouriteSongAssembler favouriteSongAssembler) {
+    private FavouriteSong createOrUploadFavouriteSong(HashMap<String, FavouriteSong> hashMap, FavouriteSongDTO favouriteSongDTO, FavouriteSongAssembler favouriteSongAssembler) {
         String key = getKey(favouriteSongDTO);
         if (key != null) {
             FavouriteSong favouriteSongFromMap = hashMap.get(key);
