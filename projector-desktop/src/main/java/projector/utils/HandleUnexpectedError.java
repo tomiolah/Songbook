@@ -20,6 +20,7 @@ import static java.lang.Thread.sleep;
 
 public class HandleUnexpectedError {
     private static final Logger LOG = LoggerFactory.getLogger(HandleUnexpectedError.class);
+    private static JFrame previousFrame = null;
 
     public static void setDefaultUncaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
@@ -50,6 +51,9 @@ public class HandleUnexpectedError {
     }
 
     private static void showReLunchApp(String errorMessage) {
+        if (HandleUnexpectedError.previousFrame != null && HandleUnexpectedError.previousFrame.isVisible()) {
+            return;
+        }
         ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
         JFrame frame = new JFrame(resourceBundle.getString("Unexpected error!"));
         frame.setSize(500, 200);
@@ -97,6 +101,7 @@ public class HandleUnexpectedError {
 
         frame.getContentPane().add(panel);
         frame.setVisible(true);
+        HandleUnexpectedError.previousFrame = frame;
     }
 
     private static void setScrollPaneSize(JFrame frame, JScrollPane scrollPane) {
