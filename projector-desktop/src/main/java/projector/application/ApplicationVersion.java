@@ -1,7 +1,6 @@
 package projector.application;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +13,8 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+
+import static projector.controller.util.FileUtil.getGson;
 
 public class ApplicationVersion {
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationVersion.class);
@@ -32,13 +33,6 @@ public class ApplicationVersion {
             instance.load();
         }
         return instance;
-    }
-
-    public static Gson getGson() {
-        return new GsonBuilder()
-                .serializeNulls()
-                .excludeFieldsWithoutExposeAnnotation()
-                .create();
     }
 
     private void load() {

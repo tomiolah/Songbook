@@ -91,4 +91,15 @@ public class Language extends BaseEntity {
     public void setFavouriteSongLastServerModifiedDate(Date favouriteSongLastServerModifiedDate) {
         this.favouriteSongDate = favouriteSongLastServerModifiedDate;
     }
+
+    public boolean equivalent(Language other) {
+        boolean equivalent = super.equivalent(other);
+        if (!equivalent && other != null) {
+            String uuid = getUuid();
+            if (uuid != null && uuid.equals(other.getUuid())) {
+                return true;
+            }
+        }
+        return equivalent;
+    }
 }

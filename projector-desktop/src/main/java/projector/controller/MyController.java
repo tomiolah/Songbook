@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.MainDesktop;
 import projector.application.ApplicationVersion;
+import projector.application.ProjectorState;
 import projector.application.Settings;
 import projector.controller.song.ScheduleController;
 import projector.controller.song.SongController;
@@ -106,6 +107,10 @@ public class MyController {
         projectionScreenController.setPrimaryStage(primaryStage);
         primaryStage.toFront();
         primaryStage.requestFocus();
+    }
+
+    public ProjectionScreenController getProjectionScreenController() {
+        return projectionScreenController;
     }
 
     public void setProjectionScreenController(ProjectionScreenController projectionScreenController) {
@@ -234,7 +239,11 @@ public class MyController {
 
     public void setBlank() {
         blankButton.setSelected(!blankButton.isSelected());
-        blankButtonOnAction();
+        try {
+            blankButtonOnAction();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void setBlank(boolean selected) {
@@ -388,5 +397,17 @@ public class MyController {
 
     public void setShowProjectionScreenToggleButtonToggle(boolean selected) {
         showProjectionScreenToggleButton.setSelected(selected);
+    }
+
+    public void updateProjectorState(ProjectorState projectorState) {
+        try {
+            projectorState.setBlank(blankButton.isSelected());
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    public void setByProjectorState(ProjectorState projectorState) {
+        setBlank(projectorState.isBlank());
     }
 }

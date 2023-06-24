@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-import static projector.application.ApplicationVersion.getGson;
 import static projector.controller.BibleController.getBibleVerseWithReferenceText;
+import static projector.controller.util.FileUtil.getGson;
 import static projector.network.Sender.END_PROJECTION_DTO;
 import static projector.network.Sender.START_PROJECTION_DTO;
 

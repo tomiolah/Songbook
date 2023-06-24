@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import projector.MainDesktop;
 import projector.application.ProjectionScreenSettings;
 import projector.application.ProjectionType;
+import projector.application.ProjectorState;
 import projector.application.Settings;
 import projector.controller.listener.OnBlankListener;
 import projector.controller.listener.ViewChangedListener;
@@ -983,6 +984,20 @@ public class ProjectionScreenController {
     private void addIfNotNull(ProjectionScreenController customStageController, List<ProjectionScreenController> projectionScreenControllers) {
         if (customStageController != null) {
             projectionScreenControllers.add(customStageController);
+        }
+    }
+
+    public void updateProjectorState(ProjectorState projectorState) {
+        projectorState.setProjectionType(projectionType);
+        projectorState.setProjectionDTO(projectionDTO);
+        projectorState.setActiveText(activeText);
+    }
+
+    public void setByProjectorState(ProjectorState projectorState) {
+        String s = projectorState.getActiveText();
+        ProjectionType stateProjectionType = projectorState.getProjectionType();
+        if (s != null && stateProjectionType != null) {
+            setText(s, stateProjectionType, projectorState.getProjectionDTO());
         }
     }
 }

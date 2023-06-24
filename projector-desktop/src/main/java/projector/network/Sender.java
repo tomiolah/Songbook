@@ -17,7 +17,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 
-import static projector.application.ApplicationVersion.getGson;
+import static projector.controller.util.FileUtil.getGson;
 
 public class Sender {
 

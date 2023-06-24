@@ -46,6 +46,7 @@ import java.util.Date;
 import java.util.ListIterator;
 
 import static java.lang.Thread.sleep;
+import static projector.utils.HandleUnexpectedError.setDefaultUncaughtExceptionHandler;
 import static projector.utils.SceneUtils.addIconToStage;
 import static projector.utils.SceneUtils.addStylesheetToSceneBySettings;
 import static projector.utils.SceneUtils.createWindowController;
@@ -85,6 +86,7 @@ public class MainDesktop extends Application {
             } else {
                 openLauncherView(primaryStage);
             }
+            setDefaultUncaughtExceptionHandler();
         } catch (Exception e) {
             e.printStackTrace();
             LOG.error(e.getMessage(), e);
@@ -159,6 +161,7 @@ public class MainDesktop extends Application {
         createPreview();
         myController.initialTabSelect();
         primaryStage.requestFocus();
+        ApplicationUtil.getInstance().checkForProjectorState();
     }
 
     @SuppressWarnings("unused")
