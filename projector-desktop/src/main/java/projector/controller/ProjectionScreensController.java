@@ -271,7 +271,7 @@ public class ProjectionScreensController {
         imageView.setFitWidth(size);
         imageView.setPickOnBounds(true);
         imageView.setPreserveRatio(true);
-        InputStream resourceAsStream = getClass().getResourceAsStream("../../icons/monitor.png");
+        InputStream resourceAsStream = getClass().getResourceAsStream("/icons/monitor.png");
         if (resourceAsStream != null) {
             imageView.setImage(new Image(resourceAsStream));
             toggleButton.setGraphic(imageView);

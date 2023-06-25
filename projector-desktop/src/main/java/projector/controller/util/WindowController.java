@@ -172,7 +172,7 @@ public class WindowController {
             } else {
                 s = "maximize";
             }
-            InputStream resourceAsStream = getClass().getResourceAsStream("../../../icons/" + s + ".png");
+            InputStream resourceAsStream = getClass().getResourceAsStream("/icons/" + s + ".png");
             if (resourceAsStream != null) {
                 Image image = new Image(resourceAsStream);
                 imageView.setImage(image);
