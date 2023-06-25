@@ -613,15 +613,18 @@ public class SongController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            songListView.setOnKeyPressed(event -> {
+            songListView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
                 try {
                     KeyCode keyCode = event.getCode();
                     if (keyCode == KeyCode.DOWN) {
-                        selectNextSongFromScheduleIfLastIndex();
+                        if (selectNextSongFromScheduleIfLastIndex()) {
+                            event.consume();
+                            return;
+                        }
                     }
                     if (keyCode == KeyCode.DOWN || keyCode == KeyCode.UP || keyCode == KeyCode.HOME || keyCode == KeyCode.END || keyCode == KeyCode.PAGE_DOWN || keyCode == KeyCode.PAGE_UP) {
                         double x = System.currentTimeMillis() - timeStart;
-                        if (x < 700) {
+                        if (x < 70) {
                             event.consume();
                             return;
                         }
@@ -1278,11 +1281,13 @@ public class SongController {
         });
     }
 
-    public void selectNextSongFromScheduleIfLastIndex() {
+    public boolean selectNextSongFromScheduleIfLastIndex() {
         if (songListView.getSelectionModel().getSelectedIndex() == songListView.getItems().size() - 1) {
             int nextIndex = scheduleController.getSelectedIndex() + 1;
             scheduleListView.getSelectionModel().select(nextIndex);
+            return true;
         }
+        return false;
     }
 
     private String getColorizedStringByLastSearchedText(String text) {

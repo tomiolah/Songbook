@@ -30,7 +30,7 @@ import projector.network.TCPClient;
 import projector.network.TCPServer;
 import projector.remote.RemoteServer;
 import projector.utils.GlobalKeyListenerExample;
-import projector.utils.MarkTextFlow;
+import projector.utils.BibleVerseTextFlow;
 import projector.utils.scene.text.MyTextFlow;
 
 import java.awt.*;
@@ -304,7 +304,7 @@ public class MyController {
     public void goPrev() {
         int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
         if (selectedIndex == 0) {
-            MultipleSelectionModel<MarkTextFlow> selectionModel = bibleController.getVerseListView().getSelectionModel();
+            MultipleSelectionModel<BibleVerseTextFlow> selectionModel = bibleController.getVerseListView().getSelectionModel();
             int selectionModelSelectedIndex = selectionModel.getSelectedIndex();
             if (selectionModelSelectedIndex - 1 >= 0) {
                 selectionModel.clearAndSelect(selectionModelSelectedIndex - 1);
@@ -321,8 +321,8 @@ public class MyController {
     public void goNext() {
         int selectedIndex = tabPane.getSelectionModel().getSelectedIndex();
         if (selectedIndex == 0) {
-            ListView<MarkTextFlow> verseListView = bibleController.getVerseListView();
-            MultipleSelectionModel<MarkTextFlow> selectionModel = verseListView.getSelectionModel();
+            ListView<BibleVerseTextFlow> verseListView = bibleController.getVerseListView();
+            MultipleSelectionModel<BibleVerseTextFlow> selectionModel = verseListView.getSelectionModel();
             if (selectionModel.getSelectedIndex() + 1 < verseListView.getItems().size()) {
                 selectionModel.clearAndSelect(selectionModel.getSelectedIndex() + 1);
             }

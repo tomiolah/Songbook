@@ -25,6 +25,7 @@ import projector.model.SongVerse;
 import projector.model.VerseIndex;
 import projector.repository.RepositoryException;
 import projector.repository.dao.CustomDao;
+import projector.utils.AppProperties;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -62,7 +63,8 @@ public class DatabaseHelper {
 
     private DatabaseHelper() {
         try {
-            String DATABASE_URL = "jdbc:h2:./data/projector";
+            String dataFolder = AppProperties.getInstance().getDatabaseFolder();
+            String DATABASE_URL = "jdbc:h2:./" + dataFolder + "/projector";
             connectionSource = new JdbcConnectionSource(DATABASE_URL);
             int oldVersion = getOldVersion();
             if (oldVersion < DATABASE_VERSION) {
