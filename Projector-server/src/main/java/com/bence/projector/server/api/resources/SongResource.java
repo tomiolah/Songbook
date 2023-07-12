@@ -811,4 +811,10 @@ public class SongResource {
     private User getUserFromPrincipal(Principal principal) {
         return getUserFromPrincipalAndUserService(principal, userService);
     }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/admin/api/songTitlesContainingYouTube")
+    public List<SongTitleDTO> getAllSongTitlesContainingYouTube(HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        return getSongsContainingYoutubeUrl();
+    }
 }

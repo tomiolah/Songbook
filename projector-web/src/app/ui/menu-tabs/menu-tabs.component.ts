@@ -35,6 +35,7 @@ export class MenuTabsComponent implements OnInit {
     { link: '/admin/users', icon: 'supervised_user_circle', title: 'Users' },
     { link: '/user/notifications', icon: 'notifications', title: 'Notifications' },
     { link: '/desktop-app', icon: 'devices', title: 'Desktop app' },
+    { link: '/admin/YouTube-Video-Checker', icon: 'fact_check', title: 'YouTube checker' },
   ];
   userMenuTabs = [
     { link: '/songs', icon: 'menu', title: 'Songs' },

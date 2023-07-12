@@ -23,6 +23,7 @@ import { VersionLinkComponent } from '../ui/version-link/version-link.component'
 import { ActivateComponent } from '../ui/activate/activate.component';
 import { NewSongCollectionComponent } from '../ui/new-song-collection/new-song-collection.component';
 import { AccountComponent } from '../ui/account/account.component';
+import { YoutubeVideoCheckerComponent } from '../ui/youtube-video-checker/youtube-video-checker.component';
 
 export const appRoutes: Routes = [
   {
@@ -63,6 +64,7 @@ export const appRoutes: Routes = [
   { path: 'activate', component: ActivateComponent },
   { path: 'user/notifications', component: NotificationSettingsComponent },
   { path: 'desktop-app', component: ProjectorComponent },
+  { path: 'admin/YouTube-Video-Checker', component: YoutubeVideoCheckerComponent },
   { path: 'forgottenPassword', component: ForgottenPasswordComponent },
   { path: 'changePasswordByToken', component: ChangePasswordByTokenComponent },
   { path: 'account', component: AccountComponent },

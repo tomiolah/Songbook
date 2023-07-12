@@ -7,6 +7,7 @@ import { SongService, Song } from '../../services/song-service.service';
 import { PageEvent, MatDatepickerInputEvent } from '@angular/material';
 import { FormControl } from '@angular/forms';
 import { SongListComponent } from '../song-list/song-list.component';
+import { compare } from '../../util/sort-util';
 
 class ReviewerStatistics {
   nr: number;
@@ -188,18 +189,8 @@ export class ReviewerStatisticsListComponent implements OnInit {
 
   private sortSongTitlesByModifiedDate() {
     this.songTitles.sort((song1, song2) => {
-      return this.compare(song2.modifiedDate, song1.modifiedDate);
+      return compare(song2.modifiedDate, song1.modifiedDate);
     });
-  }
-
-  private compare(a, b) {
-    if (a < b) {
-      return -1;
-    }
-    if (a > b) {
-      return 1;
-    }
-    return 0;
   }
 
 }

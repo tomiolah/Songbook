@@ -15,6 +15,7 @@ import { SuggestionDataService } from '../../services/suggestion-data.service';
 import { Suggestion } from '../../models/suggestion';
 import { SongCollectionElementComponent } from '../song-collection-element/song.collection.element';
 import { checkAuthenticationError, ErrorUtil, generalError, openAuthenticateDialog } from '../../util/error-util';
+import { YoutubeIdCheckResult, YoutubeIdCheckResultType } from '../youtube-id-check/youtube-id-check.component';
 
 @Component({
   selector: 'app-song',
@@ -34,6 +35,9 @@ export class SongComponent implements OnInit, OnDestroy {
   markedForVersionSong: Song;
   songsByVersionGroup: Song[] = [];
   public safeUrl: SafeResourceUrl = null;
+  public youtubeId: string = null;
+  public idCheckOk = true;
+  public youtubeIdChecked = false;
   public isAndroid = false;
   private sub: Subscription;
   public isIos = false;
@@ -378,6 +382,7 @@ export class SongComponent implements OnInit, OnDestroy {
   }
 
   calculateUrlId(url: string) {
+    this.youtubeId = null;
     if (url == undefined) {
       this.safeUrl = null;
       return;
@@ -390,10 +395,23 @@ export class SongComponent implements OnInit, OnDestroy {
       youtubeUrl = youtubeUrl.substring(0, indexOf);
     }
     if (youtubeUrl.length < 21 && youtubeUrl.length > 9) {
+      this.youtubeId = youtubeUrl;
       this.safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl("https://www.youtube.com/embed/" + youtubeUrl);
+      setTimeout(() => {
+        this.youtubeIdChecked = true; // we give one second to check. If no response then it should try to show the youtube video
+      }, 1000);
     } else {
       this.safeUrl = null;
     }
+  }
+
+  onYouTubeIdCheckResult(result: YoutubeIdCheckResult) {
+    this.idCheckOk = result.type == YoutubeIdCheckResultType.OK;
+    this.youtubeIdChecked = true;
+  }
+
+  showYouTubeVideo(): boolean {
+    return this.youtubeIdChecked;
   }
 
   addToCollectionSong() {
