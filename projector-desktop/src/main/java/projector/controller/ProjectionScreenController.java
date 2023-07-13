@@ -737,6 +737,10 @@ public class ProjectionScreenController {
         }
     }
 
+    public boolean isLock() {
+        return isLock;
+    }
+
     public void setColor(Color value) {
         if (previewProjectionScreenController != null) {
             previewProjectionScreenController.setColor(value);

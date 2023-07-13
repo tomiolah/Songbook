@@ -656,7 +656,7 @@ public class SongController {
                         if (selectedIndex < 0) {
                             return;
                         }
-                        if ((settings.isShareOnNetwork() || settings.isAllowRemote()) && projectionTextChangeListeners != null) {
+                        if ((settings.isShareOnNetwork() || settings.isAllowRemote()) && projectionTextChangeListeners != null && !projectionScreenController.isLock()) {
                             try {
                                 String secondText = getSecondText(selectedIndex - 1);
                                 for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
