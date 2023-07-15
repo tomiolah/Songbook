@@ -419,4 +419,12 @@ public class Song extends AbstractModel {
         }
         return songVerses;
     }
+
+    public String getText() {
+        StringBuilder s = new StringBuilder(getTitle() + "\n\n");
+        for (SongVerse verse : getVerses()) {
+            s.append(verse.getText()).append("\n\n");
+        }
+        return s.toString();
+    }
 }
