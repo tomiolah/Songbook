@@ -11,44 +11,11 @@ import { CdkDragDrop, moveItemInArray, copyArrayItem } from '@angular/cdk/drag-d
 import { addNewVerse_, calculateOrder_ } from '../../util/song.utils';
 import { checkAuthenticationError } from '../../util/error-util';
 import { AuthService } from '../../services/auth.service';
+import { format } from '../../util/string-util';
 
 export function replace(value: string) {
-  let newValue: string = value.trim();
-  newValue = replaceMatch(newValue, /([ \t])([.?!,':])/g, '$2');
-  newValue = replaceMatch(newValue, /([.?!,:])([^ “".?!,:)])/g, '$1 $2');
-  newValue = replaceMatch(newValue, /: \//g, ' :/');
-  newValue = replaceMatch(newValue, /\/ :/g, '/: ');
-  newValue = replaceMatch(newValue, / /g, ' ');
-  newValue = replaceMatch(newValue, / {2}/g, ' ');
-  newValue = replaceMatch(newValue, /\. \. \./g, '…');
-  newValue = replaceMatch(newValue, /\.\.\./g, '…');
-  newValue = replaceMatch(newValue, /\.([^ "])/g, '. $1');
-  newValue = replaceMatch(newValue, / \)/g, ')');
-  newValue = replaceMatch(newValue, /\( /g, '(');
-  newValue = replaceMatch(newValue, /\. "/g, '."');
-  newValue = replaceMatch(newValue, /! "/g, '!"');
-  newValue = replaceMatch(newValue, /\r\n/g, '\n');
-  newValue = replaceMatch(newValue, /\n\n/g, '\n');
-  newValue = replaceMatch(newValue, / \t/g, ' ');
-  newValue = replaceMatch(newValue, /\t /g, ' ');
-  newValue = replaceMatch(newValue, / \n/g, '\n');
-  newValue = replaceMatch(newValue, /\n /g, '\n');
-  newValue = replaceMatch(newValue, /\t\n/g, '\n');
-  newValue = replaceMatch(newValue, /Ş/g, 'Ș');
-  newValue = replaceMatch(newValue, /ş/g, 'ș');
-  newValue = replaceMatch(newValue, /Ţ/g, 'Ț');
-  newValue = replaceMatch(newValue, /ţ/g, 'ț');
-  newValue = replaceMatch(newValue, /ã/g, 'ă');
-  newValue = replaceMatch(newValue, /ā/g, 'ă');
-  newValue = replaceMatch(newValue, /à/g, 'á');
-  newValue = replaceMatch(newValue, /è/g, 'é');
-  newValue = replaceMatch(newValue, /È/g, 'É');
-  newValue = replaceMatch(newValue, /õ/g, 'ő');
-  newValue = replaceMatch(newValue, /ō/g, 'ő');
-  newValue = replaceMatch(newValue, /ô/g, 'ő');
-  newValue = replaceMatch(newValue, /Õ/g, 'Ő');
-  newValue = replaceMatch(newValue, /û/g, 'ű');
-  newValue = replaceMatch(newValue, /û/g, 'ū');
+  let newValue = replaceMatch(value, / /g, ' '); // NBSP - replaces non breaking space characters with space
+  newValue = format(newValue);
   return newValue;
 }
 

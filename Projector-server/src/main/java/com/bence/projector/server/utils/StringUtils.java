@@ -13,15 +13,16 @@ public class StringUtils {
 
     private static final int N = 2000;
     private static final Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
-    private static final String whiteSpace = "[ \\t\\f\\r]"; // \s matches also to \n
+    private static final String WHITE_SPACES = " \\t\\f\\r";
+    private static final String whiteSpace = "[" + WHITE_SPACES + "]"; // \s matches also to \n
     private static final String nonLetters = "\\P{L}";
     private static final String nonLetters_saved = "([" + nonLetters + "])";
-    private static final String letters_saved = "([\\p{L}])";
+    private static final String letters_saved = "(\\p{L})";
     private static final String someSymbols_saved = "([.?!,:])";
     private static final String dot = "\\.";
     private static final String simpleQuotationMarks = "\"'";
     private static final String simpleQuotationMarks_saved = getSaved(simpleQuotationMarks);
-    private static final String whiteSpaceThanNonLetters_saved = "([" + whiteSpace + nonLetters + "])";
+    private static final String whiteSpaceThanNonLetters_saved = "([" + WHITE_SPACES + nonLetters + "])";
     private static final char quotationMark = '"';
     private static final String enDash = "–";
     private static final String emDash = "—";
@@ -189,7 +190,7 @@ public class StringUtils {
         newValue = newValue.replaceAll(dot + " +([" + quotationMarks + "])" + whiteSpaceThanNonLetters_saved, ". $1$2");
         newValue = newValue.replaceAll(" \\)", ")");
         newValue = newValue.replaceAll("\\( ", "(");
-        newValue = newValue.replaceAll(dot + " " + quotationMarks_saved + "(" + whiteSpace + "+)([\n$" + nonLetters + "])", ".$1$2$3");
+        newValue = newValue.replaceAll(dot + " " + quotationMarks_saved + "(" + whiteSpace + "+)([\\n$" + nonLetters + "])", ".$1$2$3");
         newValue = newValue.replaceAll(whiteSpace + "*" + endQuotationMark_saved, "$1");
         newValue = newValue.replaceAll("!" + whiteSpace + "*" + simpleQuotationMarks_saved + whiteSpaceThanNonLetters_saved, "!$1$2");
         newValue = removeSpaceAtEndLineForQuotationMarks(newValue);
@@ -209,7 +210,13 @@ public class StringUtils {
         newValue = newValue.replaceAll("Ţ", "Ț");
         newValue = newValue.replaceAll("ţ", "ț");
         newValue = newValue.replaceAll("ã", "ă");
+        newValue = newValue.replaceAll("ā", "ă");
+        newValue = newValue.replaceAll("à", "á");
+        newValue = newValue.replaceAll("è", "é");
+        newValue = newValue.replaceAll("È", "É");
         newValue = newValue.replaceAll("õ", "ő");
+        newValue = newValue.replaceAll("ō", "ő");
+        newValue = newValue.replaceAll("ô", "ő");
         newValue = newValue.replaceAll("Õ", "Ő");
         newValue = newValue.replaceAll("û", "ű");
         return newValue;
@@ -217,7 +224,7 @@ public class StringUtils {
 
     private static String removeSpaceAtEndLineForQuotationMarks(String newValue) {
         String s = whiteSpace + "*" + quotationMarks_saved + whiteSpace + "*";
-        newValue = newValue.replaceAll(s + "\n", "$1\n");
+        newValue = newValue.replaceAll(s + "\\n", "$1\n");
         newValue = newValue.replaceAll(s + "$", "$1");
         return newValue;
     }
@@ -257,8 +264,8 @@ public class StringUtils {
         return newValue;
     }
 
-    private static String getSaved(String nonLetters) {
-        return "([" + nonLetters + "])";
+    private static String getSaved(String s) {
+        return "([" + s + "])";
     }
 
     public static String fixQuotationMarks(String input) {
