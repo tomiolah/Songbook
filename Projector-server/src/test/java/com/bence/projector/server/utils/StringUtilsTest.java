@@ -159,6 +159,28 @@ public class StringUtilsTest {
     }
 
     @Test
+    public void test_format25() {
+        String s = format("""
+                2. Hogyha nékem is el kell majd mennem
+                Mória hegyére fel, Ne hagyd,
+                Uram, akkor ezt felednem:
+                „Az Úr majd gondot visel!”
+                Kegyelméből "kirendelte" Isten
+                A szent Bárányt, hogy rajtunk segítsen.
+                Feláldozta őt a fán,
+                Kínnal teljes Golgotán.""");
+        assertEquals("""
+                2. Hogyha nékem is el kell majd mennem
+                Mória hegyére fel, Ne hagyd,
+                Uram, akkor ezt felednem:
+                „Az Úr majd gondot visel!”
+                Kegyelméből „kirendelte” Isten
+                A szent Bárányt, hogy rajtunk segítsen.
+                Feláldozta őt a fán,
+                Kínnal teljes Golgotán.""", s);
+    }
+
+    @Test
     public void test_fixQuotationMarks() {
         String s = fixQuotationMarks("This is a string with „quotes”. Another ”example”.");
         assertEquals("This is a string with „quotes”. Another „example”.", s);

@@ -284,7 +284,7 @@ public class StringUtils {
             if (inQuote) {
                 if (isAQuote(currentChar)) {
                     inQuote = false;
-                    if (isClosingQuote(openingQuote)) {
+                    if (!isOpeningQuote(openingQuote)) {
                         builder.setCharAt(openingQuoteIndex, preferredOpeningQuote);
                     }
                     if (!isClosingQuote(currentChar)) {
