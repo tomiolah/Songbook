@@ -173,7 +173,8 @@ export class VersionLinkListComponent implements OnInit {
         this.resolvedAlreadyApplied = true;
         this.snackBar.open('Resolved ' + songLinks.length + ' song links.', 'Close', {
           duration: 4000
-        })
+        });
+        this.ngOnInit();
       }
     );
   }
