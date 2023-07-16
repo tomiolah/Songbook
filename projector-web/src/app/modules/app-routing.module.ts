@@ -26,6 +26,7 @@ import { AccountComponent } from '../ui/account/account.component';
 import { YoutubeVideoCheckerComponent } from '../ui/youtube-video-checker/youtube-video-checker.component';
 
 export const appRoutes: Routes = [
+  // Hint: use unique parameter identifier name
   {
     path: 'login',
     component: LoginComponent
@@ -35,7 +36,7 @@ export const appRoutes: Routes = [
     component: LoginComponent
   },
   {
-    path: 'song/:id',
+    path: 'song/:songId',
     component: SongComponent
   },
   {
@@ -56,7 +57,7 @@ export const appRoutes: Routes = [
   { path: 'admin/reviewer-statistics/:userId', component: ReviewerStatisticsComponent },
   { path: 'suggestions', component: SuggestionListComponent },
   { path: 'versionLinks', component: VersionLinkListComponent },
-  { path: 'songLink/:id', component: VersionLinkComponent },
+  { path: 'songLink/:songLinkId', component: VersionLinkComponent },
   { path: 'songs', component: SongListComponent },
   { path: '', redirectTo: 'songs', pathMatch: 'full' },
   { path: 'registration', component: UserRegisterComponent },

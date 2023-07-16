@@ -107,8 +107,8 @@ export class SongComponent implements OnInit, OnDestroy {
       this.song.songVerseDTOS = [];
     }
     this.sub = this.activatedRoute.params.subscribe(params => {
-      if (params['id']) {
-        const songId = params['id'];
+      const songId = params['songId'];
+      if (songId) {
         this.songService.getSong(songId).subscribe((song) => {
           for (const songVerse of song.songVerseDTOS) {
             songVerse.lines = [];
@@ -143,6 +143,9 @@ export class SongComponent implements OnInit, OnDestroy {
           this.loadSuggestions();
           this.loadCollections(songId);
           this.refreshMergeSong();
+        }, (err) => {
+          console.log('songId: ' + songId);
+          console.log(err);
         });
       }
     });

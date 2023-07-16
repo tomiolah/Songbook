@@ -36,8 +36,8 @@ export class VersionLinkComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.titleService.setTitle('SongLink');
     this.sub = this.activatedRoute.params.subscribe(params => {
-      if (params['id']) {
-        const id = params['id'];
+      const id = params['songLinkId'];
+      if (id) {
         const role = this.auth.getUser().getRolePath();
         this.songLinkService.getSongLink(role, id).subscribe(
           (songLink) => {
