@@ -58,7 +58,7 @@ const VERTICAL_LINE_ESCAPE = '\\' + VERTICAL_LINE;
 export function format(s: string): string {
   let newValue = s.trim();
   newValue = fixQuotationMarks(newValue);
-  newValue = newValue.replace(/([ \t])([.?!,':])/g, '$2');
+  newValue = newValue.replace(/([ \t])([.?!,:])/g, '$2');
   newValue = newValue.replace(/´/g, "'");
   newValue = XRegExp.replace(newValue, XRegExp(`([${openingMark}]) +`, 'g'), '$1');
   newValue = XRegExp.replace(newValue, XRegExp(`${someSymbols_saved}${otherThenSomeSymbols_saved}`, 'g'), '$1 $2');

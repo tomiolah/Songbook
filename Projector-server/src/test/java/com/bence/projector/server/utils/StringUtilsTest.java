@@ -187,6 +187,12 @@ public class StringUtilsTest {
     }
 
     @Test
+    public void test_format27() {
+        String s = format("Set 'em up");
+        assertEquals("Set 'em up", s);
+    }
+
+    @Test
     public void test_fixQuotationMarks() {
         String s = fixQuotationMarks("This is a string with „quotes”. Another ”example”.");
         assertEquals("This is a string with „quotes”. Another „example”.", s);

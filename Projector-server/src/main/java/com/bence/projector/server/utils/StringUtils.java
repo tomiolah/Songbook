@@ -170,7 +170,7 @@ public class StringUtils {
     public static String format(String s) {
         String newValue = s.trim();
         newValue = fixQuotationMarks(newValue);
-        newValue = newValue.replaceAll("([ \\t])([.?!,':])", "$2");
+        newValue = newValue.replaceAll("([ \\t])([.?!,:])", "$2");
         newValue = newValue.replaceAll("´", "'");
         newValue = newValue.replaceAll("([" + openingMark + "]) +", "$1");
         newValue = newValue.replaceAll(someSymbols_saved + otherThenSomeSymbols_saved, "$1 $2");
