@@ -181,6 +181,12 @@ public class StringUtilsTest {
     }
 
     @Test
+    public void test_format26() {
+        String s = format("Mein ganzes Leben lang habe ich gesucht\r aber es ist schwer, den Weg zu finden\r vorbei am Ziel vor mir\nwährend das Wichtige einfach wegrutscht\r \nEs kommt nicht wieder, aber ich werde suchen\r alles in meinem Leben");
+        assertEquals("Mein ganzes Leben lang habe ich gesucht\naber es ist schwer, den Weg zu finden\nvorbei am Ziel vor mir\nwährend das Wichtige einfach wegrutscht\nEs kommt nicht wieder, aber ich werde suchen\nalles in meinem Leben", s);
+    }
+
+    @Test
     public void test_fixQuotationMarks() {
         String s = fixQuotationMarks("This is a string with „quotes”. Another ”example”.");
         assertEquals("This is a string with „quotes”. Another „example”.", s);

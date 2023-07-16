@@ -197,7 +197,7 @@ public class StringUtils {
         newValue = replaceDashType(newValue, "-", enDash);
         newValue = replaceDashType(newValue, enDash, enDash);
         newValue = replaceDashType(newValue, emDash, emDash);
-        newValue = newValue.replaceAll("\r\n", "\n");
+        newValue = newValue.replaceAll("\r *\n?", "\n");
         newValue = newValue.replaceAll("\n\n", "\n");
         newValue = newValue.replaceAll("\t \n", "\n");
         newValue = newValue.replaceAll(" \t", " ");

@@ -85,7 +85,7 @@ export function format(s: string): string {
   newValue = replaceDashType(newValue, '-', enDash);
   newValue = replaceDashType(newValue, enDash, enDash);
   newValue = replaceDashType(newValue, emDash, emDash);
-  newValue = newValue.replace(/\r\n/g, '\n');
+  newValue = newValue.replace(/\r *\n?/g, '\n');
   newValue = newValue.replace(/\n\n/g, '\n');
   newValue = newValue.replace(/\t \n/g, '\n');
   newValue = newValue.replace(/ \t/g, ' ');

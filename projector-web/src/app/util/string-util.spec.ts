@@ -132,6 +132,16 @@ fdescribe('StringUtils', () => {
     assertStringsAreEqual(s, `„Názáreti Jézus már elment!\n”Késő! „a föld e jajtól reng –\n”Názáreti Jézus már elment?”`);
   });
 
+  it('should format the string correctly - test_format26', () => {
+    const s = format(`Mein ganzes Leben lang habe ich gesucht\r aber es ist schwer, den Weg zu finden\r vorbei am Ziel vor mir\nwährend das Wichtige einfach wegrutscht\r \nEs kommt nicht wieder, aber ich werde suchen\r alles in meinem Leben`);
+    assertStringsAreEqual(s, `Mein ganzes Leben lang habe ich gesucht\n` +
+      `aber es ist schwer, den Weg zu finden\n` +
+      `vorbei am Ziel vor mir\n` +
+      `während das Wichtige einfach wegrutscht\n` +
+      `Es kommt nicht wieder, aber ich werde suchen\n` +
+      `alles in meinem Leben`);
+  });
+
   it('should fix quotation marks in the string - test_fixQuotationMarks', () => {
     const s = fixQuotationMarks('This is a string with „quotes”. Another ”example”.');
     assertStringsAreEqual(s, 'This is a string with „quotes”. Another „example”.');
