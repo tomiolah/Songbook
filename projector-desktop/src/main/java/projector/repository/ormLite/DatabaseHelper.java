@@ -170,7 +170,7 @@ public class DatabaseHelper {
                     }
                 }
                 //noinspection ConstantConditions
-                if (oldVersion <= 17) {
+                if (oldVersion > 0 && oldVersion <= 17) {
                     executeSafe(getLanguageDao(), "ALTER TABLE `language` ADD COLUMN favouriteSongDate DATETIME");
                 }
                 saveNewVersion();
