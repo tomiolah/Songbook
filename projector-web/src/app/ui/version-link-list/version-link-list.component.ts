@@ -5,7 +5,7 @@ import { DataSource } from '@angular/cdk/table';
 import { Router } from '@angular/router';
 import { SongLinkDataService } from '../../services/song-link-data.service';
 import { SongLink } from '../../models/song-link';
-import { MatDialog } from "@angular/material";
+import { MatDialog, MatSnackBar } from "@angular/material";
 import { AuthService } from "../../services/auth.service";
 import { Title } from "@angular/platform-browser";
 import { Language } from '../../models/language';
@@ -70,6 +70,7 @@ export class VersionLinkListComponent implements OnInit {
     private titleService: Title,
     private auth: AuthService,
     private languageDataService: LanguageDataService,
+    private snackBar: MatSnackBar,
     private dialog: MatDialog) {
     this.languages = [];
   }
@@ -165,8 +166,14 @@ export class VersionLinkListComponent implements OnInit {
   resolveAlreadyApplied() {
     this.resolvedAlreadyApplied = false;
     this.songLinkDataService.resolveAlreadyApplied().subscribe(
-      (_empty) => {
+      (songLinks) => {
+        if (songLinks == undefined) {
+          return;
+        }
         this.resolvedAlreadyApplied = true;
+        this.snackBar.open('Resolved ' + songLinks.length + ' song links.', 'Close', {
+          duration: 4000
+        })
       }
     );
   }

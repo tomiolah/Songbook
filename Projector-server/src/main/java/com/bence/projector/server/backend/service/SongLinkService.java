@@ -8,7 +8,7 @@ import java.util.List;
 public interface SongLinkService extends BaseService<SongLink> {
     List<SongLink> findAllByLanguage(Language language);
 
-    void resolveAppliedSongLinks();
+    List<SongLink> resolveAppliedSongLinks();
 
     List<SongLink> findAllUnApplied();
 
