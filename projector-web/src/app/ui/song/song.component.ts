@@ -63,7 +63,8 @@ export class SongComponent implements OnInit, OnDestroy {
   }
 
   @Input()
-  set i_song(song: Song) {
+  set i_song(pSong: Song) {
+    const song = new Song(pSong);
     for (const songVerse of song.songVerseDTOS) {
       songVerse.lines = [];
       for (const s of songVerse.text.split('\n')) {
