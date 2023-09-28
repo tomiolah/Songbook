@@ -76,7 +76,12 @@ public class YoutubeActivity extends AppCompatActivity {
         setTheme(Preferences.getTheme(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.youtube_activity);
+        onCreate1();
+        onCreate2();
+        onCreate3();
+    }
 
+    private void onCreate1() {
         song = Memory.getInstance().getPassingSong();
         try {
             textView = findViewById(R.id.fullscreen_content);
@@ -107,6 +112,10 @@ public class YoutubeActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
         }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void onCreate2() {
         try {
             List<SongVerse> verses = song.getSongVersesByVerseOrder();
             verseList = new ArrayList<>(verses.size());
@@ -158,6 +167,9 @@ public class YoutubeActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
         }
+    }
+
+    private void onCreate3() {
         WebView webView = findViewById(R.id.webView);
         setYouTubeIFrameToWebView(webView, song.getYoutubeUrl());
     }

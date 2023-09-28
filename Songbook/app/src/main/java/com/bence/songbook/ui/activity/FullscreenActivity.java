@@ -311,6 +311,10 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
     }
 
     private void setTextFromVerseListByVerseIndex() {
+        int size = verseList.size();
+        if (verseIndex < 0 || verseIndex >= size) {
+            return;
+        }
         setText(verseList.get(verseIndex).getText());
     }
 
