@@ -1,3 +1,5 @@
+import com.android.build.api.dsl.ManagedVirtualDevice
+
 apply plugin: 'com.android.application'
 ext {
     play_services_version = "16.0.0"
@@ -10,11 +12,13 @@ android {
         applicationId "com.bence.songbook.dev"
         minSdkVersion 16
         //noinspection OldTargetApi
-        targetSdkVersion 31
-        versionCode 113
-        versionName '2.12.15'
+        targetSdkVersion 33
+        versionCode 114
+        versionName '2.13.0'
         vectorDrawables.useSupportLibrary = true
         multiDexEnabled true
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
@@ -25,6 +29,29 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+    }
+    testOptions {
+        unitTests {
+            includeAndroidResources = true
+        }
+        managedDevices {
+            devices {
+
+                // run with ../gradlew  nexusOneApi30DebugAndroidTest
+                nexusOneApi30(ManagedVirtualDevice) {
+                    // A lower resolution device is used here for better emulator performance
+                    device = "Nexus One"
+                    apiLevel = 30
+                    // Also use the AOSP ATD image for better emulator performance
+                    systemImageSource = "aosp-atd"
+                }
+            }
+        }
+    }
+    namespace "com.bence.songbook"
+    testNamespace "com.bence.songbook.test"
+    lint {
+        abortOnError false
     }
 }
 
@@ -48,6 +75,10 @@ dependencies {
     implementation "com.google.android.gms:play-services-auth:$play_services_version"
     implementation "com.google.android.gms:play-services-drive:$play_services_version"
     implementation 'androidx.multidex:multidex:2.0.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-contrib:3.5.1'
+    androidTestImplementation "androidx.test.ext:junit:1.1.5"
+    androidTestImplementation "androidx.test:runner:1.5.2"
+    androidTestImplementation "androidx.test.espresso:espresso-core:3.5.1"
 }
 
 //apply plugin: 'com.google.gms.google-services'
