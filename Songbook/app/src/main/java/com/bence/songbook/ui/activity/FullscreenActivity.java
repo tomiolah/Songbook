@@ -19,7 +19,6 @@ import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
-import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.network.ProjectionTextChangeListener;
@@ -177,25 +176,28 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
         show_title_switch = sharedPreferences.getBoolean("show_title_switch", false);
         if (show_title_switch) {
             SongVerse songVerse = new SongVerse();
-            String title = "";
-            SongCollection songCollection = song.getSongCollection();
-            if (songCollection != null) {
-                String name = songCollection.getName();
-                SongCollectionElement songCollectionElement = song.getSongCollectionElement();
-                if (songCollectionElement != null) {
-                    String ordinalNumber = songCollectionElement.getOrdinalNumber().trim();
-                    if (!ordinalNumber.isEmpty()) {
-                        name += " " + ordinalNumber;
-                    }
-                }
-                title = name + "\n";
-            }
-            title += song.getTitle();
+            String title = getTextForTitleSlide(song);
             songVerse.setText(title);
             verseList.add(0, songVerse);
             ++verseIndex;
         }
         return sharedPreferences;
+    }
+
+    public static String getTextForTitleSlide(Song song) {
+        StringBuilder title = new StringBuilder();
+        for (SongCollectionElement songCollectionElement : song.getSongCollectionElements()) {
+            if (songCollectionElement != null) {
+                String name = songCollectionElement.getSongCollection().getName();
+                String ordinalNumber = songCollectionElement.getOrdinalNumber().trim();
+                if (!ordinalNumber.isEmpty()) {
+                    name += " " + ordinalNumber;
+                }
+                title.append(name).append("\n");
+            }
+        }
+        title.append(song.getTitle());
+        return title.toString();
     }
 
     @Override

@@ -1,9 +1,11 @@
 package com.bence.songbook.ui.utils;
 
+import static com.bence.songbook.ui.activity.MainActivity.getOrdinalNumberText;
+import static com.bence.songbook.ui.utils.QueueSongAdapter.getLongFromInteger;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
-import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -13,9 +15,10 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
-import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.models.SongListElement;
 import com.bence.songbook.ui.activity.MainActivity;
 
@@ -62,32 +65,32 @@ public class SongListElementAdapter extends ArrayAdapter<SongListElement> {
         final LinearLayout row = view.findViewById(R.id.lytPattern);
 
         TextView ordinalNumberTextView = view.findViewById(R.id.ordinalNumberTextView);
-        SongCollection songCollection = song.getSongCollection();
-        if (songCollection != null) {
-            String collectionName = songCollection.getName();
-            if (shortCollectionName) {
-                collectionName = songCollection.getShortName();
-            }
-            String text = collectionName + " " + song.getSongCollectionElement().getOrdinalNumber();
-            ordinalNumberTextView.setText(text);
-        } else {
-            ordinalNumberTextView.setText("");
-        }
+        ordinalNumberTextView.setText(getOrdinalNumberText(song, shortCollectionName));
         titleTextView.setText(song.getTitle());
         ImageView imageView = view.findViewById(R.id.starImageView);
         imageView.setVisibility(song.isFavourite() ? View.VISIBLE : View.INVISIBLE);
 
         view.findViewById(R.id.imageViewGrab)
-                .setOnTouchListener(new View.OnTouchListener() {
-                    @SuppressLint("ClickableViewAccessibility")
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        listener.onGrab(position, row);
-                        return false;
-                    }
-                });
+                .setOnTouchListener(getImageViewGrabOnTouchListener(position, row, listener));
 
         return view;
+    }
+
+    @NonNull
+    public static View.OnTouchListener getImageViewGrabOnTouchListener(int position, LinearLayout row, MainActivity.Listener listener) {
+        return (v, event) -> {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    listener.onGrab(position, row);
+                    return false;
+                case MotionEvent.ACTION_UP:
+                    v.performClick();
+                    break;
+                default:
+                    break;
+            }
+            return true;
+        };
     }
 
     @Override
@@ -98,7 +101,8 @@ public class SongListElementAdapter extends ArrayAdapter<SongListElement> {
         try {
             SongListElement item = getItem(position);
             if (item != null) {
-                return mIdMap.get(item);
+                Integer integer = mIdMap.get(item);
+                return getLongFromInteger(integer);
             }
         } catch (IndexOutOfBoundsException ignored) {
         } catch (Exception e) {

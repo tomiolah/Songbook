@@ -7,6 +7,7 @@ import static com.bence.songbook.ui.activity.NewSongActivity.sortLanguagesByRece
 import static com.bence.songbook.ui.activity.SongActivity.saveGmail;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 import static com.bence.songbook.utils.BaseURL.BASE_URL;
+import static java.lang.Math.min;
 
 import android.Manifest;
 import android.annotation.SuppressLint;
@@ -101,6 +102,7 @@ import com.bence.songbook.ui.utils.Preferences;
 import com.bence.songbook.ui.utils.QueueSongAdapter;
 import com.bence.songbook.ui.utils.SyncFavouriteInGoogleDrive;
 import com.bence.songbook.ui.utils.SyncInBackground;
+import com.bence.songbook.ui.utils.song.OrderMethod;
 import com.bence.songbook.utils.Config;
 import com.bence.songbook.utils.Utility;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -114,7 +116,9 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.Normalizer;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -776,15 +780,7 @@ public class MainActivity extends AppCompatActivity
 
     private void setFavouritesForSongs() {
         HashMap<String, Song> hashMap = getStringSongHashMap();
-        for (FavouriteSong favouriteSong : favouriteSongs) {
-            if (favouriteSong.getSong() != null) {
-                String songUuid = favouriteSong.getSong().getUuid();
-                if (hashMap.containsKey(songUuid)) {
-                    Song song = hashMap.get(songUuid);
-                    song.setFavourite(favouriteSong);
-                }
-            }
-        }
+        setFavourites(hashMap);
     }
 
     private void syncDatabase() {
@@ -828,15 +824,7 @@ public class MainActivity extends AppCompatActivity
         FavouriteSongService.getInstance().syncFavouritesFromServer(this, () -> {
             HashMap<String, Song> hashMap = getStringSongHashMap();
             loadFavouriteSongsFromDatabase();
-            for (FavouriteSong favouriteSong : favouriteSongs) {
-                if (favouriteSong.getSong() != null) {
-                    String songUuid = favouriteSong.getSong().getUuid();
-                    if (hashMap.containsKey(songUuid)) {
-                        Song song = hashMap.get(songUuid);
-                        song.setFavourite(favouriteSong);
-                    }
-                }
-            }
+            setFavourites(hashMap);
             search(lastSearchedText, adapter);
         });
     }
@@ -1247,15 +1235,13 @@ public class MainActivity extends AppCompatActivity
         }
         if (wasOrdinalNumber) {
             try {
+                String finalCollectionName = collectionName;
+                String finalOrdinalNumber = ordinalNumber;
+                int finalOrdinalNumberInt = ordinalNumberInt;
                 Collections.sort(tempSongList, (l, r) -> {
-                    SongCollectionElement lSongCollectionElement = l.getSongCollectionElement();
-                    SongCollectionElement rSongCollectionElement = r.getSongCollectionElement();
-                    if (lSongCollectionElement != null && rSongCollectionElement != null) {
-                        Integer ordinalNumberInt1 = lSongCollectionElement.getOrdinalNumberInt();
-                        return ordinalNumberInt1.compareTo(rSongCollectionElement.getOrdinalNumberInt());
-                    } else {
-                        return 1;
-                    }
+                    List<SongCollectionElement> lSongCollectionElements = l.getSongCollectionElements();
+                    List<SongCollectionElement> rSongCollectionElements = r.getSongCollectionElements();
+                    return compareSongCollectionElementsFirstByOrdinalNumber(lSongCollectionElements, rSongCollectionElements, finalCollectionName, finalOrdinalNumber, finalOrdinalNumberInt);
                 });
             } catch (IllegalArgumentException ignored) {
             }
@@ -1268,13 +1254,137 @@ public class MainActivity extends AppCompatActivity
         });
     }
 
+    private boolean containsInCollectionName(SongCollection songCollection, String collectionName, String name) {
+        if (collectionName.trim().isEmpty()) {
+            return false;
+        }
+        return name.contains(collectionName) || songCollection.getStrippedShortName().contains(collectionName);
+    }
+
+    private boolean isContainsInCollectionName(String collectionName, SongCollectionElement songCollectionElement) {
+        SongCollection songCollection = songCollectionElement.getSongCollection();
+        String name = songCollection.getStrippedName();
+        return containsInCollectionName(songCollection, collectionName, name);
+    }
+
+    private int compareSongCollectionElementByIntMatch(SongCollectionElement songCollectionElement1, SongCollectionElement songCollectionElement2, int ordinalNumberInt) {
+        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumberInt() == ordinalNumberInt;
+        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumberInt() == ordinalNumberInt;
+        if (ordinalNumberMatch1 == ordinalNumberMatch2) {
+            return 0;
+        } else if (ordinalNumberMatch1) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+    private int compareSongCollectionElementByPartialMatch(SongCollectionElement songCollectionElement1, SongCollectionElement songCollectionElement2, String ordinalNumber) {
+        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumber().contains(ordinalNumber);
+        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumber().contains(ordinalNumber);
+        if (ordinalNumberMatch1 == ordinalNumberMatch2) {
+            if (ordinalNumberMatch1) {
+                return Integer.compare(songCollectionElement1.getOrdinalNumberInt(), songCollectionElement2.getOrdinalNumberInt());
+            }
+            return 0;
+        } else if (ordinalNumberMatch1) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+    private int compareSongCollectionElementByMatch(SongCollectionElement songCollectionElement1, SongCollectionElement songCollectionElement2, String ordinalNumber, int ordinalNumberInt) {
+        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumber().equals(ordinalNumber);
+        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumber().equals(ordinalNumber);
+        if (ordinalNumberMatch1 == ordinalNumberMatch2) {
+            if (ordinalNumberMatch1) {
+                return 0;
+            }
+            int compare = compareSongCollectionElementByIntMatch(songCollectionElement1, songCollectionElement2, ordinalNumberInt);
+            if (compare == 0) {
+                return compareSongCollectionElementByPartialMatch(songCollectionElement1, songCollectionElement2, ordinalNumber);
+            }
+            return compare;
+        } else if (ordinalNumberMatch1) {
+            return -1;
+        } else {
+            return 1;
+        }
+    }
+
+    private int compareSongCollectionElementFirstByOrdinalNumber(SongCollectionElement lSongCollectionElement, SongCollectionElement rSongCollectionElement) {
+        int compareOrdinalNumber = Integer.compare(lSongCollectionElement.getOrdinalNumberInt(), rSongCollectionElement.getOrdinalNumberInt());
+        if (compareOrdinalNumber != 0) {
+            return compareOrdinalNumber;
+        }
+        return getSongComparator().compare(lSongCollectionElement.getSong(), rSongCollectionElement.getSong());
+    }
+
+    private int compareSongCollectionElementsFirstByOrdinalNumber(List<SongCollectionElement> lSongCollectionElements, List<SongCollectionElement> rSongCollectionElements, String collectionName, String ordinalNumber, int ordinalNumberInt) {
+        int lSize = lSongCollectionElements.size();
+        int rSize = rSongCollectionElements.size();
+        if (lSize != rSize) {
+            if (lSize == 0) {
+                return 1;
+            }
+            if (rSize == 0) {
+                return -1;
+            }
+        }
+        Comparator<SongCollectionElement> sortBySongCollection = (songCollectionElement1, songCollectionElement2) -> {
+            boolean containsInCollection1 = isContainsInCollectionName(collectionName, songCollectionElement1);
+            boolean containsInCollection2 = isContainsInCollectionName(collectionName, songCollectionElement2);
+            if (containsInCollection1 == containsInCollection2) {
+                return compareSongCollectionElementByMatch(songCollectionElement1, songCollectionElement2, ordinalNumber, ordinalNumberInt);
+            } else if (containsInCollection1) {
+                return -1;
+            } else {
+                return 1;
+            }
+        };
+        Collections.sort(lSongCollectionElements, sortBySongCollection);
+        Collections.sort(rSongCollectionElements, sortBySongCollection);
+        int minSize = min(lSize, rSize);
+        for (int i = 0; i < minSize; ++i) {
+            SongCollectionElement lSongCollectionElement = lSongCollectionElements.get(i);
+            SongCollectionElement rSongCollectionElement = rSongCollectionElements.get(i);
+            boolean containsInCollectionL = isContainsInCollectionName(collectionName, lSongCollectionElement);
+            boolean containsInCollectionR = isContainsInCollectionName(collectionName, rSongCollectionElement);
+            if (containsInCollectionL == containsInCollectionR) {
+                int compare = compareSongCollectionElementByMatch(lSongCollectionElement, rSongCollectionElement, ordinalNumber, ordinalNumberInt);
+                if (compare != 0) {
+                    return compare;
+                }
+                compare = compareSongCollectionElementFirstByOrdinalNumber(lSongCollectionElement, rSongCollectionElement);
+                if (compare != 0) {
+                    return compare;
+                }
+            } else if (containsInCollectionL) {
+                return -1;
+            } else {
+                return 1;
+            }
+        }
+        return 0;
+    }
+
     private boolean containsInTitle(String stripped, Song song, String other, String collectionName, String ordinalNumber, int ordinalNumberInt) {
         String strippedTitle = song.getStrippedTitle();
         if (strippedTitle.contains(stripped)) {
             return true;
         }
-        SongCollectionElement songCollectionElement = song.getSongCollectionElement();
-        SongCollection songCollection = song.getSongCollection();
+        List<SongCollectionElement> songCollectionElements = Collections.synchronizedList(song.getSongCollectionElements());
+        for (SongCollectionElement songCollectionElement : songCollectionElements) {
+            if (containsInSongCollectionElement(songCollectionElement, other, collectionName, ordinalNumber, ordinalNumberInt, strippedTitle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsInSongCollectionElement(SongCollectionElement songCollectionElement, String other, String collectionName, String ordinalNumber, int ordinalNumberInt, String strippedTitle) {
+        SongCollection songCollection = songCollectionElement.getSongCollection();
         if (songCollection == null) {
             return false;
         }
@@ -1371,56 +1481,122 @@ public class MainActivity extends AppCompatActivity
         startActivityForResult(intent, SONG_REQUEST);
     }
 
-    private void sortSongs(List<Song> all) {
-        if (sortMethod == 7) {
-            Collections.sort(all, (lhs, rhs) -> {
-                Integer scoreL = lhs.getScore();
-                Integer scoreR = rhs.getScore();
-                if (scoreL.equals(scoreR)) {
-                    return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
-                }
-                return scoreR.compareTo(scoreL);
-            });
-        } else if (sortMethod == 0) {
-            Collections.sort(all, (lhs, rhs) -> rhs.getModifiedDate().compareTo(lhs.getModifiedDate()));
-        } else if (sortMethod == 1) {
-            Collections.sort(all, (lhs, rhs) -> lhs.getStrippedTitle().compareTo(rhs.getStrippedTitle()));
-        } else if (sortMethod == 3) {
-            Collections.sort(all, (lhs, rhs) -> lhs.getCreatedDate().compareTo(rhs.getCreatedDate()));
-        } else if (sortMethod == 5) {
-            Collections.sort(all, (lhs, rhs) -> rhs.getLastAccessed().compareTo(lhs.getLastAccessed()));
-        } else if (sortMethod == 6) {
-            Collections.sort(all, (lhs, rhs) -> {
-                try {
-                    SongCollection lhsSongCollection = lhs.getSongCollection();
-                    SongCollection rhsSongCollection = rhs.getSongCollection();
-                    if (lhsSongCollection == null) {
-                        if (rhsSongCollection == null) {
-                            return lhs.getTitle().compareTo(rhs.getTitle());
-                        } else {
-                            return 1;
-                        }
-                    } else {
-                        if (rhsSongCollection == null) {
-                            return -1;
-                        } else {
-                            int compareTo = lhsSongCollection.getName().compareTo(rhsSongCollection.getName());
-                            if (compareTo == 0) {
-                                Integer lhsOrdinalNumber = lhs.getSongCollectionElement().getOrdinalNumberInt();
-                                int rhsOrdinalNumber = rhs.getSongCollectionElement().getOrdinalNumberInt();
-                                return lhsOrdinalNumber.compareTo(rhsOrdinalNumber);
-                            }
-                            return compareTo;
-                        }
-                    }
-                } catch (Exception e) {
-                    return 0;
-                }
-            });
+    private Comparator<Song> getSongComparator() {
+        OrderMethod orderMethod = getOrderMethod(sortMethod);
+        Comparator<Song> songComparator = null;
+        if (orderMethod == null || orderMethod.equals(OrderMethod.RELEVANCE)) {
+            songComparator = getSongComparatorByRelevanceOrder();
+        } else if (orderMethod.equals(OrderMethod.ASCENDING_BY_TITLE)) {
+            songComparator = getSongComparatorByAscendingByTitle();
+        } else if (orderMethod.equals(OrderMethod.BY_MODIFIED_DATE)) {
+            songComparator = getSongComparatorByModifiedDate();
+        } else if (orderMethod.equals(OrderMethod.BY_CREATED_DATE)) {
+            songComparator = getSongComparatorByCreatedDate();
+        } else if (orderMethod.equals(OrderMethod.BY_LAST_ACCESSED)) {
+            songComparator = getSongComparatorByLastAccessed();
+        } else if (orderMethod.equals(OrderMethod.BY_COLLECTION)) {
+            songComparator = getSongComparatorByCollection();
         }
+        return songComparator;
+    }
+
+    private OrderMethod getOrderMethod(int sortMethod) {
+        switch (sortMethod) {
+            case 7:
+                return OrderMethod.RELEVANCE;
+            case 0:
+                return OrderMethod.BY_MODIFIED_DATE;
+            case 1:
+                return OrderMethod.ASCENDING_BY_TITLE;
+            case 3:
+                return OrderMethod.BY_CREATED_DATE;
+            case 5:
+                return OrderMethod.BY_LAST_ACCESSED;
+            case 6:
+                return OrderMethod.BY_COLLECTION;
+        }
+        return OrderMethod.RELEVANCE;
+    }
+
+    private void sortSongs(List<Song> all) {
+        Collections.sort(all, getSongComparator());
         if (reverseSortMethod) {
             Collections.reverse(all);
         }
+    }
+
+    @NonNull
+    private Comparator<Song> getSongComparatorByRelevanceOrder() {
+        return (lhs, rhs) -> {
+            Integer scoreL = lhs.getScore();
+            Integer scoreR = rhs.getScore();
+            if (scoreL.equals(scoreR)) {
+                return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
+            }
+            return scoreR.compareTo(scoreL);
+        };
+    }
+
+    @NonNull
+    private Comparator<Song> getSongComparatorByModifiedDate() {
+        return (lhs, rhs) -> rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
+    }
+
+    @NonNull
+    private Comparator<Song> getSongComparatorByAscendingByTitle() {
+        return (lhs, rhs) -> lhs.getStrippedTitle().compareTo(rhs.getStrippedTitle());
+    }
+
+    @NonNull
+    private Comparator<Song> getSongComparatorByCreatedDate() {
+        return (lhs, rhs) -> lhs.getCreatedDate().compareTo(rhs.getCreatedDate());
+    }
+
+    @NonNull
+    private Comparator<Song> getSongComparatorByLastAccessed() {
+        return (lhs, rhs) -> rhs.getLastAccessed().compareTo(lhs.getLastAccessed());
+    }
+
+    @NonNull
+    private Comparator<Song> getSongComparatorByCollection() {
+        return (l, r) -> {
+            List<SongCollectionElement> lSongCollectionElements = l.getSongCollectionElements();
+            List<SongCollectionElement> rSongCollectionElements = r.getSongCollectionElements();
+            return compareSongCollectionElements(lSongCollectionElements, rSongCollectionElements);
+        };
+    }
+
+    private int compareSongCollectionElements(List<SongCollectionElement> lSongCollectionElements, List<SongCollectionElement> rSongCollectionElements) {
+        int lSize = lSongCollectionElements.size();
+        int rSize = rSongCollectionElements.size();
+        Comparator<SongCollectionElement> sortBySongCollection = (o1, o2)
+                -> o1.getSongCollection().getName().compareTo(o2.getSongCollection().getName());
+        Collections.sort(lSongCollectionElements, sortBySongCollection);
+        Collections.sort(rSongCollectionElements, sortBySongCollection);
+        int minSize = min(lSize, rSize);
+        for (int i = 0; i < minSize; ++i) {
+            SongCollectionElement lSongCollectionElement = lSongCollectionElements.get(i);
+            SongCollectionElement rSongCollectionElement = rSongCollectionElements.get(i);
+            int compare = compareSongCollectionElement(lSongCollectionElement, rSongCollectionElement);
+            if (compare != 0) {
+                return compare;
+            }
+        }
+        if (lSize > rSize) {
+            return -1;
+        } else if (lSize < rSize) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private int compareSongCollectionElement(SongCollectionElement lSongCollectionElement, SongCollectionElement rSongCollectionElement) {
+        SongCollection lSongCollection = lSongCollectionElement.getSongCollection();
+        SongCollection rSongCollection = rSongCollectionElement.getSongCollection();
+        if (lSongCollection.getName().equals(rSongCollection.getName())) {
+            return Integer.compare(lSongCollectionElement.getOrdinalNumberInt(), rSongCollectionElement.getOrdinalNumberInt());
+        }
+        return lSongCollection.getStrippedName().compareTo(rSongCollection.getStrippedName());
     }
 
     @Override
@@ -1855,16 +2031,30 @@ public class MainActivity extends AppCompatActivity
                 hashMap.put(song.getUuid(), song);
             }
         }
+        setSongCollections(hashMap);
+        setFavourites(hashMap);
+    }
+
+    private void clearSongSongCollections(Collection<Song> songs) {
+        for (Song song : songs) {
+            song.getSongCollections().clear();
+            song.getSongCollectionElements().clear();
+        }
+    }
+
+    private void setSongCollections(HashMap<String, Song> hashMap) {
+        clearSongSongCollections(hashMap.values());
         for (SongCollection songCollection : songCollections) {
             for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
                 String songUuid = songCollectionElement.getSongUuid();
                 if (hashMap.containsKey(songUuid)) {
-                    Song song = hashMap.get(songUuid);
-                    song.setSongCollection(songCollection);
-                    song.setSongCollectionElement(songCollectionElement);
+                    pairSongWithSongCollectionElement_hashMap(hashMap, songCollection, songCollectionElement, songUuid);
                 }
             }
         }
+    }
+
+    private void setFavourites(HashMap<String, Song> hashMap) {
         for (FavouriteSong favouriteSong : favouriteSongs) {
             if (favouriteSong.getSong() != null) {
                 String songUuid = favouriteSong.getSong().getUuid();
@@ -1903,16 +2093,14 @@ public class MainActivity extends AppCompatActivity
     private void filterSongsByCollection() {
         HashMap<String, Song> hashMap = getStringSongHashMap();
         songs.clear();
-        if (ifOneSelected()) {
+        clearSongCollectionForSongs(hashMap.values());
+        if (ifAtLeastOneSongCollectionIsSelected()) {
             for (SongCollection songCollection : songCollections) {
                 if (songCollection.isSelected()) {
                     for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
                         String songUuid = songCollectionElement.getSongUuid();
                         if (hashMap.containsKey(songUuid)) {
-                            Song song = hashMap.get(songUuid);
-                            song.setSongCollection(songCollection);
-                            song.setSongCollectionElement(songCollectionElement);
-                            songs.add(song);
+                            addASongCollectionElement(hashMap, songCollection, songCollectionElement, songUuid);
                         }
                     }
                 }
@@ -1922,19 +2110,49 @@ public class MainActivity extends AppCompatActivity
                 for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
                     String songUuid = songCollectionElement.getSongUuid();
                     if (hashMap.containsKey(songUuid)) {
-                        Song song = hashMap.get(songUuid);
-                        song.setSongCollection(songCollection);
-                        song.setSongCollectionElement(songCollectionElement);
-                        songs.add(song);
-                        hashMap.remove(songUuid);
+                        addASongCollectionElement(hashMap, songCollection, songCollectionElement, songUuid);
                     }
                 }
             }
-            songs.addAll(hashMap.values());
+            addRestOfSongs(hashMap);
         }
     }
 
-    private boolean ifOneSelected() {
+    private void addRestOfSongs(HashMap<String, Song> hashMap) {
+        for (Song song : hashMap.values()) {
+            if (song.getSongCollectionElements().size() <= 0) {
+                songs.add(song);
+            }
+        }
+    }
+
+    private void addASongCollectionElement(HashMap<String, Song> hashMap, SongCollection songCollection, SongCollectionElement songCollectionElement, String songUuid) {
+        Song song = pairSongWithSongCollectionElement_hashMap(hashMap, songCollection, songCollectionElement, songUuid);
+        if (song.getSongCollectionElements().size() <= 1) {
+            songs.add(song);
+        }  // else song should be added already
+    }
+
+    @NonNull
+    public static Song pairSongWithSongCollectionElement_hashMap(HashMap<String, Song> hashMap, SongCollection songCollection, SongCollectionElement songCollectionElement, String songUuid) {
+        Song song = hashMap.get(songUuid);
+        pairSongWithSongCollectionElement(song, songCollection, songCollectionElement);
+        return song;
+    }
+
+    public static void pairSongWithSongCollectionElement(Song song, SongCollection songCollection, SongCollectionElement songCollectionElement) {
+        song.addToSongCollections(songCollection);
+        song.addToSongCollectionElements(songCollectionElement);
+        songCollectionElement.setSong(song);
+    }
+
+    private void clearSongCollectionForSongs(Collection<Song> songs) {
+        for (Song song : songs) {
+            song.setSongCollections(null);
+        }
+    }
+
+    private boolean ifAtLeastOneSongCollectionIsSelected() {
         for (SongCollection songCollection : songCollections) {
             if (songCollection.isSelected()) {
                 return true;
@@ -2365,7 +2583,7 @@ public class MainActivity extends AppCompatActivity
 
     }
 
-    private class SongAdapter extends RecyclerView.Adapter<MyViewHolder> {
+    public class SongAdapter extends RecyclerView.Adapter<MyViewHolder> {
 
         private final OnItemClickListener listener;
         private final List<Song> songList;
@@ -2398,17 +2616,7 @@ public class MainActivity extends AppCompatActivity
             Song song = songList.get(position);
             holder.bind(song, listener, position);
             holder.imageView.setVisibility(song.isFavourite() ? View.VISIBLE : View.INVISIBLE);
-            SongCollection songCollection = song.getSongCollection();
-            if (songCollection != null) {
-                String collectionName = songCollection.getName();
-                if (shortCollectionName) {
-                    collectionName = songCollection.getShortName();
-                }
-                String text = collectionName + " " + song.getSongCollectionElement().getOrdinalNumber();
-                holder.ordinalNumberTextView.setText(text);
-            } else {
-                holder.ordinalNumberTextView.setText("");
-            }
+            holder.ordinalNumberTextView.setText(getOrdinalNumberText(song, MainActivity.this.shortCollectionName));
             holder.titleTextView.setText(song.getTitle());
             holder.titleTextView.setTag(song);
         }
@@ -2425,5 +2633,26 @@ public class MainActivity extends AppCompatActivity
             this.notifyDataSetChanged();
         }
 
+    }
+
+    public static String getOrdinalNumberText(Song song, boolean shortCollectionName) {
+        StringBuilder text = new StringBuilder();
+        for (SongCollectionElement songCollectionElement : song.getSongCollectionElements()) {
+            SongCollection songCollection = songCollectionElement.getSongCollection();
+            String collectionName;
+            if (shortCollectionName) {
+                if (text.length() != 0) {
+                    text.append(", ");
+                }
+                collectionName = songCollection.getShortName();
+            } else {
+                if (text.length() != 0) {
+                    text.append("\n");
+                }
+                collectionName = songCollection.getName();
+            }
+            text.append(collectionName).append(" ").append(songCollectionElement.getOrdinalNumber());
+        }
+        return text.toString();
     }
 }

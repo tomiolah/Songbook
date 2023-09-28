@@ -1,5 +1,7 @@
 package com.bence.songbook.models;
 
+import androidx.annotation.NonNull;
+
 import com.j256.ormlite.field.DatabaseField;
 
 public class SongCollectionElement extends BaseEntity {
@@ -10,6 +12,7 @@ public class SongCollectionElement extends BaseEntity {
     private String songUuid;
     @DatabaseField(foreign = true, index = true)
     private SongCollection songCollection;
+    private Song song;
 
     public int getOrdinalNumberInt() {
         try {
@@ -27,6 +30,7 @@ public class SongCollectionElement extends BaseEntity {
         this.ordinalNumber = ordinalNumber;
     }
 
+    @NonNull
     @Override
     public String toString() {
         return ordinalNumber;
@@ -46,5 +50,13 @@ public class SongCollectionElement extends BaseEntity {
 
     public void setSongCollection(SongCollection songCollection) {
         this.songCollection = songCollection;
+    }
+
+    public Song getSong() {
+        return song;
+    }
+
+    public void setSong(Song song) {
+        this.song = song;
     }
 }

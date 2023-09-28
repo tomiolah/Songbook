@@ -1,5 +1,6 @@
 package com.bence.songbook.ui.activity;
 
+import static com.bence.songbook.ui.activity.MainActivity.pairSongWithSongCollectionElement;
 import static com.bence.songbook.ui.activity.VersionsActivity.getSongFromMemory;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
 import static com.bence.songbook.utils.BaseURL.BASE_URL;
@@ -142,8 +143,7 @@ public class SongActivity extends AppCompatActivity {
                 if (hashMap.containsKey(songUuid)) {
                     Song song = hashMap.get(songUuid);
                     if (song != null) {
-                        song.setSongCollection(songCollection);
-                        song.setSongCollectionElement(songCollectionElement);
+                        pairSongWithSongCollectionElement(song, songCollection, songCollectionElement);
                         songs.add(song);
                     }
                     hashMap.remove(songUuid);
@@ -268,8 +268,8 @@ public class SongActivity extends AppCompatActivity {
             copiedSong.setId(song.getId());
             copiedSong.setTitle(song.getTitle());
             copiedSong.setVerses(song.getVerses());
-            copiedSong.setSongCollection(song.getSongCollection());
-            copiedSong.setSongCollectionElement(song.getSongCollectionElement());
+            copiedSong.setSongCollections(song.getSongCollections());
+            copiedSong.setSongCollectionElements(song.getSongCollectionElements());
             startActivityForResult(intent, 2);
         } else if (itemId == R.id.action_share) {
             Intent share = new Intent(android.content.Intent.ACTION_SEND);
