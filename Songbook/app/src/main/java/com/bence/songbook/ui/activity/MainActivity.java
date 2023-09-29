@@ -128,6 +128,7 @@ import java.util.regex.Pattern;
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
+    public static final String TAG = MainActivity.class.getSimpleName();
     public static final int SONG_DELETED = 10;
     public static final int SONG_REQUEST = 3;
     public static final int SONG_UNDO_DELETION = 11;
@@ -1238,12 +1239,20 @@ public class MainActivity extends AppCompatActivity
                 String finalCollectionName = collectionName;
                 String finalOrdinalNumber = ordinalNumber;
                 int finalOrdinalNumberInt = ordinalNumberInt;
+                sortSongCollectionElementsForSongs(ordinalNumber, collectionName, ordinalNumberInt, tempSongList);
+                if (Thread.interrupted()) {
+                    return;
+                }
                 Collections.sort(tempSongList, (l, r) -> {
                     List<SongCollectionElement> lSongCollectionElements = l.getSongCollectionElements();
                     List<SongCollectionElement> rSongCollectionElements = r.getSongCollectionElements();
                     return compareSongCollectionElementsFirstByOrdinalNumber(lSongCollectionElements, rSongCollectionElements, finalCollectionName, finalOrdinalNumber, finalOrdinalNumberInt);
                 });
-            } catch (IllegalArgumentException ignored) {
+                if (Thread.interrupted()) {
+                    return;
+                }
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage(), e);
             }
         }
         runOnUiThread(() -> {
@@ -1252,6 +1261,21 @@ public class MainActivity extends AppCompatActivity
             previouslyTitleSearchText = title;
             previouslyInSongSearchText = "";
         });
+    }
+
+    private void sortSongCollectionElementsForSongs(String ordinalNumber, String collectionName, int ordinalNumberInt, List<Song> tempSongList) {
+        Comparator<SongCollectionElement> sortBySongCollection = getSongCollectionElementComparator(collectionName, ordinalNumber, ordinalNumberInt);
+        for (Song song : tempSongList) {
+            List<SongCollectionElement> songCollectionElements = song.getSongCollectionElements();
+            if (songCollectionElements.size() > 1) {
+                List<SongCollectionElement> synchronizedList = Collections.synchronizedList(songCollectionElements);
+                Collections.sort(synchronizedList, sortBySongCollection);
+                song.setSongCollectionElements(synchronizedList);
+                if (Thread.interrupted()) {
+                    return;
+                }
+            }
+        }
     }
 
     private boolean containsInCollectionName(SongCollection songCollection, String collectionName, String name) {
@@ -1280,8 +1304,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private int compareSongCollectionElementByPartialMatch(SongCollectionElement songCollectionElement1, SongCollectionElement songCollectionElement2, String ordinalNumber) {
-        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumber().contains(ordinalNumber);
-        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumber().contains(ordinalNumber);
+        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumberLowerCase().contains(ordinalNumber);
+        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumberLowerCase().contains(ordinalNumber);
         if (ordinalNumberMatch1 == ordinalNumberMatch2) {
             if (ordinalNumberMatch1) {
                 return Integer.compare(songCollectionElement1.getOrdinalNumberInt(), songCollectionElement2.getOrdinalNumberInt());
@@ -1295,8 +1319,8 @@ public class MainActivity extends AppCompatActivity
     }
 
     private int compareSongCollectionElementByMatch(SongCollectionElement songCollectionElement1, SongCollectionElement songCollectionElement2, String ordinalNumber, int ordinalNumberInt) {
-        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumber().equals(ordinalNumber);
-        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumber().equals(ordinalNumber);
+        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumberLowerCase().equals(ordinalNumber);
+        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumberLowerCase().equals(ordinalNumber);
         if (ordinalNumberMatch1 == ordinalNumberMatch2) {
             if (ordinalNumberMatch1) {
                 return 0;
@@ -1332,7 +1356,12 @@ public class MainActivity extends AppCompatActivity
                 return -1;
             }
         }
-        Comparator<SongCollectionElement> sortBySongCollection = (songCollectionElement1, songCollectionElement2) -> {
+        return compareSongCollectionElementsFirstByOrdinalNumberEnd(lSongCollectionElements, rSongCollectionElements, collectionName, ordinalNumber, ordinalNumberInt, lSize, rSize);
+    }
+
+    @NonNull
+    private Comparator<SongCollectionElement> getSongCollectionElementComparator(String collectionName, String ordinalNumber, int ordinalNumberInt) {
+        return (songCollectionElement1, songCollectionElement2) -> {
             boolean containsInCollection1 = isContainsInCollectionName(collectionName, songCollectionElement1);
             boolean containsInCollection2 = isContainsInCollectionName(collectionName, songCollectionElement2);
             if (containsInCollection1 == containsInCollection2) {
@@ -1343,8 +1372,9 @@ public class MainActivity extends AppCompatActivity
                 return 1;
             }
         };
-        Collections.sort(lSongCollectionElements, sortBySongCollection);
-        Collections.sort(rSongCollectionElements, sortBySongCollection);
+    }
+
+    private int compareSongCollectionElementsFirstByOrdinalNumberEnd(List<SongCollectionElement> lSongCollectionElements, List<SongCollectionElement> rSongCollectionElements, String collectionName, String ordinalNumber, int ordinalNumberInt, int lSize, int rSize) {
         int minSize = min(lSize, rSize);
         for (int i = 0; i < minSize; ++i) {
             SongCollectionElement lSongCollectionElement = lSongCollectionElements.get(i);
@@ -1374,7 +1404,7 @@ public class MainActivity extends AppCompatActivity
         if (strippedTitle.contains(stripped)) {
             return true;
         }
-        List<SongCollectionElement> songCollectionElements = Collections.synchronizedList(song.getSongCollectionElements());
+        List<SongCollectionElement> songCollectionElements = song.getSongCollectionElements();
         for (SongCollectionElement songCollectionElement : songCollectionElements) {
             if (containsInSongCollectionElement(songCollectionElement, other, collectionName, ordinalNumber, ordinalNumberInt, strippedTitle)) {
                 return true;
@@ -1388,7 +1418,7 @@ public class MainActivity extends AppCompatActivity
         if (songCollection == null) {
             return false;
         }
-        String songOrdinalNumber = songCollectionElement.getOrdinalNumber().toLowerCase();
+        String songOrdinalNumber = songCollectionElement.getOrdinalNumberLowerCase();
         boolean equals = songOrdinalNumber.equals(ordinalNumber);
         boolean contains = songOrdinalNumber.contains(ordinalNumber) || ordinalNumberInt == songCollectionElement.getOrdinalNumberInt();
         if (collectionName.isEmpty()) {

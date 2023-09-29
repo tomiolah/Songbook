@@ -57,6 +57,7 @@ public class Song extends BaseEntity {
     private Boolean asDeleted;
     @DatabaseField
     private Boolean savedOnlyToDevice;
+    private Integer savedScore;
 
     public Song() {
     }
@@ -316,6 +317,9 @@ public class Song extends BaseEntity {
     }
 
     public Integer getScore() {
+        if (savedScore != null) {
+            return savedScore;
+        }
         int score = 0;
         score += getAccessedTimes() * 3;
         score += getViews();
@@ -335,6 +339,7 @@ public class Song extends BaseEntity {
         if (l < 2592000000L) {
             score += 4 * ((1 - (double) l / 2592000000L));
         }
+        savedScore = score;
         return score;
     }
 
