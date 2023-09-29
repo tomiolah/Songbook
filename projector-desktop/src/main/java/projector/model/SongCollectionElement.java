@@ -8,6 +8,9 @@ public class SongCollectionElement extends BaseEntity {
     @Expose
     @DatabaseField
     private String ordinalNumber;
+    private String ordinalNumberReplaced;
+    private String ordinalNumberLowerCase;
+    private Integer ordinalNumberInt;
     @Expose
     @DatabaseField
     private String songUuid;
@@ -17,7 +20,10 @@ public class SongCollectionElement extends BaseEntity {
 
     public int getOrdinalNumberInt() {
         try {
-            return Integer.parseInt(ordinalNumber.replaceAll("[^0-9]*", ""));
+            if (ordinalNumberInt == null) {
+                ordinalNumberInt = Integer.parseInt(ordinalNumber.replaceAll("[^0-9]*", ""));
+            }
+            return ordinalNumberInt;
         } catch (NumberFormatException e) {
             return Integer.MAX_VALUE;
         }
@@ -27,7 +33,10 @@ public class SongCollectionElement extends BaseEntity {
         if (ordinalNumber.equals("0")) {
             return ordinalNumber;
         }
-        return ordinalNumber.replaceAll("^0+", "");
+        if (ordinalNumberReplaced == null) {
+            ordinalNumberReplaced = ordinalNumber.replaceAll("^0+", "");
+        }
+        return ordinalNumberReplaced;
     }
 
     public void setOrdinalNumber(String ordinalNumber) {
@@ -36,6 +45,9 @@ public class SongCollectionElement extends BaseEntity {
         } else {
             this.ordinalNumber = ordinalNumber.replaceAll("^0+", "");
         }
+        this.ordinalNumberReplaced = null;
+        this.ordinalNumberLowerCase = null;
+        this.ordinalNumberInt = null;
     }
 
     @Override
@@ -65,5 +77,12 @@ public class SongCollectionElement extends BaseEntity {
 
     public Song getSong() {
         return song;
+    }
+
+    public String getOrdinalNumberLowerCase() {
+        if (ordinalNumberLowerCase == null) {
+            ordinalNumberLowerCase = getOrdinalNumber().toLowerCase();
+        }
+        return ordinalNumberLowerCase;
     }
 }

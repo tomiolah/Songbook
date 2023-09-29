@@ -108,6 +108,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -1806,10 +1807,10 @@ public class SongController {
                             String line = "";
                             Song song = songs.get(i);
                             for (SongCollectionElement songCollectionElement : song.getSongCollectionElements()) {
-                                if (songCollectionElement.getOrdinalNumber().contains(firstWord) && !(remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
+                                if (songCollectionElement.getOrdinalNumberLowerCase().contains(firstWord) && !(remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
                                     System.out.println("remainingText = " + remainingText);
                                 }
-                                if (songCollectionElement.getOrdinalNumber().contains(firstWord) && (remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
+                                if (songCollectionElement.getOrdinalNumberLowerCase().contains(firstWord) && (remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
                                     contains = true;
                                 }
                             }
@@ -1922,7 +1923,8 @@ public class SongController {
             text = text.trim();
             lastSearching = LastSearching.IN_TITLE;
             lastSearchText = text;
-            searchedSongListView.getItems().clear();
+            ObservableList<SearchedSong> searchedSongListViewItems = searchedSongListView.getItems();
+            searchedSongListViewItems.clear();
             String[] split = text.split(" ");
             String firstWord = split[0];
             String ordinalNumber = firstWord;
@@ -1956,7 +1958,7 @@ public class SongController {
                 boolean contains = false;
                 for (SongCollectionElement songCollectionElement : song.getSongCollectionElements()) {
                     boolean containsInCollectionName = isContainsInCollectionName(collectionName, songCollectionElement) || collectionName.isEmpty();
-                    String number = songCollectionElement.getOrdinalNumber();
+                    String number = songCollectionElement.getOrdinalNumberLowerCase();
                     boolean equals = number.equals(ordinalNumber) && !number.isEmpty();
                     boolean contains2 = number.contains(ordinalNumber) || ordinalNumberInt == songCollectionElement.getOrdinalNumberInt();
                     boolean b = remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText);
@@ -1970,14 +1972,18 @@ public class SongController {
                 }
                 if (contains || contains(song.getStrippedTitle(), text)) {
                     SearchedSong searchedSong = new SearchedSong(song);
-                    searchedSongListView.getItems().add(searchedSong);
+                    searchedSongListViewItems.add(searchedSong);
                 }
             }
             if (wasOrdinalNumber) {
                 String finalCollectionName = collectionName;
                 String finalOrdinalNumber = ordinalNumber;
                 int finalOrdinalNumberInt = ordinalNumberInt;
-                searchedSongListView.getItems().sort((l, r) -> {
+                sortSongCollectionElementsForSongs(ordinalNumber, collectionName, ordinalNumberInt, searchedSongListViewItems);
+                if (Thread.interrupted()) {
+                    return;
+                }
+                searchedSongListViewItems.sort((l, r) -> {
                     List<SongCollectionElement> lSongCollectionElements = l.getSong().getSongCollectionElements();
                     List<SongCollectionElement> rSongCollectionElements = r.getSong().getSongCollectionElements();
                     return compareSongCollectionElementsFirstByOrdinalNumber(lSongCollectionElements, rSongCollectionElements, finalCollectionName, finalOrdinalNumber, finalOrdinalNumberInt);
@@ -1985,10 +1991,26 @@ public class SongController {
             }
             selectIfJustOne();
             if (songRemoteListener != null) {
-                songRemoteListener.onSongListViewChanged(searchedSongListView.getItems());
+                songRemoteListener.onSongListViewChanged(searchedSongListViewItems);
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void sortSongCollectionElementsForSongs(String ordinalNumber, String collectionName, int ordinalNumberInt, ObservableList<SearchedSong> tempSongList) {
+        Comparator<SongCollectionElement> sortBySongCollection = getSongCollectionElementComparator(collectionName, ordinalNumber, ordinalNumberInt);
+        for (SearchedSong searchedSong : tempSongList) {
+            Song song = searchedSong.getSong();
+            List<SongCollectionElement> songCollectionElements = song.getSongCollectionElements();
+            if (songCollectionElements.size() > 1) {
+                List<SongCollectionElement> synchronizedList = Collections.synchronizedList(songCollectionElements);
+                synchronizedList.sort(sortBySongCollection);
+                song.setSongCollectionElements(synchronizedList);
+                if (Thread.interrupted()) {
+                    return;
+                }
+            }
         }
     }
 
@@ -2142,7 +2164,11 @@ public class SongController {
                 return -1;
             }
         }
-        Comparator<SongCollectionElement> sortBySongCollection = (songCollectionElement1, songCollectionElement2) -> {
+        return compareSongCollectionElementsFirstByOrdinalNumberEnd(lSongCollectionElements, rSongCollectionElements, collectionName, ordinalNumber, ordinalNumberInt, lSize, rSize);
+    }
+
+    private Comparator<SongCollectionElement> getSongCollectionElementComparator(String collectionName, String ordinalNumber, int ordinalNumberInt) {
+        return (songCollectionElement1, songCollectionElement2) -> {
             boolean containsInCollection1 = isContainsInCollectionName(collectionName, songCollectionElement1);
             boolean containsInCollection2 = isContainsInCollectionName(collectionName, songCollectionElement2);
             if (containsInCollection1 == containsInCollection2) {
@@ -2153,8 +2179,9 @@ public class SongController {
                 return 1;
             }
         };
-        lSongCollectionElements.sort(sortBySongCollection);
-        rSongCollectionElements.sort(sortBySongCollection);
+    }
+
+    private int compareSongCollectionElementsFirstByOrdinalNumberEnd(List<SongCollectionElement> lSongCollectionElements, List<SongCollectionElement> rSongCollectionElements, String collectionName, String ordinalNumber, int ordinalNumberInt, int lSize, int rSize) {
         int minSize = min(lSize, rSize);
         for (int i = 0; i < minSize; ++i) {
             SongCollectionElement lSongCollectionElement = lSongCollectionElements.get(i);
@@ -2180,8 +2207,8 @@ public class SongController {
     }
 
     private int compareSongCollectionElementByMatch(SongCollectionElement songCollectionElement1, SongCollectionElement songCollectionElement2, String ordinalNumber, int ordinalNumberInt) {
-        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumber().equals(ordinalNumber);
-        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumber().equals(ordinalNumber);
+        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumberLowerCase().equals(ordinalNumber);
+        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumberLowerCase().equals(ordinalNumber);
         if (ordinalNumberMatch1 == ordinalNumberMatch2) {
             if (ordinalNumberMatch1) {
                 return 0;
@@ -2199,8 +2226,8 @@ public class SongController {
     }
 
     private int compareSongCollectionElementByPartialMatch(SongCollectionElement songCollectionElement1, SongCollectionElement songCollectionElement2, String ordinalNumber) {
-        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumber().contains(ordinalNumber);
-        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumber().contains(ordinalNumber);
+        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumberLowerCase().contains(ordinalNumber);
+        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumberLowerCase().contains(ordinalNumber);
         if (ordinalNumberMatch1 == ordinalNumberMatch2) {
             if (ordinalNumberMatch1) {
                 return Integer.compare(songCollectionElement1.getOrdinalNumberInt(), songCollectionElement2.getOrdinalNumberInt());
