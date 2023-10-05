@@ -339,6 +339,11 @@ public class Song extends AbstractModel {
         this.reviewerErased = reviewerErased;
     }
 
+    @SuppressWarnings("unused") // it's used by queue.html
+    public String getBeforeId() {
+        return beforeId;
+    }
+
     public void setBeforeId(String beforeId) {
         this.beforeId = beforeId;
     }
@@ -392,7 +397,7 @@ public class Song extends AbstractModel {
         if (songVerseOrderListItems == null) {
             return true;
         }
-        return songVerseOrderListItems.size() == 0;
+        return songVerseOrderListItems.isEmpty();
     }
 
     private boolean verseOrderWasSaved() {

@@ -40,7 +40,7 @@ public class QueueResourceSeo {
                 songs.add(song);
             }
         }
-        if (songs.size() > 0) {
+        if (!songs.isEmpty()) {
             model.addAttribute("title", "List: " + songs.get(0).getTitle());
             StringBuilder description = new StringBuilder();
             for (int i = 1; i < songs.size(); ++i) {
