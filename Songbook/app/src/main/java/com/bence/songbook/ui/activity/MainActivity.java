@@ -242,7 +242,16 @@ public class MainActivity extends AppCompatActivity
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
         int queueIndex = sharedPreferences.getInt("queueIndex", -1);
         memory.setQueueIndex(queueIndex, this);
+        initializeQueueListView();
+        onCreate4();
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void initializeQueueListView() {
         queueListView = findViewById(R.id.queueList);
+        if (queueListView == null) {
+            return;
+        }
         queueListView.setOnTouchListener((v, event) -> {
             int action = event.getAction();
             switch (action) {
@@ -294,6 +303,9 @@ public class MainActivity extends AppCompatActivity
                 queueListView.refreshDrawableState();
             }
         });
+    }
+
+    private void onCreate4() {
         queueSongRepository = new QueueSongRepositoryImpl(this);
         final LinearLayout llBottomSheet = findViewById(R.id.bottom_sheet);
         bottomSheetBehavior = BottomSheetBehavior.from(llBottomSheet);

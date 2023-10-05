@@ -11,7 +11,7 @@ import com.bence.songbook.ui.activity.SongActivity;
 import static com.bence.songbook.ui.utils.StringUtils.stripAccents;
 
 public class MainSongFragment extends BaseSongFragment {
-    private Memory memory = Memory.getInstance();
+    private final Memory memory = Memory.getInstance();
 
     @Override
     protected void onSongVerseClick(int position) {
@@ -68,7 +68,7 @@ public class MainSongFragment extends BaseSongFragment {
                 tmp.append(c);
             }
         }
-        return s.toString();
+        return s.append(tmp).toString();
     }
 
     @Override
