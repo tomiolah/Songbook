@@ -73,6 +73,16 @@ public class Language extends BaseEntity {
         this.songs = songs;
     }
 
+    public int getSongsSize() {
+        if (songs == null) {
+            if (songForeignCollection == null) {
+                return 0;
+            }
+            return songForeignCollection.size();
+        }
+        return songs.size();
+    }
+
     @Override
     public String toString() {
         if (nativeName.equals(englishName)) {

@@ -3134,4 +3134,9 @@ public class SongController {
         }
         return null;
     }
+
+    public void onSignInUpdated(boolean signedIn) {
+        uploadButton.setManaged(signedIn);
+        uploadButton.setVisible(signedIn);
+    }
 }

@@ -61,6 +61,7 @@ public class Settings {
     private double mainWidth = 800;
     private boolean referenceChapterSorting = true;
     private boolean referenceVerseSorting = true;
+    @SuppressWarnings("deprecation")
     private Locale preferredLanguage = new Locale("en", "EN");
     private ResourceBundle resourceBundle;
     private double songHeightSliderValue = 250;
@@ -326,7 +327,7 @@ public class Settings {
             writeBooleanToFile(bw, forIncomingDisplayOnlySelected, "forIncomingDisplayOnlySelected");
             bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.warn("There is some error on settings save!", e);
         }
     }
 
@@ -477,7 +478,7 @@ public class Settings {
                     br.close();
                 }
             } catch (IOException e1) {
-                e1.printStackTrace();
+                LOG.warn("There is some error on settings load!", e1);
             }
         }
     }
@@ -608,6 +609,7 @@ public class Settings {
         return preferredLanguage;
     }
 
+    @SuppressWarnings("deprecation")
     public synchronized void setPreferredLanguage(String language) {
         switch (language) {
             case "hu" -> preferredLanguage = new Locale(language, "HU");
@@ -724,10 +726,10 @@ public class Settings {
     }
 
     public Language getSongSelectedLanguage() {
-        if (songSelectedLanguage == null || songSelectedLanguage.getSongs().size() == 0) {
+        if (songSelectedLanguage == null || songSelectedLanguage.getSongs().isEmpty()) {
             List<Language> languages = ServiceManager.getLanguageService().findAll();
             languages.sort((o1, o2) -> Integer.compare(o2.getSongs().size(), o1.getSongs().size()));
-            if (languages.size() > 0) {
+            if (!languages.isEmpty()) {
                 songSelectedLanguage = languages.get(0);
             }
         }

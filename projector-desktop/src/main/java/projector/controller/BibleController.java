@@ -1318,6 +1318,7 @@ public class BibleController {
         lazyInitialize();
         BibleService bibleService = ServiceManager.getBibleService();
         List<Bible> bibles = bibleService.findAll();
+        bibleService.sort(bibles);
         bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
         if (bibles.size() == 0) {
             bibleListView.getItems().clear();

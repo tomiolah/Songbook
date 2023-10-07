@@ -153,6 +153,7 @@ public class NewSongController {
         });
         LanguageService languageService = ServiceManager.getLanguageService();
         languages = languageService.findAll();
+        languageService.sortLanguages(languages);
         languageComboBoxForNewSong.getItems().addAll(languages);
         textAreas.getChildren().clear();
         verseControllers.clear();
