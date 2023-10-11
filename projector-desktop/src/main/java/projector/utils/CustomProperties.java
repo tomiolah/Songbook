@@ -18,11 +18,6 @@ public class CustomProperties {
         return instance;
     }
 
-    private static boolean isMacOs() {
-        String osName = System.getProperty("os.name");
-        return osName.startsWith("Mac OS X") || osName.startsWith("Mac OS");
-    }
-
     private Properties getProperties() {
         Properties properties = new Properties();
         try {
@@ -43,23 +38,6 @@ public class CustomProperties {
             }
         }
         return "aeiou";
-    }
-
-    public String getWorkDirectory() {
-        Properties properties = getProperties();
-        if (properties != null) {
-            String workDirectoryName = (String) properties.get("workDirectoryName");
-            if (workDirectoryName != null) {
-                String workDirectoryPath;
-                if (isMacOs()) {
-                    workDirectoryPath = System.getProperty("user.home") + "/Library/Application Support/";
-                } else {
-                    workDirectoryPath = "";
-                }
-                return workDirectoryPath + workDirectoryName + "/";
-            }
-        }
-        return "./";
     }
 
 }

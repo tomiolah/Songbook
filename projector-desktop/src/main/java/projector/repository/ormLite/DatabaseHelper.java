@@ -26,7 +26,6 @@ import projector.model.VerseIndex;
 import projector.repository.RepositoryException;
 import projector.repository.dao.CustomDao;
 import projector.utils.AppProperties;
-import projector.utils.CustomProperties;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -64,10 +63,10 @@ public class DatabaseHelper {
 
     private DatabaseHelper() {
         try {
-            String dataFolder = AppProperties.getInstance().getDatabaseFolder();
-            String DATABASE_URL = "jdbc:h2:./" + dataFolder + "/projector";
-            String workDirectory = CustomProperties.getInstance().getWorkDirectory();
-            String DATABASE_URL = "jdbc:h2:" + workDirectory + "data/projector";
+            AppProperties appProperties = AppProperties.getInstance();
+            String dataFolder = appProperties.getDatabaseFolder();
+            String workDirectory = appProperties.getWorkDirectory();
+            String DATABASE_URL = "jdbc:h2:" + workDirectory + dataFolder + "/projector";
             connectionSource = new JdbcConnectionSource(DATABASE_URL);
             int oldVersion = getOldVersion();
             if (oldVersion < DATABASE_VERSION) {
