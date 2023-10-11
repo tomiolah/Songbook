@@ -26,6 +26,7 @@ import projector.model.VerseIndex;
 import projector.repository.RepositoryException;
 import projector.repository.dao.CustomDao;
 import projector.utils.AppProperties;
+import projector.utils.CustomProperties;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -65,6 +66,8 @@ public class DatabaseHelper {
         try {
             String dataFolder = AppProperties.getInstance().getDatabaseFolder();
             String DATABASE_URL = "jdbc:h2:./" + dataFolder + "/projector";
+            String workDirectory = CustomProperties.getInstance().getWorkDirectory();
+            String DATABASE_URL = "jdbc:h2:" + workDirectory + "data/projector";
             connectionSource = new JdbcConnectionSource(DATABASE_URL);
             int oldVersion = getOldVersion();
             if (oldVersion < DATABASE_VERSION) {
@@ -132,7 +135,7 @@ public class DatabaseHelper {
                     try {
                         songDao.executeRaw("ALTER TABLE `song` MODIFY verseOrder VARCHAR(300)");
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        LOG.error(e.getMessage(), e);
                     }
                 }
                 if (oldVersion <= 12) {
@@ -203,7 +206,7 @@ public class DatabaseHelper {
              BufferedWriter br = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
             br.write(DATABASE_VERSION + "\n");
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
     }
 
@@ -214,7 +217,7 @@ public class DatabaseHelper {
         } catch (FileNotFoundException ignored) {
             return 0;
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
         return 0;
     }
