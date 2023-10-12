@@ -53,7 +53,21 @@ public class TextEncoder {
     }
 
     private static SecretKey getSecretKey() {
-        return generateKey(SECRET_KEY + getMacAddress());
+        return generateKey(SECRET_KEY + getUniqueKey());
+    }
+
+    private static String getUniqueKey() {
+        if (!AppProperties.getInstance().isMacOs()) {
+            return getMacAddress();
+        } else {
+            return getUniqueIdentifierForMac();
+        }
+    }
+
+    private static String getUniqueIdentifierForMac() {
+        String computerName = System.getProperty("user.name");
+        String osVersion = System.getProperty("os.version");
+        return computerName + osVersion;
     }
 
     private static String getMacAddress() {
@@ -73,6 +87,9 @@ public class TextEncoder {
     }
 
     public static String decode(String encodedText) {
+        if (encodedText == null) {
+            return null;
+        }
         try {
             IvParameterSpec iv = new IvParameterSpec(INIT_VECTOR.getBytes(StandardCharsets.UTF_8));
             Cipher cipher = Cipher.getInstance(AES_CBC_PKCS_5_PADDING);

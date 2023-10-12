@@ -40,6 +40,7 @@ import projector.controller.song.SongController;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
 import projector.controller.util.WindowController;
+import projector.utils.AppProperties;
 
 import java.io.IOException;
 import java.net.URL;
@@ -83,7 +84,10 @@ public class MainDesktop extends Application {
         try {
             this.primaryStage = primaryStage;
             ApplicationUtil.getInstance().setPrimaryStage(primaryStage);
-            if (ApplicationVersion.getInstance().getVersion() < 25 && ApplicationVersion.getInstance().isNotTesting()) {
+            if (ApplicationVersion.getInstance().getVersion() < 25 &&
+                    ApplicationVersion.getInstance().isNotTesting() &&
+                    !AppProperties.getInstance().isMacOs()
+            ) {
                 openFirstSetupView(primaryStage);
             } else {
                 openLauncherView(primaryStage);
