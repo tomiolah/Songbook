@@ -31,6 +31,7 @@ import projector.application.ApplicationVersion;
 import projector.application.ProjectionScreenSettings;
 import projector.application.Settings;
 import projector.application.Updater;
+import projector.config.Log4j2Config;
 import projector.controller.BibleController;
 import projector.controller.FirstSetupController;
 import projector.controller.MyController;
@@ -69,6 +70,7 @@ public class MainDesktop extends Application {
     private WindowController windowController;
 
     public static void main(String[] args) {
+        Log4j2Config.getInstance().initializeLog4j2OnMac();
         launch(args);
     }
 

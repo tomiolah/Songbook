@@ -11,6 +11,7 @@ import projector.controller.SettingsController;
 import projector.controller.song.util.OrderMethod;
 import projector.model.Language;
 import projector.service.ServiceManager;
+import projector.utils.AppProperties;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -104,6 +105,10 @@ public class Settings {
         if (instance != null) {
             LOG.error("Settings should be null");
         }
+    }
+
+    public static String getSettingFilePath() {
+        return AppProperties.getInstance().getWorkDirectory() + "settings.ini";
     }
 
     public synchronized int getMaxFont() {
@@ -212,7 +217,7 @@ public class Settings {
 
     public synchronized void save() {
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream("settings.ini");
+            FileOutputStream fileOutputStream = new FileOutputStream(getSettingFilePath());
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
             bw.write(0 + System.lineSeparator());
             bw.write("maxFont" + System.lineSeparator());
@@ -346,7 +351,7 @@ public class Settings {
     private synchronized void load() {
         BufferedReader br = null;
         try {
-            FileInputStream fileInputStream = new FileInputStream("settings.ini");
+            FileInputStream fileInputStream = new FileInputStream(getSettingFilePath());
             br = new BufferedReader(new InputStreamReader(fileInputStream, StandardCharsets.UTF_8));
             int bibleNumber = Integer.parseInt(br.readLine());
             for (int i = 0; i < bibleNumber; ++i) {

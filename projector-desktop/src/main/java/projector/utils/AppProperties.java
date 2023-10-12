@@ -23,17 +23,21 @@ public class AppProperties {
         return instance;
     }
 
-    private static boolean isMacOs() {
+    public boolean isMacOs() {
         String osName = System.getProperty("os.name");
         return osName.startsWith("Mac OS X") || osName.startsWith("Mac OS");
     }
 
-    public String getDatabaseFolder() {
+    private String getDatabaseFolder_() {
         Object database = properties.get("database");
         if (database == null || ((String) database).isEmpty()) {
             return "data";
         }
         return (String) database;
+    }
+
+    public String getDatabaseFolder() {
+        return getWorkDirectory() + getDatabaseFolder_();
     }
 
     public String getWorkDirectory() {

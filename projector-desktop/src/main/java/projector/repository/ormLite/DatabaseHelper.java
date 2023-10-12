@@ -60,13 +60,13 @@ public class DatabaseHelper {
     private Dao<CountdownTime, Long> countdownTimeDao;
     private CustomDao<LoggedInUser, Long> loggedInUserDao;
     private CustomDao<FavouriteSong, Long> favouriteSongDao;
+    private final String dataBaseVersionPath = getDataBaseVersionPath();
 
     private DatabaseHelper() {
         try {
             AppProperties appProperties = AppProperties.getInstance();
             String dataFolder = appProperties.getDatabaseFolder();
-            String workDirectory = appProperties.getWorkDirectory();
-            String DATABASE_URL = "jdbc:h2:" + workDirectory + dataFolder + "/projector";
+            String DATABASE_URL = "jdbc:h2:" + dataFolder + "/projector";
             connectionSource = new JdbcConnectionSource(DATABASE_URL);
             int oldVersion = getOldVersion();
             if (oldVersion < DATABASE_VERSION) {
@@ -192,6 +192,10 @@ public class DatabaseHelper {
         return instance;
     }
 
+    public String getDataBaseVersionPath() {
+        return AppProperties.getInstance().getDatabaseFolder() + "/database.version";
+    }
+
     private void executeSafe(CustomDao<Language, Long> dao, @SuppressWarnings("SameParameterValue") String statement) {
         try {
             dao.executeRaw(statement);
@@ -201,7 +205,7 @@ public class DatabaseHelper {
     }
 
     private void saveNewVersion() {
-        try (FileOutputStream stream = new FileOutputStream("data/database.version");
+        try (FileOutputStream stream = new FileOutputStream(dataBaseVersionPath);
              BufferedWriter br = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
             br.write(DATABASE_VERSION + "\n");
         } catch (IOException e) {
@@ -210,7 +214,7 @@ public class DatabaseHelper {
     }
 
     private int getOldVersion() {
-        try (FileInputStream stream = new FileInputStream("data/database.version");
+        try (FileInputStream stream = new FileInputStream(dataBaseVersionPath);
              BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             return Integer.parseInt(br.readLine());
         } catch (FileNotFoundException ignored) {

@@ -2,12 +2,14 @@ package projector.application;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.utils.AppProperties;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -24,8 +26,8 @@ public class SongVersTimes {
     private SongVersTimes() {
         FileInputStream fstream;
         try {
-            fstream = new FileInputStream("songVersTimes");
-            BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));
+            fstream = new FileInputStream(getSongVersTimesFilePath());
+            BufferedReader br = new BufferedReader(new InputStreamReader(fstream, StandardCharsets.UTF_8));
             br.mark(4);
             if ('\ufeff' != br.read()) {
                 br.reset(); // not the BOM marker
@@ -59,6 +61,10 @@ public class SongVersTimes {
             SongVersTime tmp = new SongVersTime("", 0);
             timesList.add(tmp);
         }
+    }
+
+    public static String getSongVersTimesFilePath() {
+        return AppProperties.getInstance().getWorkDirectory() + "songVersTimes";
     }
 
     public synchronized static SongVersTimes getInstance() {

@@ -7,6 +7,7 @@ import javafx.scene.text.Text;
 import javafx.util.Callback;
 import projector.application.ProjectionType;
 import projector.controller.song.SongController;
+import projector.utils.AppProperties;
 
 import java.io.BufferedWriter;
 import java.io.FileOutputStream;
@@ -43,6 +44,10 @@ public class RecentController {
             return;
         }
         bw.write(s + System.lineSeparator());
+    }
+
+    public static String getRecentFilePath() {
+        return AppProperties.getInstance().getWorkDirectory() + "recent.txt";
     }
 
     public void initialize() {
@@ -176,7 +181,7 @@ public class RecentController {
 
     public void close() {
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream("recent.txt", true);
+            FileOutputStream fileOutputStream = new FileOutputStream(getRecentFilePath(), true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
             Date date = new Date();
             if (bookI.size() > 0 || songTitles.size() > 0) {

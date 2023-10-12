@@ -121,6 +121,7 @@ import java.util.TreeSet;
 
 import static com.bence.projector.common.converter.OpenLPXmlConverter.getXmlSongs;
 import static java.lang.Math.min;
+import static projector.application.SongVersTimes.getSongVersTimesFilePath;
 import static projector.controller.MessageDialogController.confirmDeletion;
 import static projector.utils.ColorUtil.getCollectionNameColor;
 import static projector.utils.ColorUtil.getSongTitleColor;
@@ -2729,7 +2730,7 @@ public class SongController {
             return;
         }
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream("songVersTimes", true);
+            FileOutputStream fileOutputStream = new FileOutputStream(getSongVersTimesFilePath(), true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
             Date date = new Date();
             boolean wasSong = false;
