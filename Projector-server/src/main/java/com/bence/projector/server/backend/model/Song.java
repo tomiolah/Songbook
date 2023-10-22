@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.bence.projector.server.utils.MemoryUtil.getEmptyList;
+
 @Entity
 @Table(
         indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
@@ -57,6 +59,8 @@ public class Song extends AbstractModel {
     private List<Suggestion> suggestions;
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<SongListElement> songListElements;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
+    private List<FavouriteSong> favouriteSongs;
 
     public Song() {
     }
@@ -431,5 +435,12 @@ public class Song extends AbstractModel {
             s.append(verse.getText()).append("\n\n");
         }
         return s.toString();
+    }
+
+    public List<FavouriteSong> getFavouriteSongs() {
+        if (favouriteSongs == null) {
+            return favouriteSongs = getEmptyList();
+        }
+        return favouriteSongs;
     }
 }

@@ -15,13 +15,6 @@ public class BookServiceImpl extends BaseServiceImpl<Book> implements BookServic
     private ChapterService chapterService;
 
     @Override
-    public void deleteAll(List<Book> books) {
-        for (Book book : books) {
-            delete(book.getId());
-        }
-    }
-
-    @Override
     public Book save(Book book) {
         Book savedBook = super.save(book);
         chapterService.save(book.getChapters());

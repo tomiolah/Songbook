@@ -34,6 +34,13 @@ public abstract class BaseServiceImpl<M extends BaseEntity> implements BaseServi
     }
 
     @Override
+    public void deleteAll(List<M> models) {
+        for (M book : models) {
+            delete(book.getId());
+        }
+    }
+
+    @Override
     public M save(final M model) {
         return repository.save(model);
     }
