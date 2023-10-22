@@ -7,7 +7,7 @@ import { SongLink } from "../../models/song-link";
 import { SongLinkDataService } from "../../services/song-link-data.service";
 import { Title } from "@angular/platform-browser";
 import { MatDialog } from "@angular/material";
-import { checkAuthenticationError, openAuthenticateDialog } from '../../util/error-util';
+import { ErrorUtil, checkAuthenticationError, openAuthenticateDialog } from '../../util/error-util';
 
 @Component({
   selector: 'app-version-link',
@@ -20,6 +20,7 @@ export class VersionLinkComponent implements OnInit, OnDestroy {
   private sub: Subscription;
   song1: Song;
   song2: Song;
+  isNull = false;
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -39,6 +40,7 @@ export class VersionLinkComponent implements OnInit, OnDestroy {
       const id = params['songLinkId'];
       if (id) {
         const role = this.auth.getUser().getRolePath();
+        this.isNull = false;
         this.songLinkService.getSongLink(role, id).subscribe(
           (songLink) => {
             this.songLink = songLink;
@@ -54,6 +56,8 @@ export class VersionLinkComponent implements OnInit, OnDestroy {
             });
           },
           (err) => {
+            this.isNull = ErrorUtil.isPossibleNull(err);
+            this.songLink = undefined;
             checkAuthenticationError(this.ngOnInit, this, err, this.dialog);
           });
       }
