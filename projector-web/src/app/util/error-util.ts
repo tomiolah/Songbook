@@ -21,7 +21,11 @@ export class ErrorUtil {
   }
 
   public static isPossibleNull(err): boolean {
-    return err.message.includes('Unexpected end of JSON input')
+    try {
+      return err.message.includes('Unexpected end of JSON input')
+    } catch(error) {
+      return false;
+    }
   }
 
 }
