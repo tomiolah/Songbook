@@ -171,6 +171,12 @@ public class YoutubeActivity extends AppCompatActivity {
 
     private void onCreate3() {
         WebView webView = findViewById(R.id.webView);
+        if (webView == null) {
+            return;
+        }
+        if (song == null) {
+            return;
+        }
         setYouTubeIFrameToWebView(webView, song.getYoutubeUrl());
     }
 
