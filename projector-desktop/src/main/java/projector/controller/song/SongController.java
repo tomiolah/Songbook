@@ -342,8 +342,8 @@ public class SongController {
 
     private static Comparator<Song> getSongComparatorByRelevanceOrder() {
         return (lhs, rhs) -> {
-            Integer scoreL = lhs.getScore();
-            Integer scoreR = rhs.getScore();
+            Long scoreL = lhs.getScore();
+            Long scoreR = rhs.getScore();
             if (scoreL.equals(scoreR)) {
                 return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
             }
@@ -648,193 +648,205 @@ public class SongController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            songSelectedItems = songListView.getSelectionModel().getSelectedItems();
-            songListView.getSelectionModel().getSelectedIndices().addListener((ListChangeListener<Integer>) c -> {
-                try {
-                    ObservableList<Integer> ob = songListView.getSelectionModel().getSelectedIndices();
-                    synchronizedSelectVerseOrderListView(ob);
-                    if (ob.size() == 1) {
-                        int selectedIndex = ob.get(0);
-                        if (selectedIndex < 0) {
-                            return;
-                        }
-                        if ((settings.isShareOnNetwork() || settings.isAllowRemote()) && projectionTextChangeListeners != null && !projectionScreenController.isLock()) {
-                            try {
-                                String secondText = getSecondText(selectedIndex - 1);
-                                for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
-                                    projectionTextChangeListener.onSetText(secondText, ProjectionType.SONG, null);
-                                }
-                            } catch (Exception e) {
-                                LOG.error(e.getMessage(), e);
-                            }
-                        }
-                        if (timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
-                            double x = System.currentTimeMillis() - timeStart;
-                            x /= 1000;
-                            activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
-                        }
-                        MyTextFlow myTextFlow = songListViewItems.get(selectedIndex);
-                        String text = myTextFlow.getRawText();
-                        text = getWithSecondText(myTextFlow, text);
-                        projectionScreenController.setText2(text, ProjectionType.SONG);
-                        previousSelectedVerseIndex = selectedIndex;
-                        if (selectedIndex + 1 == songListViewItems.size()) {
-                            projectionScreenController.progressLineSetVisible(false);
-                            projectionScreenController.setLineSize(0);
-                        } else {
-                            projectionScreenController.setLineSize((double) selectedIndex / (songListViewItems.size() - 2));
-                        }
-                    } else if (ob.size() > 1) {
-                        StringBuilder tmpTextBuffer = new StringBuilder();
-                        tmpTextBuffer.append(songListViewItems.get(ob.get(0)).getRawText());
-                        int lastIndex = 0;
-                        for (int i = 1; i < ob.size(); ++i) {
-                            Integer index = ob.get(i);
-                            if (index != songListViewItems.size() - 1) {
-                                tmpTextBuffer.append("\n").append(songListViewItems.get(index).getRawText());
-                                if (lastIndex < index) {
-                                    lastIndex = index;
-                                }
-                            }
-                        }
-                        projectionScreenController.setLineSize((double) lastIndex / (songListViewItems.size() - 2));
-                        projectionScreenController.setText2(tmpTextBuffer.toString(), ProjectionType.SONG);
-                    }
-                    if (recentController != null && !recentController.getLastItemText().equals(activeSongVerseTime.getSongTitle()) && ob.size() > 0) {
-                        recentController.addRecentSong(activeSongVerseTime.getSongTitle(), ProjectionType.SONG);
-                    }
-                    timeStart = System.currentTimeMillis();
-                    if (previousLineThread == null) {
-                        Thread thread = new Thread() {
-
-                            @Override
-                            synchronized public void run() {
-                                try {
-                                    double x;
-                                    //noinspection InfiniteLoopStatement
-                                    do {
-                                        if (!isBlank && timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
-                                            x = System.currentTimeMillis() - timeStart;
-                                            x /= 1000;
-                                            double sum = 0.0;
-                                            for (int i : songListView.getSelectionModel().getSelectedIndices()) {
-                                                if (times.length > i && i >= 0) {
-                                                    sum += times[i];
-                                                }
-                                            }
-                                            double z = 1.0 - minOpacity;
-                                            final double v = z * x / sum;
-                                            for (MyTextFlow songListViewItem : songSelectedItems) {
-                                                double opacity = minOpacity + v;
-                                                if (opacity > 1) {
-                                                    opacity = 1;
-                                                }
-                                                songListViewItem.setOpacity(opacity);
-                                            }
-                                        }
-                                        wait(39);
-                                    } while (true);
-                                } catch (InterruptedException ignored) {
-                                } catch (Exception e) {
-                                    LOG.error(e.getMessage(), e);
-                                    try {
-                                        //noinspection CallToThreadRun
-                                        run();
-                                    } catch (Exception e2) {
-                                        LOG.error(e2.getMessage(), e2);
-                                    }
-                                }
-                            }
-                        };
-                        thread.start();
-                        previousLineThread = thread;
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            songListView.setOnMouseClicked(event -> {
-                try {
-                    if (event.getClickCount() == 2) {
-                        slideReSelect();
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            songCollectionListView.orientationProperty().set(Orientation.HORIZONTAL);
-            songCollectionListView.setCellFactory(param -> new ListCell<>() {
-                @Override
-                protected void updateItem(SongCollection item, boolean empty) {
-                    try {
-                        super.updateItem(item, empty);
-                        if (empty || item == null || item.getName() == null) {
-                            setText(null);
-                        } else {
-                            setText(item.getName());
-                        }
-                    } catch (Exception e) {
-                        LOG.error(e.getMessage(), e);
-                    }
-                }
-            });
-            songCollectionListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                try {
-                    if (newValue != null) {
-                        selectedSongCollection = newValue;
-                        if (pauseSortOrFilter) {
-                            return;
-                        }
-                        sortSongs(selectedSongCollection.getSongs());
-                        switch (lastSearching) {
-                            case IN_SONG -> search(lastSearchText);
-                            case IN_TITLE -> titleSearch(lastSearchText);
-                            case IN_TITLE_START_WITH -> titleSearchStartWith(lastSearchText);
-                        }
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            Settings settings = Settings.getInstance();
-            SplitPane.setResizableWithParent(leftBorderPane, false);
-            horizontalSplitPane.getDividers().get(0).setPosition(settings.getSongTabHorizontalSplitPaneDividerPosition());
-            verticalSplitPane.setDividerPositions(settings.getSongTabVerticalSplitPaneDividerPosition());
-            songHeightSlider.setValue(settings.getSongHeightSliderValue());
-            songHeightSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-                try {
-                    final int size = newValue.intValue();
-                    resizeSongList(size);
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            aspectRatioCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                try {
-                    final int size = (int) songHeightSlider.getValue();
-                    resizeSongList(size);
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            initializeNextButton();
-            initializeProgressLineButton();
-            initializeDownloadButton();
-            initializeUploadButton();
-            initializeVerseTextField();
-            initializeSortComboBox();
-            initializeLanguageComboBox();
-            exportButton.setOnAction(event -> exportButtonOnAction());
-            importButton.setOnAction(event -> importButtonOnAction());
-            initializeShowVersionsButton();
-            initializeDragListeners();
-            initializeSongs();
-            initializeVerseOrderList();
-            hideOpenLPImportButton();
-            initializeStarButton();
+            songListViewInitialization(songListViewItems);
+            initializationEnd();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void songListViewInitialization(ObservableList<MyTextFlow> songListViewItems) {
+        songSelectedItems = songListView.getSelectionModel().getSelectedItems();
+        songListView.getSelectionModel().getSelectedIndices().addListener((ListChangeListener<Integer>) c -> {
+            try {
+                ObservableList<Integer> ob = songListView.getSelectionModel().getSelectedIndices();
+                synchronizedSelectVerseOrderListView(ob);
+                if (ob.size() == 1) {
+                    int selectedIndex = ob.get(0);
+                    if (selectedIndex < 0) {
+                        return;
+                    }
+                    if ((settings.isShareOnNetwork() || settings.isAllowRemote()) && projectionTextChangeListeners != null && !projectionScreenController.isLock()) {
+                        try {
+                            String secondText = getSecondText(selectedIndex - 1);
+                            for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
+                                projectionTextChangeListener.onSetText(secondText, ProjectionType.SONG, null);
+                            }
+                        } catch (Exception e) {
+                            LOG.error(e.getMessage(), e);
+                        }
+                    }
+                    if (timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
+                        double x = System.currentTimeMillis() - timeStart;
+                        x /= 1000;
+                        activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
+                    }
+                    MyTextFlow myTextFlow = songListViewItems.get(selectedIndex);
+                    String text = myTextFlow.getRawText();
+                    text = getWithSecondText(myTextFlow, text);
+                    projectionScreenController.setText2(text, ProjectionType.SONG);
+                    previousSelectedVerseIndex = selectedIndex;
+                    if (selectedIndex + 1 == songListViewItems.size()) {
+                        projectionScreenController.progressLineSetVisible(false);
+                        projectionScreenController.setLineSize(0);
+                    } else {
+                        projectionScreenController.setLineSize((double) selectedIndex / (songListViewItems.size() - 2));
+                    }
+                } else if (ob.size() > 1) {
+                    StringBuilder tmpTextBuffer = new StringBuilder();
+                    tmpTextBuffer.append(songListViewItems.get(ob.get(0)).getRawText());
+                    int lastIndex = 0;
+                    for (int i = 1; i < ob.size(); ++i) {
+                        Integer index = ob.get(i);
+                        if (index != songListViewItems.size() - 1) {
+                            tmpTextBuffer.append("\n").append(songListViewItems.get(index).getRawText());
+                            if (lastIndex < index) {
+                                lastIndex = index;
+                            }
+                        }
+                    }
+                    projectionScreenController.setLineSize((double) lastIndex / (songListViewItems.size() - 2));
+                    projectionScreenController.setText2(tmpTextBuffer.toString(), ProjectionType.SONG);
+                }
+                if (recentController != null && !recentController.getLastItemText().equals(activeSongVerseTime.getSongTitle()) && ob.size() > 0) {
+                    recentController.addRecentSong(activeSongVerseTime.getSongTitle(), ProjectionType.SONG);
+                }
+                opacityForSongVerse();
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+    }
+
+    private void opacityForSongVerse() {
+        timeStart = System.currentTimeMillis();
+        if (previousLineThread == null) {
+            Thread thread = new Thread() {
+
+                @Override
+                synchronized public void run() {
+                    try {
+                        double x;
+                        //noinspection InfiniteLoopStatement
+                        do {
+                            if (!isBlank && timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
+                                x = System.currentTimeMillis() - timeStart;
+                                x /= 1000;
+                                double sum = 0.0;
+                                for (int i : songListView.getSelectionModel().getSelectedIndices()) {
+                                    if (times.length > i && i >= 0) {
+                                        sum += times[i];
+                                    }
+                                }
+                                double z = 1.0 - minOpacity;
+                                final double v = z * x / sum;
+                                for (MyTextFlow songListViewItem : songSelectedItems) {
+                                    double opacity = minOpacity + v;
+                                    if (opacity > 1) {
+                                        opacity = 1;
+                                    }
+                                    songListViewItem.setOpacity(opacity);
+                                }
+                            }
+                            wait(39);
+                        } while (true);
+                    } catch (InterruptedException ignored) {
+                    } catch (Exception e) {
+                        LOG.error(e.getMessage(), e);
+                        try {
+                            //noinspection CallToThreadRun
+                            run();
+                        } catch (Exception e2) {
+                            LOG.error(e2.getMessage(), e2);
+                        }
+                    }
+                }
+            };
+            thread.start();
+            previousLineThread = thread;
+        }
+    }
+
+    private void initializationEnd() {
+        songListView.setOnMouseClicked(event -> {
+            try {
+                if (event.getClickCount() == 2) {
+                    slideReSelect();
+                }
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        songCollectionListView.orientationProperty().set(Orientation.HORIZONTAL);
+        songCollectionListView.setCellFactory(param -> new ListCell<>() {
+            @Override
+            protected void updateItem(SongCollection item, boolean empty) {
+                try {
+                    super.updateItem(item, empty);
+                    if (empty || item == null || item.getName() == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getName());
+                    }
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
+            }
+        });
+        songCollectionListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            try {
+                if (newValue != null) {
+                    selectedSongCollection = newValue;
+                    if (pauseSortOrFilter) {
+                        return;
+                    }
+                    sortSongs(selectedSongCollection.getSongs());
+                    switch (lastSearching) {
+                        case IN_SONG -> search(lastSearchText);
+                        case IN_TITLE -> titleSearch(lastSearchText);
+                        case IN_TITLE_START_WITH -> titleSearchStartWith(lastSearchText);
+                    }
+                }
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        Settings settings = Settings.getInstance();
+        SplitPane.setResizableWithParent(leftBorderPane, false);
+        horizontalSplitPane.getDividers().get(0).setPosition(settings.getSongTabHorizontalSplitPaneDividerPosition());
+        verticalSplitPane.setDividerPositions(settings.getSongTabVerticalSplitPaneDividerPosition());
+        songHeightSlider.setValue(settings.getSongHeightSliderValue());
+        songHeightSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            try {
+                final int size = newValue.intValue();
+                resizeSongList(size);
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        aspectRatioCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            try {
+                final int size = (int) songHeightSlider.getValue();
+                resizeSongList(size);
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        initializeNextButton();
+        initializeProgressLineButton();
+        initializeDownloadButton();
+        initializeUploadButton();
+        initializeVerseTextField();
+        initializeSortComboBox();
+        initializeLanguageComboBox();
+        exportButton.setOnAction(event -> exportButtonOnAction());
+        importButton.setOnAction(event -> importButtonOnAction());
+        initializeShowVersionsButton();
+        initializeDragListeners();
+        initializeSongs();
+        initializeVerseOrderList();
+        hideOpenLPImportButton();
+        initializeStarButton();
     }
 
     private void checkForFavouriteInVersionGroup(List<Song> versionGroupSongs, Song selectedSong) {
@@ -1619,7 +1631,7 @@ public class SongController {
             try (FileOutputStream stream = new FileOutputStream("data/songs.version"); BufferedWriter br = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
                 br.write("1\n");
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         }
     }
@@ -1639,7 +1651,7 @@ public class SongController {
             }
             return 0;
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
         return 0;
     }

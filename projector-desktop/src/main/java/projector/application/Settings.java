@@ -62,7 +62,6 @@ public class Settings {
     private double mainWidth = 800;
     private boolean referenceChapterSorting = true;
     private boolean referenceVerseSorting = true;
-    @SuppressWarnings("deprecation")
     private Locale preferredLanguage = new Locale("en", "EN");
     private ResourceBundle resourceBundle;
     private double songHeightSliderValue = 250;
@@ -614,7 +613,6 @@ public class Settings {
         return preferredLanguage;
     }
 
-    @SuppressWarnings("deprecation")
     public synchronized void setPreferredLanguage(String language) {
         switch (language) {
             case "hu" -> preferredLanguage = new Locale(language, "HU");

@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
 
 public class BibleVerseRepositoryImpl extends AbstractBaseRepository<BibleVerse> implements BibleVerseRepository {
     private static final Logger LOG = LoggerFactory.getLogger(BibleVerseRepositoryImpl.class);
-    private VerseIndexRepositoryImpl verseIndexRepository;
+    private final VerseIndexRepositoryImpl verseIndexRepository;
 
     BibleVerseRepositoryImpl() throws SQLException {
         super(BibleVerse.class, DatabaseHelper.getInstance().getBibleVerseDao());

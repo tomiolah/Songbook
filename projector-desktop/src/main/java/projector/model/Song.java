@@ -66,7 +66,7 @@ public class Song extends BaseEntity {
     @DatabaseField
     private Boolean downloadedSeparately;
     private transient FavouriteSong favourite;
-    private Integer savedScore;
+    private Long savedScore;
 
     public Song() {
     }
@@ -379,11 +379,11 @@ public class Song extends BaseEntity {
         this.favouriteCount = favouriteCount;
     }
 
-    public Integer getScore() {
+    public Long getScore() {
         if (savedScore != null) {
             return savedScore;
         }
-        int score = 0;
+        long score = 0;
         score += getViews();
         score += getFavouriteCount() * 2;
         if (createdDate == null || modifiedDate == null) {
@@ -391,11 +391,11 @@ public class Song extends BaseEntity {
         }
         long l = Song.getCurrentDate() - createdDate.getTime();
         if (l < 2592000000L) {
-            score += 14 * ((1 - (double) l / 2592000000L));
+            score += (long) (14 * ((1 - (double) l / 2592000000L)));
         }
         l = Song.getCurrentDate() - modifiedDate.getTime();
         if (l < 2592000000L) {
-            score += 4 * ((1 - (double) l / 2592000000L));
+            score += (long) (4 * ((1 - (double) l / 2592000000L)));
         }
         if (isFavourite()) {
             score = (int) Math.max(score + 10, score * 1.1);

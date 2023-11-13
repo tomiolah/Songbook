@@ -161,7 +161,7 @@ public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> imp
             try {
                 bookRepository = new BookRepositoryImpl();
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         }
         return bookRepository;
@@ -172,7 +172,7 @@ public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> imp
             try {
                 bibleVerseRepository = new BibleVerseRepositoryImpl();
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         }
         return bibleVerseRepository;
