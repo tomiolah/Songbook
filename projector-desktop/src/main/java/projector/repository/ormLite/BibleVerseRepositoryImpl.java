@@ -38,29 +38,26 @@ public class BibleVerseRepositoryImpl extends AbstractBaseRepository<BibleVerse>
                 max = 0L;
             }
             long finalMax = max;
-            TransactionManager.callInTransaction(DatabaseHelper.getInstance().getConnectionSource(),
-                    (Callable<Void>) () -> {
-                        Long id = finalMax + 1;
-                        StringBuilder s = new StringBuilder("INSERT INTO BIBLEVERSE (ID,Text,StrippedText,Chapter_Id,Number) VALUES");
-                        int count = 0;
-                        for (BibleVerse bibleVerse : bibleVerses) {
-                            bibleVerse.setId(id);
-                            ++count;
-                            if (count > 1) {
-                                s.append(",");
-                            }
-                            String s2 = " (" + id++
-                                    + ",'" + getSqlString(bibleVerse.getText())
-                                    + "','" + getSqlString(bibleVerse.getStrippedText())
-                                    + "'," + bibleVerse.getChapter().getId()
-                                    + "," + bibleVerse.getNumber()
-                                    + ")";
-                            s.append(s2);
-                        }
-                        String statement = s.toString();
-                        dao.executeRaw(statement);
-                        return null;
-                    });
+            Long id = finalMax + 1;
+            StringBuilder s = new StringBuilder("INSERT INTO BIBLEVERSE (ID,Text,StrippedText,Chapter_Id,Number) VALUES");
+            boolean first = true;
+            for (BibleVerse bibleVerse : bibleVerses) {
+                bibleVerse.setId(id);
+                if (!first) {
+                    s.append(",");
+                } else {
+                    first = false;
+                }
+                String s2 = " (" + id++
+                        + ",'" + getSqlString(bibleVerse.getText())
+                        + "','" + getSqlString(bibleVerse.getStrippedText())
+                        + "'," + bibleVerse.getChapter().getId()
+                        + "," + bibleVerse.getNumber()
+                        + ")";
+                s.append(s2);
+            }
+            String statement = s.toString();
+            dao.executeRaw(statement);
         } catch (SQLException e) {
             String msg = "Could not save bibleVerses";
             LOG.error(msg, e);

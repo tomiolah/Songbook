@@ -65,20 +65,24 @@ public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> imp
     @Override
     public List<VerseIndex> create(List<VerseIndex> verseIndices) {
         try {
-            TransactionManager.callInTransaction(DatabaseHelper.getInstance().getConnectionSource(),
-                    (Callable<Void>) () -> {
-                        if (verseIndices.size() > 0) {
-                            Long bibleId = verseIndices.get(0).getBibleVerse().getChapter().getBook().getBible().getId();
-                            for (VerseIndex verseIndex : verseIndices) {
-                                dao.executeRaw("INSERT INTO VERSEINDEX (INDEXNUMBER,BIBLEVERSE_ID,bibleId) VALUES ("
-                                        + verseIndex.getIndexNumber()
-                                        + "," + verseIndex.getBibleVerse().getId()
-                                        + "," + bibleId
-                                        + ")");
-                            }
-                        }
-                        return null;
-                    });
+            if (verseIndices.size() > 0) {
+                Long bibleId = verseIndices.get(0).getBibleVerse().getChapter().getBook().getBible().getId();
+                StringBuilder s = new StringBuilder("INSERT INTO " + TABLE_NAME + " (INDEXNUMBER,BIBLEVERSE_ID,bibleId) VALUES ");
+                boolean first = true;
+                for (VerseIndex verseIndex : verseIndices) {
+                    if (!first) {
+                        s.append(",");
+                    } else {
+                        first = false;
+                    }
+                    s.append("(").append(verseIndex.getIndexNumber())
+                            .append(",").append(verseIndex.getBibleVerse().getId())
+                            .append(",").append(bibleId)
+                            .append(")");
+                }
+                String sql = s.toString();
+                dao.executeRaw(sql);
+            }
         } catch (SQLException e) {
             String msg = "Could not save verseIndices";
             LOG.error(msg, e);
