@@ -1,7 +1,6 @@
 package projector.repository.ormLite;
 
 import com.j256.ormlite.dao.GenericRawResults;
-import com.j256.ormlite.misc.TransactionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.model.BibleVerse;
@@ -10,7 +9,6 @@ import projector.repository.RepositoryException;
 
 import java.sql.SQLException;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 public class BibleVerseRepositoryImpl extends AbstractBaseRepository<BibleVerse> implements BibleVerseRepository {
     private static final Logger LOG = LoggerFactory.getLogger(BibleVerseRepositoryImpl.class);
