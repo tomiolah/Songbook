@@ -227,29 +227,32 @@ public class DatabaseHelper {
 
     private void onCreate(final ConnectionSource connectionSource) {
         try {
-            TableUtils.createTableIfNotExists(connectionSource, Language.class);
-            TableUtils.createTableIfNotExists(connectionSource, Song.class);
-            TableUtils.createTableIfNotExists(connectionSource, SongVerse.class);
-            TableUtils.createTableIfNotExists(connectionSource, SongBook.class);
-            TableUtils.createTableIfNotExists(connectionSource, SongBookSong.class);
-            TableUtils.createTableIfNotExists(connectionSource, Information.class);
-            TableUtils.createTableIfNotExists(connectionSource, SongCollection.class);
-            TableUtils.createTableIfNotExists(connectionSource, SongCollectionElement.class);
-            TableUtils.createTableIfNotExists(connectionSource, Bible.class);
-            TableUtils.createTableIfNotExists(connectionSource, Book.class);
-            TableUtils.createTableIfNotExists(connectionSource, Chapter.class);
-            TableUtils.createTableIfNotExists(connectionSource, BibleVerse.class);
-            TableUtils.createTableIfNotExists(connectionSource, VerseIndex.class);
-            TableUtils.createTableIfNotExists(connectionSource, CountdownTime.class);
-            TableUtils.createTableIfNotExists(connectionSource, LoggedInUser.class);
-            TableUtils.createTableIfNotExists(connectionSource, FavouriteSong.class);
-            try {
-                getSongVerseDao().executeRaw("ALTER TABLE `SONGVERSE` ADD COLUMN secondText VARCHAR(1000);");
-            } catch (Exception ignored) {
-            }
-            try {
-                getSongDao().executeRaw("ALTER TABLE `SONG` ADD COLUMN versionGroup VARCHAR(36);");
-            } catch (Exception ignored) {
+            int oldVersion = getOldVersion();
+            if (oldVersion < DATABASE_VERSION) {
+                TableUtils.createTableIfNotExists(connectionSource, Language.class);
+                TableUtils.createTableIfNotExists(connectionSource, Song.class);
+                TableUtils.createTableIfNotExists(connectionSource, SongVerse.class);
+                TableUtils.createTableIfNotExists(connectionSource, SongBook.class);
+                TableUtils.createTableIfNotExists(connectionSource, SongBookSong.class);
+                TableUtils.createTableIfNotExists(connectionSource, Information.class);
+                TableUtils.createTableIfNotExists(connectionSource, SongCollection.class);
+                TableUtils.createTableIfNotExists(connectionSource, SongCollectionElement.class);
+                TableUtils.createTableIfNotExists(connectionSource, Bible.class);
+                TableUtils.createTableIfNotExists(connectionSource, Book.class);
+                TableUtils.createTableIfNotExists(connectionSource, Chapter.class);
+                TableUtils.createTableIfNotExists(connectionSource, BibleVerse.class);
+                TableUtils.createTableIfNotExists(connectionSource, VerseIndex.class);
+                TableUtils.createTableIfNotExists(connectionSource, CountdownTime.class);
+                TableUtils.createTableIfNotExists(connectionSource, LoggedInUser.class);
+                TableUtils.createTableIfNotExists(connectionSource, FavouriteSong.class);
+                try {
+                    getSongVerseDao().executeRaw("ALTER TABLE `SONGVERSE` ADD COLUMN secondText VARCHAR(1000);");
+                } catch (Exception ignored) {
+                }
+                try {
+                    getSongDao().executeRaw("ALTER TABLE `SONG` ADD COLUMN versionGroup VARCHAR(36);");
+                } catch (Exception ignored) {
+                }
             }
         } catch (final SQLException e) {
             LOG.error("Unable to create databases", e);
@@ -284,7 +287,7 @@ public class DatabaseHelper {
         }
     }
 
-    Dao<Song, Long> getSongDao() throws SQLException {
+    public Dao<Song, Long> getSongDao() throws SQLException {
         if (songDao == null) {
             songDao = DaoManager.createDao(connectionSource, Song.class);
         }

@@ -41,15 +41,24 @@ public class BibleVerseRepositoryImpl extends AbstractBaseRepository<BibleVerse>
             TransactionManager.callInTransaction(DatabaseHelper.getInstance().getConnectionSource(),
                     (Callable<Void>) () -> {
                         Long id = finalMax + 1;
+                        StringBuilder s = new StringBuilder("INSERT INTO BIBLEVERSE (ID,Text,StrippedText,Chapter_Id,Number) VALUES");
+                        int count = 0;
                         for (BibleVerse bibleVerse : bibleVerses) {
                             bibleVerse.setId(id);
-                            dao.executeRaw("INSERT INTO BIBLEVERSE (ID,Text,StrippedText,Chapter_Id,Number) VALUES (" + id++
-                                    + ",'" + bibleVerse.getText().replaceAll("'", "''")
-                                    + "','" + bibleVerse.getStrippedText()
+                            ++count;
+                            if (count > 1) {
+                                s.append(",");
+                            }
+                            String s2 = " (" + id++
+                                    + ",'" + getSqlString(bibleVerse.getText())
+                                    + "','" + getSqlString(bibleVerse.getStrippedText())
                                     + "'," + bibleVerse.getChapter().getId()
                                     + "," + bibleVerse.getNumber()
-                                    + ")");
+                                    + ")";
+                            s.append(s2);
                         }
+                        String statement = s.toString();
+                        dao.executeRaw(statement);
                         return null;
                     });
         } catch (SQLException e) {
@@ -58,6 +67,10 @@ public class BibleVerseRepositoryImpl extends AbstractBaseRepository<BibleVerse>
             throw new RepositoryException(msg, e);
         }
         return bibleVerses;
+    }
+
+    private static String getSqlString(String s) {
+        return s.replaceAll("'", "''");
     }
 
     @Override

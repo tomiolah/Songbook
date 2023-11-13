@@ -4,10 +4,13 @@ import projector.application.Settings;
 import projector.model.Language;
 import projector.repository.DAOFactory;
 import projector.service.LanguageService;
+import projector.service.ServiceManager;
+import projector.service.SongService;
 
 import java.util.List;
 
 public class LanguageServiceImpl extends AbstractBaseService<Language> implements LanguageService {
+
     public LanguageServiceImpl() {
         super(DAOFactory.getInstance().getLanguageDAO());
     }
@@ -24,6 +27,8 @@ public class LanguageServiceImpl extends AbstractBaseService<Language> implement
     @Override
     public void sortLanguages(List<Language> languages) {
         String songSelectedLanguageUuid = getSongSelectedLanguageUuid();
+        SongService songService = ServiceManager.getSongService();
+        setSongsSize(languages);
         languages.sort((o2, o1) -> {
             if (songSelectedLanguageUuid != null) {
                 if (o2.getUuid().equals(songSelectedLanguageUuid)) {
@@ -37,7 +42,25 @@ public class LanguageServiceImpl extends AbstractBaseService<Language> implement
             if (selectedCompare != 0) {
                 return selectedCompare;
             }
-            return Integer.compare(o1.getSongsSize(), o2.getSongsSize());
+            return Long.compare(o1.getSongsSize(songService), o2.getSongsSize(songService));
         });
+    }
+
+    @Override
+    public void setSongsSize(List<Language> languages) {
+        SongService songService = ServiceManager.getSongService();
+        for (Language language : languages) {
+            language.setSongsSize(songService.countByLanguage(language));
+        }
+    }
+
+    @Override
+    public Language findByUuid(String uuid) {
+        Language language = super.findByUuid(uuid);
+        if (language == null) {
+            return null;
+        }
+        language.setSongsSize(ServiceManager.getSongService().countByLanguage(language));
+        return language;
     }
 }

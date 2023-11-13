@@ -85,6 +85,7 @@ import projector.model.SongVerse;
 import projector.remote.SongReadRemoteListener;
 import projector.remote.SongRemoteListener;
 import projector.service.FavouriteSongService;
+import projector.service.LanguageService;
 import projector.service.ServiceException;
 import projector.service.ServiceManager;
 import projector.service.SongCollectionService;
@@ -289,8 +290,7 @@ public class SongController {
         HashMap<String, Song> hashMap = new HashMap<>(songs.size());
         for (Song song : songs) {
             hashMap.put(song.getUuid(), song);
-            song.getSongCollections().clear();
-            song.getSongCollectionElements().clear();
+            song.clearSongCollectionLists();
         }
         setSongCollectionForSongsInHashMap(songCollections, hashMap);
     }
@@ -1360,7 +1360,9 @@ public class SongController {
 
     public void initializeLanguageComboBox() {
         try {
-            List<Language> languages = ServiceManager.getLanguageService().findAll();
+            LanguageService languageService = ServiceManager.getLanguageService();
+            List<Language> languages = languageService.findAll();
+            languageService.setSongsSize(languages);
             if (countSelectedLanguages(languages) < 2) {
                 languageComboBox.setVisible(false);
                 languageComboBox.setManaged(false);
@@ -1368,10 +1370,10 @@ public class SongController {
                 languageComboBox.setVisible(true);
                 languageComboBox.setManaged(true);
             }
-            languages.sort((o1, o2) -> Integer.compare(o2.getSongs().size(), o1.getSongs().size()));
+            languages.sort((o1, o2) -> Long.compare(o2.getSongsSize(songService), o1.getSongsSize(songService)));
             languageComboBox.getItems().clear();
             for (Language language : languages) {
-                if (!language.getSongs().isEmpty()) {
+                if (language.getCountedSongsSize() > 0) {
                     languageComboBox.getItems().add(language);
                 } else {
                     break;
@@ -1481,8 +1483,9 @@ public class SongController {
 
     private int countSelectedLanguages(List<Language> languages) {
         int count = 0;
+        SongService songService = ServiceManager.getSongService();
         for (Language language : languages) {
-            if (!language.getSongs().isEmpty()) {
+            if (language.getSongsSize(songService) > 0) {
                 ++count;
             }
         }
@@ -2545,7 +2548,8 @@ public class SongController {
     private void addSongCollections_() {
         ObservableList<SongCollection> items = songCollectionListView.getItems();
         items.clear();
-        SongCollection allSongCollections = new SongCollection(Settings.getInstance().getResourceBundle().getString("All"));
+        String all = Settings.getInstance().getResourceBundle().getString("All");
+        SongCollection allSongCollections = new SongCollection(all);
         allSongCollections.setSongs(songs);
         selectedSongCollection = allSongCollections;
         items.add(allSongCollections);
@@ -2555,10 +2559,13 @@ public class SongController {
             List<SongCollection> songCollections = songCollectionService.findAll();
             Date date2 = new Date();
             System.out.println(date2.getTime() - date.getTime());
+            ServiceManager.getSongCollectionElementService().findSongsSize(songCollections);
             songCollections.sort((l, r) -> {
-                if (l.getSongs().size() < r.getSongs().size()) {
+                long lSongsSize = l.getSongsSize();
+                long rSongsSize = r.getSongsSize();
+                if (lSongsSize < rSongsSize) {
                     return 1;
-                } else if (l.getSongs().size() > r.getSongs().size()) {
+                } else if (lSongsSize > rSongsSize) {
                     return -1;
                 }
                 return 0;

@@ -485,4 +485,13 @@ public class Song extends BaseEntity {
         }
         return equivalent;
     }
+
+    public void clearSongCollectionLists() {
+        if (songCollections != null) {
+            songCollections.clear();
+        }
+        if (songCollectionElements != null) {
+            songCollectionElements.clear();
+        }
+    }
 }

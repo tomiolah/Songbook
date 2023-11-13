@@ -731,7 +731,7 @@ public class Settings {
     }
 
     public Language getSongSelectedLanguage() {
-        if (songSelectedLanguage == null || songSelectedLanguage.getSongs().isEmpty()) {
+        if (songSelectedLanguage == null || (songSelectedLanguage.getCountedSongsSize() == 0 && songSelectedLanguage.getSongs().isEmpty())) {
             List<Language> languages = ServiceManager.getLanguageService().findAll();
             languages.sort((o1, o2) -> Integer.compare(o2.getSongs().size(), o1.getSongs().size()));
             if (!languages.isEmpty()) {

@@ -38,11 +38,13 @@ public class BibleServiceImpl extends AbstractBaseService<Bible> implements Bibl
             Language o2Language = o2.getLanguage();
             Language o1Language = o1.getLanguage();
             if (o1Language != null && o2Language != null) {
+                String o2LanguageUuid = o2Language.getUuid();
+                String o1LanguageUuid = o1Language.getUuid();
                 if (songSelectedLanguageUuid != null) {
-                    if (o2Language.getUuid().equals(songSelectedLanguageUuid)) {
+                    if (o2LanguageUuid != null && o2LanguageUuid.equals(songSelectedLanguageUuid)) {
                         return -1;
                     }
-                    if (o1Language.getUuid().equals(songSelectedLanguageUuid)) {
+                    if (o1LanguageUuid != null && o1LanguageUuid.equals(songSelectedLanguageUuid)) {
                         return 1;
                     }
                 }
@@ -50,7 +52,17 @@ public class BibleServiceImpl extends AbstractBaseService<Bible> implements Bibl
                 if (selectedCompare != 0) {
                     return selectedCompare;
                 }
-                return o2Language.getUuid().compareTo(o1Language.getUuid());
+                if (o2LanguageUuid == null) {
+                    if (o1LanguageUuid == null) {
+                        return 0;
+                    } else {
+                        return 1;
+                    }
+                }
+                if (o1LanguageUuid == null) {
+                    return -1;
+                }
+                return o2LanguageUuid.compareTo(o1LanguageUuid);
             }
             return 0;
         });
