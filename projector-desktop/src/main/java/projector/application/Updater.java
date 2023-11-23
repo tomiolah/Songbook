@@ -39,7 +39,7 @@ public class Updater {
     private static final Logger LOG = LoggerFactory.getLogger(Updater.class);
     private static Updater instance;
     @SuppressWarnings("FieldCanBeLocal")
-    private final int projectorVersionNumber = 60;
+    private final int projectorVersionNumber = 61;
     private final Settings settings = Settings.getInstance();
     private final String updaterPath = "data\\updater.zip";
 
@@ -116,6 +116,7 @@ public class Updater {
                 // alert.showAndWait();
                 URL website;
                 try {
+                    //noinspection deprecation
                     website = new URL(getUrl(maxVersion));
                     ReadableByteChannel rbc = Channels.newChannel(website.openStream());
                     File dir = new File("data");
@@ -152,6 +153,7 @@ public class Updater {
                                         try {
                                             sleep(1000);
                                             String command = "cmd /c updater.exe";
+                                            //noinspection deprecation
                                             Runtime.getRuntime().exec(command);
                                         } catch (Exception e) {
                                             LOG.error(e.getMessage(), e);
@@ -186,6 +188,7 @@ public class Updater {
     private boolean downloadAndUnzipUpdater() {
         URL website;
         try {
+            //noinspection deprecation
             website = new URL(getUpdaterUrl());
             ReadableByteChannel rbc = Channels.newChannel(website.openStream());
             File dir = new File("data");
