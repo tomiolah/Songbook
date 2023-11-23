@@ -44,6 +44,7 @@ public class DatabaseHelper {
     private static DatabaseHelper instance;
     private final int DATABASE_VERSION = 18;
     private final ConnectionSource connectionSource;
+    private final String dataBaseVersionPath = getDataBaseVersionPath();
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
     private Dao<SongBook, Long> songBookDao;
@@ -60,7 +61,6 @@ public class DatabaseHelper {
     private Dao<CountdownTime, Long> countdownTimeDao;
     private CustomDao<LoggedInUser, Long> loggedInUserDao;
     private CustomDao<FavouriteSong, Long> favouriteSongDao;
-    private final String dataBaseVersionPath = getDataBaseVersionPath();
 
     private DatabaseHelper() {
         try {
@@ -71,7 +71,7 @@ public class DatabaseHelper {
             int oldVersion = getOldVersion();
             if (oldVersion < DATABASE_VERSION) {
                 if (oldVersion < 1) {
-                    onUpgrade(connectionSource);
+                    onUpgrade(connectionSource, oldVersion);
                 } else if (oldVersion == 3) {
                     try {
                         TableUtils.dropTable(connectionSource, Bible.class, true);
@@ -177,7 +177,7 @@ public class DatabaseHelper {
                 }
                 saveNewVersion();
             }
-            onCreate(connectionSource);
+            onCreate(connectionSource, oldVersion);
         } catch (SQLException e) {
             final String msg = "Unable to create connection";
             LOG.error(msg, e);
@@ -213,7 +213,9 @@ public class DatabaseHelper {
         }
     }
 
+    // !!! Ensure that is used correctly
     private int getOldVersion() {
+        // !!! Ensure that is used correctly
         try (FileInputStream stream = new FileInputStream(dataBaseVersionPath);
              BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             return Integer.parseInt(br.readLine());
@@ -225,9 +227,8 @@ public class DatabaseHelper {
         return 0;
     }
 
-    private void onCreate(final ConnectionSource connectionSource) {
+    private void onCreate(final ConnectionSource connectionSource, int oldVersion) {
         try {
-            int oldVersion = getOldVersion();
             if (oldVersion < DATABASE_VERSION) {
                 TableUtils.createTableIfNotExists(connectionSource, Language.class);
                 TableUtils.createTableIfNotExists(connectionSource, Song.class);
@@ -259,7 +260,7 @@ public class DatabaseHelper {
         }
     }
 
-    private void onUpgrade(final ConnectionSource connectionSource) {
+    private void onUpgrade(final ConnectionSource connectionSource, int oldVersion) {
         try {
             TableUtils.dropTable(connectionSource, Song.class, true);
             TableUtils.dropTable(connectionSource, SongVerse.class, true);
@@ -281,7 +282,7 @@ public class DatabaseHelper {
             LOG.error("Unable to upgrade database", e);
         }
         try {
-            onCreate(connectionSource);
+            onCreate(connectionSource, oldVersion);
         } catch (final Exception e) {
             LOG.error("Unable to create databases", e);
         }
