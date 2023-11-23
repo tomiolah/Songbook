@@ -1,12 +1,14 @@
 package projector.controller;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ColorPicker;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
@@ -16,12 +18,19 @@ import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.application.Settings;
 import projector.application.Updater;
 import projector.controller.song.SongController;
@@ -37,8 +46,16 @@ import java.util.List;
 import java.util.Objects;
 
 public class SettingsController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(SettingsController.class);
     public CheckBox customCanvasLoadOnStartCheckBox;
     public CheckBox automaticProjectionScreensCheckBox;
+    public CheckBox strokeCheckbox;
+    public ColorPicker strokeColorPicker;
+    public Spinner<Double> strokeSizeSpinner;
+    public ComboBox<StrokeType> strokeTypeComboBox;
+    public ToggleButton liveButton;
+    public ImageView strokeWarningImageView;
     @FXML
     private ColorPicker songSecondTextColorPicker;
     @FXML
@@ -169,7 +186,7 @@ public class SettingsController {
                 imagePathTextField.setText(selectedFile.getCanonicalFile().toURI().toString());
                 imagePathTextField.positionCaret(imagePathTextField.getText().length() - 1);
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.warn(e.getMessage(), e);
             }
             // System.out.println(selectedFile.getPath());
         }
@@ -234,10 +251,41 @@ public class SettingsController {
         connectToSharedAutomaticallyCheckbox.setSelected(settings.isConnectToSharedAutomatically());
         showSongSecondTextCheckBox.setSelected(settings.isShowSongSecondText());
         songSecondTextColorPicker.setValue(settings.getSongSecondTextColor());
+        strokeCheckbox.setSelected(settings.isStrokeFont());
+        Tooltip tooltip = new Tooltip("It can be slow!");
+        tooltip.setShowDelay(Duration.millis(50));
+        Tooltip.install(strokeWarningImageView, tooltip);
+        strokeColorPicker.setValue(settings.getStrokeColor());
+        strokeSizeSpinner.setValueFactory(getStrokeSizeFactory(settings.getStrokeSize()));
+        initializeStrokeTypeComboBox_(strokeTypeComboBox, settings.getStrokeType());
         switch (settings.getSceneStyleFile()) {
             case "application.css" -> appearanceComboBox.getSelectionModel().select(0);
             case "applicationDark.css" -> appearanceComboBox.getSelectionModel().select(1);
         }
+        prepareChangeEvents();
+    }
+
+    public static SpinnerValueFactory.DoubleSpinnerValueFactory getStrokeSizeFactory(double initialValue) {
+        return new SpinnerValueFactory.DoubleSpinnerValueFactory(0, 100, initialValue, 0.1);
+    }
+
+    public static void initializeStrokeTypeComboBox_(ComboBox<StrokeType> strokeTypeComboBox, StrokeType initialValue) {
+        strokeTypeComboBox.getItems().addAll(StrokeType.values());
+
+        // Set a cell factory to customize the display of items in the ComboBox
+        strokeTypeComboBox.setCellFactory(param -> new ListCell<>() {
+            @Override
+            protected void updateItem(StrokeType item, boolean empty) {
+                super.updateItem(item, empty);
+
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    setText(item.toString());
+                }
+            }
+        });
+        strokeTypeComboBox.setValue(initialValue);
     }
 
     private void initializeNetworkButtons() {
@@ -275,7 +323,7 @@ public class SettingsController {
         projectionScreenController.reload();
     }
 
-    public synchronized void onSaveButtonAction() {
+    private void applyValues() {
         // settings.setBiblePath(biblePathTextField.getText());
         settings.setMaxFont((int) maxFontSlider.getValue());
         settings.setBreakLines(breakLinesCheckbox.isSelected());
@@ -322,6 +370,73 @@ public class SettingsController {
         settings.setConnectToSharedAutomatically(connectToSharedAutomaticallyCheckbox.isSelected());
         settings.setShowSongSecondText(showSongSecondTextCheckBox.isSelected());
         settings.setSongSecondTextColor(songSecondTextColorPicker.getValue());
+        settings.setStrokeFont(strokeCheckbox.isSelected());
+        settings.setStrokeColor(strokeColorPicker.getValue());
+        settings.setStrokeSize(strokeSizeSpinner.getValue());
+        settings.setStrokeType(strokeTypeComboBox.getValue());
+    }
+
+    private void prepareChangeEvents() {
+        ChangeListener<Number> numberChangeListener = (observable, oldValue, newValue) -> onChanged();
+        List<Slider> sliders = new ArrayList<>();
+        sliders.add(maxFontSlider);
+        sliders.add(breakAfterSlider);
+        sliders.add(slider);
+        for (Slider slider : sliders) {
+            slider.valueProperty().addListener(numberChangeListener);
+        }
+        ChangeListener<Boolean> booleanChangeListener = (observable, oldValue, newValue) -> onChanged();
+        List<CheckBox> checkBoxes = new ArrayList<>();
+        checkBoxes.add(breakLinesCheckbox);
+        checkBoxes.add(accentsCheckBox);
+        checkBoxes.add(fastModeCheckBox);
+        checkBoxes.add(customCanvasLoadOnStartCheckBox);
+        checkBoxes.add(showSongSecondTextCheckBox);
+        checkBoxes.add(strokeCheckbox);
+        checkBoxes.add(showReferenceOnlyCheckBox);
+        checkBoxes.add(referenceItalicCheckBox);
+        checkBoxes.add(previewLoadOnStartCheckbox);
+        checkBoxes.add(referenceChapterSorting);
+        checkBoxes.add(referenceVerseSorting);
+        checkBoxes.add(bibleShortNameCheckBox);
+        checkBoxes.add(strokeCheckbox);
+        for (CheckBox checkBox : checkBoxes) {
+            checkBox.selectedProperty().addListener(booleanChangeListener);
+        }
+        ChangeListener<Color> colorChangeListener = (observable, oldValue, newValue) -> onChanged();
+        List<ColorPicker> colorPickers = new ArrayList<>();
+        colorPickers.add(backgroundColorPicker);
+        colorPickers.add(colorPicker);
+        colorPickers.add(progressLineColorPicker);
+        colorPickers.add(strokeColorPicker);
+        for (ColorPicker colorPicker : colorPickers) {
+            colorPicker.valueProperty().addListener(colorChangeListener);
+        }
+        List<Spinner<Double>> spinners = new ArrayList<>();
+        spinners.add(strokeSizeSpinner);
+        for (Spinner<Double> spinner : spinners) {
+            spinner.valueProperty().addListener((observable, oldValue, newValue) -> onChanged());
+        }
+        ChangeListener<StrokeType> strokeTypeChangeListener = (observable, oldValue, newValue) -> onChanged();
+        strokeTypeComboBox.valueProperty().addListener(strokeTypeChangeListener);
+        imageRadioButton.selectedProperty().addListener(booleanChangeListener);
+        ChangeListener<String> stringChangeListener = (observable, oldValue, newValue) -> onChanged();
+        fontWeightComboBox.valueProperty().addListener(stringChangeListener);
+        languageComboBox.valueProperty().addListener(stringChangeListener);
+        appearanceComboBox.valueProperty().addListener(stringChangeListener);
+        ChangeListener<Integer> integerChangeListener = (observable, oldValue, newValue) -> onChanged();
+        progressLineThicknessSpinner.valueProperty().addListener(integerChangeListener);
+    }
+
+    private void onChanged() {
+        if (liveButton.isSelected()) {
+            applyValues();
+            projectionScreenController.onSettingsChanged();
+        }
+    }
+
+    public synchronized void onSaveButtonAction() {
+        applyValues();
         settings.save();
         projectionScreenController.setBackGroundColor();
         if (listeners != null) {
@@ -330,6 +445,10 @@ public class SettingsController {
             }
         }
         stage.hide();
+    }
+
+    public void onLiveButtonAction() {
+        onChanged();
     }
 
     private int getCustomCanvasSize(TextField textField) {

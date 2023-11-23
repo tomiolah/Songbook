@@ -3,6 +3,7 @@ package projector.application;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeType;
 import javafx.scene.text.FontWeight;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,6 +89,11 @@ public class Settings {
     private boolean customCanvasLoadOnStart = false;
     private boolean automaticProjectionScreens = true;
     private boolean forIncomingDisplayOnlySelected = false;
+
+    private boolean strokeFont = false;
+    private Color strokeColor = new Color(0, 0, 0, 1.0);
+    private double strokeSize = 4.0;
+    private StrokeType strokeType = StrokeType.OUTSIDE;
 
     protected Settings() {
         load();
@@ -219,14 +225,11 @@ public class Settings {
             FileOutputStream fileOutputStream = new FileOutputStream(getSettingFilePath());
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
             bw.write(0 + System.lineSeparator());
-            bw.write("maxFont" + System.lineSeparator());
-            bw.write(maxFont + System.lineSeparator());
+            writeIntToFile(bw, "maxFont", maxFont);
             bw.write("withAccents" + System.lineSeparator());
             bw.write(withAccents + System.lineSeparator());
-            bw.write("backgroundColor" + System.lineSeparator());
-            writeColorToFile(bw, backgroundColor);
-            bw.write("color" + System.lineSeparator());
-            writeColorToFile(bw, color);
+            writeColorToFileWithText(bw, "backgroundColor", backgroundColor);
+            writeColorToFileWithText(bw, "color", color);
             bw.write("isImage" + System.lineSeparator());
             bw.write(isBackgroundImage + System.lineSeparator());
             bw.write("imagePath" + System.lineSeparator());
@@ -239,8 +242,7 @@ public class Settings {
             bw.write(System.lineSeparator());
             bw.write("font" + System.lineSeparator());
             bw.write(font + System.lineSeparator());
-            bw.write("lineSpace" + System.lineSeparator());
-            bw.write(lineSpace + System.lineSeparator());
+            writeDoubleToFile(bw, "lineSpace", lineSpace);
             bw.write("fontWeight" + System.lineSeparator());
             bw.write(fontWeight + System.lineSeparator());
             bw.write("showReferenceOnly" + System.lineSeparator());
@@ -251,40 +253,27 @@ public class Settings {
             bw.write(logging + System.lineSeparator());
             bw.write(System.lineSeparator());
             bw.write(System.lineSeparator());
-            bw.write("previewX" + System.lineSeparator());
-            bw.write(previewX + System.lineSeparator());
-            bw.write("previewY" + System.lineSeparator());
-            bw.write(previewY + System.lineSeparator());
-            bw.write("previewWidth" + System.lineSeparator());
-            bw.write(previewWidth + System.lineSeparator());
-            bw.write("previewHeight" + System.lineSeparator());
-            bw.write(previewHeight + System.lineSeparator());
+            writeDoubleToFile(bw, "previewX", previewX);
+            writeDoubleToFile(bw, "previewY", previewY);
+            writeDoubleToFile(bw, "previewWidth", previewWidth);
+            writeDoubleToFile(bw, "previewHeight", previewHeight);
             bw.write("previewLoadOnStart" + System.lineSeparator());
             bw.write(previewLoadOnStart + System.lineSeparator());
-            bw.write("songTabHorizontalSplitPaneDividerPosition" + System.lineSeparator());
-            bw.write(songTabHorizontalSplitPaneDividerPosition + System.lineSeparator());
-            bw.write("songTabVerticalSplitPaneDividerPosition" + System.lineSeparator());
-            bw.write(songTabVerticalSplitPaneDividerPosition + System.lineSeparator());
-            bw.write("bibleTabHorizontalSplitPaneDividerPosition" + System.lineSeparator());
-            bw.write(bibleTabHorizontalSplitPaneDividerPosition + System.lineSeparator());
-            bw.write("bibleTabVerticalSplitPaneDividerPosition" + System.lineSeparator());
-            bw.write(bibleTabVerticalSplitPaneDividerPosition + System.lineSeparator());
-            bw.write("mainHeight" + System.lineSeparator());
-            bw.write(mainHeight + System.lineSeparator());
-            bw.write("mainWidth" + System.lineSeparator());
-            bw.write(mainWidth + System.lineSeparator());
+            writeDoubleToFile(bw, "songTabHorizontalSplitPaneDividerPosition", songTabHorizontalSplitPaneDividerPosition);
+            writeDoubleToFile(bw, "songTabVerticalSplitPaneDividerPosition", songTabVerticalSplitPaneDividerPosition);
+            writeDoubleToFile(bw, "bibleTabHorizontalSplitPaneDividerPosition", bibleTabHorizontalSplitPaneDividerPosition);
+            writeDoubleToFile(bw, "bibleTabVerticalSplitPaneDividerPosition", bibleTabVerticalSplitPaneDividerPosition);
+            writeDoubleToFile(bw, "mainHeight", mainHeight);
+            writeDoubleToFile(bw, "mainWidth", mainWidth);
             bw.write("referenceChapterSorting" + System.lineSeparator());
             bw.write(referenceChapterSorting + System.lineSeparator());
             bw.write("referenceVerseSorting" + System.lineSeparator());
             bw.write(referenceVerseSorting + System.lineSeparator());
             bw.write("preferredLanguage" + System.lineSeparator());
             bw.write(preferredLanguage.getLanguage() + System.lineSeparator());
-            bw.write("songHeightSliderValue" + System.lineSeparator());
-            bw.write(songHeightSliderValue + System.lineSeparator());
-            bw.write("verseListViewFontSize" + System.lineSeparator());
-            bw.write(verseListViewFontSize + System.lineSeparator());
-            bw.write("progressLineColor" + System.lineSeparator());
-            writeColorToFile(bw, progressLineColor);
+            writeDoubleToFile(bw, "songHeightSliderValue", songHeightSliderValue);
+            writeDoubleToFile(bw, "verseListViewFontSize", verseListViewFontSize);
+            writeColorToFileWithText(bw, "progressLineColor", progressLineColor);
             bw.write("showProgressLine" + System.lineSeparator());
             bw.write(showProgressLine.get() + System.lineSeparator());
             bw.write("progressLinePositionIsTop" + System.lineSeparator());
@@ -293,10 +282,8 @@ public class Settings {
             bw.write(System.lineSeparator());
             bw.write("songOrderMethod" + System.lineSeparator());
             bw.write(songOrderMethod.name() + System.lineSeparator());
-            bw.write("progressLineThickness" + System.lineSeparator());
-            bw.write(progressLineThickness + System.lineSeparator());
-            bw.write("breakAfter" + System.lineSeparator());
-            bw.write(breakAfter + System.lineSeparator());
+            writeIntToFile(bw, "progressLineThickness", progressLineThickness);
+            writeIntToFile(bw, "breakAfter", breakAfter);
             bw.write("breakLines" + System.lineSeparator());
             bw.write(breakLines + System.lineSeparator());
             if (songSelectedLanguage != null) {
@@ -314,25 +301,41 @@ public class Settings {
             bw.write(allowRemote + System.lineSeparator());
             bw.write("sceneStyleFile" + System.lineSeparator());
             bw.write(sceneStyleFile + System.lineSeparator());
-            bw.write("customCanvasWidth" + System.lineSeparator());
-            bw.write(customCanvasWidth + System.lineSeparator());
-            bw.write("customCanvasHeight" + System.lineSeparator());
-            bw.write(customCanvasHeight + System.lineSeparator());
+            writeIntToFile(bw, "customCanvasWidth", customCanvasWidth);
+            writeIntToFile(bw, "customCanvasHeight", customCanvasHeight);
             bw.write("shareOnLocalNetworkAutomatically" + System.lineSeparator());
             bw.write(shareOnLocalNetworkAutomatically + System.lineSeparator());
             bw.write("connectToSharedAutomatically" + System.lineSeparator());
             bw.write(connectToSharedAutomatically + System.lineSeparator());
             bw.write("showSongSecondText" + System.lineSeparator());
             bw.write(showSongSecondText + System.lineSeparator());
-            bw.write("songSecondTextColor" + System.lineSeparator());
-            writeColorToFile(bw, songSecondTextColor);
+            writeColorToFileWithText(bw, "songSecondTextColor", songSecondTextColor);
             writeBooleanToFile(bw, customCanvasLoadOnStart, "customCanvasLoadOnStart");
             writeBooleanToFile(bw, automaticProjectionScreens, "automaticProjectionScreens");
             writeBooleanToFile(bw, forIncomingDisplayOnlySelected, "forIncomingDisplayOnlySelected");
+            writeBooleanToFile(bw, strokeFont, "strokeFont");
+            writeColorToFileWithText(bw, "strokeColor", strokeColor);
+            writeDoubleToFile(bw, "strokeSize", strokeSize);
+            writeIntToFile(bw, "strokeType", strokeType.ordinal());
             bw.close();
         } catch (IOException e) {
             LOG.warn("There is some error on settings save!", e);
         }
+    }
+
+    private void writeIntToFile(BufferedWriter bw, String s, int i) throws IOException {
+        bw.write(s + System.lineSeparator());
+        bw.write(i + System.lineSeparator());
+    }
+
+    private void writeDoubleToFile(BufferedWriter bw, String s, double v) throws IOException {
+        bw.write(s + System.lineSeparator());
+        bw.write(v + System.lineSeparator());
+    }
+
+    private void writeColorToFileWithText(BufferedWriter bw, String s, Color color) throws IOException {
+        bw.write(s + System.lineSeparator());
+        writeColorToFile(bw, color);
     }
 
     private void writeBooleanToFile(BufferedWriter bw, boolean b, String s) throws IOException {
@@ -360,8 +363,8 @@ public class Settings {
             br.readLine();
             maxFont = Integer.parseInt(br.readLine());
             br.readLine();
-            String strline = br.readLine();
-            withAccents = parseBoolean(strline);
+            String s = br.readLine();
+            withAccents = parseBoolean(s);
             br.readLine();
             backgroundColor = new Color(parseDouble(br.readLine()), parseDouble(br.readLine()),
                     parseDouble(br.readLine()), parseDouble(br.readLine()));
@@ -394,10 +397,8 @@ public class Settings {
             }
             br.readLine();
             br.readLine();
-            br.readLine();
-            previewX = parseDouble(br.readLine());
-            br.readLine();
-            previewY = parseDouble(br.readLine());
+            previewX = getDoubleFromFile(br, previewX);
+            previewY = getDoubleFromFile(br, previewY);
             br.readLine();
             previewWidth = parseDouble(br.readLine());
             br.readLine();
@@ -424,10 +425,9 @@ public class Settings {
             setPreferredLanguage(br.readLine());
             br.readLine();
             songHeightSliderValue = parseDouble(br.readLine());
+            verseListViewFontSize = getDoubleFromFile(br, verseListViewFontSize);
             br.readLine();
-            verseListViewFontSize = parseDouble(br.readLine());
-            br.readLine();
-            progressLineColor = getColorFromFile(br);
+            progressLineColor = getColorFromFile2(br);
             br.readLine();
             showProgressLine.set(parseBoolean(br.readLine()));
             br.readLine();
@@ -470,11 +470,14 @@ public class Settings {
             connectToSharedAutomatically = parseBoolean(br.readLine());
             br.readLine();
             showSongSecondText = parseBoolean(br.readLine());
-            br.readLine();
-            songSecondTextColor = getColorFromFile(br);
+            songSecondTextColor = getColorFromFile(br, songSecondTextColor);
             customCanvasLoadOnStart = getABoolean(br, customCanvasLoadOnStart);
             automaticProjectionScreens = getABoolean(br, automaticProjectionScreens);
             forIncomingDisplayOnlySelected = getABoolean(br, forIncomingDisplayOnlySelected);
+            strokeFont = getABoolean(br, strokeFont);
+            strokeColor = getColorFromFile(br, strokeColor);
+            strokeSize = getDoubleFromFile(br, strokeSize);
+            strokeType = getStrokeTypeFromFile(br, strokeType);
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -487,6 +490,47 @@ public class Settings {
         }
     }
 
+    private StrokeType getStrokeTypeFromFile(BufferedReader br, StrokeType defaultValue) {
+        try {
+            br.readLine();
+            String s = br.readLine();
+            if (s == null) {
+                return defaultValue;
+            }
+            StrokeType[] strokeTypes = StrokeType.values();
+            int strokeTypeIndex = Integer.parseInt(s);
+            if (0 <= strokeTypeIndex && strokeTypeIndex < strokeTypes.length) {
+                return strokeTypes[strokeTypeIndex];
+            }
+        } catch (Exception e) {
+            LOG.warn(e.getMessage(), e);
+        }
+        return defaultValue;
+    }
+
+    private double getDoubleFromFile(BufferedReader br, double defaultValue) {
+        try {
+            br.readLine();
+            String s = br.readLine();
+            if (s == null) {
+                return defaultValue;
+            }
+            return parseDouble(s);
+        } catch (Exception e) {
+            LOG.warn(e.getMessage(), e);
+            return defaultValue;
+        }
+    }
+
+    private Color getColorFromFile(BufferedReader br, Color defaultValue) throws IOException {
+        br.readLine();
+        Color colorFromFile2 = getColorFromFile2(br);
+        if (colorFromFile2 == null) {
+            return defaultValue;
+        }
+        return colorFromFile2;
+    }
+
     private boolean getABoolean(BufferedReader br, boolean defaultValue) throws IOException {
         br.readLine();
         String s = br.readLine();
@@ -496,9 +540,25 @@ public class Settings {
         return parseBoolean(s);
     }
 
-    private Color getColorFromFile(BufferedReader br) throws IOException {
-        return new Color(parseDouble(br.readLine()), parseDouble(br.readLine()),
-                parseDouble(br.readLine()), parseDouble(br.readLine()));
+    private Color getColorFromFile2(BufferedReader br) throws IOException {
+        String red = br.readLine();
+        if (red == null) {
+            return null;
+        }
+        String green = br.readLine();
+        if (green == null) {
+            return null;
+        }
+        String blue = br.readLine();
+        if (blue == null) {
+            return null;
+        }
+        String opacity = br.readLine();
+        if (opacity == null) {
+            return null;
+        }
+        return new Color(parseDouble(red), parseDouble(green),
+                parseDouble(blue), parseDouble(opacity));
     }
 
     public synchronized String getFontWeightString() {
@@ -862,5 +922,37 @@ public class Settings {
 
     public void setForIncomingDisplayOnlySelected(boolean forIncomingDisplayOnlySelected) {
         this.forIncomingDisplayOnlySelected = forIncomingDisplayOnlySelected;
+    }
+
+    public boolean isStrokeFont() {
+        return strokeFont;
+    }
+
+    public void setStrokeFont(boolean strokeFont) {
+        this.strokeFont = strokeFont;
+    }
+
+    public Color getStrokeColor() {
+        return strokeColor;
+    }
+
+    public void setStrokeColor(Color strokeColor) {
+        this.strokeColor = strokeColor;
+    }
+
+    public double getStrokeSize() {
+        return strokeSize;
+    }
+
+    public void setStrokeSize(double strokeSize) {
+        this.strokeSize = strokeSize;
+    }
+
+    public StrokeType getStrokeType() {
+        return strokeType;
+    }
+
+    public void setStrokeType(StrokeType strokeType) {
+        this.strokeType = strokeType;
     }
 }

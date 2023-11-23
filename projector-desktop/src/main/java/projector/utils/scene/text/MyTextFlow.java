@@ -12,6 +12,7 @@ import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.CornerRadii;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
@@ -77,6 +78,7 @@ public class MyTextFlow extends TextFlow {
     private String secondText;
     private ProjectionScreenSettings projectionScreenSettings;
     private boolean autoHeight = false;
+    private boolean disabledStrokeFont = false;
 
     public MyTextFlow() {
         projectionScreenSettings = new ProjectionScreenSettings();
@@ -126,6 +128,11 @@ public class MyTextFlow extends TextFlow {
     }
 
     public void setText2(String newText, int width, int height) {
+        setText3(newText, width, height);
+        setStrokeForTexts();
+    }
+
+    private void setText3(String newText, int width, int height) {
         this.width = width;
         this.height = height;
         this.rawText = newText;
@@ -138,7 +145,7 @@ public class MyTextFlow extends TextFlow {
         getChildren().addAll(texts);
         if (!tmp) {
             initializeTmpTextFlow();
-            tmpTextFlow.setText2(newText, width, height);
+            tmpTextFlow.setText3(newText, width, height);
             tmpTextFlow.maximizeSize(width, height);
             size = tmpTextFlow.size;
             setSize(size);
@@ -154,6 +161,21 @@ public class MyTextFlow extends TextFlow {
                 tmpTextFlow.getChildren().clear();
                 wrapBetter();
             }
+        }
+    }
+
+    private void setStrokeForTexts() {
+        if (!projectionScreenSettings.isStrokeFont() || this.disabledStrokeFont) {
+            return;
+        }
+        List<Text> texts = getNodeTexts();
+        double strokeWidth = getRelativeHeightValue(height, projectionScreenSettings.getStrokeSizeD());
+        Color strokeColor = projectionScreenSettings.getStrokeColor();
+        StrokeType strokeType = projectionScreenSettings.getStrokeType();
+        for (Text text : texts) {
+            text.setStrokeWidth(strokeWidth);
+            text.setStroke(strokeColor);
+            text.setStrokeType(strokeType);
         }
     }
 
@@ -433,18 +455,29 @@ public class MyTextFlow extends TextFlow {
         }
     }
 
-    public void setColor(Color value) {
+    private List<Text> getNodeTexts() {
         ObservableList<Node> nodes = getChildren();
+        List<Text> texts = new ArrayList<>(nodes.size());
         for (Node node : nodes) {
-            ((Text) node).setFill(value);
+            if (node instanceof Text) {
+                texts.add((Text) node);
+            }
+        }
+        return texts;
+    }
+
+    public void setColor(Color value) {
+        List<Text> texts = getNodeTexts();
+        for (Text text : texts) {
+            text.setFill(value);
         }
     }
 
     private void calculateMaxSize(int trueWidth, int height) {
         int w, h;
         int maxFont = projectionScreenSettings.getMaxFont();
-        size = (int) (maxFont * (((double) (height)) / (double) (768)));
-        int size2 = (int) (maxFont * (((double) (trueWidth)) / (double) (1366)));
+        size = (int) getRelativeHeightValue(height, maxFont);
+        int size2 = (int) getRelativeWidthValue(trueWidth, maxFont);
         if (size2 > size) {
             size = size2;
         }
@@ -488,7 +521,7 @@ public class MyTextFlow extends TextFlow {
             } while (true);
         }
         if (size < prefMinSize || !b2) {
-            size = (int) (maxFont * (((double) (height)) / (double) (768)));
+            size = (int) getRelativeHeightValue(height, maxFont);
             if (size2 > size) {
                 size = size2;
             }
@@ -523,6 +556,16 @@ public class MyTextFlow extends TextFlow {
                 }
             } while (true);
         }
+    }
+
+    private static double getRelativeWidthValue(double width, double v) {
+        double designWidth = 1366;
+        return v * (width / designWidth);
+    }
+
+    private static double getRelativeHeightValue(double height, double v) {
+        double designHeight = 768;
+        return v * (height / designHeight);
     }
 
     private void decreaseSizeWhileNotGood(int trueWidth, int height) {
@@ -661,5 +704,10 @@ public class MyTextFlow extends TextFlow {
 
     public void setAutoHeight(boolean autoHeight) {
         this.autoHeight = autoHeight;
+    }
+
+    public void disableStrokeFont() {
+        // We are disabling stroke font because it is slow
+        this.disabledStrokeFont = true;
     }
 }

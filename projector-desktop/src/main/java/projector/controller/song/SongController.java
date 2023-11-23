@@ -506,6 +506,7 @@ public class SongController {
             selectedSongVerseList = selectedSong.getSongVersesByVerseOrder();
             MyTextFlow myTextFlow = new MyTextFlow();
             myTextFlow.setAutoHeight(true);
+            myTextFlow.disableStrokeFont();
             int width1;
             boolean aspectRatioCheckBoxSelected = aspectRatioCheckBox.isSelected();
             if (height < 10) {
@@ -537,6 +538,7 @@ public class SongController {
             for (SongVerse songVerse : selectedSongVerseList) {
                 myTextFlow = new MyTextFlow();
                 myTextFlow.setAutoHeight(true);
+                myTextFlow.disableStrokeFont();
                 aspectRatioCheckBoxSelected = aspectRatioCheckBox.isSelected();
                 if (aspectRatioCheckBoxSelected) {
                     width1 = (size * width - 30) / height;
@@ -556,6 +558,7 @@ public class SongController {
             }
             myTextFlow = new MyTextFlow();
             myTextFlow.setAutoHeight(true);
+            myTextFlow.disableStrokeFont();
             myTextFlow.setText2("", 100, size / 3);
             myTextFlow.setPrefHeight(100);
             myTextFlow.setBackGroundColor();

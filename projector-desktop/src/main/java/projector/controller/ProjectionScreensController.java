@@ -104,6 +104,12 @@ public class ProjectionScreensController {
         if (!(parent instanceof BorderPane parentPane)) {
             return;
         }
+        WritableImage writableImage = getWritableImage(bunch, parentPane);
+        parentPane.snapshot(null, writableImage);
+        imageView.setImage(writableImage);
+    }
+
+    private static WritableImage getWritableImage(Bunch bunch, BorderPane parentPane) {
         double parentPaneWidth = parentPane.getWidth();
         double parentPaneHeight = parentPane.getHeight();
         ProjectionScreenHolder projectionScreenHolder = bunch.projectionScreenHolder;
@@ -113,9 +119,7 @@ public class ProjectionScreensController {
         width = minimumSize(width);
         //noinspection ReassignedVariable,SuspiciousNameCombination
         height = minimumSize(height);
-        WritableImage writableImage = new WritableImage(width, height);
-        parentPane.snapshot(null, writableImage);
-        imageView.setImage(writableImage);
+        return new WritableImage(width, height);
     }
 
     public void lazyInitialize(Tab projectionScreensTab) {
@@ -294,7 +298,7 @@ public class ProjectionScreensController {
                     int height = gd.getDisplayMode().getHeight();
                     Scene scene = new Scene(root);
                     Stage settingsStage = getCustomStage(getClass(), scene);
-                    settingsStage.setWidth(850);
+                    settingsStage.setWidth(1300);
                     settingsStage.setHeight(calculateSizeByScale(height - 100));
                     settingsStage.setTitle(title);
                     ProjectionScreenSettingsController settingsController = loader.getController();

@@ -7,6 +7,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.annotations.Expose;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeType;
 import javafx.scene.text.FontWeight;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,7 +63,13 @@ public class ProjectionScreenSettings {
     private Color songSecondTextColor;
     @Expose
     private Boolean progressLinePositionIsTop;
+    @Expose
+    private Boolean strokeFont;
     private boolean useGlobalSettings = true;
+    private Color strokeColor;
+    private Double strokeSize;
+    private StrokeType strokeType;
+    private Listener onChangedListener = null;
 
     public ProjectionScreenSettings() {
         settings = Settings.getInstance();
@@ -94,6 +101,11 @@ public class ProjectionScreenSettings {
         this.progressLinePositionIsTop = projectionScreenSettings.progressLinePositionIsTop;
         this.projectionScreenHolder = projectionScreenSettings.projectionScreenHolder;
         this.useGlobalSettings = projectionScreenSettings.useGlobalSettings;
+        this.strokeFont = projectionScreenSettings.strokeFont;
+        this.strokeColor = projectionScreenSettings.strokeColor;
+        this.strokeSize = projectionScreenSettings.strokeSize;
+        this.strokeType = projectionScreenSettings.strokeType;
+        this.onChangedListener = projectionScreenSettings.onChangedListener;
     }
 
     private static boolean isaBoolean(Boolean aBoolean) {
@@ -113,6 +125,13 @@ public class ProjectionScreenSettings {
 
     public void setMaxFont(Integer maxFont) {
         this.maxFont = maxFont;
+        onChanged();
+    }
+
+    private void onChanged() {
+        if (onChangedListener != null) {
+            onChangedListener.onChanged();
+        }
     }
 
     public Color getBackgroundColor() {
@@ -124,6 +143,7 @@ public class ProjectionScreenSettings {
 
     public void setBackgroundColor(Color backgroundColor) {
         this.backgroundColor = backgroundColor;
+        onChanged();
     }
 
     public Color getColor() {
@@ -135,6 +155,7 @@ public class ProjectionScreenSettings {
 
     public void setColor(Color color) {
         this.color = color;
+        onChanged();
     }
 
     public boolean isBackgroundImage() {
@@ -150,6 +171,7 @@ public class ProjectionScreenSettings {
 
     public void setIsBackgroundImage(Boolean isBackgroundImage) {
         this.isBackgroundImage = isBackgroundImage;
+        onChanged();
     }
 
     public String getBackgroundImagePath() {
@@ -161,6 +183,7 @@ public class ProjectionScreenSettings {
 
     public void setBackgroundImagePath(String backgroundImagePath) {
         this.backgroundImagePath = backgroundImagePath;
+        onChanged();
     }
 
     public String getFont() {
@@ -172,6 +195,7 @@ public class ProjectionScreenSettings {
 
     public void setFont(String font) {
         this.font = font;
+        onChanged();
     }
 
     public Double getLineSpace() {
@@ -183,6 +207,7 @@ public class ProjectionScreenSettings {
 
     public void setLineSpace(Double lineSpace) {
         this.lineSpace = lineSpace;
+        onChanged();
     }
 
     public FontWeight getFontWeight() {
@@ -191,6 +216,7 @@ public class ProjectionScreenSettings {
 
     public void setFontWeight(String fontWeight) {
         this.fontWeight = fontWeight;
+        onChanged();
     }
 
     public void save() {
@@ -248,6 +274,7 @@ public class ProjectionScreenSettings {
             this.showSongSecondText = fromJson.showSongSecondText;
             this.songSecondTextColor = fromJson.songSecondTextColor;
             this.progressLinePositionIsTop = fromJson.progressLinePositionIsTop;
+            this.strokeFont = fromJson.strokeFont;
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
@@ -279,6 +306,7 @@ public class ProjectionScreenSettings {
 
     public void setProgressLineColor(Color progressLineColor) {
         this.progressLineColor = progressLineColor;
+        onChanged();
     }
 
     public boolean isBreakLines() {
@@ -294,6 +322,7 @@ public class ProjectionScreenSettings {
 
     public void setBreakLines(Boolean breakLines) {
         this.breakLines = breakLines;
+        onChanged();
     }
 
     public Integer getBreakAfter() {
@@ -305,6 +334,7 @@ public class ProjectionScreenSettings {
 
     public void setBreakAfter(Integer breakAfter) {
         this.breakAfter = breakAfter;
+        onChanged();
     }
 
     public Integer getProgressLineThickness() {
@@ -316,6 +346,7 @@ public class ProjectionScreenSettings {
 
     public void setProgressLineThickness(Integer progressLineThickness) {
         this.progressLineThickness = progressLineThickness;
+        onChanged();
     }
 
     public boolean isShowSongSecondText() {
@@ -331,6 +362,7 @@ public class ProjectionScreenSettings {
 
     public void setShowSongSecondText(Boolean showSongSecondText) {
         this.showSongSecondText = showSongSecondText;
+        onChanged();
     }
 
     public Color getSongSecondTextColor() {
@@ -342,6 +374,7 @@ public class ProjectionScreenSettings {
 
     public void setSongSecondTextColor(Color songSecondTextColor) {
         this.songSecondTextColor = songSecondTextColor;
+        onChanged();
     }
 
     public boolean isProgressLinePositionIsTop() {
@@ -350,6 +383,7 @@ public class ProjectionScreenSettings {
 
     public void setProgressLinePositionIsTop(Boolean progressLinePositionIsTop) {
         this.progressLinePositionIsTop = progressLinePositionIsTop;
+        onChanged();
     }
 
     public Boolean getProgressLinePosition() {
@@ -361,5 +395,73 @@ public class ProjectionScreenSettings {
 
     public void setUseGlobalSettings(boolean useGlobalSettings) {
         this.useGlobalSettings = useGlobalSettings;
+    }
+
+    public Boolean getStrokeFont() {
+        return strokeFont;
+    }
+
+    public void setStrokeFont(Boolean strokeFont) {
+        this.strokeFont = strokeFont;
+        onChanged();
+    }
+
+    public boolean isStrokeFont() {
+        if (strokeFont == null && useGlobalSettings) {
+            return settings.isStrokeFont();
+        }
+        return strokeFont != null && strokeFont;
+    }
+
+    public Color getStrokeColor() {
+        if (strokeColor == null && useGlobalSettings) {
+            return settings.getStrokeColor();
+        }
+        return strokeColor;
+    }
+
+    public void setStrokeColor(Color strokeColor) {
+        this.strokeColor = strokeColor;
+        onChanged();
+    }
+
+    public Double getStrokeSize() {
+        if (strokeSize == null && useGlobalSettings) {
+            return settings.getStrokeSize();
+        }
+        return strokeSize;
+    }
+
+    public double getStrokeSizeD() {
+        Double size = getStrokeSize();
+        if (size == null) {
+            return 0;
+        }
+        return size;
+    }
+
+    public void setStrokeSize(Double strokeSize) {
+        this.strokeSize = strokeSize;
+        onChanged();
+    }
+
+    public StrokeType getStrokeType() {
+        if (strokeType == null && useGlobalSettings) {
+            return settings.getStrokeType();
+        }
+        return strokeType;
+    }
+
+    public void setStrokeType(StrokeType strokeType) {
+        this.strokeType = strokeType;
+        onChanged();
+    }
+
+    public void setOnChangedListener(Listener listener) {
+        this.onChangedListener = listener;
+    }
+
+    public interface Listener {
+        void onChanged();
     }
 }
