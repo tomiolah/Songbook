@@ -1,6 +1,6 @@
 package com.bence.projector.server.backend.model;
 
-import com.bence.projector.server.backend.service.SongService;
+import com.bence.projector.server.backend.repository.SongRepository;
 
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -75,25 +75,39 @@ public class SongLink extends AbstractModel {
         return !applied;
     }
 
-    public Song getSong1(SongService songService) {
+    public Song getSong1(SongRepository songRepository) {
         if (song1 == null) {
             return null;
         }
-        return songService.findOneByUuid(song1.getUuid());
+        return songRepository.findOneByUuid(getSong1Uuid());
     }
 
-    public Song getSong2(SongService songService) {
+    public String getSong1Uuid() {
+        if (song1 == null) {
+            return null;
+        }
+        return song1.getUuid();
+    }
+
+    public Song getSong2(SongRepository songRepository) {
         if (song2 == null) {
             return null;
         }
-        return songService.findOneByUuid(song2.getUuid());
+        return songRepository.findOneByUuid(getSong2Uuid());
     }
 
-    public boolean hasLanguage(Language language, SongService songService) {
+    public String getSong2Uuid() {
+        if (song2 == null) {
+            return null;
+        }
+        return song2.getUuid();
+    }
+
+    public boolean hasLanguage(Language language, SongRepository songRepository) {
         if (language == null) {
             return false;
         }
-        Song song1 = getSong1(songService);
+        Song song1 = getSong1(songRepository);
         try {
             if (song1 != null && language.equalsById(song1.getLanguage())) {
                 return true;
@@ -102,16 +116,16 @@ public class SongLink extends AbstractModel {
             e.printStackTrace();
             return false;
         }
-        Song song2 = getSong2(songService);
+        Song song2 = getSong2(songRepository);
         return song2 != null && language.equalsById(song2.getLanguage());
     }
 
-    public boolean alreadyTheSameVersionGroup(SongService songService) {
-        Song song1 = getSong1(songService);
+    public boolean alreadyTheSameVersionGroup(SongRepository songRepository) {
+        Song song1 = getSong1(songRepository);
         if (song1 == null) {
             return false;
         }
-        Song song2 = getSong2(songService);
+        Song song2 = getSong2(songRepository);
         return song1.isSameVersionGroup(song2);
     }
 }

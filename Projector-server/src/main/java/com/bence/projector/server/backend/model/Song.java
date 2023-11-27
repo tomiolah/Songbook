@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static com.bence.projector.server.utils.MemoryUtil.getEmptyList;
+
 @Entity
 @Table(
         indexes = {@Index(name = "uuid_index", columnList = "uuid", unique = true)}
@@ -57,6 +59,8 @@ public class Song extends AbstractModel {
     private List<Suggestion> suggestions;
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "song")
     private List<SongListElement> songListElements;
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "song")
+    private List<FavouriteSong> favouriteSongs;
 
     public Song() {
     }
@@ -339,6 +343,11 @@ public class Song extends AbstractModel {
         this.reviewerErased = reviewerErased;
     }
 
+    @SuppressWarnings("unused") // it's used by queue.html
+    public String getBeforeId() {
+        return beforeId;
+    }
+
     public void setBeforeId(String beforeId) {
         this.beforeId = beforeId;
     }
@@ -392,7 +401,7 @@ public class Song extends AbstractModel {
         if (songVerseOrderListItems == null) {
             return true;
         }
-        return songVerseOrderListItems.size() == 0;
+        return songVerseOrderListItems.isEmpty();
     }
 
     private boolean verseOrderWasSaved() {
@@ -418,5 +427,20 @@ public class Song extends AbstractModel {
             }
         }
         return songVerses;
+    }
+
+    public String getText() {
+        StringBuilder s = new StringBuilder(getTitle() + "\n\n");
+        for (SongVerse verse : getVerses()) {
+            s.append(verse.getText()).append("\n\n");
+        }
+        return s.toString();
+    }
+
+    public List<FavouriteSong> getFavouriteSongs() {
+        if (favouriteSongs == null) {
+            return favouriteSongs = getEmptyList();
+        }
+        return favouriteSongs;
     }
 }

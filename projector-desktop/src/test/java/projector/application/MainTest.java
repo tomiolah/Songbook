@@ -25,6 +25,8 @@ import static javafx.scene.input.KeyCode.ENTER;
 
 public class MainTest extends BaseTest {
 
+    private static long indexNumber = 1000;
+
     static public void createABible() {
         Bible bible = new Bible();
         bible.setName("Bible");
@@ -32,27 +34,43 @@ public class MainTest extends BaseTest {
         Book book = new Book();
         book.setTitle("book");
         ArrayList<Chapter> chapters = new ArrayList<>();
-        Chapter chapter = new Chapter();
-        chapter.setNumber((short) 1);
-        ArrayList<BibleVerse> verses = new ArrayList<>();
-        BibleVerse bibleVerse = new BibleVerse();
-        bibleVerse.setText("A verse");
-        bibleVerse.setNumber((short) 1);
-        ArrayList<VerseIndex> verseIndices = new ArrayList<>();
-        VerseIndex verseIndex = new VerseIndex();
-        verseIndex.setBibleId((long) 1);
-        verseIndex.setIndexNumber((long) 1000);
-        verseIndices.add(verseIndex);
-        bibleVerse.setVerseIndices(verseIndices);
-        verses.add(bibleVerse);
-        chapter.setVerses(verses);
-        chapters.add(chapter);
+        createChapter(chapters);
+        createChapter(chapters);
         book.setChapters(chapters);
         books.add(book);
         bible.setBooks(books);
         BibleService bibleService = ServiceManager.getBibleService();
         bibleService.delete(bibleService.findAll());
         bibleService.create(bible);
+    }
+
+    private static void createChapter(ArrayList<Chapter> chapters) {
+        Chapter chapter = new Chapter();
+        short chapterIndex = (short) (chapters.size() + 1);
+        chapter.setNumber(chapterIndex);
+        ArrayList<BibleVerse> verses = new ArrayList<>();
+        addBibleVerse(verses);
+        addBibleVerse(verses);
+        chapter.setVerses(verses);
+        for (BibleVerse verse : verses) {
+            verse.setText(chapter.getNumber() + ": " + verse.getText());
+        }
+        chapters.add(chapter);
+    }
+
+    private static void addBibleVerse(ArrayList<BibleVerse> verses) {
+        BibleVerse bibleVerse = new BibleVerse();
+        short index = (short) (verses.size() + 1);
+        bibleVerse.setText("A verse " + index);
+        bibleVerse.setNumber(index);
+        ArrayList<VerseIndex> verseIndices = new ArrayList<>();
+        VerseIndex verseIndex = new VerseIndex();
+        verseIndex.setBibleId((long) 1);
+        verseIndex.setIndexNumber(indexNumber);
+        indexNumber += 1000;
+        verseIndices.add(verseIndex);
+        bibleVerse.setVerseIndices(verseIndices);
+        verses.add(bibleVerse);
     }
 
     private void openTab(int index) {

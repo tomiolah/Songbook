@@ -115,6 +115,18 @@ public class SongResource {
         song.setModifiedDate(date);
     }
 
+    public static void createBackUpSong(Song song, SongService songService) {
+        Song backUpSong = createBackUpSongWithoutSave(song);
+        songService.save(backUpSong);
+    }
+
+    public static Song createBackUpSongWithoutSave(Song song) {
+        Song backUpSong = new Song(song);
+        backUpSong.setIsBackUp(true);
+        song.setBackUp(backUpSong);
+        return backUpSong;
+    }
+
     @RequestMapping(method = RequestMethod.GET, value = "/api/songs")
     public List<SongDTO> findAll(HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
@@ -466,10 +478,7 @@ public class SongResource {
                         return new ResponseEntity<>("Already modified", HttpStatus.CONFLICT);
                     }
                     songDTO.setModifiedDate(new Date());
-                    Song backUpSong = new Song(song);
-                    backUpSong.setIsBackUp(true);
-                    songService.save(backUpSong);
-                    song.setBackUp(backUpSong);
+                    createBackUpSong(song, songService);
                     song.setLastModifiedBy(user);
                     if (!user.isActivated() && song.isDeleted()) {
                         songDTO.setDeleted(true);
@@ -810,5 +819,11 @@ public class SongResource {
 
     private User getUserFromPrincipal(Principal principal) {
         return getUserFromPrincipalAndUserService(principal, userService);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/admin/api/songTitlesContainingYouTube")
+    public List<SongTitleDTO> getAllSongTitlesContainingYouTube(HttpServletRequest httpServletRequest) {
+        saveStatistics(httpServletRequest, statisticsService);
+        return getSongsContainingYoutubeUrl();
     }
 }

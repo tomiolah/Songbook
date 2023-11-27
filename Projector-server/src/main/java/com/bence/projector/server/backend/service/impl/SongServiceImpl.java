@@ -1,6 +1,7 @@
 package com.bence.projector.server.backend.service.impl;
 
 import com.bence.projector.common.model.SectionType;
+import com.bence.projector.server.backend.model.FavouriteSong;
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.Song;
 import com.bence.projector.server.backend.model.SongVerse;
@@ -8,6 +9,7 @@ import com.bence.projector.server.backend.model.SongVerseOrderListItem;
 import com.bence.projector.server.backend.model.User;
 import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.repository.SongVerseOrderListItemRepository;
+import com.bence.projector.server.backend.service.FavouriteSongService;
 import com.bence.projector.server.backend.service.LanguageService;
 import com.bence.projector.server.backend.service.ServiceException;
 import com.bence.projector.server.backend.service.SongService;
@@ -53,6 +55,17 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     private HashMap<String, HashMap<String, Boolean>> wordsHashMapByLanguage;
     @Autowired
     private SongVerseOrderListItemService songVerseOrderListItemService;
+    @Autowired
+    private FavouriteSongService favouriteSongService;
+
+    private static boolean containsFavourite(List<FavouriteSong> favouriteSongs) {
+        for (FavouriteSong favouriteSong : favouriteSongs) {
+            if (favouriteSong.isFavourite()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     @Override
     public boolean isLanguageIsGood(Song song, Language language) {
@@ -202,6 +215,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         if (oneByUuid == null) {
             return;
         }
+        deleteNotFavouriteFavouriteSongs(oneByUuid);
         delete(oneByUuid.getId());
         HashMap<String, Song> songsHashMap = getSongsHashMap();
         if (songsHashMap != null) {
@@ -214,6 +228,17 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
                 }
                 songsHashMap.remove(id);
             }
+        }
+    }
+
+    private void deleteNotFavouriteFavouriteSongs(Song song) {
+        try {
+            List<FavouriteSong> favouriteSongs = song.getFavouriteSongs();
+            if (!containsFavourite(favouriteSongs)) {
+                favouriteSongService.deleteAll(favouriteSongs);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -583,7 +608,7 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
         int n = random.nextInt(size);
         PageRequest pageRequest = PageRequest.of(n, 1);
         List<Song> songs = songRepository.findAllByLanguage(language, pageRequest);
-        if (songs.size() > 0) {
+        if (!songs.isEmpty()) {
             return songs.get(0);
         }
         return null;
@@ -681,8 +706,10 @@ public class SongServiceImpl extends BaseServiceImpl<Song> implements SongServic
     @Override
     public Song reloadSong(Song song) {
         String uuid = song.getUuid();
-        songsHashMap.remove(uuid);
-        startThreadFindForSong(uuid);
+        if (songsHashMap != null) {
+            songsHashMap.remove(uuid);
+            startThreadFindForSong(uuid);
+        }
         return findOneByUuid(uuid);
     }
 

@@ -1,23 +1,25 @@
 package com.bence.songbook.ui.fragment;
 
+import static com.bence.songbook.ui.activity.MainActivity.getOrdinalNumberText;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.fragment.app.Fragment;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
@@ -51,8 +53,8 @@ public abstract class BaseSongFragment extends Fragment {
 
     private void loadSongView() {
         TextView collectionTextView = view.findViewById(R.id.collectionTextView);
-        if (song.getSongCollection() != null) {
-            String text = song.getSongCollection().getName() + " " + song.getSongCollectionElement().getOrdinalNumber();
+        if (song.getSongCollections().size() > 0) {
+            String text = getOrdinalNumberText(song, false);
             collectionTextView.setText(text);
             collectionTextView.setVisibility(View.VISIBLE);
         } else {
@@ -63,15 +65,7 @@ public abstract class BaseSongFragment extends Fragment {
                 R.layout.content_song_verse, song.getVerses());
         ListView listView = view.findViewById(R.id.listView);
         listView.setAdapter(dataAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                onSongVerseClick(position);
-            }
-
-        });
+        listView.setOnItemClickListener((parent, view, position, id) -> onSongVerseClick(position));
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
             public void onScrollStateChanged(AbsListView v, int scrollState) {
@@ -110,7 +104,7 @@ public abstract class BaseSongFragment extends Fragment {
     protected abstract void onSongVerseClick(int position);
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         try {
             LayoutInflater inflater = LayoutInflater.from(getActivity());

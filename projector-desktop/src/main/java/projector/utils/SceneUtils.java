@@ -63,7 +63,7 @@ public class SceneUtils {
 
     public static WindowController createWindowController(Class<?> aClass, Scene scene, Stage stage) {
         try {
-            if (stage.getStyle() != StageStyle.TRANSPARENT) {
+            if (stage.getStyle() != StageStyle.TRANSPARENT && !stage.isShowing()) {
                 stage.initStyle(StageStyle.TRANSPARENT);
             }
         } catch (IllegalStateException e) {

@@ -60,7 +60,7 @@ import projector.model.VerseIndex;
 import projector.service.BibleService;
 import projector.service.ServiceManager;
 import projector.service.VerseIndexService;
-import projector.utils.MarkTextFlow;
+import projector.utils.BibleVerseTextFlow;
 import projector.utils.StringUtils;
 import projector.utils.Triplet;
 
@@ -105,7 +105,7 @@ public class BibleController {
     @FXML
     private Label partLabel;
     @FXML
-    private ListView<MarkTextFlow> verseListView;
+    private ListView<BibleVerseTextFlow> verseListView;
     @FXML
     private TextField bookTextField;
     @FXML
@@ -348,7 +348,7 @@ public class BibleController {
             // System.out.println("Ido4: " + (System.currentTimeMillis() - x));
             // double x = System.currentTimeMillis();
             bibleListView.orientationProperty().set(Orientation.HORIZONTAL);
-            final MultipleSelectionModel<MarkTextFlow> verseListViewSelectionModel = verseListView.getSelectionModel();
+            final MultipleSelectionModel<BibleVerseTextFlow> verseListViewSelectionModel = verseListView.getSelectionModel();
             bibleListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
                 try {
                     if (newValue == null) {
@@ -685,19 +685,10 @@ public class BibleController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            verseListView.setOnKeyPressed(event -> {
+            verseListView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
                 try {
                     final KeyCode keyCode = event.getCode();
-                    if (keyCode == KeyCode.ENTER) {
-                        if (settings.isFastMode()) {
-                            projectionScreenController.setBlank(false);
-                            mainController.getBlankButton().setSelected(false);
-                        }
-                    } else if (keyCode == KeyCode.UP && event.isAltDown()) {
-                        verseTextField.requestFocus();
-                    } else if (keyCode == KeyCode.LEFT) {
-                        partListView.requestFocus();
-                    } else if (keyCode == KeyCode.DOWN) {
+                    if (keyCode == KeyCode.DOWN) {
                         if (setNextPart()) {
                             event.consume();
                         }
@@ -711,6 +702,23 @@ public class BibleController {
                     } else if (keyCode == KeyCode.PAGE_UP) {
                         setPreviousVerse();
                         event.consume();
+                    }
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
+            });
+            verseListView.setOnKeyPressed(event -> {
+                try {
+                    final KeyCode keyCode = event.getCode();
+                    if (keyCode == KeyCode.ENTER) {
+                        if (settings.isFastMode()) {
+                            projectionScreenController.setBlank(false);
+                            mainController.getBlankButton().setSelected(false);
+                        }
+                    } else if (keyCode == KeyCode.UP && event.isAltDown()) {
+                        verseTextField.requestFocus();
+                    } else if (keyCode == KeyCode.LEFT) {
+                        partListView.requestFocus();
                     } else if (keyCode == KeyCode.ESCAPE) {
                         verseListViewSelectionModel.clearSelection();
                     } else if (keyCode.equals(KeyCode.C) && event.isControlDown()) {
@@ -750,10 +758,10 @@ public class BibleController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            verseListView.setCellFactory((ListView<MarkTextFlow> list) -> {
-                final ListCell<MarkTextFlow> cell = new ListCell<>() {
+            verseListView.setCellFactory((ListView<BibleVerseTextFlow> list) -> {
+                final ListCell<BibleVerseTextFlow> cell = new ListCell<>() {
                     @Override
-                    protected void updateItem(MarkTextFlow textFlow, boolean empty) {
+                    protected void updateItem(BibleVerseTextFlow textFlow, boolean empty) {
                         try {
                             super.updateItem(textFlow, empty);
                             setText(null);
@@ -1131,7 +1139,7 @@ public class BibleController {
     private void setVerseListViewTextFont(Font verseFont) {
         try {
             settings.setVerseListViewFontSize(verseFont.getSize());
-            for (MarkTextFlow textFlow : verseListView.getItems()) {
+            for (BibleVerseTextFlow textFlow : verseListView.getItems()) {
                 for (Node node : textFlow.getChildren()) {
                     if (node instanceof final Text node1) {
                         node1.setFont(verseFont);
@@ -1148,8 +1156,12 @@ public class BibleController {
         try {
             verseListView.getItems().clear();
             if (selectedPart >= 0 && selectedBook >= 0) {
-                for (int i = 0; i < bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().size(); ++i) {
-                    final String s = (i + 1) + ".	" + bible.getBooks().get(selectedBook).getChapters().get(selectedPart).getVerses().get(i);
+                List<Book> books = bible.getBooks();
+                Book book = books.get(selectedBook);
+                List<BibleVerse> bibleVerses = book.getChapters().get(selectedPart).getVerses();
+                for (int i = 0; i < bibleVerses.size(); ++i) {
+                    BibleVerse bibleVerse = bibleVerses.get(i);
+                    final String s = (i + 1) + ".	" + bibleVerse.getText();
                     TextFlow textFlow = new TextFlow();
                     final Text text = new Text(s);
                     text.setFont(verseFont);
@@ -1157,8 +1169,8 @@ public class BibleController {
                     textFlow.getChildren().add(text);
                     textFlow.setTextAlignment(TextAlignment.LEFT);
                     textFlow.setPrefWidth(verseListView.getWidth() - verseRightMargin);
-                    MarkTextFlow markTextFlow = new MarkTextFlow(textFlow);
-                    verseListView.getItems().add(markTextFlow);
+                    BibleVerseTextFlow bibleVerseTextFlow = new BibleVerseTextFlow(textFlow, bibleVerse);
+                    verseListView.getItems().add(bibleVerseTextFlow);
                 }
             }
         } catch (Exception e) {
@@ -1190,11 +1202,13 @@ public class BibleController {
                         if (text3.isEmpty()) {
                             return;
                         }
-                        List<TextFlow> tmpSearchListView = new ArrayList<>();
+                        List<BibleVerseTextFlow> tmpSearchListView = new ArrayList<>();
                         final Chapter chapter = bible.getBooks().get(selectedBook).getChapters().get(selectedPart);
                         int found = 0;
-                        for (int i = 0; i < chapter.getVerses().size(); ++i) {
-                            String verse = chapter.getVerses().get(i).getText();
+                        List<BibleVerse> bibleVerses = chapter.getVerses();
+                        for (int i = 0; i < bibleVerses.size(); ++i) {
+                            BibleVerse bibleVerse = bibleVerses.get(i);
+                            String verse = bibleVerse.getText();
                             TextFlow textFlow = new TextFlow();
                             Text reference = new Text((i + 1) + ".	");
                             reference.setFont(verseFont);
@@ -1243,7 +1257,7 @@ public class BibleController {
                             }
                             textFlow.setTextAlignment(TextAlignment.LEFT);
                             textFlow.setPrefWidth(verseListView.getWidth() - verseRightMargin);
-                            tmpSearchListView.add(textFlow);
+                            tmpSearchListView.add(new BibleVerseTextFlow(textFlow, bibleVerse));
 //                    }
                         }
                         int finalFound = found;
@@ -1253,8 +1267,8 @@ public class BibleController {
                                 foundLabel.setText(found1 + ": " + finalFound);
                                 //TODO try not to clear
                                 verseListView.getItems().clear();
-                                for (TextFlow textFlow : tmpSearchListView) {
-                                    verseListView.getItems().add(new MarkTextFlow(textFlow));
+                                for (BibleVerseTextFlow textFlow : tmpSearchListView) {
+                                    verseListView.getItems().add(textFlow);
                                 }
                             } catch (Exception e) {
                                 LOG.error(e.getMessage(), e);
@@ -1304,6 +1318,7 @@ public class BibleController {
         lazyInitialize();
         BibleService bibleService = ServiceManager.getBibleService();
         List<Bible> bibles = bibleService.findAll();
+        bibleService.sort(bibles);
         bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
         if (bibles.size() == 0) {
             bibleListView.getItems().clear();
@@ -1516,7 +1531,7 @@ public class BibleController {
         }
     }
 
-    private void setSelection(ListCell<MarkTextFlow> cell) {
+    private void setSelection(ListCell<BibleVerseTextFlow> cell) {
         try {
             if (cell.isSelected()) {
                 verseListView.getSelectionModel().clearSelection(cell.getIndex());
@@ -1536,7 +1551,7 @@ public class BibleController {
         return partListView;
     }
 
-    ListView<MarkTextFlow> getVerseListView() {
+    ListView<BibleVerseTextFlow> getVerseListView() {
         return verseListView;
     }
 

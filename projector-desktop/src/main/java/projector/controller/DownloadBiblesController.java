@@ -53,6 +53,7 @@ public class DownloadBiblesController {
         bibleService = ServiceManager.getBibleService();
         bookService = ServiceManager.getBookService();
         bibles = bibleService.findAll();
+        bibleService.sort(bibles);
         int initialCapacity = bibles.size();
         checkBoxes = new ArrayList<>(initialCapacity);
         checkBoxHashMap = new HashMap<>(initialCapacity);
@@ -67,6 +68,7 @@ public class DownloadBiblesController {
                 noInternetMessage();
                 return;
             }
+            bibleService.sort(onlineBibles);
             HashMap<String, Bible> hashMap = new HashMap<>();
             for (Bible bible : bibles) {
                 String bibleUuid = bible.getUuid();

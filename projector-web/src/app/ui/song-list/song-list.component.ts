@@ -168,6 +168,7 @@ export class SongListComponent implements OnInit {
         }
         this.selectedLanguage = SongListComponent.getSelectedLanguageFromLocalStorage(languages);
         this.loadSongs();
+        this.getSearchData();
       }
     );
   }
@@ -338,8 +339,16 @@ export class SongListComponent implements OnInit {
 
   searchTermTyped() {
     const params: Params = Object.assign({}, this.activatedRoute.snapshot.queryParams);
-    params['search'] = this.songControl.value;
-    params['language'] = this.selectedLanguage.uuid;
+    const searchValue = this.songControl.value;
+    const SEARCH_PARAM = 'search';
+    const LANGUAGE_PARAM = 'language';
+    if (searchValue !== undefined && searchValue != "") {
+      params[SEARCH_PARAM] = searchValue;
+      params[LANGUAGE_PARAM] = this.selectedLanguage.uuid;
+    } else {
+      delete params[SEARCH_PARAM];
+      delete params[LANGUAGE_PARAM];
+    }
     this.router.navigate(['.'], { queryParams: params });
   }
 
@@ -386,6 +395,9 @@ export class SongListComponent implements OnInit {
         );
         break;
     }
+  }
+
+  private getSearchData() {
     this.activatedRoute.queryParams.subscribe((queryParams) => {
       let search = queryParams['search'];
       let language = queryParams['language'];
@@ -393,7 +405,7 @@ export class SongListComponent implements OnInit {
         if (l.uuid == language) {
           language = l;
           if (this.selectedLanguage != language) {
-            this.selectedLanguage = language;
+            this.selectedLanguage = l;
             this.selectLanguage(language);
           }
           break;

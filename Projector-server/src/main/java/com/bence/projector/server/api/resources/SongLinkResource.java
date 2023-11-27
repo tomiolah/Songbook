@@ -35,7 +35,6 @@ import javax.mail.internet.MimeMessage;
 import javax.servlet.http.HttpServletRequest;
 import java.io.StringWriter;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -76,8 +75,7 @@ public class SongLinkResource {
 
     @RequestMapping(value = "admin/api/songLinks/resolveApplied", method = RequestMethod.GET)
     public List<SongLinkDTO> resolveAppliedSongLinks() {
-        songLinkService.resolveAppliedSongLinks();
-        return songLinkAssembler.createDtoList(new ArrayList<>());
+        return songLinkAssembler.createDtoList(songLinkService.resolveAppliedSongLinks());
     }
 
     @RequestMapping(value = "admin/api/songLinks/language/{languageId}", method = RequestMethod.GET)
@@ -98,7 +96,7 @@ public class SongLinkResource {
     public SongLinkDTO songLink(@RequestBody final SongLinkDTO songLinkDTO, HttpServletRequest httpServletRequest) {
         saveStatistics(httpServletRequest, statisticsService);
         SongLink model = songLinkAssembler.createModel(songLinkDTO);
-        if (model != null && !model.alreadyTheSameVersionGroup(songService)) {
+        if (model != null && !model.alreadyTheSameVersionGroup(songRepository)) {
             SongLink songLink = songLinkService.save(model);
             Thread thread = new Thread(() -> {
                 try {
@@ -199,8 +197,8 @@ public class SongLinkResource {
             }
             helper.getMimeMessage().setContent("<div>\n" +
                     "    <h3>Új verzió összekötés: </h3>\n" +
-                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + songLink.getSong1(songService).getUuid() + "\">Link1</a>\n" +
-                    "<br><a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + songLink.getSong2(songService).getUuid() + "\">Link2</a>\n" +
+                    "    <a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + songLink.getSong1Uuid() + "\">Link1</a>\n" +
+                    "<br><a href=\"" + AppProperties.getInstance().baseUrl() + "/#/song/" + songLink.getSong2Uuid() + "\">Link2</a>\n" +
                     "  <h3>Email </h3><h4>" + createdByEmail + "</h4>" +
                     "</div>", "text/html;charset=utf-8");
         }
@@ -216,8 +214,8 @@ public class SongLinkResource {
         data.put("baseUrl", AppProperties.getInstance().baseUrl());
         data.put("id", songLink.getUuid());
         data.put("email", createdByEmail);
-        Song song1 = songLink.getSong1(songService);
-        Song song2 = songLink.getSong2(songService);
+        Song song1 = songLink.getSong1(songRepository);
+        Song song2 = songLink.getSong2(songRepository);
         data.put("song1Title", song1.getTitle());
         data.put("song2Title", song2.getTitle());
         data.put("song1", song1.getUuid());

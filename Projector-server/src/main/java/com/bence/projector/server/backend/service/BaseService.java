@@ -13,6 +13,8 @@ public interface BaseService<M extends BaseEntity> {
 
     void delete(List<Long> ids);
 
+    void deleteAll(List<M> models);
+
     M save(M model);
 
     Iterable<M> save(List<M> models);

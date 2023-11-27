@@ -55,6 +55,7 @@ public class MessageDialogController {
                 return;
             }
             Button confirmButton = new Button(resourceBundle.getString("Delete"));
+            confirmButton.setId("confirmButton");
             messageDialog.addButton(confirmButton);
             messageDialog.addCancelButton();
             confirmButton.setOnAction(event -> {

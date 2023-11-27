@@ -85,6 +85,7 @@ import projector.model.SongVerse;
 import projector.remote.SongReadRemoteListener;
 import projector.remote.SongRemoteListener;
 import projector.service.FavouriteSongService;
+import projector.service.LanguageService;
 import projector.service.ServiceException;
 import projector.service.ServiceManager;
 import projector.service.SongCollectionService;
@@ -108,6 +109,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
@@ -120,6 +122,7 @@ import java.util.TreeSet;
 
 import static com.bence.projector.common.converter.OpenLPXmlConverter.getXmlSongs;
 import static java.lang.Math.min;
+import static projector.application.SongVersTimes.getSongVersTimesFilePath;
 import static projector.controller.MessageDialogController.confirmDeletion;
 import static projector.utils.ColorUtil.getCollectionNameColor;
 import static projector.utils.ColorUtil.getSongTitleColor;
@@ -287,8 +290,7 @@ public class SongController {
         HashMap<String, Song> hashMap = new HashMap<>(songs.size());
         for (Song song : songs) {
             hashMap.put(song.getUuid(), song);
-            song.getSongCollections().clear();
-            song.getSongCollectionElements().clear();
+            song.clearSongCollectionLists();
         }
         setSongCollectionForSongsInHashMap(songCollections, hashMap);
     }
@@ -340,8 +342,8 @@ public class SongController {
 
     private static Comparator<Song> getSongComparatorByRelevanceOrder() {
         return (lhs, rhs) -> {
-            Integer scoreL = lhs.getScore();
-            Integer scoreR = rhs.getScore();
+            Long scoreL = lhs.getScore();
+            Long scoreR = rhs.getScore();
             if (scoreL.equals(scoreR)) {
                 return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
             }
@@ -504,6 +506,7 @@ public class SongController {
             selectedSongVerseList = selectedSong.getSongVersesByVerseOrder();
             MyTextFlow myTextFlow = new MyTextFlow();
             myTextFlow.setAutoHeight(true);
+            myTextFlow.disableStrokeFont();
             int width1;
             boolean aspectRatioCheckBoxSelected = aspectRatioCheckBox.isSelected();
             if (height < 10) {
@@ -535,6 +538,7 @@ public class SongController {
             for (SongVerse songVerse : selectedSongVerseList) {
                 myTextFlow = new MyTextFlow();
                 myTextFlow.setAutoHeight(true);
+                myTextFlow.disableStrokeFont();
                 aspectRatioCheckBoxSelected = aspectRatioCheckBox.isSelected();
                 if (aspectRatioCheckBoxSelected) {
                     width1 = (size * width - 30) / height;
@@ -554,6 +558,7 @@ public class SongController {
             }
             myTextFlow = new MyTextFlow();
             myTextFlow.setAutoHeight(true);
+            myTextFlow.disableStrokeFont();
             myTextFlow.setText2("", 100, size / 3);
             myTextFlow.setPrefHeight(100);
             myTextFlow.setBackGroundColor();
@@ -613,15 +618,18 @@ public class SongController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            songListView.setOnKeyPressed(event -> {
+            songListView.addEventFilter(KeyEvent.KEY_PRESSED, event -> {
                 try {
                     KeyCode keyCode = event.getCode();
                     if (keyCode == KeyCode.DOWN) {
-                        selectNextSongFromScheduleIfLastIndex();
+                        if (selectNextSongFromScheduleIfLastIndex()) {
+                            event.consume();
+                            return;
+                        }
                     }
                     if (keyCode == KeyCode.DOWN || keyCode == KeyCode.UP || keyCode == KeyCode.HOME || keyCode == KeyCode.END || keyCode == KeyCode.PAGE_DOWN || keyCode == KeyCode.PAGE_UP) {
                         double x = System.currentTimeMillis() - timeStart;
-                        if (x < 700) {
+                        if (x < 70) {
                             event.consume();
                             return;
                         }
@@ -643,193 +651,205 @@ public class SongController {
                     LOG.error(e.getMessage(), e);
                 }
             });
-            songSelectedItems = songListView.getSelectionModel().getSelectedItems();
-            songListView.getSelectionModel().getSelectedIndices().addListener((ListChangeListener<Integer>) c -> {
-                try {
-                    ObservableList<Integer> ob = songListView.getSelectionModel().getSelectedIndices();
-                    synchronizedSelectVerseOrderListView(ob);
-                    if (ob.size() == 1) {
-                        int selectedIndex = ob.get(0);
-                        if (selectedIndex < 0) {
-                            return;
-                        }
-                        if ((settings.isShareOnNetwork() || settings.isAllowRemote()) && projectionTextChangeListeners != null) {
-                            try {
-                                String secondText = getSecondText(selectedIndex - 1);
-                                for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
-                                    projectionTextChangeListener.onSetText(secondText, ProjectionType.SONG, null);
-                                }
-                            } catch (Exception e) {
-                                LOG.error(e.getMessage(), e);
-                            }
-                        }
-                        if (timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
-                            double x = System.currentTimeMillis() - timeStart;
-                            x /= 1000;
-                            activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
-                        }
-                        MyTextFlow myTextFlow = songListViewItems.get(selectedIndex);
-                        String text = myTextFlow.getRawText();
-                        text = getWithSecondText(myTextFlow, text);
-                        projectionScreenController.setText2(text, ProjectionType.SONG);
-                        previousSelectedVerseIndex = selectedIndex;
-                        if (selectedIndex + 1 == songListViewItems.size()) {
-                            projectionScreenController.progressLineSetVisible(false);
-                            projectionScreenController.setLineSize(0);
-                        } else {
-                            projectionScreenController.setLineSize((double) selectedIndex / (songListViewItems.size() - 2));
-                        }
-                    } else if (ob.size() > 1) {
-                        StringBuilder tmpTextBuffer = new StringBuilder();
-                        tmpTextBuffer.append(songListViewItems.get(ob.get(0)).getRawText());
-                        int lastIndex = 0;
-                        for (int i = 1; i < ob.size(); ++i) {
-                            Integer index = ob.get(i);
-                            if (index != songListViewItems.size() - 1) {
-                                tmpTextBuffer.append("\n").append(songListViewItems.get(index).getRawText());
-                                if (lastIndex < index) {
-                                    lastIndex = index;
-                                }
-                            }
-                        }
-                        projectionScreenController.setLineSize((double) lastIndex / (songListViewItems.size() - 2));
-                        projectionScreenController.setText2(tmpTextBuffer.toString(), ProjectionType.SONG);
-                    }
-                    if (recentController != null && !recentController.getLastItemText().equals(activeSongVerseTime.getSongTitle()) && ob.size() > 0) {
-                        recentController.addRecentSong(activeSongVerseTime.getSongTitle(), ProjectionType.SONG);
-                    }
-                    timeStart = System.currentTimeMillis();
-                    if (previousLineThread == null) {
-                        Thread thread = new Thread() {
-
-                            @Override
-                            synchronized public void run() {
-                                try {
-                                    double x;
-                                    //noinspection InfiniteLoopStatement
-                                    do {
-                                        if (!isBlank && timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
-                                            x = System.currentTimeMillis() - timeStart;
-                                            x /= 1000;
-                                            double sum = 0.0;
-                                            for (int i : songListView.getSelectionModel().getSelectedIndices()) {
-                                                if (times.length > i && i >= 0) {
-                                                    sum += times[i];
-                                                }
-                                            }
-                                            double z = 1.0 - minOpacity;
-                                            final double v = z * x / sum;
-                                            for (MyTextFlow songListViewItem : songSelectedItems) {
-                                                double opacity = minOpacity + v;
-                                                if (opacity > 1) {
-                                                    opacity = 1;
-                                                }
-                                                songListViewItem.setOpacity(opacity);
-                                            }
-                                        }
-                                        wait(39);
-                                    } while (true);
-                                } catch (InterruptedException ignored) {
-                                } catch (Exception e) {
-                                    LOG.error(e.getMessage(), e);
-                                    try {
-                                        //noinspection CallToThreadRun
-                                        run();
-                                    } catch (Exception e2) {
-                                        LOG.error(e2.getMessage(), e2);
-                                    }
-                                }
-                            }
-                        };
-                        thread.start();
-                        previousLineThread = thread;
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            songListView.setOnMouseClicked(event -> {
-                try {
-                    if (event.getClickCount() == 2) {
-                        slideReSelect();
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            songCollectionListView.orientationProperty().set(Orientation.HORIZONTAL);
-            songCollectionListView.setCellFactory(param -> new ListCell<>() {
-                @Override
-                protected void updateItem(SongCollection item, boolean empty) {
-                    try {
-                        super.updateItem(item, empty);
-                        if (empty || item == null || item.getName() == null) {
-                            setText(null);
-                        } else {
-                            setText(item.getName());
-                        }
-                    } catch (Exception e) {
-                        LOG.error(e.getMessage(), e);
-                    }
-                }
-            });
-            songCollectionListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-                try {
-                    if (newValue != null) {
-                        selectedSongCollection = newValue;
-                        if (pauseSortOrFilter) {
-                            return;
-                        }
-                        sortSongs(selectedSongCollection.getSongs());
-                        switch (lastSearching) {
-                            case IN_SONG -> search(lastSearchText);
-                            case IN_TITLE -> titleSearch(lastSearchText);
-                            case IN_TITLE_START_WITH -> titleSearchStartWith(lastSearchText);
-                        }
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            Settings settings = Settings.getInstance();
-            SplitPane.setResizableWithParent(leftBorderPane, false);
-            horizontalSplitPane.getDividers().get(0).setPosition(settings.getSongTabHorizontalSplitPaneDividerPosition());
-            verticalSplitPane.setDividerPositions(settings.getSongTabVerticalSplitPaneDividerPosition());
-            songHeightSlider.setValue(settings.getSongHeightSliderValue());
-            songHeightSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
-                try {
-                    final int size = newValue.intValue();
-                    resizeSongList(size);
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            aspectRatioCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
-                try {
-                    final int size = (int) songHeightSlider.getValue();
-                    resizeSongList(size);
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            initializeNextButton();
-            initializeProgressLineButton();
-            initializeDownloadButton();
-            initializeUploadButton();
-            initializeVerseTextField();
-            initializeSortComboBox();
-            initializeLanguageComboBox();
-            exportButton.setOnAction(event -> exportButtonOnAction());
-            importButton.setOnAction(event -> importButtonOnAction());
-            initializeShowVersionsButton();
-            initializeDragListeners();
-            initializeSongs();
-            initializeVerseOrderList();
-            hideOpenLPImportButton();
-            initializeStarButton();
+            songListViewInitialization(songListViewItems);
+            initializationEnd();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void songListViewInitialization(ObservableList<MyTextFlow> songListViewItems) {
+        songSelectedItems = songListView.getSelectionModel().getSelectedItems();
+        songListView.getSelectionModel().getSelectedIndices().addListener((ListChangeListener<Integer>) c -> {
+            try {
+                ObservableList<Integer> ob = songListView.getSelectionModel().getSelectedIndices();
+                synchronizedSelectVerseOrderListView(ob);
+                if (ob.size() == 1) {
+                    int selectedIndex = ob.get(0);
+                    if (selectedIndex < 0) {
+                        return;
+                    }
+                    if ((settings.isShareOnNetwork() || settings.isAllowRemote()) && projectionTextChangeListeners != null && !projectionScreenController.isLock()) {
+                        try {
+                            String secondText = getSecondText(selectedIndex - 1);
+                            for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
+                                projectionTextChangeListener.onSetText(secondText, ProjectionType.SONG, null);
+                            }
+                        } catch (Exception e) {
+                            LOG.error(e.getMessage(), e);
+                        }
+                    }
+                    if (timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
+                        double x = System.currentTimeMillis() - timeStart;
+                        x /= 1000;
+                        activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
+                    }
+                    MyTextFlow myTextFlow = songListViewItems.get(selectedIndex);
+                    String text = myTextFlow.getRawText();
+                    text = getWithSecondText(myTextFlow, text);
+                    projectionScreenController.setText2(text, ProjectionType.SONG);
+                    previousSelectedVerseIndex = selectedIndex;
+                    if (selectedIndex + 1 == songListViewItems.size()) {
+                        projectionScreenController.progressLineSetVisible(false);
+                        projectionScreenController.setLineSize(0);
+                    } else {
+                        projectionScreenController.setLineSize((double) selectedIndex / (songListViewItems.size() - 2));
+                    }
+                } else if (ob.size() > 1) {
+                    StringBuilder tmpTextBuffer = new StringBuilder();
+                    tmpTextBuffer.append(songListViewItems.get(ob.get(0)).getRawText());
+                    int lastIndex = 0;
+                    for (int i = 1; i < ob.size(); ++i) {
+                        Integer index = ob.get(i);
+                        if (index != songListViewItems.size() - 1) {
+                            tmpTextBuffer.append("\n").append(songListViewItems.get(index).getRawText());
+                            if (lastIndex < index) {
+                                lastIndex = index;
+                            }
+                        }
+                    }
+                    projectionScreenController.setLineSize((double) lastIndex / (songListViewItems.size() - 2));
+                    projectionScreenController.setText2(tmpTextBuffer.toString(), ProjectionType.SONG);
+                }
+                if (recentController != null && !recentController.getLastItemText().equals(activeSongVerseTime.getSongTitle()) && ob.size() > 0) {
+                    recentController.addRecentSong(activeSongVerseTime.getSongTitle(), ProjectionType.SONG);
+                }
+                opacityForSongVerse();
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+    }
+
+    private void opacityForSongVerse() {
+        timeStart = System.currentTimeMillis();
+        if (previousLineThread == null) {
+            Thread thread = new Thread() {
+
+                @Override
+                synchronized public void run() {
+                    try {
+                        double x;
+                        //noinspection InfiniteLoopStatement
+                        do {
+                            if (!isBlank && timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
+                                x = System.currentTimeMillis() - timeStart;
+                                x /= 1000;
+                                double sum = 0.0;
+                                for (int i : songListView.getSelectionModel().getSelectedIndices()) {
+                                    if (times.length > i && i >= 0) {
+                                        sum += times[i];
+                                    }
+                                }
+                                double z = 1.0 - minOpacity;
+                                final double v = z * x / sum;
+                                for (MyTextFlow songListViewItem : songSelectedItems) {
+                                    double opacity = minOpacity + v;
+                                    if (opacity > 1) {
+                                        opacity = 1;
+                                    }
+                                    songListViewItem.setOpacity(opacity);
+                                }
+                            }
+                            wait(39);
+                        } while (true);
+                    } catch (InterruptedException ignored) {
+                    } catch (Exception e) {
+                        LOG.error(e.getMessage(), e);
+                        try {
+                            //noinspection CallToThreadRun
+                            run();
+                        } catch (Exception e2) {
+                            LOG.error(e2.getMessage(), e2);
+                        }
+                    }
+                }
+            };
+            thread.start();
+            previousLineThread = thread;
+        }
+    }
+
+    private void initializationEnd() {
+        songListView.setOnMouseClicked(event -> {
+            try {
+                if (event.getClickCount() == 2) {
+                    slideReSelect();
+                }
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        songCollectionListView.orientationProperty().set(Orientation.HORIZONTAL);
+        songCollectionListView.setCellFactory(param -> new ListCell<>() {
+            @Override
+            protected void updateItem(SongCollection item, boolean empty) {
+                try {
+                    super.updateItem(item, empty);
+                    if (empty || item == null || item.getName() == null) {
+                        setText(null);
+                    } else {
+                        setText(item.getName());
+                    }
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
+            }
+        });
+        songCollectionListView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            try {
+                if (newValue != null) {
+                    selectedSongCollection = newValue;
+                    if (pauseSortOrFilter) {
+                        return;
+                    }
+                    sortSongs(selectedSongCollection.getSongs());
+                    switch (lastSearching) {
+                        case IN_SONG -> search(lastSearchText);
+                        case IN_TITLE -> titleSearch(lastSearchText);
+                        case IN_TITLE_START_WITH -> titleSearchStartWith(lastSearchText);
+                    }
+                }
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        Settings settings = Settings.getInstance();
+        SplitPane.setResizableWithParent(leftBorderPane, false);
+        horizontalSplitPane.getDividers().get(0).setPosition(settings.getSongTabHorizontalSplitPaneDividerPosition());
+        verticalSplitPane.setDividerPositions(settings.getSongTabVerticalSplitPaneDividerPosition());
+        songHeightSlider.setValue(settings.getSongHeightSliderValue());
+        songHeightSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            try {
+                final int size = newValue.intValue();
+                resizeSongList(size);
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        aspectRatioCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            try {
+                final int size = (int) songHeightSlider.getValue();
+                resizeSongList(size);
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        initializeNextButton();
+        initializeProgressLineButton();
+        initializeDownloadButton();
+        initializeUploadButton();
+        initializeVerseTextField();
+        initializeSortComboBox();
+        initializeLanguageComboBox();
+        exportButton.setOnAction(event -> exportButtonOnAction());
+        importButton.setOnAction(event -> importButtonOnAction());
+        initializeShowVersionsButton();
+        initializeDragListeners();
+        initializeSongs();
+        initializeVerseOrderList();
+        hideOpenLPImportButton();
+        initializeStarButton();
     }
 
     private void checkForFavouriteInVersionGroup(List<Song> versionGroupSongs, Song selectedSong) {
@@ -1278,11 +1298,13 @@ public class SongController {
         });
     }
 
-    public void selectNextSongFromScheduleIfLastIndex() {
+    public boolean selectNextSongFromScheduleIfLastIndex() {
         if (songListView.getSelectionModel().getSelectedIndex() == songListView.getItems().size() - 1) {
             int nextIndex = scheduleController.getSelectedIndex() + 1;
             scheduleListView.getSelectionModel().select(nextIndex);
+            return true;
         }
+        return false;
     }
 
     private String getColorizedStringByLastSearchedText(String text) {
@@ -1353,7 +1375,9 @@ public class SongController {
 
     public void initializeLanguageComboBox() {
         try {
-            List<Language> languages = ServiceManager.getLanguageService().findAll();
+            LanguageService languageService = ServiceManager.getLanguageService();
+            List<Language> languages = languageService.findAll();
+            languageService.setSongsSize(languages);
             if (countSelectedLanguages(languages) < 2) {
                 languageComboBox.setVisible(false);
                 languageComboBox.setManaged(false);
@@ -1361,10 +1385,10 @@ public class SongController {
                 languageComboBox.setVisible(true);
                 languageComboBox.setManaged(true);
             }
-            languages.sort((o1, o2) -> Integer.compare(o2.getSongs().size(), o1.getSongs().size()));
+            languages.sort((o1, o2) -> Long.compare(o2.getSongsSize(songService), o1.getSongsSize(songService)));
             languageComboBox.getItems().clear();
             for (Language language : languages) {
-                if (!language.getSongs().isEmpty()) {
+                if (language.getCountedSongsSize() > 0) {
                     languageComboBox.getItems().add(language);
                 } else {
                     break;
@@ -1474,8 +1498,9 @@ public class SongController {
 
     private int countSelectedLanguages(List<Language> languages) {
         int count = 0;
+        SongService songService = ServiceManager.getSongService();
         for (Language language : languages) {
-            if (!language.getSongs().isEmpty()) {
+            if (language.getSongsSize(songService) > 0) {
                 ++count;
             }
         }
@@ -1609,7 +1634,7 @@ public class SongController {
             try (FileOutputStream stream = new FileOutputStream("data/songs.version"); BufferedWriter br = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
                 br.write("1\n");
             } catch (IOException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         }
     }
@@ -1629,7 +1654,7 @@ public class SongController {
             }
             return 0;
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
         return 0;
     }
@@ -1801,10 +1826,10 @@ public class SongController {
                             String line = "";
                             Song song = songs.get(i);
                             for (SongCollectionElement songCollectionElement : song.getSongCollectionElements()) {
-                                if (songCollectionElement.getOrdinalNumber().contains(firstWord) && !(remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
+                                if (songCollectionElement.getOrdinalNumberLowerCase().contains(firstWord) && !(remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
                                     System.out.println("remainingText = " + remainingText);
                                 }
-                                if (songCollectionElement.getOrdinalNumber().contains(firstWord) && (remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
+                                if (songCollectionElement.getOrdinalNumberLowerCase().contains(firstWord) && (remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText))) {
                                     contains = true;
                                 }
                             }
@@ -1917,7 +1942,8 @@ public class SongController {
             text = text.trim();
             lastSearching = LastSearching.IN_TITLE;
             lastSearchText = text;
-            searchedSongListView.getItems().clear();
+            ObservableList<SearchedSong> searchedSongListViewItems = searchedSongListView.getItems();
+            searchedSongListViewItems.clear();
             String[] split = text.split(" ");
             String firstWord = split[0];
             String ordinalNumber = firstWord;
@@ -1951,7 +1977,7 @@ public class SongController {
                 boolean contains = false;
                 for (SongCollectionElement songCollectionElement : song.getSongCollectionElements()) {
                     boolean containsInCollectionName = isContainsInCollectionName(collectionName, songCollectionElement) || collectionName.isEmpty();
-                    String number = songCollectionElement.getOrdinalNumber();
+                    String number = songCollectionElement.getOrdinalNumberLowerCase();
                     boolean equals = number.equals(ordinalNumber) && !number.isEmpty();
                     boolean contains2 = number.contains(ordinalNumber) || ordinalNumberInt == songCollectionElement.getOrdinalNumberInt();
                     boolean b = remainingText.isEmpty() || song.getStrippedTitle().contains(remainingText);
@@ -1965,14 +1991,18 @@ public class SongController {
                 }
                 if (contains || contains(song.getStrippedTitle(), text)) {
                     SearchedSong searchedSong = new SearchedSong(song);
-                    searchedSongListView.getItems().add(searchedSong);
+                    searchedSongListViewItems.add(searchedSong);
                 }
             }
             if (wasOrdinalNumber) {
                 String finalCollectionName = collectionName;
                 String finalOrdinalNumber = ordinalNumber;
                 int finalOrdinalNumberInt = ordinalNumberInt;
-                searchedSongListView.getItems().sort((l, r) -> {
+                sortSongCollectionElementsForSongs(ordinalNumber, collectionName, ordinalNumberInt, searchedSongListViewItems);
+                if (Thread.interrupted()) {
+                    return;
+                }
+                searchedSongListViewItems.sort((l, r) -> {
                     List<SongCollectionElement> lSongCollectionElements = l.getSong().getSongCollectionElements();
                     List<SongCollectionElement> rSongCollectionElements = r.getSong().getSongCollectionElements();
                     return compareSongCollectionElementsFirstByOrdinalNumber(lSongCollectionElements, rSongCollectionElements, finalCollectionName, finalOrdinalNumber, finalOrdinalNumberInt);
@@ -1980,10 +2010,26 @@ public class SongController {
             }
             selectIfJustOne();
             if (songRemoteListener != null) {
-                songRemoteListener.onSongListViewChanged(searchedSongListView.getItems());
+                songRemoteListener.onSongListViewChanged(searchedSongListViewItems);
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void sortSongCollectionElementsForSongs(String ordinalNumber, String collectionName, int ordinalNumberInt, ObservableList<SearchedSong> tempSongList) {
+        Comparator<SongCollectionElement> sortBySongCollection = getSongCollectionElementComparator(collectionName, ordinalNumber, ordinalNumberInt);
+        for (SearchedSong searchedSong : tempSongList) {
+            Song song = searchedSong.getSong();
+            List<SongCollectionElement> songCollectionElements = song.getSongCollectionElements();
+            if (songCollectionElements.size() > 1) {
+                List<SongCollectionElement> synchronizedList = Collections.synchronizedList(songCollectionElements);
+                synchronizedList.sort(sortBySongCollection);
+                song.setSongCollectionElements(synchronizedList);
+                if (Thread.interrupted()) {
+                    return;
+                }
+            }
         }
     }
 
@@ -2137,7 +2183,11 @@ public class SongController {
                 return -1;
             }
         }
-        Comparator<SongCollectionElement> sortBySongCollection = (songCollectionElement1, songCollectionElement2) -> {
+        return compareSongCollectionElementsFirstByOrdinalNumberEnd(lSongCollectionElements, rSongCollectionElements, collectionName, ordinalNumber, ordinalNumberInt, lSize, rSize);
+    }
+
+    private Comparator<SongCollectionElement> getSongCollectionElementComparator(String collectionName, String ordinalNumber, int ordinalNumberInt) {
+        return (songCollectionElement1, songCollectionElement2) -> {
             boolean containsInCollection1 = isContainsInCollectionName(collectionName, songCollectionElement1);
             boolean containsInCollection2 = isContainsInCollectionName(collectionName, songCollectionElement2);
             if (containsInCollection1 == containsInCollection2) {
@@ -2148,8 +2198,9 @@ public class SongController {
                 return 1;
             }
         };
-        lSongCollectionElements.sort(sortBySongCollection);
-        rSongCollectionElements.sort(sortBySongCollection);
+    }
+
+    private int compareSongCollectionElementsFirstByOrdinalNumberEnd(List<SongCollectionElement> lSongCollectionElements, List<SongCollectionElement> rSongCollectionElements, String collectionName, String ordinalNumber, int ordinalNumberInt, int lSize, int rSize) {
         int minSize = min(lSize, rSize);
         for (int i = 0; i < minSize; ++i) {
             SongCollectionElement lSongCollectionElement = lSongCollectionElements.get(i);
@@ -2175,8 +2226,8 @@ public class SongController {
     }
 
     private int compareSongCollectionElementByMatch(SongCollectionElement songCollectionElement1, SongCollectionElement songCollectionElement2, String ordinalNumber, int ordinalNumberInt) {
-        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumber().equals(ordinalNumber);
-        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumber().equals(ordinalNumber);
+        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumberLowerCase().equals(ordinalNumber);
+        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumberLowerCase().equals(ordinalNumber);
         if (ordinalNumberMatch1 == ordinalNumberMatch2) {
             if (ordinalNumberMatch1) {
                 return 0;
@@ -2194,8 +2245,8 @@ public class SongController {
     }
 
     private int compareSongCollectionElementByPartialMatch(SongCollectionElement songCollectionElement1, SongCollectionElement songCollectionElement2, String ordinalNumber) {
-        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumber().contains(ordinalNumber);
-        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumber().contains(ordinalNumber);
+        boolean ordinalNumberMatch1 = songCollectionElement1.getOrdinalNumberLowerCase().contains(ordinalNumber);
+        boolean ordinalNumberMatch2 = songCollectionElement2.getOrdinalNumberLowerCase().contains(ordinalNumber);
         if (ordinalNumberMatch1 == ordinalNumberMatch2) {
             if (ordinalNumberMatch1) {
                 return Integer.compare(songCollectionElement1.getOrdinalNumberInt(), songCollectionElement2.getOrdinalNumberInt());
@@ -2512,7 +2563,8 @@ public class SongController {
     private void addSongCollections_() {
         ObservableList<SongCollection> items = songCollectionListView.getItems();
         items.clear();
-        SongCollection allSongCollections = new SongCollection(Settings.getInstance().getResourceBundle().getString("All"));
+        String all = Settings.getInstance().getResourceBundle().getString("All");
+        SongCollection allSongCollections = new SongCollection(all);
         allSongCollections.setSongs(songs);
         selectedSongCollection = allSongCollections;
         items.add(allSongCollections);
@@ -2522,10 +2574,13 @@ public class SongController {
             List<SongCollection> songCollections = songCollectionService.findAll();
             Date date2 = new Date();
             System.out.println(date2.getTime() - date.getTime());
+            ServiceManager.getSongCollectionElementService().findSongsSize(songCollections);
             songCollections.sort((l, r) -> {
-                if (l.getSongs().size() < r.getSongs().size()) {
+                long lSongsSize = l.getSongsSize();
+                long rSongsSize = r.getSongsSize();
+                if (lSongsSize < rSongsSize) {
                     return 1;
-                } else if (l.getSongs().size() > r.getSongs().size()) {
+                } else if (lSongsSize > rSongsSize) {
                     return -1;
                 }
                 return 0;
@@ -2697,7 +2752,7 @@ public class SongController {
             return;
         }
         try {
-            FileOutputStream fileOutputStream = new FileOutputStream("songVersTimes", true);
+            FileOutputStream fileOutputStream = new FileOutputStream(getSongVersTimesFilePath(), true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
             Date date = new Date();
             boolean wasSong = false;
@@ -3101,5 +3156,10 @@ public class SongController {
             }
         }
         return null;
+    }
+
+    public void onSignInUpdated(boolean signedIn) {
+        uploadButton.setManaged(signedIn);
+        uploadButton.setVisible(signedIn);
     }
 }

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.Expose;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.utils.AppProperties;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -19,7 +20,7 @@ import static projector.controller.util.FileUtil.getGson;
 public class ApplicationVersion {
     private static final Logger LOG = LoggerFactory.getLogger(ApplicationVersion.class);
     private static ApplicationVersion instance;
-    private final String filePath = "application.version";
+    private final String filePath = AppProperties.getInstance().getWorkDirectory() + "application.version";
     @Expose
     private int version;
     private boolean testing;

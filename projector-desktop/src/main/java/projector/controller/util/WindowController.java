@@ -93,8 +93,8 @@ public class WindowController {
             windowController.root = root;
             windowController.setup(stage, scene);
             return windowController;
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException e) {
+            LOG.error(e.getMessage(), e);
         }
         return null;
     }
@@ -172,7 +172,7 @@ public class WindowController {
             } else {
                 s = "maximize";
             }
-            InputStream resourceAsStream = getClass().getResourceAsStream("../../../icons/" + s + ".png");
+            InputStream resourceAsStream = getClass().getResourceAsStream("/icons/" + s + ".png");
             if (resourceAsStream != null) {
                 Image image = new Image(resourceAsStream);
                 imageView.setImage(image);
@@ -303,7 +303,8 @@ public class WindowController {
         loginService.checkSignIn();
         LoggedInUser loggedInUser = loginService.getLoggedInUser();
         String text;
-        if (loggedInUser != null) {
+        boolean signedIn = loggedInUser != null;
+        if (signedIn) {
             text = loggedInUser.getSurname() + " " + loggedInUser.getFirstName();
             if (text.trim().isEmpty()) {
                 text = "Account";
@@ -314,6 +315,7 @@ public class WindowController {
         }
         String finalText = text;
         Platform.runLater(() -> signInButton.setText(finalText));
+        MyController.getInstance().getSongController().onSignInUpdated(signedIn);
     }
 
     private void clearUserData() {

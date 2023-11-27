@@ -8,6 +8,9 @@ import javafx.scene.control.ButtonType;
 import javafx.stage.DirectoryChooser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.config.Log4j2Config;
+import projector.repository.ormLite.DatabaseHelper;
+import projector.utils.AppProperties;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static projector.application.Settings.getSettingFilePath;
+import static projector.application.SongVersTimes.getSongVersTimesFilePath;
+import static projector.controller.RecentController.getRecentFilePath;
 import static projector.utils.AlertUtil.getAppAlert;
 
 public class FirstSetupController {
@@ -59,13 +65,14 @@ public class FirstSetupController {
             }
             System.out.println(file.getAbsolutePath());
             List<WantedFile> wantedFiles = new ArrayList<>();
-            addWantedFile(wantedFiles, "data/projector.mv.db");
-            addWantedFile(wantedFiles, "data/projector.trace.db");
-            addWantedFile(wantedFiles, "data/database.version");
-            addWantedFile(wantedFiles, "settings.ini");
-            addWantedFile(wantedFiles, "recent.txt");
-            addWantedFile(wantedFiles, "projector.log");
-            addWantedFile(wantedFiles, "songVersTimes");
+            String databaseFolder = AppProperties.getInstance().getDatabaseFolder();
+            addWantedFile(wantedFiles, databaseFolder + "/projector.mv.db");
+            addWantedFile(wantedFiles, databaseFolder + "/projector.trace.db");
+            addWantedFile(wantedFiles, DatabaseHelper.getInstance().getDataBaseVersionPath());
+            addWantedFile(wantedFiles, getSettingFilePath());
+            addWantedFile(wantedFiles, getRecentFilePath());
+            addWantedFile(wantedFiles, Log4j2Config.getInstance().getLogFilePath());
+            addWantedFile(wantedFiles, getSongVersTimesFilePath());
             tryToFindWantedFiles(wantedFiles, file.getAbsolutePath());
         } finally {
             enableButtons();
@@ -126,7 +133,8 @@ public class FirstSetupController {
             toPath = replaceDirectorySeparator(toPath);
             String command = "cmd /c copy /Y " + fromPath + " " + toPath;
             try {
-                Process process = Runtime.getRuntime().exec(command);
+                ProcessBuilder processBuilder = new ProcessBuilder(command);
+                Process process = processBuilder.start();
                 int result = process.waitFor();
                 wantedFile.setCopiedSuccessFully(result == 0);
             } catch (IOException | InterruptedException e) {

@@ -1,7 +1,7 @@
 [Setup]
 AppName=Projector
 AppId=Projector_3
-AppVersion=3.2.5
+AppVersion=3.3.1
 AppVerName=Projector
 AppPublisher=SongPraise.com
 AppPublisherURL=http://www.songpraise.com/#/desktop-app
@@ -35,9 +35,9 @@ Source: ".\build\jpackage\Projector\app\javafx-fxml-19-win.jar"; DestDir: "{app}
 Source: ".\build\jpackage\Projector\app\javafx-graphics-19-win.jar"; DestDir: "{app}\app"
 Source: ".\build\jpackage\Projector\app\javafx-graphics-19.jar"; DestDir: "{app}\app"
 Source: ".\build\jpackage\Projector\app\jnativehook-2.1.0.jar"; DestDir: "{app}\app"
-Source: ".\build\jpackage\Projector\app\log4j-api-2.9.0.jar"; DestDir: "{app}\app"
-Source: ".\build\jpackage\Projector\app\log4j-core-2.9.0.jar"; DestDir: "{app}\app"
-Source: ".\build\jpackage\Projector\app\log4j-slf4j-impl-2.9.0.jar"; DestDir: "{app}\app"
+Source: ".\build\jpackage\Projector\app\log4j-api-2.20.0.jar"; DestDir: "{app}\app"
+Source: ".\build\jpackage\Projector\app\log4j-core-2.20.0.jar"; DestDir: "{app}\app"
+Source: ".\build\jpackage\Projector\app\log4j-slf4j-impl-2.20.0.jar"; DestDir: "{app}\app"
 Source: ".\build\jpackage\Projector\app\logging-interceptor-3.8.0.jar"; DestDir: "{app}\app"
 Source: ".\build\jpackage\Projector\app\okhttp-3.8.0.jar"; DestDir: "{app}\app"
 Source: ".\build\jpackage\Projector\app\okio-1.13.0.jar"; DestDir: "{app}\app"

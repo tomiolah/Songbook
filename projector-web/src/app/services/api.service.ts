@@ -58,7 +58,11 @@ export class ApiService {
     return this.http
       .get(api_url + id)
       .map(response => {
-        return new c(response.json());
+        const asJson = response.json();
+        if (asJson == "") {
+          return null;
+        }
+        return new c(asJson);
       })
       .catch(ApiService.handleError);
   }

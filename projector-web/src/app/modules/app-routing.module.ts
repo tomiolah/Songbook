@@ -23,8 +23,10 @@ import { VersionLinkComponent } from '../ui/version-link/version-link.component'
 import { ActivateComponent } from '../ui/activate/activate.component';
 import { NewSongCollectionComponent } from '../ui/new-song-collection/new-song-collection.component';
 import { AccountComponent } from '../ui/account/account.component';
+import { YoutubeVideoCheckerComponent } from '../ui/youtube-video-checker/youtube-video-checker.component';
 
 export const appRoutes: Routes = [
+  // Hint: use unique parameter identifier name
   {
     path: 'login',
     component: LoginComponent
@@ -34,7 +36,7 @@ export const appRoutes: Routes = [
     component: LoginComponent
   },
   {
-    path: 'song/:id',
+    path: 'song/:songId',
     component: SongComponent
   },
   {
@@ -55,7 +57,7 @@ export const appRoutes: Routes = [
   { path: 'admin/reviewer-statistics/:userId', component: ReviewerStatisticsComponent },
   { path: 'suggestions', component: SuggestionListComponent },
   { path: 'versionLinks', component: VersionLinkListComponent },
-  { path: 'songLink/:id', component: VersionLinkComponent },
+  { path: 'songLink/:songLinkId', component: VersionLinkComponent },
   { path: 'songs', component: SongListComponent },
   { path: '', redirectTo: 'songs', pathMatch: 'full' },
   { path: 'registration', component: UserRegisterComponent },
@@ -63,6 +65,7 @@ export const appRoutes: Routes = [
   { path: 'activate', component: ActivateComponent },
   { path: 'user/notifications', component: NotificationSettingsComponent },
   { path: 'desktop-app', component: ProjectorComponent },
+  { path: 'admin/YouTube-Video-Checker', component: YoutubeVideoCheckerComponent },
   { path: 'forgottenPassword', component: ForgottenPasswordComponent },
   { path: 'changePasswordByToken', component: ChangePasswordByTokenComponent },
   { path: 'account', component: AccountComponent },

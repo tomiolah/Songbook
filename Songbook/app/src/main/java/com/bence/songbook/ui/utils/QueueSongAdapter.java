@@ -1,11 +1,12 @@
 package com.bence.songbook.ui.utils;
 
+import static com.bence.songbook.ui.activity.MainActivity.getOrdinalNumberText;
+import static com.bence.songbook.ui.utils.SongListElementAdapter.getImageViewGrabOnTouchListener;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.os.Build;
-import androidx.annotation.NonNull;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -13,11 +14,12 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
-import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.ui.activity.MainActivity;
 
 import java.util.HashMap;
@@ -69,31 +71,14 @@ public class QueueSongAdapter extends ArrayAdapter<QueueSong> {
         final LinearLayout row = view.findViewById(R.id.lytPattern);
 
         TextView ordinalNumberTextView = view.findViewById(R.id.ordinalNumberTextView);
-        SongCollection songCollection = song.getSongCollection();
-        if (songCollection != null) {
-            String collectionName = songCollection.getName();
-            if (shortCollectionName) {
-                collectionName = songCollection.getShortName();
-            }
-            String text = collectionName + " " + song.getSongCollectionElement().getOrdinalNumber();
-            ordinalNumberTextView.setText(text);
-        } else {
-            ordinalNumberTextView.setText("");
-        }
+        ordinalNumberTextView.setText(getOrdinalNumberText(song, shortCollectionName));
         TextView titleTextView = view.findViewById(R.id.titleTextView);
         titleTextView.setText(song.getTitle());
         ImageView imageView = view.findViewById(R.id.starImageView);
         imageView.setVisibility(song.isFavourite() ? View.VISIBLE : View.INVISIBLE);
 
         view.findViewById(R.id.imageViewGrab)
-                .setOnTouchListener(new View.OnTouchListener() {
-                    @SuppressLint("ClickableViewAccessibility")
-                    @Override
-                    public boolean onTouch(View v, MotionEvent event) {
-                        listener.onGrab(position, row);
-                        return false;
-                    }
-                });
+                .setOnTouchListener(getImageViewGrabOnTouchListener(position, row, listener));
 
         return view;
     }
@@ -106,13 +91,21 @@ public class QueueSongAdapter extends ArrayAdapter<QueueSong> {
         try {
             QueueSong item = getItem(position);
             if (item != null) {
-                return mIdMap.get(item);
+                Integer integer = mIdMap.get(item);
+                return getLongFromInteger(integer);
             }
         } catch (IndexOutOfBoundsException ignored) {
         } catch (Exception e) {
             e.printStackTrace();
         }
         return 0L;
+    }
+
+    public static long getLongFromInteger(Integer integer) {
+        if (integer == null) {
+            return 0L;
+        }
+        return integer;
     }
 
     @Override

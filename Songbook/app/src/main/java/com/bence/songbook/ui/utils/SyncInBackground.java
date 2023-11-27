@@ -1,6 +1,6 @@
 package com.bence.songbook.ui.utils;
 
-import static com.bence.songbook.models.Song.copyLocallySetted;
+import static com.bence.songbook.models.Song.copyLocallySet;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -24,7 +24,6 @@ import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -58,34 +57,26 @@ public class SyncInBackground {
     }
 
     public void syncViews(final Context context) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (finished != 0) {
-                        Thread.sleep(100);
-                    }
-                    LanguageRepository languageRepository = new LanguageRepositoryImpl(context);
-                    List<Language> languages = languageRepository.findAllSelectedForDownload();
-                    for (Language language : languages) {
-                        new ViewsDownloader(context, language).execute();
-                    }
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        Thread thread = new Thread(() -> {
+            try {
+                while (finished != 0) {
+                    Thread.sleep(100);
                 }
-
+                LanguageRepository languageRepository = new LanguageRepositoryImpl(context);
+                List<Language> languages = languageRepository.findAllSelectedForDownload();
+                for (Language language : languages) {
+                    new ViewsDownloader(context, language).execute();
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+
         });
         thread.start();
     }
 
     private void sortSongs(List<Song> all) {
-        Collections.sort(all, new Comparator<Song>() {
-            @Override
-            public int compare(Song lhs, Song rhs) {
-                return rhs.getModifiedDate().compareTo(lhs.getModifiedDate());
-            }
-        });
+        Collections.sort(all, (lhs, rhs) -> rhs.getModifiedDate().compareTo(lhs.getModifiedDate()));
     }
 
     public void setSyncFrom() {
@@ -93,19 +84,16 @@ public class SyncInBackground {
     }
 
     public void syncYoutubeUrl(final Context context) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (finished != 0) {
-                        Thread.sleep(100);
-                    }
-                    new YoutubeUrlDownloader(context).execute();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+        Thread thread = new Thread(() -> {
+            try {
+                while (finished != 0) {
+                    Thread.sleep(100);
                 }
-
+                new YoutubeUrlDownloader(context).execute();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
+
         });
         thread.start();
     }
@@ -113,7 +101,7 @@ public class SyncInBackground {
     @SuppressLint("StaticFieldLeak")
     class Downloader extends AsyncTask<Void, Integer, Void> {
         private final Context context;
-        private Language language;
+        private final Language language;
         private List<SongCollection> onlineModifiedSongCollections;
 
         Downloader(Language language, Context context) {
@@ -129,7 +117,7 @@ public class SyncInBackground {
             final SongApiBean songApiBean = new SongApiBean();
             List<Song> languageSongs = language.getSongs();
             sortSongs(languageSongs);
-            Long modifiedDate;
+            long modifiedDate;
             if (languageSongs.size() > 0) {
                 modifiedDate = languageSongs.get(0).getModifiedDate().getTime();
             } else {
@@ -173,7 +161,8 @@ public class SyncInBackground {
             for (Song song : onlineModifiedSongs) {
                 if (songHashMap.containsKey(song.getUuid())) {
                     Song modifiedSong = songHashMap.get(song.getUuid());
-                    copyLocallySetted(song, modifiedSong);
+                    assert modifiedSong != null;
+                    copyLocallySet(song, modifiedSong);
                     needToRemove.add(modifiedSong);
                     languageSongs.remove(modifiedSong);
                 }
@@ -216,6 +205,7 @@ public class SyncInBackground {
     }
 
     @SuppressLint("StaticFieldLeak")
+    static
     class YoutubeUrlDownloader extends AsyncTask<Void, Integer, Void> {
         private final Context context;
 
@@ -252,6 +242,7 @@ public class SyncInBackground {
     }
 
     @SuppressLint("StaticFieldLeak")
+    static
     class ViewsDownloader extends AsyncTask<Void, Integer, Void> {
         private final Context context;
         private final Language language;

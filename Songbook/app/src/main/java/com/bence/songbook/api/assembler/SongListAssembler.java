@@ -14,7 +14,7 @@ import java.util.List;
 
 public class SongListAssembler implements GeneralAssembler<SongList, SongListDTO> {
 
-    private Context context;
+    private final Context context;
 
     private SongListAssembler(Context context) {
         this.context = context;
@@ -75,7 +75,11 @@ public class SongListAssembler implements GeneralAssembler<SongList, SongListDTO
         for (SongListElement element : songList.getSongListElements()) {
             SongListElementDTO songListElementDTO = new SongListElementDTO();
             songListElementDTO.setNumber(element.getNumber());
-            songListElementDTO.setSongUuid(element.getSong().getUuid());
+            Song song = element.getSong();
+            if (song == null) {
+                continue;
+            }
+            songListElementDTO.setSongUuid(song.getUuid());
             songListElements.add(songListElementDTO);
         }
         songListDTO.setSongListElements(songListElements);

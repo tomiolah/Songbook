@@ -1,19 +1,24 @@
 package com.bence.songbook.ui.activity;
 
+import static com.bence.songbook.ui.activity.MainActivity.getOrdinalNumberText;
+import static com.bence.songbook.ui.activity.MainActivity.pairSongWithSongCollectionElement_hashMap;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
+    import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
@@ -30,6 +35,8 @@ import java.util.HashMap;
 import java.util.List;
 
 public class VersionsActivity extends AppCompatActivity {
+
+    private boolean shortCollectionName;
 
     public static Song getSongFromMemory(Song song) {
         try {
@@ -59,6 +66,7 @@ public class VersionsActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
+        shortCollectionName = isShortCollectionName(this);
         SongRepository songRepository = new SongRepositoryImpl(this);
         Song passingSong = Memory.getInstance().getPassingSong();
         if (passingSong != null) {
@@ -81,9 +89,7 @@ public class VersionsActivity extends AppCompatActivity {
                 for (SongCollectionElement songCollectionElement : songCollection.getSongCollectionElements()) {
                     String songUuid = songCollectionElement.getSongUuid();
                     if (hashMap.containsKey(songUuid)) {
-                        Song song = hashMap.get(songUuid);
-                        song.setSongCollection(songCollection);
-                        song.setSongCollectionElement(songCollectionElement);
+                        Song song = pairSongWithSongCollectionElement_hashMap(hashMap, songCollection, songCollectionElement, songUuid);
                         songs.add(song);
                         hashMap.remove(songUuid);
                     }
@@ -93,17 +99,16 @@ public class VersionsActivity extends AppCompatActivity {
             SongAdapter adapter = new SongAdapter(this, R.layout.content_song_list_row, songs);
             ListView songListView = findViewById(R.id.listView);
             songListView.setAdapter(adapter);
-            songListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view,
-                                        int position, long id) {
-                    Song tmp = songs.get(position);
-                    showSongFullscreen(tmp);
-                }
-
+            songListView.setOnItemClickListener((parent, view, position, id) -> {
+                Song tmp = songs.get(position);
+                showSongFullscreen(tmp);
             });
         }
+    }
+
+    public static boolean isShortCollectionName(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.getBoolean("shortCollectionName", false);
     }
 
     public void showSongFullscreen(Song song) {
@@ -123,7 +128,7 @@ public class VersionsActivity extends AppCompatActivity {
 
     private class SongAdapter extends ArrayAdapter<Song> {
 
-        private List<Song> songList;
+        private final List<Song> songList;
 
         SongAdapter(Context context, int textViewResourceId,
                     List<Song> songList) {
@@ -133,7 +138,6 @@ public class VersionsActivity extends AppCompatActivity {
         }
 
         @SuppressLint({"InflateParams", "SetTextI18n"})
-        @SuppressWarnings("ConstantConditions")
         @NonNull
         @Override
         public View getView(final int position, View convertView, @NonNull ViewGroup parent) {
@@ -156,14 +160,7 @@ public class VersionsActivity extends AppCompatActivity {
 
             Song song = songList.get(position);
             holder.imageView.setVisibility(song.isFavourite() ? View.VISIBLE : View.INVISIBLE);
-            SongCollection songCollection = song.getSongCollection();
-            if (songCollection != null) {
-                String collectionName = songCollection.getName();
-                String text = collectionName + " " + song.getSongCollectionElement().getOrdinalNumber();
-                holder.ordinalNumberTextView.setText(text);
-            } else {
-                holder.ordinalNumberTextView.setText("");
-            }
+            holder.ordinalNumberTextView.setText(getOrdinalNumberText(song, shortCollectionName));
             holder.titleTextView.setText(song.getTitle());
             holder.titleTextView.setTag(song);
 

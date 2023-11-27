@@ -51,12 +51,15 @@
           {{songVerse.getTypeInitialWithCount()}}
         </span>
       </mat-card>
-      <div *ngIf="safeUrl!=null">
-        <br>
-        <mat-card>
-          <iframe [class]="safeUrl!=null?'embeddedVideo':'hideEmbeddedVideo'" scrolling="no" [src]='safeUrl'
-            frameborder="0" allowfullscreen></iframe>
-        </mat-card>
+      <div *ngIf="safeUrl!=null && idCheckOk">
+        <app-youtube-id-check [videoId]="youtubeId" (onResult)="onYouTubeIdCheckResult($event)"></app-youtube-id-check>
+        <div *ngIf="showYouTubeVideo()">
+          <br>
+          <mat-card>
+            <iframe [class]="safeUrl!=null?'embeddedVideo':'hideEmbeddedVideo'" scrolling="no" [src]='safeUrl'
+              frameborder="0" allowfullscreen></iframe>
+          </mat-card>
+        </div>
       </div>
     </mat-card-content>
   </mat-card>

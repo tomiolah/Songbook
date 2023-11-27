@@ -5,6 +5,7 @@ import { BaseModel } from '../models/base-model';
 import { Language } from "../models/language";
 import { User } from '../models/user';
 import { BooleanResponse } from '../models/boolean-response';
+import { compare } from '../util/sort-util';
 
 export class ColorText {
   text: string;
@@ -307,6 +308,18 @@ export class Song extends BaseModel {
       verse.mainSong = undefined;
     }
   }
+
+  public static sortByModifiedDate(songs: Song[]): Song[] {
+    let sorted = songs;
+    sorted.sort((song1, song2) => {
+      return compare(song2.modifiedDate, song1.modifiedDate);
+    });
+    return sorted;
+  }
+
+  public getLink(): string {
+    return "/#/song/" + this.id;
+  }
 }
 
 @Injectable()
@@ -356,6 +369,10 @@ export class SongService {
 
   getAllSongTitlesReviewedByUser(user: User) {
     return this.api.getAll(Song, 'admin/api/songTitlesReviewed/user/' + user.uuid);
+  }
+
+  getSongsContainingYouTube() {
+    return this.api.getAll(Song, 'admin/api/songTitlesContainingYouTube');
   }
 
   deleteById(role: string, songId) {

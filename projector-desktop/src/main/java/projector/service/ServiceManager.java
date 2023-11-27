@@ -19,13 +19,19 @@ import projector.service.sqlite.InfoServiceImpl;
 import projector.service.sqlite.VersesService;
 import projector.service.sqlite.VersesServiceImpl;
 
+import java.sql.SQLException;
+
 public class ServiceManager {
 
     private static SongServiceImpl songService;
 
     public static SongService getSongService() {
         if (songService == null) {
-            songService = new SongServiceImpl();
+            try {
+                songService = new SongServiceImpl();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
         return songService;
     }

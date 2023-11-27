@@ -22,6 +22,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import static projector.controller.BibleController.setGeneralTextColor;
+import static projector.controller.RecentController.getRecentFilePath;
 
 public class HistoryController {
 
@@ -44,7 +45,7 @@ public class HistoryController {
         if (listView.getItems().size() > 12) {
             return;
         }
-        try (FileInputStream inputStream = new FileInputStream("recent.txt");
+        try (FileInputStream inputStream = new FileInputStream(getRecentFilePath());
              BufferedReader br = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
             br.mark(4);
             if ('\ufeff' != br.read()) {

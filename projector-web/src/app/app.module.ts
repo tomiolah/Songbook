@@ -97,6 +97,8 @@ import { ActivateComponent } from './ui/activate/activate.component';
 import { NewSongCollectionComponent } from './ui/new-song-collection/new-song-collection.component';
 import { EditTitleComponent } from './ui/edit-title/edit-title.component';
 import { AccountComponent } from './ui/account/account.component';
+import { YoutubeVideoCheckerComponent } from './ui/youtube-video-checker/youtube-video-checker.component';
+import { YoutubeIdCheckComponent } from './ui/youtube-id-check/youtube-id-check.component';
 
 @NgModule({
   exports: [
@@ -184,6 +186,8 @@ export class PlunkerMaterialModule {
     NewSongCollectionComponent,
     EditTitleComponent,
     AccountComponent,
+    YoutubeVideoCheckerComponent,
+    YoutubeIdCheckComponent,
   ],
   imports: [
     BrowserModule,

@@ -46,17 +46,24 @@ public class DownloadLanguagesController {
     public void initialize() {
         languageService = ServiceManager.getLanguageService();
         languages = languageService.findAll();
+        languageService.sortLanguages(languages);
         checkBoxes = new ArrayList<>(languages.size());
         for (Language language : languages) {
             addLanguageToVBox(language);
         }
         LanguageApiBean languageApiBean = new LanguageApiBean();
+        checkOnlineLanguages(languageApiBean);
+        setSelectButtonAction();
+    }
+
+    private void checkOnlineLanguages(LanguageApiBean languageApiBean) {
         Thread thread = new Thread(() -> {
             List<Language> onlineLanguages = languageApiBean.getLanguages();
             if (onlineLanguages == null) {
                 noInternetMessage();
                 return;
             }
+            languageService.sortLanguages(onlineLanguages);
             HashMap<String, Boolean> hashMap = new HashMap<>();
             for (Language language : languages) {
                 hashMap.put(language.getUuid(), true);
@@ -70,6 +77,9 @@ public class DownloadLanguagesController {
             deleteDeletedLanguages(languageApiBean);
         });
         thread.start();
+    }
+
+    private void setSelectButtonAction() {
         selectButton.setOnAction(event -> {
             try {
                 for (int i = 0; i < languages.size(); ++i) {

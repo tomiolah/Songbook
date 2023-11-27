@@ -23,6 +23,7 @@ public class Language extends BaseEntity {
     @ForeignCollectionField
     private ForeignCollection<Song> songForeignCollection;
     private List<Song> songs;
+    private Long songsCount = null;
 
     public String getEnglishName() {
         return englishName;
@@ -73,6 +74,26 @@ public class Language extends BaseEntity {
         this.songs = songs;
     }
 
+    public long getCountedSongsSize() {
+        if (this.songsCount != null) {
+            return this.songsCount;
+        }
+        return 0;
+    }
+
+    public long getSongsSize(SongService songService) {
+        if (songs == null) {
+            if (this.songsCount != null) {
+                return this.songsCount;
+            }
+            if (songService == null) {
+                return 0;
+            }
+            return songService.countByLanguage(this);
+        }
+        return songs.size();
+    }
+
     @Override
     public String toString() {
         if (nativeName.equals(englishName)) {
@@ -102,4 +123,9 @@ public class Language extends BaseEntity {
         }
         return equivalent;
     }
+
+    public void setSongsSize(long songsCount) {
+        this.songsCount = songsCount;
+    }
+
 }

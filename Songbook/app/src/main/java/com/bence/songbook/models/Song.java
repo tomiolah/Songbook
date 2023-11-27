@@ -1,5 +1,7 @@
 package com.bence.songbook.models;
 
+import static com.bence.songbook.ui.utils.StringUtils.stripAccents;
+
 import androidx.annotation.NonNull;
 
 import com.bence.projector.common.model.SectionType;
@@ -10,8 +12,6 @@ import com.j256.ormlite.field.ForeignCollectionField;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import static com.bence.songbook.ui.utils.StringUtils.stripAccents;
 
 public class Song extends BaseEntity {
 
@@ -36,8 +36,8 @@ public class Song extends BaseEntity {
     private Long accessedTimes;
     @DatabaseField
     private Long accessedTimeAverage;
-    private SongCollection songCollection;
-    private SongCollectionElement songCollectionElement;
+    private List<SongCollection> songCollections;
+    private List<SongCollectionElement> songCollectionElements;
     private Date nullDate;
     private String createdByEmail;
     @DatabaseField
@@ -57,11 +57,12 @@ public class Song extends BaseEntity {
     private Boolean asDeleted;
     @DatabaseField
     private Boolean savedOnlyToDevice;
+    private Integer savedScore;
 
     public Song() {
     }
 
-    public static void copyLocallySetted(Song song, Song modifiedSong) {
+    public static void copyLocallySet(Song song, Song modifiedSong) {
         song.setFavourite(modifiedSong.getFavourite());
         song.setAccessedTimeAverage(modifiedSong.getAccessedTimeAverage());
         song.setAccessedTimes(modifiedSong.getAccessedTimes());
@@ -188,20 +189,67 @@ public class Song extends BaseEntity {
         this.accessedTimeAverage = accessedTimeAverage;
     }
 
-    public SongCollection getSongCollection() {
-        return songCollection;
+    public List<SongCollection> getSongCollections() {
+        if (songCollections == null) {
+            songCollections = new ArrayList<>();
+        }
+        return songCollections;
     }
 
-    public void setSongCollection(SongCollection songCollection) {
-        this.songCollection = songCollection;
+    public void setSongCollections(List<SongCollection> songCollections) {
+        this.songCollections = songCollections;
     }
 
-    public SongCollectionElement getSongCollectionElement() {
-        return songCollectionElement;
+    public List<SongCollectionElement> getSongCollectionElements() {
+        if (songCollectionElements == null) {
+            songCollectionElements = new ArrayList<>();
+        }
+        return songCollectionElements;
     }
 
-    public void setSongCollectionElement(SongCollectionElement songCollectionElement) {
-        this.songCollectionElement = songCollectionElement;
+    public void setSongCollectionElements(List<SongCollectionElement> songCollectionElements) {
+        this.songCollectionElements = songCollectionElements;
+    }
+
+    public void addToSongCollections(SongCollection songCollection) {
+        if (songCollection == null) {
+            return;
+        }
+        List<SongCollection> songCollections = getSongCollections();
+        if (!containsSongCollection(songCollections, songCollection)) {
+            songCollections.add(songCollection);
+        }
+    }
+
+    public void addToSongCollectionElements(SongCollectionElement songCollectionElement) {
+        if (songCollectionElement == null) {
+            return;
+        }
+        List<SongCollectionElement> songCollectionElements = getSongCollectionElements();
+        if (!containsSongCollectionElement(songCollectionElements, songCollectionElement)) {
+            songCollectionElements.add(songCollectionElement);
+        }
+    }
+
+    private boolean containsSongCollection(List<SongCollection> songCollections, SongCollection songCollection) {
+        if (songCollection == null) {
+            return false;
+        }
+        for (SongCollection collection : songCollections) {
+            if (collection.getId().equals(songCollection.getId())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean containsSongCollectionElement(List<SongCollectionElement> songCollectionElements, SongCollectionElement songCollectionElement) {
+        for (SongCollectionElement collectionElement : songCollectionElements) {
+            if (collectionElement.getId().equals(songCollectionElement.getId())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public String getCreatedByEmail() {
@@ -269,6 +317,9 @@ public class Song extends BaseEntity {
     }
 
     public Integer getScore() {
+        if (savedScore != null) {
+            return savedScore;
+        }
         int score = 0;
         score += getAccessedTimes() * 3;
         score += getViews();
@@ -288,6 +339,7 @@ public class Song extends BaseEntity {
         if (l < 2592000000L) {
             score += 4 * ((1 - (double) l / 2592000000L));
         }
+        savedScore = score;
         return score;
     }
 

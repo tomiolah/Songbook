@@ -140,6 +140,7 @@ public class SongControllerTest extends BaseTest {
         final double x = boundsInScene.getMinX() + 10;
         final double y = boundsInScene.getMinY() + 10;
         rightClickOn(x, y).sleep(100).clickOn("#deleteMenuItem");
+        sleep(100).clickOn("#confirmButton").sleep(50);
         doubleClickOn("#searchTextField").doubleClickOn("#searchTextField").write(test_songTitle);
         Assert.assertEquals(searchedSongListView.getItems().size(), 0);
     }

@@ -1,6 +1,6 @@
 package com.bence.songbook.ui.activity;
 
-import static com.bence.songbook.models.Song.copyLocallySetted;
+import static com.bence.songbook.models.Song.copyLocallySet;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -262,7 +262,7 @@ public class LoadActivity extends AppCompatActivity {
                     if (modifiedSong == null) {
                         continue;
                     }
-                    copyLocallySetted(song, modifiedSong);
+                    copyLocallySet(song, modifiedSong);
                     needToRemove.add(modifiedSong);
                     languageSongs.remove(modifiedSong);
                 }

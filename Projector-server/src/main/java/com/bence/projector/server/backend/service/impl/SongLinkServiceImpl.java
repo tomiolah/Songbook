@@ -3,8 +3,8 @@ package com.bence.projector.server.backend.service.impl;
 import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.SongLink;
 import com.bence.projector.server.backend.repository.SongLinkRepository;
+import com.bence.projector.server.backend.repository.SongRepository;
 import com.bence.projector.server.backend.service.SongLinkService;
-import com.bence.projector.server.backend.service.SongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +18,7 @@ public class SongLinkServiceImpl extends BaseServiceImpl<SongLink> implements So
     @Autowired
     private SongLinkRepository songLinkRepository;
     @Autowired
-    private SongService songService;
+    private SongRepository songRepository;
 
     @Override
     public List<SongLink> findAllByLanguage(Language language) {
@@ -30,7 +30,7 @@ public class SongLinkServiceImpl extends BaseServiceImpl<SongLink> implements So
     private List<SongLink> getFilteredSongLinks(List<SongLink> songLinks, Language language) {
         List<SongLink> filteredSongLinks = new ArrayList<>();
         for (SongLink songLink : songLinks) {
-            if (songLink.hasLanguage(language, songService)) {
+            if (songLink.hasLanguage(language, songRepository)) {
                 filteredSongLinks.add(songLink);
             }
         }
@@ -43,17 +43,18 @@ public class SongLinkServiceImpl extends BaseServiceImpl<SongLink> implements So
     }
 
     @Override
-    public void resolveAppliedSongLinks() {
+    public List<SongLink> resolveAppliedSongLinks() {
         List<SongLink> songLinks = getUnAppliedSongLinks();
         List<SongLink> appliedSongLinks = new ArrayList<>();
         for (SongLink songLink : songLinks) {
-            if (songLink.alreadyTheSameVersionGroup(songService)) {
+            if (songLink.isUnApplied() && songLink.alreadyTheSameVersionGroup(songRepository)) {
                 songLink.setApplied(true);
                 songLink.setModifiedDate(new Date());
                 appliedSongLinks.add(songLink);
             }
         }
         saveAllByRepository(appliedSongLinks);
+        return appliedSongLinks;
     }
 
     @Override

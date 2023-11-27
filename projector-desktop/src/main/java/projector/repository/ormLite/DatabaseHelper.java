@@ -25,6 +25,7 @@ import projector.model.SongVerse;
 import projector.model.VerseIndex;
 import projector.repository.RepositoryException;
 import projector.repository.dao.CustomDao;
+import projector.utils.AppProperties;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -43,6 +44,7 @@ public class DatabaseHelper {
     private static DatabaseHelper instance;
     private final int DATABASE_VERSION = 18;
     private final ConnectionSource connectionSource;
+    private final String dataBaseVersionPath = getDataBaseVersionPath();
     private Dao<Song, Long> songDao;
     private Dao<SongVerse, Long> songVerseDao;
     private Dao<SongBook, Long> songBookDao;
@@ -62,12 +64,14 @@ public class DatabaseHelper {
 
     private DatabaseHelper() {
         try {
-            String DATABASE_URL = "jdbc:h2:./data/projector";
+            AppProperties appProperties = AppProperties.getInstance();
+            String dataFolder = appProperties.getDatabaseFolder();
+            String DATABASE_URL = "jdbc:h2:" + dataFolder + "/projector";
             connectionSource = new JdbcConnectionSource(DATABASE_URL);
             int oldVersion = getOldVersion();
             if (oldVersion < DATABASE_VERSION) {
                 if (oldVersion < 1) {
-                    onUpgrade(connectionSource);
+                    onUpgrade(connectionSource, oldVersion);
                 } else if (oldVersion == 3) {
                     try {
                         TableUtils.dropTable(connectionSource, Bible.class, true);
@@ -130,7 +134,7 @@ public class DatabaseHelper {
                     try {
                         songDao.executeRaw("ALTER TABLE `song` MODIFY verseOrder VARCHAR(300)");
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        LOG.error(e.getMessage(), e);
                     }
                 }
                 if (oldVersion <= 12) {
@@ -168,12 +172,12 @@ public class DatabaseHelper {
                     }
                 }
                 //noinspection ConstantConditions
-                if (oldVersion <= 17) {
+                if (oldVersion > 0 && oldVersion <= 17) {
                     executeSafe(getLanguageDao(), "ALTER TABLE `language` ADD COLUMN favouriteSongDate DATETIME");
                 }
                 saveNewVersion();
             }
-            onCreate(connectionSource);
+            onCreate(connectionSource, oldVersion);
         } catch (SQLException e) {
             final String msg = "Unable to create connection";
             LOG.error(msg, e);
@@ -188,6 +192,10 @@ public class DatabaseHelper {
         return instance;
     }
 
+    public String getDataBaseVersionPath() {
+        return AppProperties.getInstance().getDatabaseFolder() + "/database.version";
+    }
+
     private void executeSafe(CustomDao<Language, Long> dao, @SuppressWarnings("SameParameterValue") String statement) {
         try {
             dao.executeRaw(statement);
@@ -197,58 +205,62 @@ public class DatabaseHelper {
     }
 
     private void saveNewVersion() {
-        try (FileOutputStream stream = new FileOutputStream("data/database.version");
+        try (FileOutputStream stream = new FileOutputStream(dataBaseVersionPath);
              BufferedWriter br = new BufferedWriter(new OutputStreamWriter(stream, StandardCharsets.UTF_8))) {
             br.write(DATABASE_VERSION + "\n");
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
     }
 
+    // !!! Ensure that is used correctly
     private int getOldVersion() {
-        try (FileInputStream stream = new FileInputStream("data/database.version");
+        // !!! Ensure that is used correctly
+        try (FileInputStream stream = new FileInputStream(dataBaseVersionPath);
              BufferedReader br = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
             return Integer.parseInt(br.readLine());
         } catch (FileNotFoundException ignored) {
             return 0;
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
         return 0;
     }
 
-    private void onCreate(final ConnectionSource connectionSource) {
+    private void onCreate(final ConnectionSource connectionSource, int oldVersion) {
         try {
-            TableUtils.createTableIfNotExists(connectionSource, Language.class);
-            TableUtils.createTableIfNotExists(connectionSource, Song.class);
-            TableUtils.createTableIfNotExists(connectionSource, SongVerse.class);
-            TableUtils.createTableIfNotExists(connectionSource, SongBook.class);
-            TableUtils.createTableIfNotExists(connectionSource, SongBookSong.class);
-            TableUtils.createTableIfNotExists(connectionSource, Information.class);
-            TableUtils.createTableIfNotExists(connectionSource, SongCollection.class);
-            TableUtils.createTableIfNotExists(connectionSource, SongCollectionElement.class);
-            TableUtils.createTableIfNotExists(connectionSource, Bible.class);
-            TableUtils.createTableIfNotExists(connectionSource, Book.class);
-            TableUtils.createTableIfNotExists(connectionSource, Chapter.class);
-            TableUtils.createTableIfNotExists(connectionSource, BibleVerse.class);
-            TableUtils.createTableIfNotExists(connectionSource, VerseIndex.class);
-            TableUtils.createTableIfNotExists(connectionSource, CountdownTime.class);
-            TableUtils.createTableIfNotExists(connectionSource, LoggedInUser.class);
-            TableUtils.createTableIfNotExists(connectionSource, FavouriteSong.class);
-            try {
-                getSongVerseDao().executeRaw("ALTER TABLE `SONGVERSE` ADD COLUMN secondText VARCHAR(1000);");
-            } catch (Exception ignored) {
-            }
-            try {
-                getSongDao().executeRaw("ALTER TABLE `SONG` ADD COLUMN versionGroup VARCHAR(36);");
-            } catch (Exception ignored) {
+            if (oldVersion < DATABASE_VERSION) {
+                TableUtils.createTableIfNotExists(connectionSource, Language.class);
+                TableUtils.createTableIfNotExists(connectionSource, Song.class);
+                TableUtils.createTableIfNotExists(connectionSource, SongVerse.class);
+                TableUtils.createTableIfNotExists(connectionSource, SongBook.class);
+                TableUtils.createTableIfNotExists(connectionSource, SongBookSong.class);
+                TableUtils.createTableIfNotExists(connectionSource, Information.class);
+                TableUtils.createTableIfNotExists(connectionSource, SongCollection.class);
+                TableUtils.createTableIfNotExists(connectionSource, SongCollectionElement.class);
+                TableUtils.createTableIfNotExists(connectionSource, Bible.class);
+                TableUtils.createTableIfNotExists(connectionSource, Book.class);
+                TableUtils.createTableIfNotExists(connectionSource, Chapter.class);
+                TableUtils.createTableIfNotExists(connectionSource, BibleVerse.class);
+                TableUtils.createTableIfNotExists(connectionSource, VerseIndex.class);
+                TableUtils.createTableIfNotExists(connectionSource, CountdownTime.class);
+                TableUtils.createTableIfNotExists(connectionSource, LoggedInUser.class);
+                TableUtils.createTableIfNotExists(connectionSource, FavouriteSong.class);
+                try {
+                    getSongVerseDao().executeRaw("ALTER TABLE `SONGVERSE` ADD COLUMN secondText VARCHAR(1000);");
+                } catch (Exception ignored) {
+                }
+                try {
+                    getSongDao().executeRaw("ALTER TABLE `SONG` ADD COLUMN versionGroup VARCHAR(36);");
+                } catch (Exception ignored) {
+                }
             }
         } catch (final SQLException e) {
             LOG.error("Unable to create databases", e);
         }
     }
 
-    private void onUpgrade(final ConnectionSource connectionSource) {
+    private void onUpgrade(final ConnectionSource connectionSource, int oldVersion) {
         try {
             TableUtils.dropTable(connectionSource, Song.class, true);
             TableUtils.dropTable(connectionSource, SongVerse.class, true);
@@ -270,13 +282,13 @@ public class DatabaseHelper {
             LOG.error("Unable to upgrade database", e);
         }
         try {
-            onCreate(connectionSource);
+            onCreate(connectionSource, oldVersion);
         } catch (final Exception e) {
             LOG.error("Unable to create databases", e);
         }
     }
 
-    Dao<Song, Long> getSongDao() throws SQLException {
+    public Dao<Song, Long> getSongDao() throws SQLException {
         if (songDao == null) {
             songDao = DaoManager.createDao(connectionSource, Song.class);
         }

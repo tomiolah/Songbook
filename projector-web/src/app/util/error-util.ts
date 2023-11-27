@@ -20,10 +20,14 @@ export class ErrorUtil {
     });
   }
 
-}
+  public static isPossibleNull(err): boolean {
+    try {
+      return err.message.includes('Unexpected end of JSON input')
+    } catch(error) {
+      return false;
+    }
+  }
 
-class DialogUtil {
-  openDialogTime
 }
 
 export function getAuthenticateDialogRef(dialog: MatDialog): MatDialogRef<AuthenticateComponent, any> {

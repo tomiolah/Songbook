@@ -38,6 +38,7 @@ public class SongCollection extends BaseEntity {
     private Boolean needUpload;
     @DatabaseField
     private Boolean showInTitle;
+    private Long songsSize = null;
 
     public SongCollection() {
     }
@@ -194,5 +195,13 @@ public class SongCollection extends BaseEntity {
 
     public void setShowInTitle(Boolean showInTitle) {
         this.showInTitle = showInTitle;
+    }
+
+    public long getSongsSize() {
+        return songsSize;
+    }
+
+    public void setSongsSize(long songsSize) {
+        this.songsSize = songsSize;
     }
 }

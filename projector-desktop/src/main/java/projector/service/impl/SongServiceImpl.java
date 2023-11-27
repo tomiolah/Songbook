@@ -2,27 +2,37 @@ package projector.service.impl;
 
 import com.bence.projector.common.dto.SongFavouritesDTO;
 import com.bence.projector.common.dto.SongViewsDTO;
+import com.j256.ormlite.dao.Dao;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.model.Language;
 import projector.model.Song;
 import projector.repository.DAOFactory;
 import projector.repository.RepositoryException;
 import projector.repository.SongDAO;
+import projector.repository.ormLite.DatabaseHelper;
 import projector.service.ServiceException;
 import projector.service.SongService;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+
+import static projector.repository.ormLite.VerseIndexRepositoryImpl.countByField;
 
 public class SongServiceImpl extends AbstractBaseService<Song> implements SongService {
 
     private final static Logger LOG = LoggerFactory.getLogger(SongServiceImpl.class);
     private final SongDAO songDAO = DAOFactory.getInstance().getSongDAO();
+    private final Dao<Song, Long> dao;
     private final HashMap<Long, Song> hashMap = new HashMap<>();
+    @SuppressWarnings("FieldCanBeLocal")
+    private final String TABLE_NAME = "SONG";
 
-    public SongServiceImpl() {
+    public SongServiceImpl() throws SQLException {
         super(DAOFactory.getInstance().getSongDAO());
+        dao = DatabaseHelper.getInstance().getSongDao();
     }
 
     @Override
@@ -162,5 +172,13 @@ public class SongServiceImpl extends AbstractBaseService<Song> implements SongSe
     @Override
     public Song getFromMemoryOrSongNoUpdate(Song song) {
         return getSongFromHashMap(song, false);
+    }
+
+    @Override
+    public long countByLanguage(Language language) {
+        if (language == null) {
+            return 0;
+        }
+        return countByField(TABLE_NAME, "LANGUAGE_ID", language.getId(), dao);
     }
 }

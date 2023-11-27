@@ -58,6 +58,10 @@ public class SuggestYouTubeActivity extends AppCompatActivity {
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(view -> submit());
         song = Memory.getInstance().getPassingSong();
+        if (song == null) {
+            finish();
+            return;
+        }
         youtubeEditText = findViewById(R.id.youtubeUrl);
         youtubeEditText.addTextChangedListener(new TextWatcher() {
             @Override

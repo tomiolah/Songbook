@@ -1,6 +1,7 @@
 package com.bence.songbook.ui.activity;
 
 import static android.graphics.text.LineBreaker.BREAK_STRATEGY_SIMPLE;
+import static com.bence.songbook.ui.activity.FullscreenActivity.getTextForTitleSlide;
 import static com.bence.songbook.ui.utils.YouTubeIFrame.setYouTubeIFrameToWebView;
 
 import android.annotation.SuppressLint;
@@ -25,8 +26,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
 import com.bence.songbook.models.Song;
-import com.bence.songbook.models.SongCollection;
-import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongVerse;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.ui.utils.OnSwipeTouchListener;
@@ -77,7 +76,12 @@ public class YoutubeActivity extends AppCompatActivity {
         setTheme(Preferences.getTheme(this));
         super.onCreate(savedInstanceState);
         setContentView(R.layout.youtube_activity);
+        onCreate1();
+        onCreate2();
+        onCreate3();
+    }
 
+    private void onCreate1() {
         song = Memory.getInstance().getPassingSong();
         try {
             textView = findViewById(R.id.fullscreen_content);
@@ -108,6 +112,10 @@ public class YoutubeActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
         }
+    }
+
+    @SuppressLint("ClickableViewAccessibility")
+    private void onCreate2() {
         try {
             List<SongVerse> verses = song.getSongVersesByVerseOrder();
             verseList = new ArrayList<>(verses.size());
@@ -143,20 +151,7 @@ public class YoutubeActivity extends AppCompatActivity {
             show_title_switch = sharedPreferences.getBoolean("show_title_switch", false);
             if (show_title_switch) {
                 SongVerse songVerse = new SongVerse();
-                String title = "";
-                SongCollection songCollection = song.getSongCollection();
-                if (songCollection != null) {
-                    String name = songCollection.getName();
-                    SongCollectionElement songCollectionElement = song.getSongCollectionElement();
-                    if (songCollectionElement != null) {
-                        String ordinalNumber = songCollectionElement.getOrdinalNumber().trim();
-                        if (!ordinalNumber.isEmpty()) {
-                            name += " " + ordinalNumber;
-                        }
-                    }
-                    title = name + "\n";
-                }
-                title += song.getTitle();
+                String title = getTextForTitleSlide(song);
                 songVerse.setText(title);
                 verseList.add(0, songVerse);
             }
@@ -172,7 +167,16 @@ public class YoutubeActivity extends AppCompatActivity {
         } catch (Exception e) {
             Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
         }
+    }
+
+    private void onCreate3() {
         WebView webView = findViewById(R.id.webView);
+        if (webView == null) {
+            return;
+        }
+        if (song == null) {
+            return;
+        }
         setYouTubeIFrameToWebView(webView, song.getYoutubeUrl());
     }
 

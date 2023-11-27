@@ -1,5 +1,7 @@
 package projector.controller;
 
+import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -12,8 +14,11 @@ import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Pane;
+import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
@@ -22,10 +27,13 @@ import projector.application.ProjectionScreenSettings;
 import projector.application.Settings;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.ui.ResetButton;
+import projector.utils.scene.text.MyTextFlow;
 
 import static projector.controller.SettingsController.addFonts;
 import static projector.controller.SettingsController.getFontWeightByString;
+import static projector.controller.SettingsController.getStrokeSizeFactory;
 import static projector.controller.SettingsController.imageBrowseWithTextFieldResult;
+import static projector.controller.SettingsController.initializeStrokeTypeComboBox_;
 import static projector.utils.NumberUtil.getIntegerFromNumber;
 
 public class ProjectionScreenSettingsController {
@@ -65,6 +73,17 @@ public class ProjectionScreenSettingsController {
     public ResetButton songSecondTextColorPickerReset;
     public ResetButton fontListViewReset;
     public ResetButton imageBrowseButtonReset;
+    public CheckBox strokeCheckbox;
+    public ResetButton strokeCheckboxReset;
+    public ColorPicker strokeColorPicker;
+    public ResetButton strokeColorPickerReset;
+    public Spinner<Double> strokeSizeSpinner;
+    public ResetButton strokeSizeSpinnerReset;
+    public ComboBox<StrokeType> strokeTypeComboBox;
+    public ResetButton strokeTypeComboBoxReset;
+    public MyTextFlow textFlow;
+    public Pane previewPane;
+    public ToggleButton liveButton;
     private Stage stage;
     private ProjectionScreenSettings projectionScreenSettings;
     private ProjectionScreenSettings projectionScreenSettingsModel;
@@ -87,6 +106,10 @@ public class ProjectionScreenSettingsController {
         projectionScreenSettings.setProgressLineThickness(projectionScreenSettingsModel.getProgressLineThickness());
         projectionScreenSettings.setProgressLinePositionIsTop(projectionScreenSettingsModel.getProgressLinePosition());
         projectionScreenSettings.setFontWeight(projectionScreenSettingsModel.getFontWeightString());
+        projectionScreenSettings.setStrokeFont(projectionScreenSettingsModel.getStrokeFont());
+        projectionScreenSettings.setStrokeColor(projectionScreenSettingsModel.getStrokeColor());
+        projectionScreenSettings.setStrokeSize(projectionScreenSettingsModel.getStrokeSize());
+        projectionScreenSettings.setStrokeType(projectionScreenSettingsModel.getStrokeType());
         projectionScreenSettings.setShowSongSecondText(projectionScreenSettingsModel.getShowSongSecondText());
         projectionScreenSettings.setSongSecondTextColor(projectionScreenSettingsModel.getSongSecondTextColor());
         projectionScreenSettings.setFont(projectionScreenSettingsModel.getFont());
@@ -130,11 +153,57 @@ public class ProjectionScreenSettingsController {
         initializeProgressLineThicknessSpinner(settings);
         initializeProgressLinePosition(settings);
         initializeFontWeightComboBox(settings);
+        initializeStrokeFontCheckBox(settings);
+        initializeStrokeColorCheckBox(settings);
+        initializeStrokeSizeSpinner(settings);
+        initializeStrokeTypeComboBox(settings);
         initializeShowSongSecondTextCheckBox(settings);
         initializeSongSecondTextColorPicker(settings);
         initializeFontListView(settings);
         showSongSecondTextCheckBox.setSelected(projectionScreenSettings.isShowSongSecondText());
         songSecondTextColorPicker.setValue(projectionScreenSettings.getSongSecondTextColor());
+        projectionScreenSettingsModel.setOnChangedListener(this::updatePreview);
+        textFlow.setProjectionScreenSettings(projectionScreenSettingsModel);
+        previewPane.widthProperty().addListener(getChangeListener());
+        previewPane.heightProperty().addListener(getChangeListener());
+        updatePreview();
+    }
+
+    private ChangeListener<Number> getChangeListener() {
+        return (observable, oldValue, newValue) -> updatePreview();
+    }
+
+    private void updatePreview() {
+        ProjectionScreenSettings screenSettings = new ProjectionScreenSettings(projectionScreenSettingsModel);
+        screenSettings.setUseGlobalSettings(true);
+        textFlow.setProjectionScreenSettings(screenSettings);
+        new Thread(() -> Platform.runLater(() -> {
+            BorderPane mainPane = projectionScreenHolder.getProjectionScreenController().getMainPane();
+            double projectionScreenWidth = Math.max(mainPane.getWidth(), 0.01);
+            double projectionScreenHeight = Math.max(mainPane.getHeight(), 0.01);
+            double width = previewPane.getWidth();
+            double height = projectionScreenHeight * width / projectionScreenWidth;
+            if (height > previewPane.getHeight()) {
+                height = previewPane.getHeight();
+                width = projectionScreenWidth * height / projectionScreenHeight;
+            }
+            textFlow.setText2(getPreviewText(), (int) width, (int) height);
+            if (liveButton.isSelected()) {
+                ProjectionScreenController projectionScreenController = projectionScreenHolder.getProjectionScreenController();
+                projectionScreenController.setProjectionScreenSettings(screenSettings);
+                projectionScreenController.onSettingsChanged();
+            }
+        })).start();
+    }
+
+    private String getPreviewText() {
+        return """
+                I love You, Lord
+                For Your mercy never failed me
+                All my days, I've been held in Your hands
+                From the moment that I wake up
+                Until I lay my head
+                Oh, I will sing of the goodness of God""";
     }
 
     private void addAndSelectFirstFont(String font) {
@@ -234,7 +303,8 @@ public class ProjectionScreenSettingsController {
     private void initializeColorRadioButton() {
         setColorRadioButtonResetVisibility();
         colorRadioButtonReset.setOnAction2(event -> backgroundButtonResetEvent());
-        colorRadioButton.selectedProperty().addListener((observable, oldValue, newValue) -> onImageRadioButtonSelected(!newValue));
+        // colorRadioButton.selectedProperty().addListener((observable, oldValue, newValue) -> onImageRadioButtonSelected(!newValue));
+        // it's already on initializeImageRadioButton
     }
 
     private void initializeProgressLineColorPicker(Settings settings) {
@@ -295,6 +365,59 @@ public class ProjectionScreenSettingsController {
         });
     }
 
+    private void initializeStrokeFontCheckBox(Settings settings) {
+        strokeCheckbox.setSelected(projectionScreenSettings.isStrokeFont());
+        setStrokeCheckBoxResetVisibility();
+        strokeCheckboxReset.setOnAction2(event -> {
+            strokeCheckbox.setSelected(settings.isStrokeFont());
+            projectionScreenSettingsModel.setStrokeFont(null);
+        });
+        strokeCheckbox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+            projectionScreenSettingsModel.setStrokeFont(newValue);
+            setStrokeCheckBoxResetVisibility();
+        });
+    }
+
+    private void initializeStrokeColorCheckBox(Settings settings) {
+        strokeColorPicker.setValue(projectionScreenSettings.getStrokeColor());
+        setStrokeColorResetVisibility();
+        strokeColorPickerReset.setOnAction2(event -> {
+            strokeColorPicker.setValue(settings.getStrokeColor());
+            projectionScreenSettingsModel.setStrokeColor(null);
+        });
+        strokeColorPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            projectionScreenSettingsModel.setStrokeColor(newValue);
+            setStrokeColorResetVisibility();
+        });
+    }
+
+    private void initializeStrokeSizeSpinner(Settings settings) {
+        SpinnerValueFactory.DoubleSpinnerValueFactory strokeSizeFactory = getStrokeSizeFactory(projectionScreenSettings.getStrokeSizeD());
+        strokeSizeSpinner.setValueFactory(strokeSizeFactory);
+        setStrokeSizeResetVisibility();
+        strokeSizeSpinnerReset.setOnAction2(event -> {
+            strokeSizeFactory.setValue(settings.getStrokeSize());
+            projectionScreenSettingsModel.setStrokeSize(null);
+        });
+        strokeSizeSpinner.valueProperty().addListener((observable, oldValue, newValue) -> {
+            projectionScreenSettingsModel.setStrokeSize(newValue);
+            setStrokeSizeResetVisibility();
+        });
+    }
+
+    private void initializeStrokeTypeComboBox(Settings settings) {
+        initializeStrokeTypeComboBox_(strokeTypeComboBox, projectionScreenSettings.getStrokeType());
+        setStrokeTypeResetVisibility();
+        strokeTypeComboBoxReset.setOnAction2(event -> {
+            strokeTypeComboBox.getSelectionModel().select(settings.getStrokeType());
+            projectionScreenSettingsModel.setStrokeType(null);
+        });
+        strokeTypeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            projectionScreenSettingsModel.setStrokeType(newValue);
+            setStrokeTypeResetVisibility();
+        });
+    }
+
     private void initializeShowSongSecondTextCheckBox(Settings settings) {
         showSongSecondTextCheckBox.setSelected(projectionScreenSettings.isShowSongSecondText());
         setShowSongSecondTextCheckBoxResetVisibility();
@@ -335,6 +458,22 @@ public class ProjectionScreenSettingsController {
 
     private void setSongSecondTextColorResetVisibility() {
         songSecondTextColorPickerReset.setVisible(projectionScreenSettingsModel.getSongSecondTextColor() != null);
+    }
+
+    private void setStrokeCheckBoxResetVisibility() {
+        strokeCheckboxReset.setVisible(projectionScreenSettingsModel.getStrokeFont() != null);
+    }
+
+    private void setStrokeColorResetVisibility() {
+        strokeColorPickerReset.setVisible(projectionScreenSettingsModel.getStrokeColor() != null);
+    }
+
+    private void setStrokeSizeResetVisibility() {
+        strokeSizeSpinnerReset.setVisible(projectionScreenSettingsModel.getStrokeSize() != null);
+    }
+
+    private void setStrokeTypeResetVisibility() {
+        strokeTypeComboBoxReset.setVisible(projectionScreenSettingsModel.getStrokeType() != null);
     }
 
     private void setShowSongSecondTextCheckBoxResetVisibility() {
@@ -472,5 +611,9 @@ public class ProjectionScreenSettingsController {
         FontWeight fontWeight1 = getFontWeightByString(fontWeight);
         addFonts(fontWeight1, fontListView);
         fontListView.getSelectionModel().select(0);
+    }
+
+    public void onLiveButtonAction() {
+        updatePreview();
     }
 }

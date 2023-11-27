@@ -26,10 +26,10 @@ public class SongCollection extends BaseEntity {
     @DatabaseField(foreign = true, index = true)
     private Language language;
     private boolean selected;
+    private String strippedName;
 
     public List<SongCollectionElement> getSongCollectionElements() {
         if (songCollectionElements == null) {
-            //noinspection ConstantConditions
             if (songCollectionElementForeignCollection == null) {
                 songCollectionElements = new ArrayList<>();
                 return songCollectionElements;
@@ -133,5 +133,12 @@ public class SongCollection extends BaseEntity {
             stripedName = stripAccents(name.toLowerCase());
         }
         return stripedName;
+    }
+
+    public String getStrippedName() {
+        if (strippedName == null) {
+            strippedName = stripAccents(name.toLowerCase());
+        }
+        return strippedName;
     }
 }

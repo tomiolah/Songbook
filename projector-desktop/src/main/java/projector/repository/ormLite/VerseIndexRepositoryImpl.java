@@ -25,6 +25,7 @@ public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> imp
     private final String simpleName = "";
     private BookRepositoryImpl bookRepository;
     private BibleVerseRepositoryImpl bibleVerseRepository;
+    private final String TABLE_NAME = "verseIndex";
 
     public VerseIndexRepositoryImpl() throws SQLException {
         super(VerseIndex.class, DatabaseHelper.getInstance().getVerseIndexDao());
@@ -37,7 +38,7 @@ public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> imp
             TransactionManager.callInTransaction(DatabaseHelper.getInstance().getConnectionSource(),
                     (Callable<Void>) () -> {
                         for (VerseIndex verseIndex : models) {
-                            dao.executeRaw("Delete from VERSEINDEX where bibleVerse_id = " + verseIndex.getBibleVerse().getId());
+                            dao.executeRaw("Delete from " + TABLE_NAME + " where bibleVerse_id = " + verseIndex.getBibleVerse().getId());
                         }
                         return null;
                     });
@@ -64,20 +65,24 @@ public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> imp
     @Override
     public List<VerseIndex> create(List<VerseIndex> verseIndices) {
         try {
-            TransactionManager.callInTransaction(DatabaseHelper.getInstance().getConnectionSource(),
-                    (Callable<Void>) () -> {
-                        if (verseIndices.size() > 0) {
-                            Long bibleId = verseIndices.get(0).getBibleVerse().getChapter().getBook().getBible().getId();
-                            for (VerseIndex verseIndex : verseIndices) {
-                                dao.executeRaw("INSERT INTO VERSEINDEX (INDEXNUMBER,BIBLEVERSE_ID,bibleId) VALUES ("
-                                        + verseIndex.getIndexNumber()
-                                        + "," + verseIndex.getBibleVerse().getId()
-                                        + "," + bibleId
-                                        + ")");
-                            }
-                        }
-                        return null;
-                    });
+            if (verseIndices.size() > 0) {
+                Long bibleId = verseIndices.get(0).getBibleVerse().getChapter().getBook().getBible().getId();
+                StringBuilder s = new StringBuilder("INSERT INTO " + TABLE_NAME + " (INDEXNUMBER,BIBLEVERSE_ID,bibleId) VALUES ");
+                boolean first = true;
+                for (VerseIndex verseIndex : verseIndices) {
+                    if (!first) {
+                        s.append(",");
+                    } else {
+                        first = false;
+                    }
+                    s.append("(").append(verseIndex.getIndexNumber())
+                            .append(",").append(verseIndex.getBibleVerse().getId())
+                            .append(",").append(bibleId)
+                            .append(")");
+                }
+                String sql = s.toString();
+                dao.executeRaw(sql);
+            }
         } catch (SQLException e) {
             String msg = "Could not save verseIndices";
             LOG.error(msg, e);
@@ -128,12 +133,16 @@ public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> imp
 
     @Override
     public long countByBibleId(Long bibleId) {
-        String msg = "Could not find index";
+        return countByField(TABLE_NAME, "BibleId", bibleId, dao);
+    }
+
+
+    public static long countByField(String tableName, String fieldName, Long fieldId, Dao<?, Long> dao) {
         try {
             GenericRawResults<Object[]> rawResults = null;
             try {
                 rawResults = dao.queryRaw(
-                        "SELECT COUNT(*) FROM VERSEINDEX where BibleId=" + bibleId,
+                        "SELECT COUNT(*) FROM " + tableName + " where " + fieldName + " =" + fieldId,
                         new DataType[]{DataType.LONG});
                 for (Object[] resultArray : rawResults) {
                     return (Long) resultArray[0];
@@ -144,6 +153,7 @@ public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> imp
                 }
             }
         } catch (Exception e) {
+            String msg = "Could not find index";
             LOG.error(msg);
             throw new RepositoryException(msg, e);
         }
@@ -155,7 +165,7 @@ public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> imp
             try {
                 bookRepository = new BookRepositoryImpl();
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         }
         return bookRepository;
@@ -166,7 +176,7 @@ public class VerseIndexRepositoryImpl extends AbstractRepository<VerseIndex> imp
             try {
                 bibleVerseRepository = new BibleVerseRepositoryImpl();
             } catch (SQLException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         }
         return bibleVerseRepository;

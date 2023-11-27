@@ -120,6 +120,8 @@ public class SongResourceSeo {
     private Song setSongTextLines(Song song) {
         try {
             return setSongTextLines_(song);
+        } catch (NullPointerException e) {
+            return setSongTextLines_(songService.reloadSong(song));
         } catch (HibernateException e) {
             if (e.getMessage().contains("collection was evicted")) {
                 return setSongTextLines_(songService.reloadSong(song));
