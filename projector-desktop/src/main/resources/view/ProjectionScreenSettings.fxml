@@ -50,8 +50,10 @@
                                             vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
                                             vgrow="SOMETIMES"/>
-                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
-                                            vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="23.33331298828125" minHeight="10.0"
+                                            prefHeight="23.33331298828125" vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="35.33331298828125" minHeight="-Infinity"
+                                            prefHeight="26.66668701171875" vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="677.0" minHeight="100.0" prefHeight="677.0" vgrow="SOMETIMES"/>
                         </rowConstraints>
                         <padding>
@@ -68,8 +70,7 @@
                                       text="%Break lines"/>
                             <ResetButton fx:id="breakLinesCheckboxReset"/>
                         </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1"
-                              GridPane.rowIndex="1">
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                             <Slider fx:id="breakAfterSlider" max="98" min="1" prefHeight="31.0"/>
                             <ResetButton fx:id="breakAfterSliderReset"/>
                         </HBox>
@@ -131,21 +132,21 @@
                             <ComboBox fx:id="fontWeightComboBox" prefWidth="150.0"/>
                             <ResetButton fx:id="fontWeightComboBoxReset"/>
                         </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.rowIndex="10" visible="false">
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" visible="false" GridPane.rowIndex="11">
                             <CheckBox fx:id="showSongSecondTextCheckBox" mnemonicParsing="false"
                                       text="%Show song second text"/>
                             <ResetButton fx:id="showSongSecondTextCheckBoxReset"/>
                         </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="10"
-                              visible="false">
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" visible="false" GridPane.columnIndex="1"
+                              GridPane.rowIndex="11">
                             <ColorPicker fx:id="songSecondTextColorPicker" prefHeight="31.0" prefWidth="136.0"/>
                             <ResetButton fx:id="songSecondTextColorPickerReset"/>
                         </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="11">
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="12">
                             <ListView fx:id="fontListView" prefHeight="163.0" prefWidth="438.0"/>
                             <ResetButton fx:id="fontListViewReset"/>
                         </HBox>
-                        <Label text="%Font" GridPane.rowIndex="11"/>
+                        <Label text="%Font" GridPane.rowIndex="12"/>
                     </GridPane>
                 </left>
             </BorderPane>

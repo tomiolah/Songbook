@@ -92,8 +92,9 @@ public class MyTextFlow extends TextFlow {
         try {
             return m.invoke(obj, args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
+        return null;
     }
 
     public static String getStringTextFromRawText(String rawText) {
@@ -114,11 +115,19 @@ public class MyTextFlow extends TextFlow {
     }
 
     private int getLineCount() {
-        return getLines().length;
+        TextLine[] lines = getLines();
+        if (lines == null) {
+            return 0;
+        }
+        return lines.length;
     }
 
     private TextLine[] getLines() {
-        return (TextLine[]) invoke(mGetLines, textLayout());
+        TextLayout textLayout = textLayout();
+        if (textLayout == null) {
+            return null;
+        }
+        return (TextLine[]) invoke(mGetLines, textLayout);
     }
 
     private TextLayout textLayout() {

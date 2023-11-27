@@ -35,6 +35,9 @@
                 <Tab text="%History">
                     <fx:include fx:id="history" source="History.fxml"/>
                 </Tab>
+                <Tab fx:id="galleryTab" text="Gallery">
+                    <fx:include fx:id="gallery" source="Gallery.fxml"/>
+                </Tab>
                 <Tab text="Utils">
                     <fx:include fx:id="utils" source="Utils.fxml"/>
                 </Tab>

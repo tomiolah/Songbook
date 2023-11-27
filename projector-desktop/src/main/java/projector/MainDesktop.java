@@ -267,6 +267,9 @@ public class MainDesktop extends Application {
                 if (event.isAltDown()) {
                     event.consume();
                 }
+                if (!event.isConsumed()) {
+                    myController.handleKeyPress(event);
+                }
             });
             primaryScene.setOnKeyReleased(event -> {
                 if (event.getCode() == KeyCode.CONTROL) {

@@ -60,6 +60,8 @@ public class MyController {
     @FXML
     private HistoryController historyController;
     @FXML
+    private GalleryController galleryController;
+    @FXML
     private UtilsController utilsController;
     @FXML
     private ProjectionScreensController projectionScreensController;
@@ -84,6 +86,8 @@ public class MyController {
     private Tab bibleTab;
     @FXML
     private Tab recentTab;
+    @FXML
+    private Tab galleryTab;
     @FXML
     private Tab projectionScreensTab;
     private MainDesktop mainDesktop;
@@ -122,6 +126,7 @@ public class MyController {
         utilsController.setProjectionScreenController(projectionScreenController);
         projectionScreenController.setBlank(true);
         projectionScreenController.setSongController(songController);
+        projectionScreenController.setGalleryController(galleryController);
         if (settings.isAllowRemote()) {
             RemoteServer.startRemoteServer(projectionScreenController, songController);
         }
@@ -183,6 +188,8 @@ public class MyController {
                 bibleController.initializeBibles();
             } else if (newValue.equals(projectionScreensTab)) {
                 projectionScreensController.lazyInitialize(projectionScreensTab);
+            } else if (newValue.equals(galleryTab)) {
+                galleryController.onTabOpened();
             }
         });
         tabPane.focusedProperty().addListener((observable, oldValue, newValue) -> {
@@ -393,6 +400,12 @@ public class MyController {
 
     public void createCustomCanvas() {
         projectionScreenController.createCustomStage(settings.getCustomCanvasWidth(), settings.getCustomCanvasHeight());
+    }
+
+    public void handleKeyPress(KeyEvent event) {
+        if (galleryController != null) {
+            galleryController.handleKeyPress(event);
+        }
     }
 
     public void setShowProjectionScreenToggleButtonToggle(boolean selected) {

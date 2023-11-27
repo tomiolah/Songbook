@@ -7,6 +7,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
+import javafx.scene.canvas.Canvas;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Background;
@@ -36,6 +37,7 @@ import projector.controller.listener.OnBlankListener;
 import projector.controller.listener.ViewChangedListener;
 import projector.controller.song.SongController;
 import projector.controller.util.AutomaticAction;
+import projector.controller.util.ImageCacheService;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
 import projector.utils.scene.text.MyTextFlow;
@@ -45,7 +47,12 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+import static java.lang.Thread.sleep;
+import static projector.controller.GalleryController.clearCanvas;
+import static projector.controller.GalleryController.drawImageOnCanvas;
 import static projector.controller.MyController.calculateSizeByScale;
 import static projector.utils.CountDownTimerUtil.getRemainedTime;
 import static projector.utils.CountDownTimerUtil.getTimeTextFromDate;
@@ -55,10 +62,12 @@ import static projector.utils.SceneUtils.getCustomStage;
 public class ProjectionScreenController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProjectionScreenController.class);
-
     private final List<ViewChangedListener> viewChangedListeners = new ArrayList<>();
     private final List<OnBlankListener> onBlankListeners = new ArrayList<>();
     private final String INITIAL_DOT_TEXT = "<color=\"0xffffff0c\">.</color>";
+    private ExecutorService executorService = null;
+    @FXML
+    private Canvas canvas;
     @FXML
     private MyTextFlow textFlow;
     @FXML
@@ -84,7 +93,7 @@ public class ProjectionScreenController {
     private String activeText = "";
     private double xOffset = 0;
     private double yOffset = 0;
-    private boolean bringedToFront;
+    private boolean broughtToTheFront;
     private Scene scene;
     private List<ProjectionTextChangeListener> projectionTextChangeListeners;
     private ProjectionScreenController customStageController;
@@ -97,6 +106,8 @@ public class ProjectionScreenController {
     private Stage primaryStage;
     private MainDesktop mainDesktop;
     private boolean setTextCalled = false;
+    private GalleryController galleryController;
+    private String fileImagePath;
 
     public static BackgroundImage getBackgroundImageByPath(String backgroundImagePath, int width, int height) {
         try {
@@ -128,6 +139,13 @@ public class ProjectionScreenController {
         stage.setTitle(Settings.getInstance().getResourceBundle().getString(key));
     }
 
+    private ExecutorService getExecutorService() {
+        if (executorService == null) {
+            executorService = Executors.newSingleThreadExecutor();
+        }
+        return executorService;
+    }
+
     public void initialize() {
         settings = Settings.getInstance();
         mainPane.setOnMousePressed(e -> {
@@ -135,9 +153,10 @@ public class ProjectionScreenController {
                 return;
             }
             int width = (int) mainPane.getWidth();
+            boolean next = (double) width / 2 < e.getX();
             if (projectionType == ProjectionType.BIBLE) {
                 if (bibleController != null) {
-                    if ((double) width / 2 < e.getX()) {
+                    if (next) {
                         bibleController.setNextVerse();
                         // stage.setOpacity(0.5);
                     } else {
@@ -147,10 +166,18 @@ public class ProjectionScreenController {
                 }
             } else if (projectionType == ProjectionType.SONG) {
                 if (songController != null) {
-                    if ((double) width / 2 < e.getX()) {
+                    if (next) {
                         songController.setNext();
                     } else {
                         songController.setPrevious();
+                    }
+                }
+            } else if (projectionType == ProjectionType.IMAGE) {
+                if (galleryController != null) {
+                    if (next) {
+                        galleryController.setNext();
+                    } else {
+                        galleryController.setPrevious();
                     }
                 }
             }
@@ -252,6 +279,10 @@ public class ProjectionScreenController {
         if (isLock) {
             return;
         }
+        if (projectionType == ProjectionType.IMAGE) {
+            setImage(fileImagePath, projectionType, null);
+            return;
+        }
         setText(activeText, projectionType, projectionDTO);
         setBackGroundColor();
         for (ProjectionScreenController projectionScreenController : getDoubleAndCanvasProjectionScreenController()) {
@@ -287,7 +318,7 @@ public class ProjectionScreenController {
                         Platform.runLater(() -> setText(timeTextFromDate, ProjectionType.COUNTDOWN_TIMER, projectionDTO));
                     }
                     //noinspection BusyWait
-                    Thread.sleep(200);
+                    sleep(200);
                 } catch (InterruptedException e) {
                     LOG.error(e.getMessage(), e);
                 }
@@ -321,6 +352,7 @@ public class ProjectionScreenController {
             countDownTimerRunning = false;
         }
         Platform.runLater(() -> {
+            hideImageIfNotImageType(projectionType);
             this.projectionType = projectionType;
             activeText = newText;
             this.projectionDTO = projectionDTO;
@@ -364,6 +396,12 @@ public class ProjectionScreenController {
             textFlow1.setText2("", 0, height);
             onViewChanged();
         });
+    }
+
+    private void hideImageIfNotImageType(ProjectionType projectionType) {
+        if (projectionType != ProjectionType.IMAGE) {
+            canvas.setVisible(false);
+        }
     }
 
     private String[] splitHalfByNewLine(String newText) {
@@ -513,8 +551,7 @@ public class ProjectionScreenController {
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
                 Stage stage2 = getAStage(getClass());
                 stage2.setTitle("Custom Canvas");
-                ProjectionScreenHolder projectionScreenHolder =
-                        ProjectionScreensUtil.getInstance().addProjectionScreenController(customStageController, stage2.getTitle());
+                ProjectionScreenHolder projectionScreenHolder = ProjectionScreensUtil.getInstance().addProjectionScreenController(customStageController, stage2.getTitle());
                 projectionScreenHolder.setScreenIndex(0);
                 customStageController.setScreen(Screen.getPrimary());
                 stage2.initStyle(StageStyle.TRANSPARENT);
@@ -709,6 +746,7 @@ public class ProjectionScreenController {
             previewProjectionScreenController.onClose();
         }
         countDownTimerRunning = false;
+        getExecutorService().shutdown();
     }
 
     private void setParentProjectionScreenController(ProjectionScreenController parentProjectionScreenController) {
@@ -753,17 +791,17 @@ public class ProjectionScreenController {
     }
 
     void setPrimaryStage(Stage primaryStage) {
-        bringedToFront = false;
+        broughtToTheFront = false;
         primaryStage.focusedProperty().addListener((observable, oldValue, newValue) -> {
             //                System.out.println(newValue);
             if (newValue) {
-                if (bringedToFront) {
-                    bringedToFront = false;
+                if (broughtToTheFront) {
+                    broughtToTheFront = false;
                 } else {
-                    bringedToFront = true;
+                    broughtToTheFront = true;
                     Thread thread = new Thread(() -> {
                         try {
-                            Thread.sleep(7);
+                            sleep(7);
                         } catch (InterruptedException ex) {
                             Thread.currentThread().interrupt();
                         }
@@ -981,6 +1019,31 @@ public class ProjectionScreenController {
         return projectionScreenControllers;
     }
 
+    public void setImage(String fileImagePath, ProjectionType projectionType, String nextFileImagePath) {
+        this.projectionType = projectionType;
+        this.fileImagePath = fileImagePath;
+        ExecutorService executorService = getExecutorService();
+        BackgroundTask backgroundTask = new BackgroundTask();
+        executorService.submit(backgroundTask);
+        if (nextFileImagePath != null) {
+            executorService.submit(() -> {
+                double width = mainPane.getWidth();
+                double height = mainPane.getHeight();
+                ImageCacheService.getInstance().checkForImage(nextFileImagePath, (int) width, (int) height);
+            });
+        }
+        if (previewProjectionScreenController != null) {
+            previewProjectionScreenController.setImage(fileImagePath, projectionType, nextFileImagePath);
+        }
+        for (ProjectionScreenController projectionScreenController : getDoubleAndCanvasProjectionScreenController()) {
+            projectionScreenController.setImage(fileImagePath, projectionType, nextFileImagePath);
+        }
+    }
+
+    public void setGalleryController(GalleryController galleryController) {
+        this.galleryController = galleryController;
+    }
+
     private void addIfNotNull(ProjectionScreenController customStageController, List<ProjectionScreenController> projectionScreenControllers) {
         if (customStageController != null) {
             projectionScreenControllers.add(customStageController);
@@ -998,6 +1061,35 @@ public class ProjectionScreenController {
         ProjectionType stateProjectionType = projectorState.getProjectionType();
         if (s != null && stateProjectionType != null) {
             setText(s, stateProjectionType, projectorState.getProjectionDTO());
+        }
+    }
+
+    private Image getImageForProjectorScreenController(String fileImagePath) {
+        double width = mainPane.getWidth();
+        double height = mainPane.getHeight();
+        return ImageCacheService.getInstance().getImage(fileImagePath, (int) width, (int) height);
+    }
+
+    public class BackgroundTask implements Runnable {
+
+        @Override
+        public void run() {
+            try {
+                Image image = getImageForProjectorScreenController(ProjectionScreenController.this.fileImagePath);
+                if (image == null) {
+                    return;
+                }
+                loadEmpty();
+                double width = mainPane.getWidth();
+                double height = mainPane.getHeight();
+                canvas.setWidth(width);
+                canvas.setHeight(height);
+                clearCanvas(canvas);
+                drawImageOnCanvas(image, canvas);
+                canvas.setVisible(true);
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
         }
     }
 }

@@ -21,18 +21,39 @@ import static java.lang.Thread.sleep;
 public class HandleUnexpectedError {
     private static final Logger LOG = LoggerFactory.getLogger(HandleUnexpectedError.class);
     private static JFrame previousFrame = null;
+    private static int exceptionCount = 0;
+
+    private static synchronized boolean incExceptionCount() {
+        ++exceptionCount;
+        return exceptionCount != 1;
+    }
+
+    private static synchronized void decExceptionCount() {
+        --exceptionCount;
+    }
 
     public static void setDefaultUncaughtExceptionHandler() {
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> {
             try {
-                String s = "Thread: " + t.getName() + " " + e.getMessage();
-                System.out.println(s);
-                e.printStackTrace();
-                StringWriter sw = new StringWriter();
-                PrintWriter pw = new PrintWriter(sw);
-                e.printStackTrace(pw);
-                logError(e);
-                showReLunchApp(s + "\n\n" + sw);
+                boolean anExceptionStarted = incExceptionCount();
+                try {
+                    String s = "Thread: " + t.getName() + " " + e.getMessage();
+                    System.out.println(s);
+                    e.printStackTrace();
+                    StringWriter sw = new StringWriter();
+                    PrintWriter pw = new PrintWriter(sw);
+                    e.printStackTrace(pw);
+                    logError(e);
+                    if (!anExceptionStarted) {
+                        showReLunchApp(s + "\n\n" + sw);
+                    }
+                } finally {
+                    try {
+                        decExceptionCount();
+                    } catch (Exception e3) {
+                        logError(e3);
+                    }
+                }
             } catch (Exception e2) {
                 logError(e2);
             }

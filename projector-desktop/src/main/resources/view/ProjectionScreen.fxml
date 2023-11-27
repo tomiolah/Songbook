@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.shape.Line?>
@@ -14,6 +15,8 @@
                     <Line fx:id="progressLine" layoutY="1.0" stroke="#ffffffd0"/>
                     <MyTextFlow fx:id="textFlow" textAlignment="CENTER">
                     </MyTextFlow>
+                    <Canvas fx:id="canvas" BorderPane.alignment="CENTER">
+                    </Canvas>
                 </Pane>
             </center>
             <right>
