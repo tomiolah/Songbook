@@ -1,5 +1,6 @@
 package projector;
 
+import com.google.gson.Gson;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.ListChangeListener;
@@ -42,10 +43,12 @@ import projector.controller.util.ProjectionScreensUtil;
 import projector.controller.util.WindowController;
 import projector.utils.AppProperties;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Date;
 import java.util.ListIterator;
+import java.util.Properties;
 
 import static java.lang.Thread.sleep;
 import static projector.utils.HandleUnexpectedError.setDefaultUncaughtExceptionHandler;
@@ -72,7 +75,35 @@ public class MainDesktop extends Application {
 
     public static void main(String[] args) {
         Log4j2Config.getInstance().initializeLog4j2OnMac();
+        accessibilityAssistiveTechnologiesProblem();
         launch(args);
+    }
+
+    private static void accessibilityAssistiveTechnologiesProblem() {
+        Properties props = System.getProperties();
+        // saveToJson(props, "systemProperties.json");
+        props.setProperty("javax.accessibility.assistive_technologies", "");
+        props.setProperty("java.accessibility.assistive_technologies", "");
+        // saveToJson(props, "systemProperties2.json");
+    }
+
+    @SuppressWarnings("unused")
+    private static void saveToJson(Properties props, String filename) {
+        String json = convertPropertiesToJson(props);
+        writeJsonToFile(json, filename);
+    }
+
+    private static String convertPropertiesToJson(Properties properties) {
+        Gson gson = new Gson();
+        return gson.toJson(properties);
+    }
+
+    private static void writeJsonToFile(String json, String filename) {
+        try (FileWriter writer = new FileWriter(filename)) {
+            writer.write(json);
+        } catch (IOException e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
     public static Pane getRoot() {
@@ -285,7 +316,7 @@ public class MainDesktop extends Application {
             Scene tmpScene = primaryScene;
             primaryScene.addEventFilter(MouseEvent.DRAG_DETECTED, mouseEvent -> tmpScene.startFullDrag());
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
         System.out.println("primary stage loaded---------------");
         try {
@@ -296,8 +327,7 @@ public class MainDesktop extends Application {
             projectionScreenController.setRoot(root);
             ProjectionScreensUtil.getInstance().addProjectionScreenController(projectionScreenController, "Main projection");
         } catch (Exception e) {
-            e.printStackTrace();
-            System.out.println("Something wrong!");
+            LOG.error(e.getMessage(), e);
         }
         myController.setProjectionScreenController(projectionScreenController);
         myController.setMain(this);

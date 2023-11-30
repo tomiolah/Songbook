@@ -29,8 +29,8 @@ import projector.controller.song.SongController;
 import projector.network.TCPClient;
 import projector.network.TCPServer;
 import projector.remote.RemoteServer;
-import projector.utils.GlobalKeyListenerExample;
 import projector.utils.BibleVerseTextFlow;
+import projector.utils.GlobalKeyListenerExample;
 import projector.utils.scene.text.MyTextFlow;
 
 import java.awt.*;
@@ -103,8 +103,13 @@ public class MyController {
     }
 
     private static double screenScale() {
-        double screenResolution = Toolkit.getDefaultToolkit().getScreenResolution();
-        return screenResolution / 96;
+        try {
+            double screenResolution = Toolkit.getDefaultToolkit().getScreenResolution();
+            return screenResolution / 96;
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+            return 1;
+        }
     }
 
     public void setPrimaryStage(Stage primaryStage) {
@@ -217,6 +222,14 @@ public class MyController {
     }
 
     public void initializeSettingsController(Menu settingsMenu) {
+        try {
+            initializeSettingsController_(settingsMenu);
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void initializeSettingsController_(Menu settingsMenu) {
         ResourceBundle resourceBundle = settings.getResourceBundle();
         String title = resourceBundle.getString("Settings");
         Label menuLabel = new Label(title);
