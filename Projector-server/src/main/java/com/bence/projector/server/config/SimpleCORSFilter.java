@@ -41,6 +41,8 @@ public class SimpleCORSFilter implements Filter {
             System.out.println("RequestRejectedException: " + e.getMessage());
         } catch (IllegalStateException e) {
             System.out.println("IllegalStateException: " + e.getMessage());
+        } catch (NullPointerException e) {
+            System.out.println("NullPointerException: " + e.getMessage());
         }
     }
 
