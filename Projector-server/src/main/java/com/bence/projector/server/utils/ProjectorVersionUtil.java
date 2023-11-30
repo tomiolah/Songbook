@@ -9,10 +9,10 @@ import java.util.Date;
 public class ProjectorVersionUtil {
     public static void createNewProjectorVersion(ProjectorVersionRepository projectorVersionRepository) {
         ProjectorVersion projectorVersion = new ProjectorVersion();
-        projectorVersion.setVersion("3.3.1");
+        projectorVersion.setVersion("3.3.3");
         projectorVersion.setCreatedDate(new Date());
-        projectorVersion.setDescription("Performance improvements and bug fixes. Stroke font avability.");
-        projectorVersion.setVersionId(62);
+        projectorVersion.setDescription("Performance improvements and bug fixes.");
+        projectorVersion.setVersionId(64);
         projectorVersionRepository.save(projectorVersion);
     }
 }
