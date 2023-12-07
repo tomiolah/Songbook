@@ -562,7 +562,7 @@ public class SongResource {
                 if (deletedMap.containsKey(song.getUuid())) {
                     continue;
                 }
-                if (!uploaded.getUuid().equals(song.getUuid()) && songService.matches(uploaded, song) && uploaded.getSongListElements().size() == 0 && !songHasCollection(uploaded)) {
+                if (!uploaded.getUuid().equals(song.getUuid()) && songService.matches(uploaded, song) && uploaded.getSongListElements().isEmpty() && !songHasCollection(uploaded)) {
                     if (songRepository.findOneByUuid(song.getUuid()) != null) {
                         try {
                             deletedMap.put(uploaded.getUuid(), true);
@@ -598,7 +598,7 @@ public class SongResource {
     }
 
     private boolean songHasCollection(Song song) {
-        return songCollectionService.findAllBySong(song).size() > 0;
+        return !songCollectionService.findAllBySong(song).isEmpty();
     }
 
     @RequestMapping(method = RequestMethod.PUT, value = "/password/api/song/{songId}")

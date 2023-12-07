@@ -1,10 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatSnackBar } from '@angular/material';
-import { MatDialog } from "@angular/material";
+import { MatDialog } from '@angular/material';
 import { Title } from '@angular/platform-browser';
 import { Router } from '@angular/router';
-import { User } from '../../models/user';
 import { AuthService } from '../../services/auth.service';
 import { UserDataService } from '../../services/user-data.service';
 import { ErrorUtil, generalError } from '../../util/error-util';
@@ -102,7 +101,7 @@ export class AccountComponent implements OnInit {
       'surname': [this.surname, [
         Validators.required
       ]],
-    })
+    });
     this.userForm.valueChanges.subscribe(data => this.onValueChanged(data));
     this.onValueChanged();
   }
