@@ -8,6 +8,8 @@ import javafx.geometry.Insets;
 import javafx.scene.Cursor;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.effect.ColorAdjust;
 import javafx.scene.image.Image;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Background;
@@ -108,6 +110,10 @@ public class ProjectionScreenController {
     private boolean setTextCalled = false;
     private GalleryController galleryController;
     private String fileImagePath;
+    private Image image = null;
+    private double brightness = 0.0;
+    private double contrast = 0.0;
+    private double saturation = 0.0;
 
     public static BackgroundImage getBackgroundImageByPath(String backgroundImagePath, int width, int height) {
         try {
@@ -1074,26 +1080,103 @@ public class ProjectionScreenController {
         return ImageCacheService.getInstance().getImage(fileImagePath, (int) width, (int) height);
     }
 
+    public void setBrightness(double brightness) {
+        this.brightness = brightness;
+    }
+
+    public void setContrast(double contrast) {
+        this.contrast = contrast;
+    }
+
+    public void setSaturation(double saturation) {
+        this.saturation = saturation;
+    }
+
     public class BackgroundTask implements Runnable {
 
         @Override
         public void run() {
             try {
                 Image image = getImageForProjectorScreenController(ProjectionScreenController.this.fileImagePath);
-                if (image == null) {
-                    return;
-                }
-                loadEmpty();
-                double width = mainPane.getWidth();
-                double height = mainPane.getHeight();
-                canvas.setWidth(width);
-                canvas.setHeight(height);
-                clearCanvas(canvas);
-                drawImageOnCanvas(image, canvas);
-                canvas.setVisible(true);
+                drawAnImageOnCanvas(image);
             } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
             }
         }
+    }
+
+    public void drawAnImageOnCanvas(Image image) {
+        if (image == null) {
+            return;
+        }
+        loadEmpty();
+        double width = mainPane.getWidth();
+        double height = mainPane.getHeight();
+        canvas.setWidth(width);
+        canvas.setHeight(height);
+        clearCanvas(canvas);
+        this.image = image; // if we need to make adjustments later
+        drawImageOnCanvas(image, canvas);
+        drawImageOnCanvasWithBrightness(image, canvas);
+        canvas.setVisible(true);
+    }
+
+    public static double getCircleYInterpretation(double x) {
+        double radius = 1.0;
+        if (x < -radius || x > radius) {
+            LOG.warn("Input contrast must be in the range [-1, 1]. Was contrast: " + x);
+            //noinspection SuspiciousNameCombination
+            return x;
+        }
+        // Calculate y for the upper half of the circle
+        double yUpper = 1 - Math.sqrt(radius - x * x);
+        // Calculate y for the lower half of the circle
+        if (x >= 0) {
+            return yUpper;
+        } else {
+            return -yUpper;
+        }
+    }
+
+    private GraphicsContext getGraphicsContext(Canvas canvas) {
+        // Create a Canvas with the same dimensions as the image
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        // Create a ColorAdjust object to adjust brightness
+        ColorAdjust colorAdjust = new ColorAdjust();
+        colorAdjust.setBrightness(getCircleYInterpretation(brightness)); // Adjust the brightness value as needed (0.0 is no change)
+        colorAdjust.setContrast(getCircleYInterpretation(contrast));
+        colorAdjust.setSaturation(saturation);
+        // Draw the adjusted image onto the canvas
+        gc.setEffect(colorAdjust);
+        return gc;
+    }
+
+    private void drawImageOnCanvasWithBrightness(Image image, Canvas canvas) {
+        if (image == null) {
+            return;
+        }
+        GraphicsContext gc = getGraphicsContext(canvas);
+        drawMiddle(image, canvas, gc);
+    }
+
+    public void redrawImageForAdjustment() {
+        drawImageOnCanvasWithBrightness(image, canvas);
+    }
+
+    public static void drawMiddle(Image image, Canvas canvas, GraphicsContext gc) {
+        double width = image.getWidth();
+        double height = image.getHeight();
+        double canvasWidth = canvas.getWidth();
+        double canvasHeight = canvas.getHeight();
+        double scaleFactor = Math.min(canvasWidth / width, canvasHeight / height);
+        double scaledWidth = width * scaleFactor;
+        double scaledHeight = height * scaleFactor;
+
+        // Calculate the position to center the image on the canvas
+        double x = (canvasWidth - scaledWidth) / 2;
+        double y = (canvasHeight - scaledHeight) / 2;
+
+        gc.drawImage(image, x, y, scaledWidth, scaledHeight);
     }
 }

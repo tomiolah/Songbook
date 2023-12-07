@@ -58,7 +58,7 @@ public class ApplicationVersion {
             }
             this.version = fromJson.version;
         } catch (Exception e) {
-            LOG.error(e.getMessage(), e);
+            LOG.error(e.getMessage() + "\n" + filePath, e);
         }
     }
 

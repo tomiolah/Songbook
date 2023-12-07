@@ -62,6 +62,9 @@ public class ImageCacheService {
     }
 
     public Image getImage(String filePath, int width, int height) {
+        if (width == 0 || height == 0) {
+            return null;
+        }
         File file = new File(filePath);
         if (!file.exists()) {
             return null;
@@ -122,8 +125,11 @@ public class ImageCacheService {
     }
 
 
-    private BufferedImage resizeImage(Image originalImage, int newWidth, int newHeight) {
+    public static BufferedImage resizeImage(Image originalImage, int newWidth, int newHeight) {
         BufferedImage bufferedImage = SwingFXUtils.fromFXImage(originalImage, null);
+        if (bufferedImage == null) {
+            return null;
+        }
 
         double width = originalImage.getWidth();
         double height = originalImage.getHeight();
@@ -138,7 +144,8 @@ public class ImageCacheService {
 
         BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, bufferedImage.getType());
         Graphics2D graphics = resizedImage.createGraphics();
-
+        // Use Bicubic interpolation for better quality
+        graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
         // Calculate the position to center the image on the canvas
         int x = (newWidth - resizedImage.getWidth()) / 2;
         int y = (newHeight - resizedImage.getHeight()) / 2;
@@ -149,7 +156,10 @@ public class ImageCacheService {
         return resizedImage;
     }
 
-    private void saveImage(BufferedImage image, String savePath) {
+    public static void saveImage(BufferedImage image, String savePath) {
+        if (image == null) {
+            return;
+        }
         File outputFile = new File(savePath);
         try {
             ImageIO.write(image, getFileExtension(savePath), outputFile);
