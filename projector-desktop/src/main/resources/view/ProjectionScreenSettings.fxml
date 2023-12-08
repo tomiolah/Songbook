@@ -59,10 +59,8 @@
                                             vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
                                             vgrow="SOMETIMES"/>
-                            <RowConstraints maxHeight="23.33331298828125" minHeight="10.0"
-                                            prefHeight="23.33331298828125" vgrow="SOMETIMES"/>
-                            <RowConstraints maxHeight="35.33331298828125" minHeight="-Infinity"
-                                            prefHeight="26.66668701171875" vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
+                                            vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="677.0" minHeight="100.0" prefHeight="677.0" vgrow="SOMETIMES"/>
                         </rowConstraints>
                         <padding>
