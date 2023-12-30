@@ -598,9 +598,9 @@ public class MainDesktop extends Application {
 
         scene.setOnKeyPressed(event -> {
             KeyCode keyCode = event.getCode();
-            if (keyCode == KeyCode.DOWN || keyCode == KeyCode.RIGHT) {
+            if (keyCode == KeyCode.DOWN || keyCode == KeyCode.RIGHT || keyCode == KeyCode.PAGE_DOWN) {
                 myController.goNext();
-            } else if (keyCode == KeyCode.UP || keyCode == KeyCode.LEFT) {
+            } else if (keyCode == KeyCode.UP || keyCode == KeyCode.LEFT || keyCode == KeyCode.PAGE_UP) {
                 myController.goPrev();
             } else if (keyCode == KeyCode.F3) {
                 if (tmpStage.isFullScreen()) {

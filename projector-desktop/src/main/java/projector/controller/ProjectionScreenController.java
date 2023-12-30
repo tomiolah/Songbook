@@ -52,10 +52,11 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import static java.lang.Math.max;
 import static java.lang.Thread.sleep;
 import static projector.controller.GalleryController.clearCanvas;
-import static projector.controller.GalleryController.drawImageOnCanvas;
 import static projector.controller.MyController.calculateSizeByScale;
+import static projector.controller.ProjectionScreensController.getScreenScale;
 import static projector.utils.CountDownTimerUtil.getRemainedTime;
 import static projector.utils.CountDownTimerUtil.getTimeTextFromDate;
 import static projector.utils.SceneUtils.getAStage;
@@ -694,8 +695,8 @@ public class ProjectionScreenController {
 
     private double getSceneAspectRatio(Scene scene) {
         if (scene != null) {
-            double width = Math.max(scene.getWidth(), 16);
-            int height = Math.max((int) scene.getHeight(), 9);
+            double width = max(scene.getWidth(), 16);
+            int height = max((int) scene.getHeight(), 9);
             return height / width;
         }
         double x = 9;
@@ -1037,9 +1038,8 @@ public class ProjectionScreenController {
         executorService.submit(backgroundTask);
         if (nextFileImagePath != null) {
             executorService.submit(() -> {
-                double width = mainPane.getWidth();
-                double height = mainPane.getHeight();
-                ImageCacheService.getInstance().checkForImage(nextFileImagePath, (int) width, (int) height);
+                ScaledSizes scaledSizes = getGetScaledSizes();
+                ImageCacheService.getInstance().checkForImage(nextFileImagePath, (int) scaledSizes.width(), (int) scaledSizes.height());
             });
         }
         if (previewProjectionScreenController != null) {
@@ -1075,9 +1075,23 @@ public class ProjectionScreenController {
     }
 
     private Image getImageForProjectorScreenController(String fileImagePath) {
-        double width = mainPane.getWidth();
-        double height = mainPane.getHeight();
-        return ImageCacheService.getInstance().getImage(fileImagePath, (int) width, (int) height);
+        ScaledSizes scaledSizes = getGetScaledSizes();
+        return ImageCacheService.getInstance().getImage(fileImagePath, (int) scaledSizes.width(), (int) scaledSizes.height());
+    }
+
+    private ScaledSizes getGetScaledSizes() {
+        double scale = getScale();
+        double width = mainPane.getWidth() * scale;
+        double height = mainPane.getHeight() * scale;
+        return new ScaledSizes(width, height);
+    }
+
+    private record ScaledSizes(double width, double height) {
+    }
+
+    private double getScale() {
+        double scale = getScreenScale(getProjectionScreenSettings().getProjectionScreenHolder(), screen);
+        return max(scale, 0.5);
     }
 
     public void setBrightness(double brightness) {
@@ -1116,7 +1130,6 @@ public class ProjectionScreenController {
         canvas.setHeight(height);
         clearCanvas(canvas);
         this.image = image; // if we need to make adjustments later
-        drawImageOnCanvas(image, canvas);
         drawImageOnCanvasWithBrightness(image, canvas);
         canvas.setVisible(true);
     }
@@ -1141,6 +1154,7 @@ public class ProjectionScreenController {
     private GraphicsContext getGraphicsContext(Canvas canvas) {
         // Create a Canvas with the same dimensions as the image
         GraphicsContext gc = canvas.getGraphicsContext2D();
+        // gc.setTransform(1, 0, 0, 1, 0, 0); // The scale from os should be disabled for this images if we use getGetScaledSizes
 
         // Create a ColorAdjust object to adjust brightness
         ColorAdjust colorAdjust = new ColorAdjust();

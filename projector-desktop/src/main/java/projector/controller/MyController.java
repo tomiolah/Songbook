@@ -335,6 +335,8 @@ public class MyController {
             if (selectionModelSelectedIndex - 1 >= 0) {
                 selectionModel.clearAndSelect(selectionModelSelectedIndex - 1);
             }
+        } else if (tabPane.getSelectionModel().getSelectedItem() == galleryTab) {
+            galleryController.setPrevious();
         }
     }
 
@@ -353,6 +355,8 @@ public class MyController {
                 selectionModel.clearAndSelect(selectionModel.getSelectedIndex() + 1);
             }
             songController.selectNextSongFromScheduleIfLastIndex();
+        } else if (tabPane.getSelectionModel().getSelectedItem() == galleryTab) {
+            galleryController.setNext();
         }
     }
 

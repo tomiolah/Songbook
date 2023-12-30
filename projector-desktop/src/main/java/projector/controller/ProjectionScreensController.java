@@ -56,7 +56,7 @@ public class ProjectionScreensController {
         return 1;
     }
 
-    private static double getScreenScale(ProjectionScreenHolder projectionScreenHolder, Screen screen) {
+    public static double getScreenScale(ProjectionScreenHolder projectionScreenHolder, Screen screen) {
         GraphicsDevice[] screenDevices = GraphicsEnvironment.getLocalGraphicsEnvironment().getScreenDevices();
         double mainScreenWidth = screen.getBounds().getWidth();
         Integer index = projectionScreenHolder.getScreenIndex();

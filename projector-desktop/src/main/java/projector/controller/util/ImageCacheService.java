@@ -21,6 +21,7 @@ public class ImageCacheService {
     private static final Logger LOG = LoggerFactory.getLogger(ImageCacheService.class);
     private static final String CACHE_FOLDER = ".cache";
     private static ImageCacheService instance = null;
+    private static final String DIVIDER = "_";
     private final HashMap<String, Boolean> hashMap = new HashMap<>(100);
 
     private ImageCacheService() {
@@ -58,7 +59,7 @@ public class ImageCacheService {
         String fileExtension = getFileExtension(fileName);
         String s = "." + fileExtension;
         String name = replaceLast(fileName, s, "");
-        return CACHE_FOLDER + "/" + name + "_" + width + "_" + height + s;
+        return CACHE_FOLDER + "/" + name + DIVIDER + width + DIVIDER + height + DIVIDER + file.lastModified() + s;
     }
 
     public Image getImage(String filePath, int width, int height) {
@@ -117,8 +118,7 @@ public class ImageCacheService {
                 try {
                     Runtime.getRuntime().exec("attrib +H " + folder.getAbsolutePath());
                 } catch (Exception e) {
-                    System.out.println("Failed to hide folder.");
-                    e.printStackTrace();
+                    LOG.warn("Failed to hide folder.", e);
                 }
             }
         }

@@ -4,13 +4,16 @@ import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.collections.ObservableList;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
@@ -27,11 +30,14 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
+import javafx.stage.Screen;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.ProjectionType;
+import projector.application.Settings;
 import projector.controller.util.ImageCacheService;
 import projector.controller.util.ImageContainer;
+import projector.controller.util.ImageOrderMethod;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -48,6 +54,7 @@ import java.nio.file.attribute.FileTime;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,6 +69,7 @@ public class GalleryController {
 
     private static final String FOLDER_PATH = "gallery";
     private static final Logger LOG = LoggerFactory.getLogger(GalleryController.class);
+    private static final Settings settings = Settings.getInstance();
     public BorderPane borderPane;
     private ImageContainer selectedImageContainer; // to keep track of the selected image container
     private FlowPane flowPane = null;
@@ -76,6 +84,7 @@ public class GalleryController {
     private BorderPane saturationBorderPane = null;
     private HBox toolHBox = null;
     private Image previewImage = null;
+    private ScrollPane scrollPane = null;
 
     public static void clearCanvas(Canvas canvas) {
         GraphicsContext gc = canvas.getGraphicsContext2D();
@@ -107,9 +116,15 @@ public class GalleryController {
     }
 
     private static Image loadImagePathToCanvas(String imagePath, Canvas canvas) {
-        Image image = ImageCacheService.getInstance().getImage(imagePath, (int) canvas.getWidth(), (int) canvas.getHeight());
+        double scale = getScale();
+        Image image = ImageCacheService.getInstance().getImage(imagePath, (int) (canvas.getWidth() * scale), (int) (canvas.getHeight() * scale));
         drawImageOnCanvas(image, canvas);
         return image;
+    }
+
+    private static double getScale() {
+        double x = Screen.getPrimary().getOutputScaleX();
+        return Math.max(x, 0.5);
     }
 
     private static void bindTextFieldWithSlider(TextField valueTextField, Slider slider) {
@@ -224,6 +239,17 @@ public class GalleryController {
         try {
             BasicFileAttributes basicFileAttributes = attributeView.readAttributes();
             return basicFileAttributes.lastModifiedTime();
+        } catch (IOException e) {
+            LOG.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    private static FileTime getFileCreatedTime(File file) {
+        BasicFileAttributeView attributeView = getBasicFileAttributeView(file.toPath());
+        try {
+            BasicFileAttributes basicFileAttributes = attributeView.readAttributes();
+            return basicFileAttributes.creationTime();
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
         }
@@ -385,6 +411,7 @@ public class GalleryController {
             toolHBox.setPadding(new Insets(10, 10, 0, 10));
             Button addImagesButton = new Button("Add images");
             Button openFileButton = new Button("Open file");
+            ComboBox<ImageOrderMethod> sortComboBox = getSortComboBox();
             addImagesButton.setOnAction((event) -> {
                 try {
                     Files.createDirectories(Paths.get(FOLDER_PATH));
@@ -398,9 +425,27 @@ public class GalleryController {
                 }
                 openExplorer(selectedImageContainer.getFileImagePath());
             }));
-            toolHBox.getChildren().addAll(addImagesButton, openFileButton);
+            toolHBox.getChildren().addAll(addImagesButton, openFileButton, sortComboBox);
         }
         return toolHBox;
+    }
+
+    private ComboBox<ImageOrderMethod> getSortComboBox() {
+        ComboBox<ImageOrderMethod> sortComboBox = new ComboBox<>();
+        ObservableList<ImageOrderMethod> items = sortComboBox.getItems();
+        items.add(ImageOrderMethod.BY_LAST_ACCESSED);
+        items.add(ImageOrderMethod.ASCENDING_BY_TITLE);
+        items.add(ImageOrderMethod.DESCENDING_BY_TITLE);
+        items.add(ImageOrderMethod.BY_MODIFIED_DATE);
+        items.add(ImageOrderMethod.BY_CREATED_DATE);
+        SingleSelectionModel<ImageOrderMethod> selectionModel = sortComboBox.getSelectionModel();
+        selectionModel.select(settings.getImageOrderMethod());
+        selectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            settings.setImageOrderMethod(newValue);
+            settings.save();
+            onTabOpened();
+        });
+        return sortComboBox;
     }
 
     private void onImageDropped(Image image) {
@@ -538,6 +583,7 @@ public class GalleryController {
         executorService.shutdown();
 
         ScrollPane scrollPane = new ScrollPane(flowPane);
+        this.scrollPane = scrollPane;
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setFocusTraversable(false);
@@ -561,7 +607,7 @@ public class GalleryController {
         return writableImage;
     }
 
-    private void selectImageContainer(ImageContainer imageContainer) {
+    private boolean selectImageContainer(ImageContainer imageContainer) {
         try {
             if (selectedImageContainer != null) {
                 selectedImageContainer.getHighlightRect().setVisible(false);
@@ -574,12 +620,14 @@ public class GalleryController {
                 setLastAccessTime(Path.of(fileImagePath));
                 MyController.getInstance().getProjectionScreenController().setImage(fileImagePath, ProjectionType.IMAGE, nextFileImagePath);
                 loadImagePathToPreviewCanvas(fileImagePath);
+                return true;
             } else {
                 selectedImageContainer = null;
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+        return false;
     }
 
     private String getNextFileImagePath() {
@@ -608,21 +656,40 @@ public class GalleryController {
                 }
             }
         }
-        orderedFiles.sort((o1, o2) -> {
-            FileTime fileLastAccessedTime1 = getFileLastAccessedTime(o1);
-            FileTime fileLastAccessedTime2 = getFileLastAccessedTime(o2);
-            int lastAccessedTimeCompare = compareFileTime(fileLastAccessedTime2, fileLastAccessedTime1);
-            if (lastAccessedTimeCompare == 0) {
-                FileTime fileLastModifiedTime1 = getFileLastModifiedTime(o1);
-                FileTime fileLastModifiedTime2 = getFileLastModifiedTime(o2);
-                return compareFileTime(fileLastModifiedTime2, fileLastModifiedTime1);
-            }
-            return lastAccessedTimeCompare;
-        });
+        orderedFiles.sort(getComparator());
         for (File file : orderedFiles) {
             imagePaths.add(file.getAbsolutePath());
         }
         return imagePaths;
+    }
+
+    private static Comparator<File> getComparator() {
+        ImageOrderMethod imageOrderMethod = settings.getImageOrderMethod();
+        return switch (imageOrderMethod) {
+            case ASCENDING_BY_TITLE -> Comparator.comparing(File::getName);
+            case DESCENDING_BY_TITLE -> (o1, o2) -> o2.getName().compareTo(o1.getName());
+            case BY_MODIFIED_DATE -> (o1, o2) -> {
+                FileTime fileLastModifiedTime1 = getFileLastModifiedTime(o1);
+                FileTime fileLastModifiedTime2 = getFileLastModifiedTime(o2);
+                return compareFileTime(fileLastModifiedTime2, fileLastModifiedTime1);
+            };
+            case BY_CREATED_DATE -> (o1, o2) -> {
+                FileTime fileCreatedTime1 = getFileCreatedTime(o1);
+                FileTime fileCreatedTime2 = getFileCreatedTime(o2);
+                return compareFileTime(fileCreatedTime2, fileCreatedTime1);
+            };
+            default -> (o1, o2) -> {
+                FileTime fileLastAccessedTime1 = getFileLastAccessedTime(o1);
+                FileTime fileLastAccessedTime2 = getFileLastAccessedTime(o2);
+                int lastAccessedTimeCompare = compareFileTime(fileLastAccessedTime2, fileLastAccessedTime1);
+                if (lastAccessedTimeCompare == 0) {
+                    FileTime fileLastModifiedTime1 = getFileLastModifiedTime(o1);
+                    FileTime fileLastModifiedTime2 = getFileLastModifiedTime(o2);
+                    return compareFileTime(fileLastModifiedTime2, fileLastModifiedTime1);
+                }
+                return lastAccessedTimeCompare;
+            };
+        };
     }
 
     private boolean isImageFile(String fileName) {
@@ -643,10 +710,10 @@ public class GalleryController {
     public void handleKeyPress(KeyEvent event) {
         if (selectedImageContainer != null) {
             KeyCode keyCode = event.getCode();
-            if (keyCode == KeyCode.LEFT) {
+            if (keyCode == KeyCode.LEFT || keyCode == KeyCode.PAGE_UP) {
                 setPrevious();
                 event.consume();
-            } else if (keyCode == KeyCode.RIGHT) {
+            } else if (keyCode == KeyCode.RIGHT || keyCode == KeyCode.PAGE_DOWN) {
                 setNext();
                 event.consume();
             }
@@ -679,7 +746,19 @@ public class GalleryController {
             }
             ImageContainer imageContainer = getImageContainer(index);
             if (imageContainer != null) {
-                selectImageContainer(imageContainer);
+                if (selectImageContainer(imageContainer)) {
+                    Bounds boundsInParent = stackPane.getBoundsInParent();
+                    double yPos = boundsInParent.getMinY();
+                    double scrollHeight = flowPane.getHeight() - scrollPane.getHeight();
+                    double scrollPositionTop = yPos / scrollHeight;
+                    double scrollPositionBottom = scrollPositionTop + (-scrollPane.getHeight() + boundsInParent.getHeight()) / scrollHeight;
+                    double scrollPaneVvalue = scrollPane.getVvalue();
+                    if (scrollPaneVvalue > scrollPositionTop) {
+                        scrollPane.setVvalue(scrollPositionTop);
+                    } else if (scrollPaneVvalue < scrollPositionBottom) {
+                        scrollPane.setVvalue(scrollPositionBottom);
+                    }
+                }
             }
         } finally {
             pauseSelectByFocus = false;

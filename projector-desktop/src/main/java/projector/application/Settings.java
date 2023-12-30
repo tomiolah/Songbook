@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import projector.controller.BibleController;
 import projector.controller.SettingsController;
 import projector.controller.song.util.OrderMethod;
+import projector.controller.util.ImageOrderMethod;
 import projector.model.Language;
 import projector.service.ServiceManager;
 import projector.utils.AppProperties;
@@ -94,6 +95,7 @@ public class Settings {
     private Color strokeColor = new Color(0, 0, 0, 1.0);
     private double strokeSize = 4.0;
     private StrokeType strokeType = StrokeType.OUTSIDE;
+    private ImageOrderMethod imageOrderMethod = ImageOrderMethod.BY_LAST_ACCESSED;
 
     protected Settings() {
         load();
@@ -317,6 +319,8 @@ public class Settings {
             writeColorToFileWithText(bw, "strokeColor", strokeColor);
             writeDoubleToFile(bw, "strokeSize", strokeSize);
             writeIntToFile(bw, "strokeType", strokeType.ordinal());
+            bw.write("imageOrderMethod" + System.lineSeparator());
+            bw.write(imageOrderMethod.name() + System.lineSeparator());
             bw.close();
         } catch (IOException e) {
             LOG.warn("There is some error on settings save!", e);
@@ -478,6 +482,8 @@ public class Settings {
             strokeColor = getColorFromFile(br, strokeColor);
             strokeSize = getDoubleFromFile(br, strokeSize);
             strokeType = getStrokeTypeFromFile(br, strokeType);
+            br.readLine();
+            imageOrderMethod = ImageOrderMethod.valueOf(br.readLine());
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -954,5 +960,13 @@ public class Settings {
 
     public void setStrokeType(StrokeType strokeType) {
         this.strokeType = strokeType;
+    }
+
+    public ImageOrderMethod getImageOrderMethod() {
+        return imageOrderMethod;
+    }
+
+    public void setImageOrderMethod(ImageOrderMethod imageOrderMethod) {
+        this.imageOrderMethod = imageOrderMethod;
     }
 }
