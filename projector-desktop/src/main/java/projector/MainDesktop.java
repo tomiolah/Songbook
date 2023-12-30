@@ -24,7 +24,6 @@ import javafx.scene.paint.Color;
 import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
-import javafx.stage.StageStyle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.ApplicationUtil;
@@ -56,6 +55,7 @@ import static projector.utils.SceneUtils.addIconToStage;
 import static projector.utils.SceneUtils.addStylesheetToSceneBySettings;
 import static projector.utils.SceneUtils.createWindowController;
 import static projector.utils.SceneUtils.getAStage;
+import static projector.utils.SceneUtils.getTransparentStage;
 
 public class MainDesktop extends Application {
 
@@ -125,6 +125,7 @@ public class MainDesktop extends Application {
             }
             setDefaultUncaughtExceptionHandler();
         } catch (Exception e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
             LOG.error(e.getMessage(), e);
         }
@@ -132,8 +133,7 @@ public class MainDesktop extends Application {
 
     private void openLauncherView(Stage primaryStage) throws IOException {
         startDate = new Date();
-        Stage stage = getAStage(getClass());
-        stage.initStyle(StageStyle.TRANSPARENT);
+        Stage stage = getTransparentStage(getClass());
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("/view/LauncherView.fxml"));
         BorderPane borderPane = loader.load();

@@ -44,6 +44,13 @@ public class SceneUtils {
         return stage;
     }
 
+    public static Stage getTransparentStage(Class<?> aClass) {
+        Stage stage = new Stage();
+        addIconToStage(stage, aClass);
+        stage.initStyle(StageStyle.TRANSPARENT);
+        return stage;
+    }
+
     public static Stage getCustomStage(Class<?> aClass, Scene scene) {
         Stage stage = getAStage(aClass);
         createWindowController(aClass, scene, stage);

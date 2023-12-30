@@ -60,6 +60,7 @@ import static projector.utils.CountDownTimerUtil.getRemainedTime;
 import static projector.utils.CountDownTimerUtil.getTimeTextFromDate;
 import static projector.utils.SceneUtils.getAStage;
 import static projector.utils.SceneUtils.getCustomStage;
+import static projector.utils.SceneUtils.getTransparentStage;
 
 public class ProjectionScreenController {
 
@@ -555,12 +556,11 @@ public class ProjectionScreenController {
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
-                Stage stage2 = getAStage(getClass());
+                Stage stage2 = getTransparentStage(getClass());
                 stage2.setTitle("Custom Canvas");
                 ProjectionScreenHolder projectionScreenHolder = ProjectionScreensUtil.getInstance().addProjectionScreenController(customStageController, stage2.getTitle());
                 projectionScreenHolder.setScreenIndex(0);
                 customStageController.setScreen(Screen.getPrimary());
-                stage2.initStyle(StageStyle.TRANSPARENT);
                 scene2.setFill(Color.TRANSPARENT);
                 stage2.setScene(scene2);
 

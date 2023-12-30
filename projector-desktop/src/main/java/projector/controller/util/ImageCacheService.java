@@ -62,7 +62,7 @@ public class ImageCacheService {
     }
 
     public Image getImage(String filePath, int width, int height) {
-        if (width == 0 || height == 0) {
+        if (width == 0 || height == 0 || filePath == null) {
             return null;
         }
         File file = new File(filePath);
