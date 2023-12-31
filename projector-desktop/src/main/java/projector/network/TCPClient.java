@@ -12,6 +12,7 @@ import projector.model.VerseIndex;
 import projector.service.ServiceManager;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -84,6 +85,7 @@ public class TCPClient {
 //                openIp = "192.168.43.175";
                 System.out.println("openIp = " + openIp);
                 if (openIp != null) {
+                    TCPImageClient.connectToShared(projectionScreenController, openIp);
                     clientSocket = new Socket(openIp, PORT);
                     inFromServer = new BufferedReader(new InputStreamReader(clientSocket.getInputStream(), StandardCharsets.UTF_8));
                     outToServer = new DataOutputStream(clientSocket.getOutputStream());
@@ -239,8 +241,7 @@ public class TCPClient {
         }
     }
 
-    public synchronized static void close() {
-        Settings.getInstance().setConnectedToShared(false);
+    public synchronized static void close(DataOutputStream outToServer, BufferedReader inFromServer, Socket clientSocket, Logger log, Thread thread, DataInputStream inFromServer2) {
         try {
             if (outToServer != null) {
                 outToServer.writeBytes("Finished\n");
@@ -249,16 +250,23 @@ public class TCPClient {
             if (inFromServer != null) {
                 inFromServer.close();
             }
+            if (inFromServer2 != null) {
+                inFromServer2.close();
+            }
             if (clientSocket != null) {
                 clientSocket.close();
             }
         } catch (SocketException e) {
             if (!"Socket closed".equals(e.getMessage())) {
-                LOG.error(e.getMessage(), e);
+                log.error(e.getMessage(), e);
             }
         } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
         thread.interrupt();
+    }
+
+    public static void close() {
+        close(outToServer, inFromServer, clientSocket, LOG, thread, null);
     }
 }

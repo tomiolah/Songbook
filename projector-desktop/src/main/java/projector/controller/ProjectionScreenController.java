@@ -1119,7 +1119,12 @@ public class ProjectionScreenController {
         }
     }
 
-    public void drawAnImageOnCanvas(Image image) {
+    public void drawImage(Image image) {
+        this.projectionType = ProjectionType.IMAGE;
+        drawAnImageOnCanvas(image);
+    }
+
+    private void drawAnImageOnCanvas(Image image) {
         if (image == null) {
             return;
         }
@@ -1154,7 +1159,7 @@ public class ProjectionScreenController {
     private GraphicsContext getGraphicsContext(Canvas canvas) {
         // Create a Canvas with the same dimensions as the image
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        // gc.setTransform(1, 0, 0, 1, 0, 0); // The scale from os should be disabled for this images if we use getGetScaledSizes
+        // gc.setTransform(1, 0, 0, 1, 0, 0); // The scale from os should be disabled for these images if we use getGetScaledSizes
 
         // Create a ColorAdjust object to adjust brightness
         ColorAdjust colorAdjust = new ColorAdjust();
