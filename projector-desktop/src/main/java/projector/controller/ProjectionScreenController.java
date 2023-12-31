@@ -1113,8 +1113,20 @@ public class ProjectionScreenController {
             try {
                 Image image = getImageForProjectorScreenController(ProjectionScreenController.this.fileImagePath);
                 drawAnImageOnCanvas(image);
+                callOnImageListeners(image);
             } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
+            }
+        }
+    }
+
+    private void callOnImageListeners(Image image) {
+        if (projectionTextChangeListeners != null) {
+            // because of concurrent modification exception!
+            //noinspection ForLoopReplaceableByForEach
+            for (int i = 0; i < projectionTextChangeListeners.size(); ++i) {
+                ProjectionTextChangeListener projectionTextChangeListener = projectionTextChangeListeners.get(i);
+                projectionTextChangeListener.onImageChanged(image, projectionType, projectionDTO);
             }
         }
     }
@@ -1135,7 +1147,7 @@ public class ProjectionScreenController {
         canvas.setHeight(height);
         clearCanvas(canvas);
         this.image = image; // if we need to make adjustments later
-        drawImageOnCanvasWithBrightness(image, canvas);
+        drawImageOnCanvasColorAdjustments(image, canvas);
         canvas.setVisible(true);
     }
 
@@ -1156,7 +1168,7 @@ public class ProjectionScreenController {
         }
     }
 
-    private GraphicsContext getGraphicsContext(Canvas canvas) {
+    public GraphicsContext getGraphicsContext(Canvas canvas) {
         // Create a Canvas with the same dimensions as the image
         GraphicsContext gc = canvas.getGraphicsContext2D();
         // gc.setTransform(1, 0, 0, 1, 0, 0); // The scale from os should be disabled for these images if we use getGetScaledSizes
@@ -1171,7 +1183,7 @@ public class ProjectionScreenController {
         return gc;
     }
 
-    private void drawImageOnCanvasWithBrightness(Image image, Canvas canvas) {
+    public void drawImageOnCanvasColorAdjustments(Image image, Canvas canvas) {
         if (image == null) {
             return;
         }
@@ -1180,7 +1192,7 @@ public class ProjectionScreenController {
     }
 
     public void redrawImageForAdjustment() {
-        drawImageOnCanvasWithBrightness(image, canvas);
+        drawImageOnCanvasColorAdjustments(image, canvas);
     }
 
     public static void drawMiddle(Image image, Canvas canvas, GraphicsContext gc) {

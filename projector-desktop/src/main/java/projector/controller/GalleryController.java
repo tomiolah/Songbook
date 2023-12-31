@@ -115,11 +115,14 @@ public class GalleryController {
         System.out.println("Works");
     }
 
-    private static Image loadImagePathToCanvas(String imagePath, Canvas canvas) {
+    private static void loadImagePathToCanvas(String imagePath, Canvas canvas) {
         double scale = getScale();
         Image image = ImageCacheService.getInstance().getImage(imagePath, (int) (canvas.getWidth() * scale), (int) (canvas.getHeight() * scale));
         drawImageOnCanvas(image, canvas);
-        return image;
+    }
+
+    private static Image getImageForCanvas(String imagePath, Canvas canvas) {
+        return ImageCacheService.getInstance().getImage(imagePath, (int) canvas.getWidth(), (int) canvas.getHeight());
     }
 
     private static double getScale() {
@@ -139,13 +142,14 @@ public class GalleryController {
         });
     }
 
-    private static void extracted(Slider slider, TextField valueTextField, DoubleConsumer setter) {
+    private void sliderValueBind(Slider slider, TextField valueTextField, DoubleConsumer setter) {
         slider.valueProperty().addListener((observable, oldValue, newValue) -> {
             double x = roundToTwoDecimalPlaces(newValue.doubleValue());
             ProjectionScreenController projectionScreenController = getProjectionScreenController();
             setter.accept(x);
             projectionScreenController.redrawImageForAdjustment();
             valueTextField.setText(x + "");
+            reloadPreviewCanvas();
         });
     }
 
@@ -258,7 +262,13 @@ public class GalleryController {
 
     private void loadImagePathToPreviewCanvas(String imagePath) {
         clearCanvas(previewCanvas);
-        previewImage = loadImagePathToCanvas(imagePath, previewCanvas);
+        previewImage = loadImagePathToCanvasWithColorAdjustments(imagePath, previewCanvas);
+    }
+
+    private Image loadImagePathToCanvasWithColorAdjustments(String imagePath, Canvas canvas) {
+        Image image = getImageForCanvas(imagePath, canvas);
+        getProjectionScreenController().drawImageOnCanvasColorAdjustments(image, canvas);
+        return image;
     }
 
     private void reloadPreviewCanvas() {
@@ -266,7 +276,7 @@ public class GalleryController {
             return;
         }
         clearCanvas(previewCanvas);
-        drawImageOnCanvas(previewImage, previewCanvas);
+        getProjectionScreenController().drawImageOnCanvasColorAdjustments(previewImage, previewCanvas);
     }
 
     public void onTabOpened() {
@@ -366,7 +376,7 @@ public class GalleryController {
         Result result = getColorAdjustmentPane(text);
         Slider slider = result.slider();
         TextField valueTextField = result.valueTextField();
-        extracted(slider, valueTextField, setter);
+        sliderValueBind(slider, valueTextField, setter);
         bindTextFieldWithSlider(valueTextField, slider);
         return result;
     }

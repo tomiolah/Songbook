@@ -2,6 +2,8 @@ package projector.network;
 
 import com.bence.projector.common.dto.ProjectionDTO;
 import com.google.gson.Gson;
+import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.image.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.ProjectionType;
@@ -9,7 +11,10 @@ import projector.controller.ProjectionScreenController;
 import projector.controller.ProjectionTextChangeListener;
 import projector.controller.song.SongController;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -28,9 +33,7 @@ public class Sender {
     private final DataOutputStream outToClient;
     private final Socket connectionSocket;
     private final Thread reader;
-    private final BufferedReader inFromClient;
-
-    Sender(Socket connectionSocket, ProjectionScreenController projectionScreenController, SongController songController) throws IOException {
+    Sender(Socket connectionSocket, ProjectionScreenController projectionScreenController, SongController songController, SenderType senderType) throws IOException {
         this.connectionSocket = connectionSocket;
         outToClient = new DataOutputStream(connectionSocket.getOutputStream());
         inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
@@ -38,6 +41,9 @@ public class Sender {
             ProjectionTextChangeListener projectionTextChangeListener = new ProjectionTextChangeListener() {
                 @Override
                 public void onSetText(String text, ProjectionType projectionType, ProjectionDTO projectionDTO) {
+                    if (senderType != SenderType.TEXT) {
+                        return;
+                    }
                     try {
                         String s = "start 'text'\n"
                                 + text + "\n"
@@ -50,22 +56,50 @@ public class Sender {
                                 + "end 'projectionType'\n";
                         outToClient.write(s.getBytes(StandardCharsets.UTF_8));
                     } catch (SocketException e) {
-                        String message = e.getMessage();
-                        if (message.equals("Socket closed")) {
-                            projectionScreenController.removeProjectionTextChangeListener(this);
-                            close();
-                            return;
-                        } else if (!message.equals("Connection reset by peer: socket write error") &&
-                                !message.equals("Software caused connection abort: socket write error") &&
-                                !message.equals("Connection reset by peer")
-                        ) {
-                            LOG.error(message, e);
-                        }
-                        projectionScreenController.removeProjectionTextChangeListener(this);
+                        onSocketException(e, projectionScreenController);
                     } catch (Exception e) {
-                        LOG.error(e.getMessage(), e);
+                        onListenerException(e, projectionScreenController);
+                    }
+                }
+
+                private void onSocketException(SocketException e, ProjectionScreenController projectionScreenController) {
+                    String message = e.getMessage();
+                    if (message.equals("Socket closed")) {
                         projectionScreenController.removeProjectionTextChangeListener(this);
                         close();
+                        return;
+                    } else if (!message.equals("Connection reset by peer: socket write error") &&
+                            !message.equals("Software caused connection abort: socket write error") &&
+                            !message.equals("Connection reset by peer")
+                    ) {
+                        LOG.error(message, e);
+                    }
+                    projectionScreenController.removeProjectionTextChangeListener(this);
+                }
+
+                private void onListenerException(Exception e, ProjectionScreenController projectionScreenController) {
+                    LOG.error(e.getMessage(), e);
+                    projectionScreenController.removeProjectionTextChangeListener(this);
+                    close();
+                }
+
+                @Override
+                public void onImageChanged(Image image, ProjectionType projectionType, ProjectionDTO projectionDTO) {
+                    if (senderType != SenderType.IMAGE) {
+                        return;
+                    }
+                    try {
+                        BufferedImage bufferedImage = SwingFXUtils.fromFXImage(image, null);
+                        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                        ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
+                        byte[] imageBytes = byteArrayOutputStream.toByteArray();
+                        outToClient.writeInt(imageBytes.length);
+                        // Send the image byte array
+                        outToClient.write(imageBytes, 0, imageBytes.length);
+                    } catch (SocketException e) {
+                        onSocketException(e, projectionScreenController);
+                    } catch (Exception e) {
+                        onListenerException(e, projectionScreenController);
                     }
                 }
             };
@@ -76,9 +110,9 @@ public class Sender {
         reader = new Thread(() -> {
             try {
                 inFromClient.readLine();
-//                while (!s.equals("Finished")) {
-//                    s = inFromClient.readLine();
-//                }
+                //                while (!s.equals("Finished")) {
+                //                    s = inFromClient.readLine();
+                //                }
                 close();
             } catch (SocketException e) {
                 if (e.getMessage().equals("Socket closed")) {
@@ -93,6 +127,8 @@ public class Sender {
         reader.start();
     }
 
+    private final BufferedReader inFromClient;
+
     private String getProjectionJson(ProjectionDTO projectionDTO) {
         Gson gson = getGson();
         return gson.toJson(projectionDTO);
@@ -105,6 +141,10 @@ public class Sender {
     }
 
     private void closeConnections() {
+        closeConnectionsMethod(connectionSocket, outToClient, inFromClient, LOG);
+    }
+
+    public static void closeConnectionsMethod(Socket connectionSocket, DataOutputStream outToClient, BufferedReader inFromClient, Logger log) {
         try {
             if (connectionSocket != null) {
                 connectionSocket.close();
@@ -116,7 +156,7 @@ public class Sender {
                 inFromClient.close();
             }
         } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
+            log.error(e.getMessage(), e);
         }
     }
 

@@ -4,6 +4,7 @@ import com.bence.projector.common.dto.ProjectionDTO;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import javafx.collections.ObservableList;
+import javafx.scene.image.Image;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.ProjectionType;
@@ -65,6 +66,11 @@ public class Sender {
                         projectionScreenController.removeProjectionTextChangeListener(this);
                         close();
                     }
+                }
+
+                @Override
+                public void onImageChanged(Image image, ProjectionType projectionType, ProjectionDTO projectionDTO) {
+
                 }
             };
             SongRemoteListener songRemoteListener = new SongRemoteListener() {
@@ -179,19 +185,7 @@ public class Sender {
     }
 
     private void closeConnections() {
-        try {
-            if (connectionSocket != null) {
-                connectionSocket.close();
-            }
-            if (outToClient != null) {
-                outToClient.close();
-            }
-            if (inFromClient != null) {
-                inFromClient.close();
-            }
-        } catch (IOException e) {
-            LOG.error(e.getMessage(), e);
-        }
+        projector.network.Sender.closeConnectionsMethod(connectionSocket, outToClient, inFromClient, LOG);
     }
 
     public void stop() {

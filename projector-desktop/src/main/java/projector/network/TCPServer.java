@@ -6,7 +6,6 @@ import projector.application.Settings;
 import projector.controller.ProjectionScreenController;
 import projector.controller.song.SongController;
 
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -18,37 +17,45 @@ public class TCPServer {
     private static final Logger LOG = LoggerFactory.getLogger(TCPServer.class);
     private static final List<Sender> senders = new ArrayList<>();
     private static Thread thread;
+    private static Thread imageThread;
     private static boolean closed = false;
-    private static ServerSocket welcomeSocket;
+    private static final List<ServerSocket> welcomeSockets = new ArrayList<>();
 
     public synchronized static void startShareNetwork(ProjectionScreenController projectionScreenController, SongController songController) {
         Settings.getInstance().setShareOnNetwork(true);
         if (thread == null) {
-            thread = new Thread(() -> {
-                try {
-                    welcomeSocket = new ServerSocket(TCPClient.PORT);
-                    while (!closed) {
-                        Socket connectionSocket = welcomeSocket.accept();
-                        Sender sender = new Sender(connectionSocket, projectionScreenController, songController);
-                        addSocket(sender);
-                    }
-                } catch (SocketException e) {
-                    try {
-                        if (e.getMessage().equalsIgnoreCase("socket closed")) {
-                            return;
-                        }
-                    } catch (Exception e1) {
-                        LOG.error(e1.getMessage(), e1);
-                    }
-                    LOG.error(e.getMessage(), e);
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
+            thread = getSenderThread(projectionScreenController, songController, TCPClient.PORT, SenderType.TEXT);
+            imageThread = getSenderThread(projectionScreenController, songController, TCPImageClient.PORT, SenderType.IMAGE);
         } else {
             close();
         }
         thread.start();
+        imageThread.start();
+    }
+
+    private static Thread getSenderThread(ProjectionScreenController projectionScreenController, SongController songController, int port, SenderType senderType) {
+        return new Thread(() -> {
+            try {
+                ServerSocket welcomeSocket = new ServerSocket(port);
+                welcomeSockets.add(welcomeSocket);
+                while (!closed) {
+                    Socket connectionSocket = welcomeSocket.accept();
+                    Sender sender = new Sender(connectionSocket, projectionScreenController, songController, senderType);
+                    addSocket(sender);
+                }
+            } catch (SocketException e) {
+                try {
+                    if (e.getMessage().equalsIgnoreCase("socket closed")) {
+                        return;
+                    }
+                } catch (Exception e1) {
+                    LOG.error(e1.getMessage(), e1);
+                }
+                LOG.error(e.getMessage(), e);
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
     }
 
     private synchronized static void addSocket(Sender connectionSocket) {
@@ -60,16 +67,24 @@ public class TCPServer {
         for (Sender sender : senders) {
             sender.stop();
         }
-        if (thread != null) {
-            thread.interrupt();
+        interruptTread(thread);
+        interruptTread(imageThread);
+        for (ServerSocket welcomeSocket : welcomeSockets) {
             try {
-                if (welcomeSocket != null) {
-                    welcomeSocket.close();
-                }
-            } catch (IOException e) {
+                welcomeSocket.close();
+            } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
             }
+        }
+    }
 
+    private static void interruptTread(Thread thread) {
+        try {
+            if (thread != null) {
+                thread.interrupt();
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
         }
     }
 }
