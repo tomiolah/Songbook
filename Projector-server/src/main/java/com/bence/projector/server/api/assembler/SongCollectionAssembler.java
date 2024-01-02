@@ -2,6 +2,7 @@ package com.bence.projector.server.api.assembler;
 
 import com.bence.projector.common.dto.SongCollectionDTO;
 import com.bence.projector.common.dto.SongCollectionElementDTO;
+import com.bence.projector.server.backend.model.Language;
 import com.bence.projector.server.backend.model.SongCollection;
 import com.bence.projector.server.backend.model.SongCollectionElement;
 import com.bence.projector.server.backend.service.LanguageService;
@@ -30,7 +31,10 @@ public class SongCollectionAssembler implements GeneralAssembler<SongCollection,
         songCollectionDTO.setCreatedDate(songCollection.getCreatedDate());
         songCollectionDTO.setModifiedDate(songCollection.getModifiedDate());
         songCollectionDTO.setName(songCollection.getName());
-        songCollectionDTO.setLanguageUuid(songCollection.getLanguage().getUuid());
+        Language language = songCollection.getLanguage();
+        if (language != null) {
+            songCollectionDTO.setLanguageUuid(language.getUuid());
+        }
         return songCollectionDTO;
     }
 

@@ -82,6 +82,9 @@ public class SongCollectionResource {
             all = songCollectionService.findAllBySong(song);
             List<SongCollectionDTO> dtoList = new ArrayList<>(all.size());
             for (SongCollection songCollection : all) {
+                if (songCollection.getLanguage() == null) {
+                    continue;
+                }
                 SongCollection collection = new SongCollection(songCollection);
                 ArrayList<SongCollectionElement> songCollectionElements = new ArrayList<>();
                 for (SongCollectionElement collectionElement : songCollection.getSongCollectionElements()) {
