@@ -12,8 +12,11 @@ import projector.config.Log4j2Config;
 import projector.repository.ormLite.DatabaseHelper;
 import projector.utils.AppProperties;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -68,7 +71,7 @@ public class FirstSetupController {
             String databaseFolder = AppProperties.getInstance().getDatabaseFolder();
             addWantedFile(wantedFiles, databaseFolder + "/projector.mv.db");
             addWantedFile(wantedFiles, databaseFolder + "/projector.trace.db");
-            addWantedFile(wantedFiles, DatabaseHelper.getInstance().getDataBaseVersionPath());
+            addWantedFile(wantedFiles, DatabaseHelper.getDataBaseVersionPath());
             addWantedFile(wantedFiles, getSettingFilePath());
             addWantedFile(wantedFiles, getRecentFilePath());
             addWantedFile(wantedFiles, Log4j2Config.getInstance().getLogFilePath());
@@ -133,9 +136,10 @@ public class FirstSetupController {
             toPath = replaceDirectorySeparator(toPath);
             String command = "cmd /c copy /Y " + fromPath + " " + toPath;
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder(command);
-                Process process = processBuilder.start();
+                // with ProcessBuilder it was not good
+                Process process = Runtime.getRuntime().exec(command);
                 int result = process.waitFor();
+                logErrorStream(result, process);
                 wantedFile.setCopiedSuccessFully(result == 0);
             } catch (IOException | InterruptedException e) {
                 LOG.error(e.getMessage(), e);
@@ -143,6 +147,19 @@ public class FirstSetupController {
         }
         if (!warnIfNotAllFilesWasCopied(wantedFiles)) {
             onStartAsNew();
+        }
+    }
+
+    private static void logErrorStream(int result, Process process) throws IOException {
+        if (result != 0) {
+            // Handle the error appropriately
+            System.out.println("The copy command failed. Checking for errors...");
+            InputStream errorStream = process.getErrorStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                LOG.info(line); // Print any error messages from the command
+            }
         }
     }
 
@@ -154,7 +171,7 @@ public class FirstSetupController {
             }
         }
         String s = message.toString();
-        if (s.equals("")) {
+        if (s.isEmpty()) {
             return false;
         }
         Platform.runLater(() -> {

@@ -42,6 +42,7 @@ public class DatabaseHelper {
     private static final Logger LOG = LoggerFactory.getLogger(DatabaseHelper.class);
 
     private static DatabaseHelper instance;
+    private static boolean frozen = false;
     private final int DATABASE_VERSION = 18;
     private final ConnectionSource connectionSource;
     private final String dataBaseVersionPath = getDataBaseVersionPath();
@@ -66,8 +67,13 @@ public class DatabaseHelper {
         try {
             AppProperties appProperties = AppProperties.getInstance();
             String dataFolder = appProperties.getDatabaseFolder();
-            String DATABASE_URL = "jdbc:h2:" + dataFolder + "/projector";
-            connectionSource = new JdbcConnectionSource(DATABASE_URL);
+            String databaseUrl = "jdbc:h2:" + dataFolder + "/";
+            if (frozen) {
+                databaseUrl += "temp";
+            } else {
+                databaseUrl += "projector";
+            }
+            connectionSource = new JdbcConnectionSource(databaseUrl);
             int oldVersion = getOldVersion();
             if (oldVersion < DATABASE_VERSION) {
                 if (oldVersion < 1) {
@@ -192,8 +198,17 @@ public class DatabaseHelper {
         return instance;
     }
 
-    public String getDataBaseVersionPath() {
+    public static String getDataBaseVersionPath() {
         return AppProperties.getInstance().getDatabaseFolder() + "/database.version";
+    }
+
+    public static void freeze() {
+        DatabaseHelper.frozen = true;
+    }
+
+    public static void unfreeze() {
+        DatabaseHelper.frozen = false;
+        instance = null;
     }
 
     private void executeSafe(CustomDao<Language, Long> dao, @SuppressWarnings("SameParameterValue") String statement) {
