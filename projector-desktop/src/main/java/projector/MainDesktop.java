@@ -174,6 +174,7 @@ public class MainDesktop extends Application {
         FirstSetupController firstSetupController = loader.getController();
         firstSetupController.setListener(() -> {
             DatabaseHelper.unfreeze();
+            Settings.emptyInstance();
             start2(primaryStage);
         });
         Scene scene = new Scene(borderPane, borderPane.getPrefWidth(), borderPane.getPrefHeight());

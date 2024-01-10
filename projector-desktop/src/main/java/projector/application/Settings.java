@@ -114,6 +114,10 @@ public class Settings {
         }
     }
 
+    public static void emptyInstance() {
+        instance = null;
+    }
+
     public static String getSettingFilePath() {
         return AppProperties.getInstance().getWorkDirectory() + "settings.ini";
     }
