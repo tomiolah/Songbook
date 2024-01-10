@@ -56,7 +56,6 @@ public class MainDesktop extends Application {
                 Runtime.getRuntime().exec(command);
             }
         } catch (Exception e) {
-            e.printStackTrace();
             LOG.error(e.getMessage(), e);
         }
     }
