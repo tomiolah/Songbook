@@ -21,7 +21,7 @@ public class SiteMapController {
 
     @RequestMapping(value = "/sitemap.xml", method = RequestMethod.GET, produces = "application/xml")
     @ResponseBody
-    public XmlUrlSet main() {
+    public XmlUrlSet getSitemap() {
         XmlUrlSet xmlUrlSet = new XmlUrlSet();
         List<Song> all = songService.findAll();
         for (Song song : all) {
