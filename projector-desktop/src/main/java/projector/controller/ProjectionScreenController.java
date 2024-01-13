@@ -903,6 +903,7 @@ public class ProjectionScreenController {
             projectionTextChangeListeners = new ArrayList<>();
         }
         projectionTextChangeListeners.add(projectionTextChangeListener);
+        projectionTextChangeListener.onSetText(activeText, projectionType, projectionDTO);
     }
 
     public void removeProjectionTextChangeListener(ProjectionTextChangeListener projectionTextChangeListener) {

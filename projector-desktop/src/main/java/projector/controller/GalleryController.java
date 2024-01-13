@@ -340,8 +340,18 @@ public class GalleryController {
         Pane borderPaneForCanvas = new Pane(previewCanvas);
         borderPane.setCenter(borderPaneForCanvas);
         borderPane.setBottom(getAdjustmentPanel());
-        borderPaneForCanvas.widthProperty().addListener((observable, oldValue, newValue) -> previewCanvas.setWidth(newValue.doubleValue()));
-        borderPaneForCanvas.heightProperty().addListener((observable, oldValue, newValue) -> previewCanvas.setHeight(newValue.doubleValue()));
+        borderPaneForCanvas.setSnapToPixel(false);
+        borderPane.setSnapToPixel(false); // so we don't go to an infinite loop because of previewCanvas.setWidth(newValue.doubleValue());
+        borderPaneForCanvas.widthProperty().addListener((observable, oldValue, newValue) -> {
+            if (!borderPane.isSnapToPixel()) {
+                previewCanvas.setWidth(newValue.doubleValue()); // snapToPixel should be false
+            }
+        });
+        borderPaneForCanvas.heightProperty().addListener((observable, oldValue, newValue) -> {
+            if (!borderPane.isSnapToPixel()) {
+                previewCanvas.setHeight(newValue.doubleValue()); // snapToPixel should be false
+            }
+        });
         return borderPane;
     }
 

@@ -49,9 +49,9 @@ public class ProjectionScreensController {
     private boolean initialized = false;
     private Tab projectionScreensTab;
 
-    private static int minimumSize(int width) {
-        if (width > 0) {
-            return width;
+    private static int minimumSize(int size) {
+        if (size > 0) {
+            return size;
         }
         return 1;
     }
@@ -120,7 +120,6 @@ public class ProjectionScreensController {
         int width = (int) parentPaneWidth;
         int height = (int) parentPaneHeight;
         width = minimumSize(width);
-        //noinspection ReassignedVariable,SuspiciousNameCombination
         height = minimumSize(height);
         return new WritableImage(width, height);
     }
