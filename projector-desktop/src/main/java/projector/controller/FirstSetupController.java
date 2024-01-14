@@ -12,8 +12,14 @@ import projector.config.Log4j2Config;
 import projector.repository.ormLite.DatabaseHelper;
 import projector.utils.AppProperties;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +38,19 @@ public class FirstSetupController {
 
     private static String replaceDirectorySeparator(String s) {
         return s.replace("/", "\\");
+    }
+
+    private static void logErrorStream(int result, Process process) throws IOException {
+        if (result != 0) {
+            // Handle the error appropriately
+            System.out.println("The copy command failed. Checking for errors...");
+            InputStream errorStream = process.getErrorStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(errorStream));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                LOG.info(line); // Print any error messages from the command
+            }
+        }
     }
 
     public void onStartAsNew() {
@@ -66,9 +85,10 @@ public class FirstSetupController {
             System.out.println(file.getAbsolutePath());
             List<WantedFile> wantedFiles = new ArrayList<>();
             String databaseFolder = AppProperties.getInstance().getDatabaseFolder();
+            ensureDirectory(databaseFolder);
             addWantedFile(wantedFiles, databaseFolder + "/projector.mv.db");
             addWantedFile(wantedFiles, databaseFolder + "/projector.trace.db");
-            addWantedFile(wantedFiles, DatabaseHelper.getInstance().getDataBaseVersionPath());
+            addWantedFile(wantedFiles, DatabaseHelper.getDataBaseVersionPath());
             addWantedFile(wantedFiles, getSettingFilePath());
             addWantedFile(wantedFiles, getRecentFilePath());
             addWantedFile(wantedFiles, Log4j2Config.getInstance().getLogFilePath());
@@ -76,6 +96,17 @@ public class FirstSetupController {
             tryToFindWantedFiles(wantedFiles, file.getAbsolutePath());
         } finally {
             enableButtons();
+        }
+    }
+
+    private void ensureDirectory(String folder) {
+        try {
+            Path path = Paths.get(folder);
+            if (!Files.exists(path)) {
+                Files.createDirectories(path);
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
         }
     }
 
@@ -111,7 +142,6 @@ public class FirstSetupController {
         }
     }
 
-
     private String gatherNotFoundFiles(List<WantedFile> wantedFiles) {
         StringBuilder s = new StringBuilder();
         for (WantedFile wantedFile : wantedFiles) {
@@ -133,9 +163,10 @@ public class FirstSetupController {
             toPath = replaceDirectorySeparator(toPath);
             String command = "cmd /c copy /Y " + fromPath + " " + toPath;
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder(command);
-                Process process = processBuilder.start();
+                // with ProcessBuilder it was not good
+                Process process = Runtime.getRuntime().exec(command);
                 int result = process.waitFor();
+                logErrorStream(result, process);
                 wantedFile.setCopiedSuccessFully(result == 0);
             } catch (IOException | InterruptedException e) {
                 LOG.error(e.getMessage(), e);
@@ -154,7 +185,7 @@ public class FirstSetupController {
             }
         }
         String s = message.toString();
-        if (s.equals("")) {
+        if (s.isEmpty()) {
             return false;
         }
         Platform.runLater(() -> {

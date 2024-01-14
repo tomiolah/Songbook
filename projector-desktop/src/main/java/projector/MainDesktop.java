@@ -40,6 +40,7 @@ import projector.controller.song.SongController;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
 import projector.controller.util.WindowController;
+import projector.repository.ormLite.DatabaseHelper;
 import projector.utils.AppProperties;
 
 import java.io.FileWriter;
@@ -166,11 +167,16 @@ public class MainDesktop extends Application {
     }
 
     private void openFirstSetupView(Stage primaryStage) throws IOException {
+        DatabaseHelper.freeze();
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(getClass().getResource("/view/FirstSetupView.fxml"));
         BorderPane borderPane = loader.load();
         FirstSetupController firstSetupController = loader.getController();
-        firstSetupController.setListener(() -> start2(primaryStage));
+        firstSetupController.setListener(() -> {
+            DatabaseHelper.unfreeze();
+            Settings.emptyInstance();
+            start2(primaryStage);
+        });
         Scene scene = new Scene(borderPane, borderPane.getPrefWidth(), borderPane.getPrefHeight());
         createWindowController(getClass(), scene, primaryStage);
         primaryStage.setWidth(borderPane.getPrefWidth());

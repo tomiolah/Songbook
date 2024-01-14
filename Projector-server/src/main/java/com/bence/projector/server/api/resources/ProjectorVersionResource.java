@@ -26,17 +26,27 @@ public class ProjectorVersionResource {
     @Autowired
     private StatisticsService statisticsService;
 
+    private List<ProjectorVersionDTO> findAllAfterDate_(HttpServletRequest httpServletRequest, List<ProjectorVersion> projectorVersions) {
+        saveStatistics(httpServletRequest, statisticsService);
+        return projectorVersionAssembler.createDtoList(projectorVersions);
+    }
+
+    private List<ProjectorVersionDTO> getOldAllAfterDate(HttpServletRequest httpServletRequest, int nr, int nr2) {
+        return findAllAfterDate_(httpServletRequest, projectorVersionService.findAllAfterCreatedNrAndBeforeCreatedNr(nr, nr2));
+    }
+
     @RequestMapping(method = RequestMethod.GET, value = "/api/projectorVersionsAfterNr/{nr}")
     public List<ProjectorVersionDTO> findAllAfterDate(HttpServletRequest httpServletRequest, @PathVariable("nr") int nr) {
-        saveStatistics(httpServletRequest, statisticsService);
-        final List<ProjectorVersion> projectorVersions = projectorVersionService.findAllAfterCreatedNrAndBeforeCreatedNr(nr, 40);
-        return projectorVersionAssembler.createDtoList(projectorVersions);
+        return getOldAllAfterDate(httpServletRequest, nr, 40);
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/api/projectorVersionsAfterNr/v3/{nr}")
     public List<ProjectorVersionDTO> findAllAfterDate_v3(HttpServletRequest httpServletRequest, @PathVariable("nr") int nr) {
-        saveStatistics(httpServletRequest, statisticsService);
-        final List<ProjectorVersion> projectorVersions = projectorVersionService.findAllAfterCreatedNr(nr);
-        return projectorVersionAssembler.createDtoList(projectorVersions);
+        return getOldAllAfterDate(httpServletRequest, nr, 66);
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/api/projectorVersionsAfterNr/v4/{nr}")
+    public List<ProjectorVersionDTO> findAllAfterDate_v4(HttpServletRequest httpServletRequest, @PathVariable("nr") int nr) {
+        return findAllAfterDate_(httpServletRequest, projectorVersionService.findAllAfterCreatedNr(nr));
     }
 }

@@ -32,7 +32,7 @@ public class Reader {
     public static void readBooksB(String filePath) {
         if (!booksRead) {
             booksRead = true;
-            FileInputStream fstream = null;
+            FileInputStream fstream;
             try {
                 fstream = new FileInputStream(filePath);
                 BufferedReader br = new BufferedReader(new InputStreamReader(fstream, "UTF-8"));

@@ -123,9 +123,9 @@ public class UploadSongsController {
         Platform.runLater(() -> uploadingLabel.setText(no_internet_connection + "! " + try_again_later + "!"));
     }
 
-    private class SongCell {
+    private static class SongCell {
         Callback<ListView<Song>, ListCell<Song>> invoke() {
-            return param -> new ListCell<Song>() {
+            return param -> new ListCell<>() {
                 @Override
                 protected void updateItem(Song item, boolean empty) {
                     super.updateItem(item, empty);

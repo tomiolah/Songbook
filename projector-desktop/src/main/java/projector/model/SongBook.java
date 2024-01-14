@@ -2,10 +2,12 @@ package projector.model;
 
 import com.j256.ormlite.field.DatabaseField;
 
+import java.io.Serial;
 import java.util.List;
 
 public class SongBook extends BaseEntity {
 
+    @Serial
     private static final long serialVersionUID = 1L;
     @DatabaseField
     private String title;

@@ -24,13 +24,18 @@ public class TCPServer {
     public synchronized static void startShareNetwork(ProjectionScreenController projectionScreenController, SongController songController) {
         Settings.getInstance().setShareOnNetwork(true);
         if (thread == null) {
-            thread = getSenderThread(projectionScreenController, songController, TCPClient.PORT, SenderType.TEXT);
-            imageThread = getSenderThread(projectionScreenController, songController, TCPImageClient.PORT, SenderType.IMAGE);
+            createThreads(projectionScreenController, songController);
         } else {
             close();
+            createThreads(projectionScreenController, songController);
         }
         thread.start();
         imageThread.start();
+    }
+
+    private static void createThreads(ProjectionScreenController projectionScreenController, SongController songController) {
+        thread = getSenderThread(projectionScreenController, songController, TCPClient.PORT, SenderType.TEXT);
+        imageThread = getSenderThread(projectionScreenController, songController, TCPImageClient.PORT, SenderType.IMAGE);
     }
 
     private static Thread getSenderThread(ProjectionScreenController projectionScreenController, SongController songController, int port, SenderType senderType) {
