@@ -22,6 +22,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 import javafx.stage.Screen;
@@ -104,8 +105,15 @@ public class ProjectionScreensController {
             return;
         }
         Parent parent = mainPane.getParent();
+        if (parent == null) {
+            return;
+        }
         if (!(parent instanceof BorderPane parentPane)) {
             return;
+        }
+        Scene scene = parentPane.getScene();
+        if (scene != null && scene.getFill() == null) {
+            scene.setFill(Color.TRANSPARENT);
         }
         WritableImage writableImage = getWritableImage(bunch, parentPane);
         parentPane.snapshot(null, writableImage);

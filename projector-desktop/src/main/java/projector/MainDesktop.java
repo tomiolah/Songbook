@@ -54,7 +54,7 @@ import static projector.utils.HandleUnexpectedError.setDefaultUncaughtExceptionH
 import static projector.utils.SceneUtils.addIconToStage;
 import static projector.utils.SceneUtils.addStylesheetToSceneBySettings;
 import static projector.utils.SceneUtils.createWindowController;
-import static projector.utils.SceneUtils.getAStage;
+import static projector.utils.SceneUtils.getCustomStage;
 import static projector.utils.SceneUtils.getTransparentStage;
 
 public class MainDesktop extends Application {
@@ -572,8 +572,7 @@ public class MainDesktop extends Application {
             return;
         }
         Scene scene = new Scene(projectionScreenController.getRoot(), 800, 600);
-        canvasStage = getAStage(getClass());
-        canvasStage.setScene(scene);
+        canvasStage = getCustomStage(getClass(), scene);
         canvasStage.setTitle(Settings.getInstance().getResourceBundle().getString("Canvas"));
         getScreenListIteratorAndSetMainScreen();
         projectionScreenController.setScreen(mainScreen);

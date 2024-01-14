@@ -116,6 +116,7 @@ public class ProjectionScreenController {
     private double brightness = 0.0;
     private double contrast = 0.0;
     private double saturation = 0.0;
+    private Image lastImage = null;
 
     public static BackgroundImage getBackgroundImageByPath(String backgroundImagePath, int width, int height) {
         try {
@@ -288,7 +289,11 @@ public class ProjectionScreenController {
             return;
         }
         if (projectionType == ProjectionType.IMAGE) {
-            setImage(fileImagePath, projectionType, null);
+            if (fileImagePath != null) {
+                setImage(fileImagePath, projectionType, null);
+            } else {
+                drawImage(this.lastImage);
+            }
             return;
         }
         setText(activeText, projectionType, projectionDTO);
@@ -1033,6 +1038,7 @@ public class ProjectionScreenController {
     public void setImage(String fileImagePath, ProjectionType projectionType, String nextFileImagePath) {
         this.projectionType = projectionType;
         this.fileImagePath = fileImagePath;
+        this.lastImage = null;
         ExecutorService executorService = getExecutorService();
         BackgroundTask backgroundTask = new BackgroundTask();
         executorService.submit(backgroundTask);
@@ -1112,6 +1118,9 @@ public class ProjectionScreenController {
         public void run() {
             try {
                 Image image = getImageForProjectorScreenController(ProjectionScreenController.this.fileImagePath);
+                if (isLock) {
+                    return; // load remains before this, to be eager
+                }
                 drawAnImageOnCanvas(image);
                 callOnImageListeners(image);
             } catch (Exception e) {
@@ -1133,7 +1142,18 @@ public class ProjectionScreenController {
 
     public void drawImage(Image image) {
         this.projectionType = ProjectionType.IMAGE;
+        this.lastImage = image;
+        this.fileImagePath = null;
+        if (previewProjectionScreenController != null) {
+            previewProjectionScreenController.drawImage(image);
+        }
+        if (isLock) {
+            return;
+        }
         drawAnImageOnCanvas(image);
+        for (ProjectionScreenController projectionScreenController : getDoubleAndCanvasProjectionScreenController()) {
+            projectionScreenController.drawImage(image);
+        }
     }
 
     private void drawAnImageOnCanvas(Image image) {
