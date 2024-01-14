@@ -28,7 +28,7 @@ public class TCPImageClient {
 
     public synchronized static void connectToShared(ProjectionScreenController projectionScreenController, String openIp) {
         if (thread != null) {
-            close(outToServer, null, clientSocket, LOG, thread, inFromServer);
+            closeInstance();
         }
         thread = new Thread(() -> {
             try {
@@ -72,5 +72,9 @@ public class TCPImageClient {
         ByteArrayInputStream imageStream = new ByteArrayInputStream(imageBytes);
         Image image = new Image(imageStream);
         projectionScreenController.drawImage(image);
+    }
+
+    static void closeInstance() {
+        close(outToServer, null, clientSocket, LOG, thread, inFromServer);
     }
 }

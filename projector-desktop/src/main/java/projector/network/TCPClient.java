@@ -268,5 +268,6 @@ public class TCPClient {
 
     public static void close() {
         close(outToServer, inFromServer, clientSocket, LOG, thread, null);
+        TCPImageClient.closeInstance();
     }
 }
