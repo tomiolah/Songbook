@@ -6,6 +6,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.application.Settings;
 import projector.controller.util.WindowController;
 
@@ -13,6 +15,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 public class SceneUtils {
+    private static final Logger LOG = LoggerFactory.getLogger(SceneUtils.class);
 
     public static void addIconToStage(Stage stage, Class<?> aClass) {
         addOneIcon(stage, aClass, "/icons/icon32.png");
@@ -52,9 +55,12 @@ public class SceneUtils {
     }
 
     public static Stage getCustomStage(Class<?> aClass, Scene scene) {
+        return getWindowController(aClass, scene).getStage();
+    }
+
+    public static WindowController getWindowController(Class<?> aClass, Scene scene) {
         Stage stage = getAStage(aClass);
-        createWindowController(aClass, scene, stage);
-        return stage;
+        return createWindowController(aClass, scene, stage);
     }
 
     public static Stage getCustomStage2(Class<?> aClass, Scene scene, double width, double height) {
@@ -74,7 +80,7 @@ public class SceneUtils {
                 stage.initStyle(StageStyle.TRANSPARENT);
             }
         } catch (IllegalStateException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
         WindowController windowController = WindowController.getInstance(aClass, stage, scene);
         if (windowController == null) {

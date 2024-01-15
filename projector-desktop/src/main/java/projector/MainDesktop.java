@@ -55,8 +55,8 @@ import static projector.utils.HandleUnexpectedError.setDefaultUncaughtExceptionH
 import static projector.utils.SceneUtils.addIconToStage;
 import static projector.utils.SceneUtils.addStylesheetToSceneBySettings;
 import static projector.utils.SceneUtils.createWindowController;
-import static projector.utils.SceneUtils.getCustomStage;
 import static projector.utils.SceneUtils.getTransparentStage;
+import static projector.utils.SceneUtils.getWindowController;
 
 public class MainDesktop extends Application {
 
@@ -578,7 +578,9 @@ public class MainDesktop extends Application {
             return;
         }
         Scene scene = new Scene(projectionScreenController.getRoot(), 800, 600);
-        canvasStage = getCustomStage(getClass(), scene);
+        WindowController canvasWindowController = getWindowController(getClass(), scene);
+        scene = canvasWindowController.getScene();
+        canvasStage = canvasWindowController.getStage();
         canvasStage.setTitle(Settings.getInstance().getResourceBundle().getString("Canvas"));
         getScreenListIteratorAndSetMainScreen();
         projectionScreenController.setScreen(mainScreen);
@@ -586,8 +588,9 @@ public class MainDesktop extends Application {
         tmpStage = canvasStage;
         canvasStage.setX(800);
         canvasStage.setY(0);
-        canvasStage.maximizedProperty().addListener((observable, oldValue, newValue) -> {
+        canvasWindowController.maximizedProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue) {
+                tmpStage.setMaximized(true);
                 tmpStage.setFullScreen(true);
             }
         });
@@ -598,8 +601,8 @@ public class MainDesktop extends Application {
         });
         canvasStage.setOnCloseRequest(event -> tmpStage.hide());
         projectionScreenController.setStage(canvasStage);
-        scene.widthProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
-        scene.heightProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
+        canvasStage.widthProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
+        canvasStage.heightProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
 
         scene.setOnKeyPressed(event -> {
             KeyCode keyCode = event.getCode();

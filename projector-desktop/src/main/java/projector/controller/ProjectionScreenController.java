@@ -81,6 +81,8 @@ public class ProjectionScreenController {
     @FXML
     private Pane pane;
     @FXML
+    private Pane pane1;
+    @FXML
     private Line progressLine;
     private Stage stage;
     private boolean isBlank;
@@ -263,7 +265,8 @@ public class ProjectionScreenController {
 
     private void setBlankLocally(boolean isBlank) {
         this.isBlank = isBlank;
-        mainPane.setVisible(!isBlank);
+        pane.setVisible(!isBlank);
+        pane1.setVisible(!isBlank);
         onViewChanged();
         onBlankChanged();
     }

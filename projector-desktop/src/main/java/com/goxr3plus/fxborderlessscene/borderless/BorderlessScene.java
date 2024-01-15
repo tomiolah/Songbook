@@ -7,6 +7,8 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
@@ -27,6 +29,7 @@ import java.io.IOException;
  * @version 1.0
  */
 public class BorderlessScene extends Scene {
+    private static final Logger LOG = LoggerFactory.getLogger(BorderlessScene.class);
 
     /**
      * The controller.
@@ -66,7 +69,7 @@ public class BorderlessScene extends Scene {
                 setResizable(false);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
     }
 
@@ -120,5 +123,9 @@ public class BorderlessScene extends Scene {
 
     public BorderlessController getController() {
         return controller;
+    }
+
+    public void ensureMaximizeStage(boolean maximized) {
+        controller.ensureMaximizeStage(maximized);
     }
 }

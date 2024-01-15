@@ -11,6 +11,8 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.Pane;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Controller implements window controls: maximize, minimize, drag, and Aero Snap.
@@ -20,6 +22,7 @@ import javafx.stage.Stage;
  * @version 1.0
  */
 public class BorderlessController {
+    private static final Logger LOG = LoggerFactory.getLogger(BorderlessController.class);
 
     private final SimpleBooleanProperty maximized;
     private final SimpleBooleanProperty resizable;
@@ -124,8 +127,8 @@ public class BorderlessController {
 
         try {
             screen = getScreenFromStage(stage).getVisualBounds();
-        } catch (Exception ex) {
-            ex.printStackTrace();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
             return;
         }
 
@@ -404,8 +407,8 @@ public class BorderlessController {
 
                 }
 
-            } catch (Exception ex) {
-                ex.printStackTrace();
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
             }
 
             //Hide the transparent window -- close this window no matter what
@@ -580,5 +583,15 @@ public class BorderlessController {
 
     public SimpleBooleanProperty maximizedProperty() {
         return maximized;
+    }
+
+    public void ensureMaximizeStage(boolean maximized) {
+        if (isMaximized() != maximized) {
+            maximize();
+        }
+    }
+
+    private boolean isMaximized() {
+        return maximized.get();
     }
 }

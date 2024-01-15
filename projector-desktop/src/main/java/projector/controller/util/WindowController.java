@@ -3,6 +3,7 @@ package projector.controller.util;
 import com.bence.projector.common.dto.UserDTO;
 import com.goxr3plus.fxborderlessscene.borderless.BorderlessScene;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -20,6 +21,7 @@ import javafx.scene.layout.BorderStroke;
 import javafx.scene.layout.BorderStrokeStyle;
 import javafx.scene.layout.BorderWidths;
 import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Popup;
@@ -56,6 +58,7 @@ import static projector.utils.SceneUtils.getCustomStage3;
 
 public class WindowController {
     private static final Logger LOG = LoggerFactory.getLogger(WindowController.class);
+    public HBox titleBar;
     @FXML
     private Button signInButton;
 
@@ -160,7 +163,8 @@ public class WindowController {
         });
         minimize.setOnAction(a -> stage.setIconified(true));
         maximizeNormalize.setOnAction(a -> borderlessScene.maximizeStage());
-        borderlessScene.getController().maximizedProperty().addListener((observable, oldValue, newValue) -> {
+        SimpleBooleanProperty maximizedProperty = maximizedProperty();
+        maximizedProperty.addListener((observable, oldValue, newValue) -> {
             ImageView imageView = new ImageView();
             imageView.setFitHeight(29);
             imageView.setFitWidth(45);
@@ -179,6 +183,20 @@ public class WindowController {
             }
             maximizeNormalize.setGraphic(imageView);
         });
+        stage.fullScreenProperty().addListener((observable, oldValue, newValue) -> {
+            titleBar.setManaged(!newValue);
+            titleBar.setVisible(!newValue);
+            if (newValue) {
+                setBorderWidth2(0);
+            } else {
+                setBorderWidth();
+                borderlessScene.ensureMaximizeStage(false);
+            }
+        });
+    }
+
+    public SimpleBooleanProperty maximizedProperty() {
+        return borderlessScene.getController().maximizedProperty();
     }
 
     public Scene getScene() {
@@ -190,11 +208,19 @@ public class WindowController {
         setBorderWidth();
     }
 
+    public Stage getStage() {
+        return ownerStage;
+    }
+
     private void setBorderWidth() {
+        setBorderWidth2(1);
+    }
+
+    private void setBorderWidth2(int width) {
         try {
             Screen screen = Screen.getPrimary();
             double scaleX = screen.getOutputScaleX();
-            Border border = new Border(new BorderStroke(getMainBorderColor(), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(1 / scaleX)));
+            Border border = new Border(new BorderStroke(getMainBorderColor(), BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(width / scaleX)));
             mainBorderPane.setBorder(border);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
