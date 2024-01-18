@@ -15,14 +15,18 @@ public class XmlUrl {
     private String loc;
     @XmlElement
     private String lastmod;
+    @XmlElement
+    private String canonical;
 
-    public XmlUrl() {
+    @SuppressWarnings("unused")
+    public XmlUrl() { // we need this. Gives error if not found
     }
 
     public XmlUrl(String loc, Date date) {
         this.loc = loc;
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd");
         lastmod = simpleDateFormat.format(date);
+        this.canonical = loc;
     }
 
 }
