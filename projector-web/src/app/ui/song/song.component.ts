@@ -1,9 +1,9 @@
 import { Component, Input, OnDestroy, OnInit, ElementRef, ViewChild } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, NavigationStart, Router } from '@angular/router';
 import { Song, SongService } from '../../services/song-service.service';
 import { Subscription } from 'rxjs/Subscription';
 import { AuthService } from '../../services/auth.service';
-import { DomSanitizer, SafeResourceUrl, Title } from "@angular/platform-browser";
+import { DomSanitizer, Meta, SafeResourceUrl, Title } from "@angular/platform-browser";
 import { MatDialog, MatSnackBar } from "@angular/material";
 import { ShareComponent } from "../share/share.component";
 import { OpenInAppComponent } from "../open-in-app/open-in-app.component";
@@ -46,6 +46,7 @@ export class SongComponent implements OnInit, OnDestroy {
   private markedVersionGroup_key = "markedForVersionSong";
   @ViewChild("versions", { static: false }) versionsElement: ElementRef;
   hasReviewerRoleForSong: boolean;
+  routerSubscription: Subscription;
 
   constructor(private activatedRoute: ActivatedRoute,
     private songService: SongService,
@@ -56,10 +57,16 @@ export class SongComponent implements OnInit, OnDestroy {
     private router: Router,
     private songCollectionService: SongCollectionDataService,
     private suggestionDataService: SuggestionDataService,
+    private meta: Meta,
     public sanitizer: DomSanitizer) {
     auth.getUserFromLocalStorage();
     setInterval(() => this.refreshMergeSong(), 2000);
     this.refreshMergeSong();
+    this.routerSubscription = this.router.events.subscribe((event) => {
+      if (event instanceof NavigationStart) {
+        this.onNavigationStart();
+      }
+    });
   }
 
   @Input()
@@ -144,12 +151,26 @@ export class SongComponent implements OnInit, OnDestroy {
           this.loadSuggestions();
           this.loadCollections(songId);
           this.refreshMergeSong();
+          this.setCanonicalUrl(songId);
         }, (err) => {
           console.log('songId: ' + songId);
           console.log(err);
         });
       }
     });
+  }
+
+  private onNavigationStart(): void {
+    this.meta.removeTag('rel="canonical"');
+  }
+
+  private setCanonicalUrl(songId) {
+    try {
+      const s = 'http://localhost:8080/song/' + songId;
+      this.meta.updateTag({ rel: 'canonical', href: s });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   private loadCollections(songId: any) {
@@ -197,6 +218,7 @@ export class SongComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub.unsubscribe();
+    this.routerSubscription.unsubscribe();
   }
 
   deleteSong() {
