@@ -33,6 +33,17 @@ public class SiteMapController {
     }
 
     private void create(XmlUrlSet xmlUrlSet, String uuid, Date date) {
-        xmlUrlSet.addUrl(new XmlUrl(AppProperties.getInstance().baseUrl() + "/song/" + uuid, date));
+        xmlUrlSet.addUrl(new XmlUrl(getCanonicalUrlForSongUuid(uuid), date));
+    }
+
+    public static String getCanonicalUrlForSongUuid(String uuid) {
+        return AppProperties.getInstance().baseUrl() + "/song/" + uuid;
+    }
+
+    public static String getCanonicalUrlForSong(Song song) {
+        if (song == null) {
+            return "";
+        }
+        return getCanonicalUrlForSongUuid(song.getUuid());
     }
 }

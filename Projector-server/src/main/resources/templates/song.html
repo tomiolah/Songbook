@@ -8,6 +8,7 @@
 <meta name="keywords" th:attr="content=${keywords}"></meta>
 <meta th:if="${song.youtubeUrl!=null}" property="og:image" th:attr="content=${youtubeUrl}"/>
 <title th:text="${title}">Song</title>
+<link rel="canonical" th:attr="href=${canonicalUrl}"/>
 </head>
 <body>
 <script th:inline="javascript">

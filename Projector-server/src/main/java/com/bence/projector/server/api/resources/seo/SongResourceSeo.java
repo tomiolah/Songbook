@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.bence.projector.server.api.resources.SiteMapController.getCanonicalUrlForSong;
 import static com.bence.projector.server.utils.MemoryUtil.getEmptyList;
 
 @Controller
@@ -101,6 +102,7 @@ public class SongResourceSeo {
         model.addAttribute("keywords", keywords.toString());
         model.addAttribute("youtubeUrl", "http://img.youtube.com/vi/" + song.getYoutubeUrl() + "/0.jpg");
         model.addAttribute("description", getDescriptionText(song));
+        model.addAttribute("canonicalUrl", getCanonicalUrlForSong(song));
     }
 
     private void setEmptyLines(Song song) {
