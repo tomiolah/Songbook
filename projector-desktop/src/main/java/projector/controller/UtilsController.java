@@ -1,12 +1,15 @@
 package projector.controller;
 
 import javafx.application.Platform;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.geometry.Side;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
@@ -14,7 +17,11 @@ import javafx.scene.input.MouseEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.application.Settings;
+import projector.controller.listener.ProjectionScreenListener;
 import projector.controller.util.AutomaticAction;
+import projector.controller.util.ProjectionScreenBunch;
+import projector.controller.util.ProjectionScreenHolder;
+import projector.controller.util.ProjectionScreensUtil;
 import projector.model.CountdownTime;
 import projector.service.CountdownTimeService;
 import projector.service.ServiceManager;
@@ -38,6 +45,8 @@ public class UtilsController {
 
     private static final Logger LOG = LoggerFactory.getLogger(UtilsController.class);
     public ComboBox<String> actionComboBox;
+    public ComboBox<ProjectionScreenBunch> projectionScreensComboBox;
+    public CheckBox showFinishTimeCheckBox;
     @FXML
     private Label countDownLabel;
     @FXML
@@ -49,6 +58,7 @@ public class UtilsController {
 
     public void initialize() {
         initializeActionComboBox();
+        initializeProjectionScreensComboBox();
         loadCountdownTimes(true);
         timeTextField.addEventFilter(KeyEvent.KEY_TYPED, event -> {
             String text = getTextFromEvent(event);
@@ -66,7 +76,7 @@ public class UtilsController {
                     Thread.sleep(200);
                 }
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                LOG.error(e.getMessage(), e);
             }
         });
         thread.start();
@@ -85,6 +95,51 @@ public class UtilsController {
         }
     }
 
+
+    private void initializeProjectionScreensComboBox() {
+        try {
+            ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
+            ObservableList<ProjectionScreenBunch> projectionScreensComboBoxItems = projectionScreensComboBox.getItems();
+            ProjectionScreenBunch projectionScreenBunch = new ProjectionScreenBunch();
+            projectionScreenBunch.setName(resourceBundle.getString("All"));
+            projectionScreensComboBoxItems.add(projectionScreenBunch);
+            ProjectionScreensUtil projectionScreensUtil = ProjectionScreensUtil.getInstance();
+            List<ProjectionScreenHolder> projectionScreenHolders = projectionScreensUtil.getProjectionScreenHolders();
+            for (ProjectionScreenHolder projectionScreenHolder : projectionScreenHolders) {
+                addProjectionScreenHolderToItems(projectionScreenHolder, projectionScreensComboBoxItems);
+            }
+            projectionScreensUtil.addProjectionScreenListener(new ProjectionScreenListener() {
+                @Override
+                public void onNew(ProjectionScreenHolder projectionScreenHolder) {
+                    addProjectionScreenHolderToItems(projectionScreenHolder, projectionScreensComboBoxItems);
+                }
+
+                @Override
+                public void onRemoved(ProjectionScreenHolder projectionScreenHolder) {
+                    if (projectionScreenHolder == null) {
+                        return;
+                    }
+                    for (int i = 0; i < projectionScreensComboBoxItems.size(); ++i) {
+                        ProjectionScreenBunch bunch = projectionScreensComboBoxItems.get(i);
+                        if (projectionScreenHolder.equals(bunch.getProjectionScreenHolder())) {
+                            projectionScreensComboBoxItems.remove(i);
+                            break;
+                        }
+                    }
+                }
+            });
+            projectionScreensComboBox.getSelectionModel().select(0);
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private static void addProjectionScreenHolderToItems(ProjectionScreenHolder projectionScreenHolder, ObservableList<ProjectionScreenBunch> projectionScreensComboBoxItems) {
+        ProjectionScreenBunch projectionScreenBunch1 = new ProjectionScreenBunch();
+        projectionScreenBunch1.setProjectionScreenHolder(projectionScreenHolder);
+        projectionScreensComboBoxItems.add(projectionScreenBunch1);
+    }
+
     private AutomaticAction getSelectedAction() {
         return switch (actionComboBox.getSelectionModel().getSelectedIndex()) {
             case 0 -> AutomaticAction.NOTHING;
@@ -97,7 +152,7 @@ public class UtilsController {
     private void loadCountdownTimes(boolean setFirst) {
         try {
             List<CountdownTime> countdownTimes = ServiceManager.getCountdownTimeService().findAll();
-            if (countdownTimes.size() > 0) {
+            if (!countdownTimes.isEmpty()) {
                 countdownTimes.sort((o1, o2) -> Long.compare(o2.getCounter(), o1.getCounter()));
                 if (setFirst) {
                     fillWithSelected(countdownTimes.get(0));
@@ -112,6 +167,24 @@ public class UtilsController {
     private void fillWithSelected(CountdownTime countdownTime) {
         timeTextField.setText(countdownTime.getTimeText());
         actionComboBox.getSelectionModel().select(countdownTime.getSelectedAction().ordinal());
+        showFinishTimeCheckBox.setSelected(countdownTime.isShowFinishTime());
+        selectProjectionScreensComboBoxItemByName(countdownTime.getSelectedProjectionScreenName());
+    }
+
+    private void selectProjectionScreensComboBoxItemByName(String selectedProjectionScreenName) {
+        SingleSelectionModel<ProjectionScreenBunch> selectionModel = projectionScreensComboBox.getSelectionModel();
+        if (selectedProjectionScreenName == null) {
+            selectionModel.selectFirst();
+        } else {
+            ObservableList<ProjectionScreenBunch> projectionScreensComboBoxItems = projectionScreensComboBox.getItems();
+            for (int i = 1; i < projectionScreensComboBoxItems.size(); ++i) {
+                ProjectionScreenBunch projectionScreenBunch = projectionScreensComboBoxItems.get(i);
+                if (selectedProjectionScreenName.equals(projectionScreenBunch.toString())) {
+                    selectionModel.select(i);
+                    break;
+                }
+            }
+        }
     }
 
     private void createCountdownTimesMenu(List<CountdownTime> countdownTimes) {
@@ -203,17 +276,65 @@ public class UtilsController {
         return timeTextField.getText().trim();
     }
 
+    private ProjectionScreenController getSelectedProjectionScreenController() {
+        ProjectionScreenHolder selectedProjectionScreenHolder = getSelectedProjectionScreenHolder();
+        if (selectedProjectionScreenHolder == null) {
+            return projectionScreenController;
+        } else {
+            return selectedProjectionScreenHolder.getProjectionScreenController();
+        }
+    }
+
     public void onShowCountDownButtonEvent() {
         AutomaticAction selectedAction = getSelectedAction();
-        projectionScreenController.setCountDownTimer(getFinishDate(), selectedAction);
+        ProjectionScreenController selectedProjectionScreenController = getSelectedProjectionScreenController();
+        boolean showFinishTime = showFinishTimeCheckBox.isSelected();
+        if (selectedProjectionScreenController != null) {
+            ProjectionScreenController mainProjectionController = MyController.getInstance().getProjectionScreenController();
+            if (selectedProjectionScreenController == mainProjectionController) {
+                mainProjectionController.stopOtherCountDownTimer();
+            }
+            selectedProjectionScreenController.setCountDownTimer(getFinishDate(), selectedAction, showFinishTime);
+        } else {
+            LOG.error("selectedProjectionScreenController is null");
+        }
         String timeText = getTimeTextFieldText();
         CountdownTimeService countdownTimeService = ServiceManager.getCountdownTimeService();
         List<CountdownTime> countdownTimes = countdownTimeService.findAll();
         CountdownTime countdownTime = findCountdownTimeByTimeText(countdownTimes, timeText);
         countdownTime.setCounter(countdownTime.getCounter() + 1);
         countdownTime.setSelectedAction(selectedAction);
+        countdownTime.setShowFinishTime(showFinishTime);
+        countdownTime.setSelectedProjectionScreenName(getSelectedProjectionScreenName());
         countdownTimeService.create(countdownTime);
         loadCountdownTimes(false);
+    }
+
+    private String getSelectedProjectionScreenName() {
+        try {
+            ProjectionScreenHolder selectedProjectionScreenHolder = getSelectedProjectionScreenHolder();
+            if (selectedProjectionScreenHolder == null) {
+                return null;
+            }
+            return getProjectionScreenBunch().toString();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private ProjectionScreenHolder getSelectedProjectionScreenHolder() {
+        try {
+            ProjectionScreenBunch projectionScreenBunch = getProjectionScreenBunch();
+            return projectionScreenBunch.getProjectionScreenHolder();
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+            return null;
+        }
+    }
+
+    private ProjectionScreenBunch getProjectionScreenBunch() {
+        return projectionScreensComboBox.getSelectionModel().getSelectedItem();
     }
 
     private CountdownTime findCountdownTimeByTimeText(List<CountdownTime> countdownTimes, String timeText) {

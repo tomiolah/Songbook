@@ -601,9 +601,8 @@ public class MainDesktop extends Application {
         });
         canvasStage.setOnCloseRequest(event -> tmpStage.hide());
         projectionScreenController.setStage(canvasStage);
-        canvasStage.widthProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
-        canvasStage.heightProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
-
+        scene.widthProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
+        scene.heightProperty().addListener((observable, oldValue, newValue) -> projectionScreenController.repaint());
         scene.setOnKeyPressed(event -> {
             KeyCode keyCode = event.getCode();
             if (keyCode == KeyCode.DOWN || keyCode == KeyCode.RIGHT || keyCode == KeyCode.PAGE_DOWN) {

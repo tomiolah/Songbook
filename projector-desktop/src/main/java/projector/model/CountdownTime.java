@@ -11,6 +11,10 @@ public class CountdownTime extends BaseEntity {
     private Long counter;
     @DatabaseField
     private AutomaticAction selectedAction;
+    @DatabaseField
+    private Boolean showFinishTime;
+    @DatabaseField
+    private String selectedProjectionScreenName;
 
     public String getTimeText() {
         return timeText;
@@ -37,5 +41,21 @@ public class CountdownTime extends BaseEntity {
 
     public void setSelectedAction(AutomaticAction selectedAction) {
         this.selectedAction = selectedAction;
+    }
+
+    public void setShowFinishTime(boolean showFinishTime) {
+        this.showFinishTime = showFinishTime;
+    }
+
+    public boolean isShowFinishTime() {
+        return showFinishTime != null && showFinishTime;
+    }
+
+    public void setSelectedProjectionScreenName(String selectedProjectionScreenName) {
+        this.selectedProjectionScreenName = selectedProjectionScreenName;
+    }
+
+    public String getSelectedProjectionScreenName() {
+        return selectedProjectionScreenName;
     }
 }

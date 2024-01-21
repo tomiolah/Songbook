@@ -43,7 +43,7 @@ public class DatabaseHelper {
 
     private static DatabaseHelper instance;
     private static boolean frozen = false;
-    private final int DATABASE_VERSION = 18;
+    private final int DATABASE_VERSION = 19;
     private final ConnectionSource connectionSource;
     private final String dataBaseVersionPath = getDataBaseVersionPath();
     private Dao<Song, Long> songDao;
@@ -59,7 +59,7 @@ public class DatabaseHelper {
     private Dao<Chapter, Long> chapterDao;
     private Dao<BibleVerse, Long> bibleVerseDao;
     private Dao<VerseIndex, Long> verseIndexDao;
-    private Dao<CountdownTime, Long> countdownTimeDao;
+    private CustomDao<CountdownTime, Long> countdownTimeDao;
     private CustomDao<LoggedInUser, Long> loggedInUserDao;
     private CustomDao<FavouriteSong, Long> favouriteSongDao;
 
@@ -177,9 +177,15 @@ public class DatabaseHelper {
                     } catch (Exception ignored) {
                     }
                 }
-                //noinspection ConstantConditions
-                if (oldVersion > 0 && oldVersion <= 17) {
-                    executeSafe(getLanguageDao(), "ALTER TABLE `language` ADD COLUMN favouriteSongDate DATETIME");
+                if (oldVersion > 0) {
+                    if (oldVersion <= 17) {
+                        executeSafe(getLanguageDao(), "ALTER TABLE `language` ADD COLUMN favouriteSongDate DATETIME");
+                    }
+                    //noinspection ConstantValue
+                    if (oldVersion <= 18) {
+                        executeSafe(getCountdownTimeDao(), "ALTER TABLE `CountdownTime` ADD COLUMN showFinishTime BOOLEAN");
+                        executeSafe(getCountdownTimeDao(), "ALTER TABLE `CountdownTime` ADD COLUMN selectedProjectionScreenName VARCHAR(255)");
+                    }
                 }
                 saveNewVersion();
             }
@@ -211,7 +217,7 @@ public class DatabaseHelper {
         instance = null;
     }
 
-    private void executeSafe(CustomDao<Language, Long> dao, @SuppressWarnings("SameParameterValue") String statement) {
+    private void executeSafe(CustomDao<?, Long> dao, String statement) {
         try {
             dao.executeRaw(statement);
         } catch (Exception e) {
@@ -394,9 +400,9 @@ public class DatabaseHelper {
         return verseIndexDao;
     }
 
-    Dao<CountdownTime, Long> getCountdownTimeDao() throws SQLException {
+    CustomDao<CountdownTime, Long> getCountdownTimeDao() throws SQLException {
         if (countdownTimeDao == null) {
-            countdownTimeDao = DaoManager.createDao(connectionSource, CountdownTime.class);
+            countdownTimeDao = getCustomDao(CountdownTime.class);
         }
         return countdownTimeDao;
     }

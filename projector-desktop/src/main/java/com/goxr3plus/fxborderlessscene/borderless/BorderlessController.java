@@ -461,7 +461,9 @@ public class BorderlessController {
                     double comingWidth = width + m.getX();
 
                     //Check if it violates
-                    if (comingWidth > 0 && comingWidth >= stage.getMinWidth()) stage.setWidth(m.getSceneX());
+                    if (comingWidth > 0 && comingWidth >= stage.getMinWidth()) {
+                        stage.setWidth(m.getSceneX());
+                    }
                 }
 
                 // Vertical resize.

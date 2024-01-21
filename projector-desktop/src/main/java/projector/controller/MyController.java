@@ -130,7 +130,6 @@ public class MyController {
         settingsController.setSongController(songController);
         utilsController.setProjectionScreenController(projectionScreenController);
         projectionScreenController.setBlank(true);
-        projectionScreenController.setSongController(songController);
         projectionScreenController.setGalleryController(galleryController);
         if (settings.isAllowRemote()) {
             RemoteServer.startRemoteServer(projectionScreenController, songController);

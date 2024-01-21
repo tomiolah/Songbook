@@ -1,5 +1,7 @@
 package projector.utils;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Date;
 
 public class CountDownTimerUtil {
@@ -20,8 +22,8 @@ public class CountDownTimerUtil {
         if (hour > 0) {
             s = hour + ":";
         }
-        if (!s.isEmpty() && minutes < 10) {
-            s += "0";
+        if (!s.isEmpty()) {
+            s = add0(minutes, s);
         }
         s += minutes + ":";
         if (seconds < 10) {
@@ -37,5 +39,28 @@ public class CountDownTimerUtil {
             return null;
         }
         return finishDate.getTime() - now.getTime();
+    }
+
+    public static String getDisplayTextFromDateTime(Date date) {
+        if (date == null) {
+            return "";
+        }
+        LocalDateTime localDateTime = LocalDateTime.ofInstant(date.toInstant(), java.time.ZoneId.systemDefault());
+        LocalTime localTime = localDateTime.toLocalTime();
+        String s = "";
+        int hour = localTime.getHour();
+        s = add0(hour, s);
+        s += hour + ":";
+        int minute = localTime.getMinute();
+        s = add0(minute, s);
+        s += minute;
+        return s;
+    }
+
+    private static String add0(long x, String s) {
+        if (x < 10) {
+            s += "0";
+        }
+        return s;
     }
 }

@@ -8,7 +8,7 @@ import java.sql.SQLException;
 public class CountdownTimeRepositoryImpl extends AbstractBaseRepository<CountdownTime> implements CountdownTimeRepository {
 
     CountdownTimeRepositoryImpl() throws SQLException {
-        super(CountdownTime.class, DatabaseHelper.getInstance().getCountdownTimeDao());
+        super(CountdownTime.class, DatabaseHelper.getInstance().getCountdownTimeDao().getDao());
     }
 
 }
