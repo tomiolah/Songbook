@@ -187,7 +187,9 @@ public class DatabaseHelper {
                         executeSafe(getCountdownTimeDao(), "ALTER TABLE `CountdownTime` ADD COLUMN selectedProjectionScreenName VARCHAR(255)");
                     }
                 }
-                saveNewVersion();
+                if (!frozen) {
+                    saveNewVersion();
+                }
             }
             onCreate(connectionSource, oldVersion);
         } catch (SQLException e) {

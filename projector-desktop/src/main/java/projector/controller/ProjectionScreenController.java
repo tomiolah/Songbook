@@ -325,7 +325,7 @@ public class ProjectionScreenController {
         countDownTimerRunning = false;
         if (countDownTimerThread != null) {
             try {
-                countDownTimerThread.interrupt();
+                countDownTimerThread.join();
             } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
             }
@@ -349,7 +349,9 @@ public class ProjectionScreenController {
                     }
                     //noinspection BusyWait
                     sleep(100);
-                } catch (InterruptedException ignored) {
+                } catch (InterruptedException e) {
+                    LOG.error(e.getMessage(), e);
+                    break;
                 }
             }
         });
