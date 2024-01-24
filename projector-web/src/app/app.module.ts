@@ -99,6 +99,10 @@ import { EditTitleComponent } from './ui/edit-title/edit-title.component';
 import { AccountComponent } from './ui/account/account.component';
 import { YoutubeVideoCheckerComponent } from './ui/youtube-video-checker/youtube-video-checker.component';
 import { YoutubeIdCheckComponent } from './ui/youtube-id-check/youtube-id-check.component';
+import { SongGuidelinesComponent } from './ui/song-guidelines/song-guidelines.component';
+import { SongGuidelinesCheckerComponent } from './ui/song-guidelines-checker/song-guidelines-checker.component';
+import { GuidelineDataService } from './services/guidelines-data.service';
+import { SongGuidelineCheckerComponent } from './ui/song-guideline-checker/song-guideline-checker.component';
 
 @NgModule({
   exports: [
@@ -188,6 +192,9 @@ export class PlunkerMaterialModule {
     AccountComponent,
     YoutubeVideoCheckerComponent,
     YoutubeIdCheckComponent,
+    SongGuidelinesComponent,
+    SongGuidelinesCheckerComponent,
+    SongGuidelineCheckerComponent,
   ],
   imports: [
     BrowserModule,
@@ -223,6 +230,7 @@ export class PlunkerMaterialModule {
     UserPropertiesDataService,
     Title,
     SongLinkDataService,
+    GuidelineDataService,
   ],
   bootstrap: [AppComponent]
 })

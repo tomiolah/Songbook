@@ -6,7 +6,7 @@ import { LanguageDataService } from "../../services/language-data.service";
 import { NewLanguageComponent } from "../new-language/new-language.component";
 import { MatDialog, MatIconRegistry, MatSnackBar } from "@angular/material";
 import { DomSanitizer, SafeResourceUrl } from "@angular/platform-browser";
-import { replace } from "../new-song/new-song.component";
+import { SubmitOrPublish, replace } from "../new-song/new-song.component";
 import { AuthenticateComponent } from "../authenticate/authenticate.component";
 import { CdkDragDrop, moveItemInArray, copyArrayItem } from '@angular/cdk/drag-drop';
 import { AuthService } from '../../services/auth.service';
@@ -61,6 +61,7 @@ export class EditSongComponent implements OnInit {
     index: number;
   }[];
   customSectionOrder = false;
+  publish = false;
 
   constructor(private fb: FormBuilder,
     private songService: SongService,
@@ -93,6 +94,7 @@ export class EditSongComponent implements OnInit {
     this.createForm();
     this.loadLanguage(false);
     this.calculateUsedSectionTypes();
+    this.submitButtonOrPublish();
   }
 
   ngAfterViewChecked(): void {
@@ -101,6 +103,18 @@ export class EditSongComponent implements OnInit {
 
   noReturnPredicate() {
     return false;
+  }
+
+  private submitButtonOrPublish() {
+    const user = this.auth.getUser();
+    if (user == undefined || user == null) {
+      return;
+    }
+    this.publish = user.activated;
+  }
+
+  SubmitOrPublish() {
+    return SubmitOrPublish(this.publish);
   }
 
   removeSectionOrder(i: number) {

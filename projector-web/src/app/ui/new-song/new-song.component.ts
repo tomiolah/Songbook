@@ -12,6 +12,8 @@ import { addNewVerse_, calculateOrder_ } from '../../util/song.utils';
 import { checkAuthenticationError } from '../../util/error-util';
 import { AuthService } from '../../services/auth.service';
 import { format } from '../../util/string-util';
+import { GuidelineDataService } from '../../services/guidelines-data.service';
+import { Guideline, YOU_TUBE_LINKING } from '../../models/guideline';
 
 export function replace(value: string) {
   let newValue = replaceMatch(value, / /g, ' '); // NBSP - replaces non breaking space characters with space
@@ -77,6 +79,9 @@ export class NewSongComponent implements OnInit {
     index: number;
   }[];
   customSectionOrder = false;
+  showWarning = false;
+  guidelines: Guideline[] = [];
+  publish = false;
 
   constructor(private fb: FormBuilder,
     private songService: SongService,
@@ -87,6 +92,7 @@ export class NewSongComponent implements OnInit {
     private dialog: MatDialog,
     iconRegistry: MatIconRegistry,
     public sanitizer: DomSanitizer,
+    private guidelineDataService: GuidelineDataService,
     private _changeDetectionRef: ChangeDetectorRef) {
     iconRegistry.addSvgIcon(
       'magic_tool',
@@ -110,6 +116,20 @@ export class NewSongComponent implements OnInit {
     this.createForm();
     this.loadLanguage(false);
     this.calculateUsedSectionTypes();
+    this.guidelines = this.guidelineDataService.getAll();
+    this.submitButtonOrPublish();
+  }
+
+  private submitButtonOrPublish() {
+    const user = this.auth.getUser();
+    if (user == undefined || user == null) {
+      return;
+    }
+    this.publish = user.activated;
+  }
+
+  SubmitOrPublish() {
+    return SubmitOrPublish(this.publish);
   }
 
   ngAfterViewChecked(): void {
@@ -258,6 +278,13 @@ export class NewSongComponent implements OnInit {
           }
         }
       }
+    }
+  }
+
+  submitForm() {
+    this.showWarning = this.needToDisable();
+    if (!this.showWarning) {
+      this.onSubmit();
     }
   }
 
@@ -427,8 +454,31 @@ export class NewSongComponent implements OnInit {
     }
   }
 
+  reasonForNotSubmitting(): string {
+    const formValue = this.form.value;
+    const title = formValue.title;
+    if (title === undefined || title.trim() == "") {
+      return "Please enter a title!";
+    }
+    if (!this.form.valid) {
+      return "Form is not valid!";
+    }
+    if (this.editorType === 'raw') {
+      return "Please switch back to verse editor!";
+    }
+    if (this.selectedLanguage == null) {
+      return "Please select language!";
+    }
+    for (const guideline of this.guidelines) {
+      if (!guideline.checkboxState && guideline.enabled) {
+        return "Please check guideline: " + guideline.title;
+      }
+    }
+    return null;
+  }
+
   needToDisable() {
-    return !this.form.valid || this.editorType === 'raw' || this.selectedLanguage == null;
+    return this.reasonForNotSubmitting() != null;
   }
 
   refactor() {
@@ -478,6 +528,15 @@ export class NewSongComponent implements OnInit {
     this.secondSong = song;
   }
 
+  private getYouTubeGuideLine(): Guideline {
+    for (const guideline of this.guidelines) {
+      if (guideline.title == YOU_TUBE_LINKING) {
+        return guideline;
+      }
+    }
+    return undefined;
+  }
+
   calculateUrlId() {
     let youtubeUrl = this.form.value.youtubeUrl.replace("https://www.youtube.com/watch?v=", "");
     youtubeUrl = youtubeUrl.replace("https://www.youtube.com/embed/", "");
@@ -491,5 +550,23 @@ export class NewSongComponent implements OnInit {
     } else {
       this.safeUrl = null;
     }
+    this.enablingYouTubeGuideline(this.safeUrl != null);
+  }
+
+  private enablingYouTubeGuideline(enable: boolean) {
+    const youTubeGuideLine = this.getYouTubeGuideLine();
+    if (youTubeGuideLine == undefined) {
+      return;
+    }
+    youTubeGuideLine.enabled = enable;
   }
 }
+
+export function SubmitOrPublish(publish: boolean) {
+  if (publish) {
+    return "Publish";
+  } else {
+    return "Submit";
+  }
+}
+

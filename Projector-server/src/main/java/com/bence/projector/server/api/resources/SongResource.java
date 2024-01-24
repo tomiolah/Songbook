@@ -105,6 +105,9 @@ public class SongResource {
         if (user.isActivated()) {
             return true;
         }
+        if (song.isPublic()) {
+            return false; // it was reviewed already. User can't change after that.
+        }
         Date now = new Date();
         Date beforeOneWeak = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 7);
         return song.getCreatedDate().after(beforeOneWeak);
