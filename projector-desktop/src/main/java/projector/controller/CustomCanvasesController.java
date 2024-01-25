@@ -1,0 +1,158 @@
+package projector.controller;
+
+import javafx.collections.ObservableList;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
+import javafx.scene.Node;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import projector.application.Settings;
+import projector.model.CustomCanvas;
+import projector.service.CustomCanvasService;
+
+import java.util.ArrayList;
+import java.util.function.DoubleConsumer;
+import java.util.function.DoubleSupplier;
+
+import static projector.controller.MyController.calculateSizeByScale;
+import static projector.controller.util.ControllerUtil.getFxmlLoader;
+import static projector.controller.util.ControllerUtil.getStageWithRoot;
+
+public class CustomCanvasesController {
+
+    private static final Logger LOG = LoggerFactory.getLogger(CustomCanvasesController.class);
+    private final Settings settings = Settings.getInstance();
+    public VBox vBox;
+    private ArrayList<CustomCanvas> customCanvases;
+
+    public void initialize() {
+        customCanvases = CustomCanvasService.getInstance().getCustomCanvases();
+        for (CustomCanvas customCanvas : customCanvases) {
+            addCustomCanvas(customCanvas);
+        }
+    }
+
+    public void onAddCustomCanvas() {
+        CustomCanvas customCanvas = new CustomCanvas();
+        customCanvas.apply(getLastCustomCanvas());
+        MyController.getInstance().createCustomCanvasStage(customCanvas);
+        addCustomCanvas(customCanvas);
+        customCanvases.add(customCanvas);
+    }
+
+    private CustomCanvas getLastCustomCanvas() {
+        if (customCanvases.isEmpty()) {
+            if (settings.isCustomCanvasLoadOnStart()) {
+                CustomCanvas customCanvas = new CustomCanvas();
+                customCanvas.setWidth((double) settings.getCustomCanvasWidth());
+                customCanvas.setHeight((double) settings.getCustomCanvasHeight());
+                customCanvas.setName("Custom Canvas");
+                customCanvas.setPositionX(0.0);
+                customCanvas.setPositionY(0.0);
+                return customCanvas;
+            } else {
+                return null;
+            }
+        }
+        return customCanvases.get(customCanvases.size() - 1);
+    }
+
+    private void addCustomCanvas(CustomCanvas customCanvas) {
+        ObservableList<Node> vBoxChildren = vBox.getChildren();
+        HBox hBox = new HBox();
+        hBox.setAlignment(javafx.geometry.Pos.CENTER);
+        hBox.setSpacing(10);
+        hBox.setPadding(new Insets(10, 10, 0, 10));
+        ObservableList<Node> hBoxChildren = hBox.getChildren();
+        addNameTextField(customCanvas, hBoxChildren);
+        Stage stage = customCanvas.getStage();
+        customCanvas.setPositionX(stage.getX());
+        customCanvas.setPositionY(stage.getY());
+        addDoubleTextField(hBoxChildren, customCanvas::setWidth, customCanvas::getWidth, "Width:", stage::setWidth, true);
+        addDoubleTextField(hBoxChildren, customCanvas::setHeight, customCanvas::getHeight, "Height:", stage::setHeight, true);
+        addDoubleTextField(hBoxChildren, customCanvas::setPositionX, customCanvas::getPositionX, "X:", stage::setX, false);
+        addDoubleTextField(hBoxChildren, customCanvas::setPositionY, customCanvas::getPositionY, "Y:", stage::setY, false);
+        addRemoveButton(hBoxChildren, customCanvas, vBoxChildren, hBox);
+        vBoxChildren.add(hBox);
+    }
+
+    private void addRemoveButton(ObservableList<Node> hBoxChildren, CustomCanvas customCanvas, ObservableList<Node> vBoxChildren, HBox hBox) {
+        Button button = new Button("Remove");
+        button.setOnAction(event -> {
+            vBoxChildren.remove(hBox);
+            customCanvases.remove(customCanvas);
+            Stage stage = customCanvas.getStage();
+            if (stage != null) {
+                stage.close();
+            }
+        });
+        hBoxChildren.add(button);
+    }
+
+    private static void addNameTextField(CustomCanvas customCanvas, ObservableList<Node> hBoxChildren) {
+        TextField nameTextField = new TextField();
+        nameTextField.setText(customCanvas.getName());
+        nameTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            customCanvas.setName(newValue);
+            Stage stage = customCanvas.getStage();
+            if (stage != null) {
+                stage.setTitle(newValue);
+            }
+        });
+        hBoxChildren.add(nameTextField);
+    }
+
+    private void addDoubleTextField(ObservableList<Node> hBoxChildren, DoubleConsumer doubleConsumer, DoubleSupplier doubleSupplier, String labelText, DoubleConsumer stageDoubleConsumer, boolean useScale) {
+        Label label = new Label(labelText);
+        hBoxChildren.add(label);
+        TextField textField = new TextField();
+        textField.setPrefWidth(55.0);
+        setTextToTextField(doubleSupplier, textField);
+        textField.textProperty().addListener((observable, oldValue, newValue) -> {
+            Double aDouble = getDouble(newValue);
+            if (aDouble != null) {
+                doubleConsumer.accept(aDouble);
+                if (useScale) {
+                    aDouble = calculateSizeByScale(aDouble);
+                }
+                stageDoubleConsumer.accept(aDouble);
+            }
+        });
+        hBoxChildren.add(textField);
+    }
+
+    private static void setTextToTextField(DoubleSupplier doubleSupplier, TextField textField) {
+        textField.setText(doubleSupplier.getAsDouble() + "");
+    }
+
+    private static Double getDouble(String newValue) {
+        try {
+            return Double.parseDouble(newValue);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static CustomCanvasesController openCustomCanvases(Class<?> aClass) {
+        try {
+            FXMLLoader loader = getFxmlLoader("CustomCanvases");
+            Pane root = loader.load();
+            CustomCanvasesController controller = loader.getController();
+            Stage stage = getStageWithRoot(aClass, root);
+            stage.setTitle("Custom Canvases");
+            stage.setOnCloseRequest(event -> CustomCanvasService.getInstance().save());
+            stage.show();
+            return controller;
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+            return null;
+        }
+    }
+}

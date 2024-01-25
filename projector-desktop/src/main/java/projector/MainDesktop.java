@@ -41,6 +41,7 @@ import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
 import projector.controller.util.WindowController;
 import projector.repository.ormLite.DatabaseHelper;
+import projector.service.CustomCanvasService;
 import projector.utils.AppProperties;
 
 import java.io.FileWriter;
@@ -330,6 +331,7 @@ public class MainDesktop extends Application {
             loader.setLocation(MainDesktop.class.getResource("/view/ProjectionScreen.fxml"));
             Pane root = loader.load();
             projectionScreenController = loader.getController();
+            projectionScreenController.setOnMainProjectionEvent();
             projectionScreenController.setRoot(root);
             ProjectionScreensUtil.getInstance().addProjectionScreenController(projectionScreenController, "Main projection");
         } catch (Exception e) {
@@ -381,9 +383,7 @@ public class MainDesktop extends Application {
         primaryStage.setOnCloseRequest(we -> closeApplication());
         ApplicationUtil.getInstance().setListener(this::closeApplication);
         primarySceneEventHandler();
-        if (settings.isCustomCanvasLoadOnStart()) {
-            myController.createCustomCanvas();
-        }
+        myController.createCustomCanvas();
     }
 
     private void closeApplication() {
@@ -399,6 +399,7 @@ public class MainDesktop extends Application {
         }
         myController.close();
         projectionScreenController.onClose();
+        CustomCanvasService.getInstance().save();
     }
 
     private void primarySceneEventHandler() {

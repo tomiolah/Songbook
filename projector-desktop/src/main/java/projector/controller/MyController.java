@@ -26,9 +26,11 @@ import projector.application.ProjectorState;
 import projector.application.Settings;
 import projector.controller.song.ScheduleController;
 import projector.controller.song.SongController;
+import projector.model.CustomCanvas;
 import projector.network.TCPClient;
 import projector.network.TCPServer;
 import projector.remote.RemoteServer;
+import projector.service.CustomCanvasService;
 import projector.utils.BibleVerseTextFlow;
 import projector.utils.GlobalKeyListenerExample;
 import projector.utils.scene.text.MyTextFlow;
@@ -97,7 +99,7 @@ public class MyController {
         return instance;
     }
 
-    public static double calculateSizeByScale(int size) {
+    public static double calculateSizeByScale(double size) {
         double screenScale = screenScale();
         return size / screenScale;
     }
@@ -415,7 +417,11 @@ public class MyController {
     }
 
     public void createCustomCanvas() {
-        projectionScreenController.createCustomStage(settings.getCustomCanvasWidth(), settings.getCustomCanvasHeight());
+        projectionScreenController.createCustomStageWithIterator(CustomCanvasService.getInstance().getCustomCanvases().iterator());
+    }
+
+    public void createCustomCanvasStage(CustomCanvas customCanvas) {
+        projectionScreenController.createNewCustomStage(customCanvas);
     }
 
     public void handleKeyPress(KeyEvent event) {
@@ -439,4 +445,5 @@ public class MyController {
     public void setByProjectorState(ProjectorState projectorState) {
         setBlank(projectorState.isBlank());
     }
+
 }

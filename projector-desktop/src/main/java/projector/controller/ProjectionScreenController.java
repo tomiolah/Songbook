@@ -42,12 +42,14 @@ import projector.controller.util.AutomaticAction;
 import projector.controller.util.ImageCacheService;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
+import projector.model.CustomCanvas;
 import projector.utils.scene.text.MyTextFlow;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -162,6 +164,10 @@ public class ProjectionScreenController {
 
     public void initialize() {
         settings = Settings.getInstance();
+        progressLine.setVisible(false);
+    }
+
+    public void setOnMainProjectionEvent() {
         mainPane.setOnMousePressed(e -> {
             if (isLock) {// ) || !stage.isMaximized()) {
                 return;
@@ -197,7 +203,6 @@ public class ProjectionScreenController {
                 }
             }
         });
-        progressLine.setVisible(false);
     }
 
     private SongController getSongController() {
@@ -597,7 +602,27 @@ public class ProjectionScreenController {
         doubleProjectionScreenController.setText(activeText, projectionType, projectionDTO);
     }
 
-    void createCustomStage(int width, int height) {
+    public void createCustomStageWithIterator(Iterator<CustomCanvas> iterator) {
+        if (iterator == null || !iterator.hasNext()) {
+            return;
+        }
+        createCustomStage2(iterator.next(), iterator);
+    }
+
+    public void createNewCustomStage(CustomCanvas customCanvas) {
+        if (customStageController == null) {
+            createCustomStage2(customCanvas, null);
+        } else {
+            customStageController.createNewCustomStage(customCanvas);
+        }
+    }
+
+    public void createCustomStage2(CustomCanvas customCanvas, Iterator<CustomCanvas> iterator) {
+        if (customCanvas == null) {
+            return;
+        }
+        double width = calculateSizeByScale(customCanvas.getWidth());
+        double height = calculateSizeByScale(customCanvas.getHeight());
         if (customStageController == null) {
             FXMLLoader loader2 = new FXMLLoader();
             loader2.setLocation(MainDesktop.class.getResource("/view/ProjectionScreen.fxml"));
@@ -606,21 +631,21 @@ public class ProjectionScreenController {
                 root2 = loader2.load();
 
                 customStageController = loader2.getController();
-                Scene scene2 = new Scene(root2, calculateSizeByScale(width), calculateSizeByScale(height));
+                Scene scene2 = new Scene(root2, width, height);
                 setStyleFile(scene2);
 
                 scene2.widthProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
                 scene2.heightProperty().addListener((observable, oldValue, newValue) -> customStageController.repaint());
                 Stage stage2 = getTransparentStage(getClass());
-                stage2.setTitle("Custom Canvas");
+                stage2.setTitle(customCanvas.getName());
                 ProjectionScreenHolder projectionScreenHolder = ProjectionScreensUtil.getInstance().addProjectionScreenController(customStageController, stage2.getTitle());
                 projectionScreenHolder.setScreenIndex(0);
                 customStageController.setScreen(Screen.getPrimary());
                 scene2.setFill(Color.TRANSPARENT);
                 stage2.setScene(scene2);
 
-                stage2.setX(0);
-                stage2.setY(0);
+                stage2.setX(customCanvas.getPositionX());
+                stage2.setY(customCanvas.getPositionY());
                 customStageController.setStage(stage2);
                 scene2.setOnKeyPressed(event -> {
                     if (event.getCode() == KeyCode.F11) {
@@ -660,13 +685,15 @@ public class ProjectionScreenController {
                 });
                 customStageController.setBlank(isBlank);
                 customStageController.setText(activeText, projectionType, projectionDTO);
+                customCanvas.setStage(stage2);
+                customStageController.createCustomStageWithIterator(iterator);
             } catch (IOException e) {
                 LOG.error(e.getMessage(), e);
             }
         } else {
             Stage stage = customStageController.getStage();
-            stage.setWidth(calculateSizeByScale(width));
-            stage.setHeight(calculateSizeByScale(height));
+            stage.setWidth(width);
+            stage.setHeight(height);
         }
     }
 

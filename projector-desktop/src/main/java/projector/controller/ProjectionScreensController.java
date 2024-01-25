@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import static projector.controller.CustomCanvasesController.openCustomCanvases;
 import static projector.controller.MyController.calculateSizeByScale;
 import static projector.utils.SceneUtils.getCustomStage;
 
@@ -142,6 +143,7 @@ public class ProjectionScreensController {
         ProjectionScreensUtil projectionScreensUtil = ProjectionScreensUtil.getInstance();
         List<ProjectionScreenHolder> projectionScreenHolders = projectionScreensUtil.getProjectionScreenHolders();
         vBox.getChildren().clear();
+        addToolHBox();
         for (ProjectionScreenHolder projectionScreenHolder : projectionScreenHolders) {
             addProjectionScreenHolderToVBox(projectionScreenHolder);
         }
@@ -156,6 +158,20 @@ public class ProjectionScreensController {
                 removeProjectionScreenHolderFromVBox(projectionScreenHolder);
             }
         });
+    }
+
+    private void addToolHBox() {
+        vBox.getChildren().add(getToolHBox());
+    }
+
+    private HBox getToolHBox() {
+        HBox toolHBox = new HBox();
+        toolHBox.setSpacing(10);
+        toolHBox.setPadding(new Insets(10, 10, 0, 10));
+        Button customCanvasesButton = new Button("Custom canvases");
+        customCanvasesButton.setOnAction((event) -> openCustomCanvases(getClass()));
+        toolHBox.getChildren().addAll(customCanvasesButton);
+        return toolHBox;
     }
 
     private void removeProjectionScreenHolderFromVBox(ProjectionScreenHolder projectionScreenHolder) {
