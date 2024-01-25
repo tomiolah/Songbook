@@ -2,6 +2,7 @@ package projector.model;
 
 import com.google.gson.annotations.Expose;
 import javafx.stage.Stage;
+import projector.controller.util.OnResultListener;
 
 public class CustomCanvas {
 
@@ -17,6 +18,7 @@ public class CustomCanvas {
     private Double positionY;
 
     private Stage stage;
+    private OnResultListener closeListener;
 
     public String getName() {
         return name;
@@ -75,5 +77,19 @@ public class CustomCanvas {
 
     public Stage getStage() {
         return stage;
+    }
+
+    public void setCloseListener(OnResultListener closeListener) {
+        this.closeListener = closeListener;
+    }
+
+    public void close() {
+        Stage stage = getStage();
+        if (stage != null) {
+            stage.close();
+            if (closeListener != null) {
+                closeListener.onResult();
+            }
+        }
     }
 }

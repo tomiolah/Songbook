@@ -190,13 +190,9 @@
                                   text="%Reference chapter sorting" GridPane.columnIndex="1" GridPane.rowIndex="19"/>
                         <CheckBox fx:id="referenceVerseSorting" mnemonicParsing="false" text="%Reference verse sorting"
                                   GridPane.columnIndex="1" GridPane.rowIndex="20"/>
-                        <CheckBox fx:id="customCanvasLoadOnStartCheckBox" mnemonicParsing="false"
-                                  text="%Custom canvas load on start" GridPane.rowIndex="22"/>
                         <CheckBox fx:id="automaticProjectionScreensCheckBox" mnemonicParsing="false"
                                   text="%Automatically create projection screens" GridPane.columnIndex="1"
                                   GridPane.rowIndex="22"/>
-                        <TextField fx:id="customCanvasWidthTextField" GridPane.rowIndex="23"/>
-                        <TextField fx:id="customCanvasHeightTextField" GridPane.columnIndex="1" GridPane.rowIndex="23"/>
                         <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="25">
                             <center>
                                 <HBox alignment="CENTER_LEFT">

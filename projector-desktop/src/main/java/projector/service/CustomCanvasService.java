@@ -81,7 +81,7 @@ public class CustomCanvasService {
         }
     }
 
-    private CustomCanvas getCustomCanvasFromOldSettings() {
+    public CustomCanvas getCustomCanvasFromOldSettings() {
         CustomCanvas customCanvas = new CustomCanvas();
         Settings settings = Settings.getInstance();
         customCanvas.setWidth((double) settings.getCustomCanvasWidth());

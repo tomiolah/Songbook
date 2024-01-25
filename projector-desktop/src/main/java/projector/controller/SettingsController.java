@@ -48,7 +48,6 @@ import java.util.Objects;
 public class SettingsController {
 
     private static final Logger LOG = LoggerFactory.getLogger(SettingsController.class);
-    public CheckBox customCanvasLoadOnStartCheckBox;
     public CheckBox automaticProjectionScreensCheckBox;
     public CheckBox strokeCheckbox;
     public ColorPicker strokeColorPicker;
@@ -64,10 +63,6 @@ public class SettingsController {
     private CheckBox connectToSharedAutomaticallyCheckbox;
     @FXML
     private CheckBox shareOnLocalNetworkAutomaticallyCheckbox;
-    @FXML
-    private TextField customCanvasWidthTextField;
-    @FXML
-    private TextField customCanvasHeightTextField;
     @FXML
     private ComboBox<String> appearanceComboBox;
     @FXML
@@ -243,10 +238,7 @@ public class SettingsController {
         initializeNetworkButtons();
         progressLineThicknessSpinner.setValueFactory(new SpinnerValueFactory.IntegerSpinnerValueFactory(1, 10, settings.getProgressLineThickness()));
         bibleShortNameCheckBox.setSelected(settings.getBibleShortName());
-        customCanvasLoadOnStartCheckBox.setSelected(settings.isCustomCanvasLoadOnStart());
         automaticProjectionScreensCheckBox.setSelected(settings.isAutomaticProjectionScreens());
-        customCanvasWidthTextField.setText(settings.getCustomCanvasWidth() + "");
-        customCanvasHeightTextField.setText(settings.getCustomCanvasHeight() + "");
         shareOnLocalNetworkAutomaticallyCheckbox.setSelected(settings.isShareOnLocalNetworkAutomatically());
         connectToSharedAutomaticallyCheckbox.setSelected(settings.isConnectToSharedAutomatically());
         showSongSecondTextCheckBox.setSelected(settings.isShowSongSecondText());
@@ -359,13 +351,7 @@ public class SettingsController {
             case "Light" -> settings.setSceneStyleFile("application.css");
             case "Dark" -> settings.setSceneStyleFile("applicationDark.css");
         }
-        settings.setCustomCanvasLoadOnStart(customCanvasLoadOnStartCheckBox.isSelected());
         settings.setAutomaticProjectionScreens(automaticProjectionScreensCheckBox.isSelected());
-        try {
-            settings.setCustomCanvasWidth(getCustomCanvasSize(customCanvasWidthTextField));
-            settings.setCustomCanvasHeight(getCustomCanvasSize(customCanvasHeightTextField));
-        } catch (Exception ignored) {
-        }
         settings.setShareOnLocalNetworkAutomatically(shareOnLocalNetworkAutomaticallyCheckbox.isSelected());
         settings.setConnectToSharedAutomatically(connectToSharedAutomaticallyCheckbox.isSelected());
         settings.setShowSongSecondText(showSongSecondTextCheckBox.isSelected());
@@ -390,7 +376,6 @@ public class SettingsController {
         checkBoxes.add(breakLinesCheckbox);
         checkBoxes.add(accentsCheckBox);
         checkBoxes.add(fastModeCheckBox);
-        checkBoxes.add(customCanvasLoadOnStartCheckBox);
         checkBoxes.add(showSongSecondTextCheckBox);
         checkBoxes.add(strokeCheckbox);
         checkBoxes.add(showReferenceOnlyCheckBox);
@@ -449,10 +434,6 @@ public class SettingsController {
 
     public void onLiveButtonAction() {
         onChanged();
-    }
-
-    private int getCustomCanvasSize(TextField textField) {
-        return Integer.parseInt(textField.getText().trim());
     }
 
     public synchronized void setSettings(Settings settings) {

@@ -850,16 +850,8 @@ public class Settings {
         return customCanvasWidth;
     }
 
-    public void setCustomCanvasWidth(int customCanvasWidth) {
-        this.customCanvasWidth = customCanvasWidth;
-    }
-
     public int getCustomCanvasHeight() {
         return customCanvasHeight;
-    }
-
-    public void setCustomCanvasHeight(int customCanvasHeight) {
-        this.customCanvasHeight = customCanvasHeight;
     }
 
     public boolean isShareOnLocalNetworkAutomatically() {
@@ -912,10 +904,6 @@ public class Settings {
 
     public boolean isCustomCanvasLoadOnStart() {
         return customCanvasLoadOnStart;
-    }
-
-    public void setCustomCanvasLoadOnStart(boolean customCanvasLoadOnStart) {
-        this.customCanvasLoadOnStart = customCanvasLoadOnStart;
     }
 
     public boolean isAutomaticProjectionScreens() {

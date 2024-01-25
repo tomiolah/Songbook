@@ -13,11 +13,11 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import projector.application.Settings;
 import projector.model.CustomCanvas;
 import projector.service.CustomCanvasService;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 
@@ -28,9 +28,10 @@ import static projector.controller.util.ControllerUtil.getStageWithRoot;
 public class CustomCanvasesController {
 
     private static final Logger LOG = LoggerFactory.getLogger(CustomCanvasesController.class);
-    private final Settings settings = Settings.getInstance();
     public VBox vBox;
     private ArrayList<CustomCanvas> customCanvases;
+    private final String CUSTOM_CANVAS = "Custom Canvas";
+    private final String SEPARATOR = " - ";
 
     public void initialize() {
         customCanvases = CustomCanvasService.getInstance().getCustomCanvases();
@@ -42,24 +43,32 @@ public class CustomCanvasesController {
     public void onAddCustomCanvas() {
         CustomCanvas customCanvas = new CustomCanvas();
         customCanvas.apply(getLastCustomCanvas());
+        String s = CUSTOM_CANVAS;
+        int size = customCanvases.size();
+        if (size > 0) {
+            s += SEPARATOR + getNextNumber(customCanvases, size + 1);
+        }
+        customCanvas.setName(s);
         MyController.getInstance().createCustomCanvasStage(customCanvas);
         addCustomCanvas(customCanvas);
         customCanvases.add(customCanvas);
     }
 
+    private int getNextNumber(ArrayList<CustomCanvas> customCanvases, int k) {
+        HashMap<String, Boolean> hashMap = new HashMap<>();
+        for (CustomCanvas customCanvas : customCanvases) {
+            hashMap.put(customCanvas.getName(), true);
+        }
+        String s;
+        do {
+            s = CUSTOM_CANVAS + SEPARATOR + k++;
+        } while (hashMap.containsKey(s));
+        return --k;
+    }
+
     private CustomCanvas getLastCustomCanvas() {
         if (customCanvases.isEmpty()) {
-            if (settings.isCustomCanvasLoadOnStart()) {
-                CustomCanvas customCanvas = new CustomCanvas();
-                customCanvas.setWidth((double) settings.getCustomCanvasWidth());
-                customCanvas.setHeight((double) settings.getCustomCanvasHeight());
-                customCanvas.setName("Custom Canvas");
-                customCanvas.setPositionX(0.0);
-                customCanvas.setPositionY(0.0);
-                return customCanvas;
-            } else {
-                return null;
-            }
+            return CustomCanvasService.getInstance().getCustomCanvasFromOldSettings();
         }
         return customCanvases.get(customCanvases.size() - 1);
     }
@@ -88,10 +97,7 @@ public class CustomCanvasesController {
         button.setOnAction(event -> {
             vBoxChildren.remove(hBox);
             customCanvases.remove(customCanvas);
-            Stage stage = customCanvas.getStage();
-            if (stage != null) {
-                stage.close();
-            }
+            customCanvas.close();
         });
         hBoxChildren.add(button);
     }

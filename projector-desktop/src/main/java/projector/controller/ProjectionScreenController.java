@@ -558,22 +558,31 @@ public class ProjectionScreenController {
                         stage2.setMaximized(false);
                     }
                 });
-                stage2.setOnCloseRequest(we -> {
-                    stage2.close();
-                    if (doubleProjectionScreenController != null) {
-                        ProjectionScreensUtil.getInstance().removeProjectionScreenController(doubleProjectionScreenController);
-                        doubleProjectionScreenController.setParentProjectionScreenController(parentProjectionScreenController);
-                        if (parentProjectionScreenController != null) {
-                            parentProjectionScreenController.setDoubleProjectionScreenController(doubleProjectionScreenController);
-                        }
-                    }
-                });
+                duplicateCanvasClose(stage2);
                 setSomeInitializationForDoubleProjectionScreenController();
             } catch (IOException e) {
                 LOG.error(e.getMessage(), e);
             }
         } else {
             doubleProjectionScreenController.duplicate();
+        }
+    }
+
+    private void duplicateCanvasClose(Stage stage2) {
+        doubleProjectionScreenController.setParentProjectionScreenController(doubleProjectionScreenController);
+        stage2.setOnCloseRequest(we -> {
+            stage2.close();
+            linkedMerge(doubleProjectionScreenController, parentProjectionScreenController);
+        });
+    }
+
+    private void linkedMerge(ProjectionScreenController doubleProjectionScreenController, ProjectionScreenController parentProjectionScreenController) {
+        if (doubleProjectionScreenController != null) {
+            ProjectionScreensUtil.getInstance().removeProjectionScreenController(doubleProjectionScreenController);
+            doubleProjectionScreenController.setParentProjectionScreenController(parentProjectionScreenController);
+            if (parentProjectionScreenController != null) {
+                parentProjectionScreenController.setDoubleProjectionScreenController(doubleProjectionScreenController);
+            }
         }
     }
 
@@ -678,11 +687,7 @@ public class ProjectionScreenController {
                         stage2.setMaximized(false);
                     }
                 });
-                stage2.setOnCloseRequest(we -> {
-                    stage2.close();
-                    customStageController = null;
-                    doubleProjectionScreenController = null;
-                });
+                customCanvasClose(stage2, customCanvas);
                 customStageController.setBlank(isBlank);
                 customStageController.setText(activeText, projectionType, projectionDTO);
                 customCanvas.setStage(stage2);
@@ -695,6 +700,19 @@ public class ProjectionScreenController {
             stage.setWidth(width);
             stage.setHeight(height);
         }
+    }
+
+    private void customCanvasClose(Stage stage2, CustomCanvas customCanvas) {
+        customCanvas.setCloseListener(this::onCloseCustomCanvasStage);
+        customStageController.setParentProjectionScreenController(customStageController);
+        stage2.setOnCloseRequest(we -> {
+            stage2.close();
+            onCloseCustomCanvasStage();
+        });
+    }
+
+    private void onCloseCustomCanvasStage() {
+        linkedMerge(customStageController, parentProjectionScreenController);
     }
 
     public void createPreview() {
