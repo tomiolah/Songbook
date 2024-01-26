@@ -336,6 +336,7 @@ public class ProjectionScreenController {
             }
         }
         countDownTimerThread = new Thread(() -> {
+            String previousTimeText = "";
             while (countDownTimerRunning && settings.isApplicationRunning()) {
                 try {
                     Long remainedTime = getRemainedTime(finishedDate);
@@ -345,7 +346,14 @@ public class ProjectionScreenController {
                         break;
                     }
                     String timeTextFromDate = getTimeTextFromDate(remainedTime);
+                    int millis = 100;
+                    if (timeTextFromDate.equals(previousTimeText)) {
+                        //noinspection BusyWait
+                        sleep(millis);
+                        continue;
+                    }
                     if (!timeTextFromDate.isEmpty() && !activeText.equals(timeTextFromDate)) {
+                        previousTimeText = timeTextFromDate;
                         Platform.runLater(() -> {
                             String s = timeTextFromDate;
                             s = addFinishTime(finishedDate, showFinishTime, s);
@@ -353,9 +361,8 @@ public class ProjectionScreenController {
                         });
                     }
                     //noinspection BusyWait
-                    sleep(100);
+                    sleep(millis);
                 } catch (InterruptedException e) {
-                    LOG.error(e.getMessage(), e);
                     break;
                 }
             }
