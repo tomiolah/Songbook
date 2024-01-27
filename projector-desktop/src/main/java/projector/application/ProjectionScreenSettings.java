@@ -75,8 +75,11 @@ public class ProjectionScreenSettings {
     @Expose
     private List<ScreenProjectionType> screenProjectionTypes;
     private boolean useGlobalSettings = true;
+    @Expose
     private Color strokeColor;
+    @Expose
     private Double strokeSize;
+    @Expose
     private StrokeType strokeType;
     private Listener onChangedListener = null;
 

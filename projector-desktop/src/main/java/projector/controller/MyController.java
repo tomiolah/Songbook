@@ -76,6 +76,8 @@ public class MyController {
     @FXML
     private ToggleButton blankButton;
     @FXML
+    private Button clearButton;
+    @FXML
     private ToggleButton lockButton;
     @FXML
     private TabPane tabPane;
@@ -102,6 +104,10 @@ public class MyController {
     public static double calculateSizeByScale(double size) {
         double screenScale = screenScale();
         return size / screenScale;
+    }
+
+    public static double scaleByPrimaryScreen(double x) {
+        return x * screenScale();
     }
 
     private static double screenScale() {
@@ -174,6 +180,7 @@ public class MyController {
         scheduleController.setSongController(songController);
         historyController.setBibleController(bibleController);
         blankButton.setFocusTraversable(false);
+        clearButton.setFocusTraversable(false);
         lockButton.setFocusTraversable(false);
         previewButton.setFocusTraversable(false);
         blankButton.setSelected(false);
@@ -446,4 +453,7 @@ public class MyController {
         setBlank(projectorState.isBlank());
     }
 
+    public void clearButtonOnAction() {
+        projectionScreenController.clearAll();
+    }
 }

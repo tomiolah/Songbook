@@ -257,13 +257,26 @@ public class TCPClient {
                 clientSocket.close();
             }
         } catch (SocketException e) {
-            if (!"Socket closed".equals(e.getMessage())) {
+            if (isUnknownException(e)) {
                 log.error(e.getMessage(), e);
             }
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
         thread.interrupt();
+    }
+
+    public static boolean isUnknownException(SocketException e) {
+        String message = e.getMessage();
+        List<String> knownExceptions = new ArrayList<>();
+        knownExceptions.add("Socket closed");
+        knownExceptions.add("An established connection was aborted by the software in your host machine");
+        for (String knownException : knownExceptions) {
+            if (knownException.contains(message)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static void close() {

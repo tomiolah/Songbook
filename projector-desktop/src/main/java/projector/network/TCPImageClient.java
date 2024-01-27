@@ -15,6 +15,7 @@ import java.net.Socket;
 import java.net.SocketException;
 
 import static projector.network.TCPClient.close;
+import static projector.network.TCPClient.isUnknownException;
 
 public class TCPImageClient {
 
@@ -45,7 +46,7 @@ public class TCPImageClient {
                             try {
                                 readImage(inFromServer, projectionScreenController);
                             } catch (SocketException e) {
-                                if (!e.getMessage().contains("Socket closed")) {
+                                if (isUnknownException(e)) {
                                     LOG.error(e.getMessage(), e);
                                 }
                                 break;

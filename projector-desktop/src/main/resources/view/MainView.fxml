@@ -66,11 +66,18 @@
                     </HBox.margin>
                 </ToggleButton>
                 <ToggleButton fx:id="blankButton" maxHeight="5.0" mnemonicParsing="false"
-                              onAction="#blankButtonOnAction" prefHeight="5.0" text="%Blank">
+                              onAction="#blankButtonOnAction" prefHeight="5.0" text="%Black">
                     <HBox.margin>
                         <Insets right="4.0" top="2.0"/>
                     </HBox.margin>
                 </ToggleButton>
+
+                <Button fx:id="clearButton" maxHeight="5.0" mnemonicParsing="false" onAction="#clearButtonOnAction"
+                        prefHeight="5.0" text="%Clear">
+                    <HBox.margin>
+                        <Insets right="4.0" top="2.0"/>
+                    </HBox.margin>
+                </Button>
 
                 <Button fx:id="previewButton" maxHeight="5.0" mnemonicParsing="false" onAction="#previewButtonOnAction"
                         prefHeight="5.0" prefWidth="90.0" text="%Preview">

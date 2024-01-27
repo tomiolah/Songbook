@@ -23,6 +23,7 @@ import java.util.function.DoubleConsumer;
 import java.util.function.DoubleSupplier;
 
 import static projector.controller.MyController.calculateSizeByScale;
+import static projector.controller.MyController.scaleByPrimaryScreen;
 import static projector.controller.util.ControllerUtil.getFxmlLoader;
 import static projector.controller.util.ControllerUtil.getStageWithRoot;
 
@@ -97,12 +98,12 @@ public class CustomCanvasesController {
         ObservableList<Node> hBoxChildren = hBox.getChildren();
         addNameTextField(customCanvas, hBoxChildren);
         Stage stage = customCanvas.getStage();
-        customCanvas.setPositionX(stage.getX());
-        customCanvas.setPositionY(stage.getY());
-        addDoubleTextField(hBoxChildren, customCanvas::setWidth, customCanvas::getWidth, "Width:", stage::setWidth, true);
-        addDoubleTextField(hBoxChildren, customCanvas::setHeight, customCanvas::getHeight, "Height:", stage::setHeight, true);
-        addDoubleTextField(hBoxChildren, customCanvas::setPositionX, customCanvas::getPositionX, "X:", stage::setX, false);
-        addDoubleTextField(hBoxChildren, customCanvas::setPositionY, customCanvas::getPositionY, "Y:", stage::setY, false);
+        customCanvas.setPositionX(scaleByPrimaryScreen(stage.getX()));
+        customCanvas.setPositionY(scaleByPrimaryScreen(stage.getY()));
+        addDoubleTextField(hBoxChildren, customCanvas::setWidth, customCanvas::getWidth, "Width:", stage::setWidth);
+        addDoubleTextField(hBoxChildren, customCanvas::setHeight, customCanvas::getHeight, "Height:", stage::setHeight);
+        addDoubleTextField(hBoxChildren, customCanvas::setPositionX, customCanvas::getPositionX, "X:", stage::setX);
+        addDoubleTextField(hBoxChildren, customCanvas::setPositionY, customCanvas::getPositionY, "Y:", stage::setY);
         addRemoveButton(hBoxChildren, customCanvas, vBoxChildren, hBox);
         vBoxChildren.add(hBox);
     }
@@ -130,7 +131,7 @@ public class CustomCanvasesController {
         hBoxChildren.add(nameTextField);
     }
 
-    private void addDoubleTextField(ObservableList<Node> hBoxChildren, DoubleConsumer doubleConsumer, DoubleSupplier doubleSupplier, String labelText, DoubleConsumer stageDoubleConsumer, boolean useScale) {
+    private void addDoubleTextField(ObservableList<Node> hBoxChildren, DoubleConsumer doubleConsumer, DoubleSupplier doubleSupplier, String labelText, DoubleConsumer stageDoubleConsumer) {
         Label label = new Label(labelText);
         hBoxChildren.add(label);
         TextField textField = new TextField();
@@ -140,9 +141,7 @@ public class CustomCanvasesController {
             Double aDouble = getDouble(newValue);
             if (aDouble != null) {
                 doubleConsumer.accept(aDouble);
-                if (useScale) {
-                    aDouble = calculateSizeByScale(aDouble);
-                }
+                aDouble = calculateSizeByScale(aDouble);
                 stageDoubleConsumer.accept(aDouble);
             }
         });

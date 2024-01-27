@@ -238,20 +238,26 @@ public class ProjectionScreenController {
         if (isLock) {
             return;
         }
-        Platform.runLater(() -> {
-            if (!projectionScreenSettings.isBackgroundImage()) {
-                Color backgroundColor = projectionScreenSettings.getBackgroundColor();
-                BackgroundFill myBF = new BackgroundFill(backgroundColor, new CornerRadii(1), new Insets(0.0, 0.0, 0.0, 0.0));
-                mainPane.setBackground(new Background(myBF));
-            } else {
-                setBackGroundImage();
-            }
-        });
+        Platform.runLater(this::setBackgroundBySettings);
         if (!onlyRepaint) {
             for (ProjectionScreenController projectionScreenController : getDoubleAndCanvasProjectionScreenController()) {
                 projectionScreenController.setBackGroundColor();
             }
         }
+    }
+
+    private void setBackgroundBySettings() {
+        if (!projectionScreenSettings.isBackgroundImage()) {
+            Color backgroundColor = projectionScreenSettings.getBackgroundColor();
+            setMainPaneBackground(backgroundColor);
+        } else {
+            setBackGroundImage();
+        }
+    }
+
+    private void setMainPaneBackground(Color backgroundColor) {
+        BackgroundFill myBF = new BackgroundFill(backgroundColor, new CornerRadii(1), new Insets(0.0, 0.0, 0.0, 0.0));
+        mainPane.setBackground(new Background(myBF));
     }
 
     private void setBackGroundImage() {
@@ -281,6 +287,11 @@ public class ProjectionScreenController {
 
     private void setBlankLocally(boolean isBlank) {
         this.isBlank = isBlank;
+        if (isBlank) {
+            setMainPaneBackground(Color.BLACK);
+        } else {
+            setBackgroundBySettings();
+        }
         pane.setVisible(!isBlank);
         pane1.setVisible(!isBlank);
         onViewChanged();
@@ -501,6 +512,16 @@ public class ProjectionScreenController {
         onViewChanged();
     }
 
+    public void clearAll() {
+        if (isLock) {
+            return;
+        }
+        clear();
+        for (ProjectionScreenController projectionScreenController : getOtherProjectionScreenControllers()) {
+            projectionScreenController.clearAll();
+        }
+    }
+
     private void hideImageIfNotImageType(ProjectionType projectionType) {
         if (projectionType != ProjectionType.IMAGE) {
             hideCanvas();
@@ -695,8 +716,8 @@ public class ProjectionScreenController {
                 scene2.setFill(Color.TRANSPARENT);
                 stage2.setScene(scene2);
 
-                stage2.setX(customCanvas.getPositionX());
-                stage2.setY(customCanvas.getPositionY());
+                stage2.setX(calculateSizeByScale(customCanvas.getPositionX()));
+                stage2.setY(calculateSizeByScale(customCanvas.getPositionY()));
                 customStageController.setStage(stage2);
                 scene2.setOnKeyPressed(event -> {
                     if (event.getCode() == KeyCode.F11) {
