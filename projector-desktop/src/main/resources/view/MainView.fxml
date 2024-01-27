@@ -21,27 +21,34 @@
                      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
                      AnchorPane.topAnchor="0.0">
                 <Tab fx:id="bibleTab" closable="false" text="%Bible">
+                    <!--suppress JavaFxUnresolvedFxIdReference -->
                     <fx:include fx:id="bible" source="Bible.fxml"/>
                 </Tab>
                 <Tab fx:id="bibleSearchTab" closable="false" text="%BibleSearch">
+                    <!--suppress JavaFxUnresolvedFxIdReference -->
                     <fx:include fx:id="bibleSearch" source="BibleSearch.fxml"/>
                 </Tab>
                 <Tab fx:id="songsTab" closable="false" text="%Song">
                     <fx:include fx:id="song" source="song/Song.fxml"/>
                 </Tab>
                 <Tab fx:id="recentTab" closable="false" text="%Recent">
+                    <!--suppress JavaFxUnresolvedFxIdReference -->
                     <fx:include fx:id="recent" source="Recent.fxml"/>
                 </Tab>
                 <Tab text="%History">
+                    <!--suppress JavaFxUnresolvedFxIdReference -->
                     <fx:include fx:id="history" source="History.fxml"/>
                 </Tab>
                 <Tab fx:id="galleryTab" text="Gallery">
+                    <!--suppress JavaFxUnresolvedFxIdReference -->
                     <fx:include fx:id="gallery" source="Gallery.fxml"/>
                 </Tab>
                 <Tab text="Utils">
+                    <!--suppress JavaFxUnresolvedFxIdReference -->
                     <fx:include fx:id="utils" source="Utils.fxml"/>
                 </Tab>
                 <Tab fx:id="projectionScreensTab" text="Projection screens">
+                    <!--suppress JavaFxUnresolvedFxIdReference -->
                     <fx:include fx:id="projectionScreens" source="ProjectionScreens.fxml"/>
                 </Tab>
                 <!-- Tab closable="false" text="Schedule"> <content> <fx:include fx:id="schedule"
