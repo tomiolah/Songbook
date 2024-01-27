@@ -14,6 +14,7 @@ import projector.controller.song.SongController;
 import projector.controller.song.util.SearchedSong;
 import projector.model.Song;
 import projector.utils.scene.text.MyTextFlow;
+import projector.utils.scene.text.SongVersePartTextFlow;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
@@ -75,7 +76,7 @@ public class Sender {
             };
             SongRemoteListener songRemoteListener = new SongRemoteListener() {
                 @Override
-                public void onSongVerseListViewChanged(List<MyTextFlow> newList) {
+                public void onSongVerseListViewChanged(List<SongVersePartTextFlow> newList) {
                     try {
                         StringBuilder s = new StringBuilder("start onSongVerseListViewChanged\n" +
                                 newList.size() + "\n");

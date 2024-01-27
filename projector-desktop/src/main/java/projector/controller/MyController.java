@@ -33,7 +33,7 @@ import projector.remote.RemoteServer;
 import projector.service.CustomCanvasService;
 import projector.utils.BibleVerseTextFlow;
 import projector.utils.GlobalKeyListenerExample;
-import projector.utils.scene.text.MyTextFlow;
+import projector.utils.scene.text.SongVersePartTextFlow;
 
 import java.awt.*;
 import java.io.IOException;
@@ -331,7 +331,7 @@ public class MyController {
                 selectionModel.clearAndSelect(selectionModelSelectedIndex - 1);
             }
         } else if (selectedIndex == 2) {
-            MultipleSelectionModel<MyTextFlow> selectionModel = songController.getSongListView().getSelectionModel();
+            MultipleSelectionModel<SongVersePartTextFlow> selectionModel = songController.getSongListView().getSelectionModel();
             int selectionModelSelectedIndex = selectionModel.getSelectedIndex();
             if (selectionModelSelectedIndex - 1 >= 0) {
                 selectionModel.clearAndSelect(selectionModelSelectedIndex - 1);
@@ -350,8 +350,8 @@ public class MyController {
                 selectionModel.clearAndSelect(selectionModel.getSelectedIndex() + 1);
             }
         } else if (selectedIndex == 2) {
-            ListView<MyTextFlow> songListView = songController.getSongListView();
-            MultipleSelectionModel<MyTextFlow> selectionModel = songListView.getSelectionModel();
+            ListView<SongVersePartTextFlow> songListView = songController.getSongListView();
+            MultipleSelectionModel<SongVersePartTextFlow> selectionModel = songListView.getSelectionModel();
             if (selectionModel.getSelectedIndex() + 1 < songListView.getItems().size()) {
                 selectionModel.clearAndSelect(selectionModel.getSelectedIndex() + 1);
             }

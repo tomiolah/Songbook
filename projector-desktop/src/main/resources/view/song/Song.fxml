@@ -7,6 +7,7 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Slider?>
+<?import javafx.scene.control.Spinner?>
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleButton?>
@@ -17,8 +18,8 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-<BorderPane prefHeight="560" prefWidth="800" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="projector.controller.song.SongController">
+<BorderPane prefHeight="560" prefWidth="800" xmlns="http://javafx.com/javafx/17.0.2-ea"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="projector.controller.song.SongController">
     <center>
         <SplitPane fx:id="horizontalSplitPane" dividerPositions="0.35" BorderPane.alignment="CENTER">
             <BorderPane fx:id="leftBorderPane" prefHeight="200.0" prefWidth="200.0">
@@ -145,8 +146,8 @@
                                                 <Insets bottom="4.0"/>
                                             </padding>
                                         </CheckBox>
-                                        <CheckBox fx:id="favoritesCheckBox" mnemonicParsing="false"
-                                                  text="Favourites" BorderPane.alignment="CENTER">
+                                        <CheckBox fx:id="favoritesCheckBox" mnemonicParsing="false" text="Favourites"
+                                                  BorderPane.alignment="CENTER">
                                             <padding>
                                                 <Insets bottom="4.0"/>
                                             </padding>
@@ -262,6 +263,12 @@
                                         </center>
                                         <right>
                                             <HBox alignment="CENTER" spacing="4.0">
+                                                <Spinner fx:id="maxLineSpinner" editable="true" prefHeight="25.0"
+                                                         prefWidth="50.0">
+                                                    <tooltip>
+                                                        <Tooltip text="Max line for a slide."/>
+                                                    </tooltip>
+                                                </Spinner>
                                                 <ToggleButton fx:id="progressLineToggleButton" contentDisplay="CENTER"
                                                               graphicTextGap="0.0" layoutX="815.0" layoutY="163.0"
                                                               maxHeight="-Infinity" maxWidth="-Infinity"
@@ -282,11 +289,10 @@
                                                 </ToggleButton>
                                                 <CheckBox fx:id="aspectRatioCheckBox" text="%Aspect ratio"
                                                           BorderPane.alignment="CENTER"/>
-                                                <Button fx:id="starButton" contentDisplay="CENTER"
-                                                        graphicTextGap="0.0" layoutX="815.0" layoutY="163.0"
-                                                        maxHeight="-Infinity" maxWidth="-Infinity"
-                                                        mnemonicParsing="false" prefHeight="20.0" prefWidth="20.0"
-                                                        textAlignment="CENTER">
+                                                <Button fx:id="starButton" contentDisplay="CENTER" graphicTextGap="0.0"
+                                                        layoutX="815.0" layoutY="163.0" maxHeight="-Infinity"
+                                                        maxWidth="-Infinity" mnemonicParsing="false" prefHeight="20.0"
+                                                        prefWidth="20.0" textAlignment="CENTER">
                                                     <graphic>
                                                         <ImageView fitHeight="20.0" fitWidth="13.5" pickOnBounds="true"
                                                                    preserveRatio="true">

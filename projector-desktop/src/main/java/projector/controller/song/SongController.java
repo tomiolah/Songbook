@@ -27,6 +27,8 @@ import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
 import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Slider;
+import javafx.scene.control.Spinner;
+import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
@@ -91,7 +93,7 @@ import projector.service.ServiceManager;
 import projector.service.SongCollectionService;
 import projector.service.SongService;
 import projector.utils.CustomProperties;
-import projector.utils.scene.text.MyTextFlow;
+import projector.utils.scene.text.SongVersePartTextFlow;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -108,6 +110,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.AbstractMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -153,6 +156,7 @@ public class SongController {
     private final SongCollectionService songCollectionService = ServiceManager.getSongCollectionService();
     private final String vowels = CustomProperties.getInstance().vowels();
     private final SongController songController = this;
+    public Spinner<Integer> maxLineSpinner;
     @FXML
     private Button openLPImportButton;
     @FXML
@@ -182,7 +186,7 @@ public class SongController {
     @FXML
     private ListView<SearchedSong> searchedSongListView;
     @FXML
-    private ListView<MyTextFlow> songListView;
+    private ListView<SongVersePartTextFlow> songListView;
     @FXML
     private Button downloadButton;
     @FXML
@@ -221,7 +225,7 @@ public class SongController {
     private long timeStart;
     private List<SongVersTime> previousSongVerseTimeList;
     private int previousSelectedVerseIndex;
-    private ObservableList<MyTextFlow> songSelectedItems;
+    private ObservableList<SongVersePartTextFlow> songSelectedItems;
     private Thread previousLineThread;
     private SongVersTimes songVersTimes;
     private double[] times;
@@ -459,21 +463,24 @@ public class SongController {
             MultipleSelectionModel<SearchedSong> selectionModel = searchedSongListView.getSelectionModel();
             int index = selectionModel.selectedIndexProperty().get();
             if (index >= 0) {
-                setSelectedSong(selectionModel.getSelectedItem().getSong());
+                prepareSelectedSong(selectionModel.getSelectedItem().getSong());
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
     }
 
-    private void setSelectedSong(Song selectedSong1) {
+    private void prepareSelectedSong(Song selectedSong1) {
         try {
+            if (selectedSong1 == null) {
+                return;
+            }
             if (activeSongVerseTime != null && activeSongVerseTime.getVersTimes() != null && activeSongVerseTime.getVersTimes().length > previousSelectedVerseIndex && previousSelectedVerseIndex >= 0 && activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] == 0.0) {
                 double x = System.currentTimeMillis() - timeStart;
                 x /= 1000;
                 activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
             }
-            ObservableList<MyTextFlow> songListViewItems = songListView.getItems();
+            ObservableList<SongVersePartTextFlow> songListViewItems = songListView.getItems();
             songListViewItems.clear();
             selectedSong = selectedSong1;
 
@@ -504,9 +511,9 @@ public class SongController {
             }
             final int size = (int) songHeightSlider.getValue();
             selectedSongVerseList = selectedSong.getSongVersesByVerseOrder();
-            MyTextFlow myTextFlow = new MyTextFlow();
-            myTextFlow.setAutoHeight(true);
-            myTextFlow.disableStrokeFont();
+            SongVersePartTextFlow songVersePartTextFlow = new SongVersePartTextFlow();
+            songVersePartTextFlow.setAutoHeight(true);
+            songVersePartTextFlow.disableStrokeFont();
             int width1;
             boolean aspectRatioCheckBoxSelected = aspectRatioCheckBox.isSelected();
             if (height < 10) {
@@ -517,11 +524,11 @@ public class SongController {
             } else {
                 width1 = (int) songListView.getWidth() - 30;
             }
-            myTextFlow.setPrefWidth(width);
-            myTextFlow.setPrefHeight(size);
-            myTextFlow.setTextAlignment(TextAlignment.CENTER);
-            myTextFlow.setBackGroundColor();
-            myTextFlow.setOpacity(minOpacity);
+            songVersePartTextFlow.setPrefWidth(width);
+            songVersePartTextFlow.setPrefHeight(size);
+            songVersePartTextFlow.setTextAlignment(TextAlignment.CENTER);
+            songVersePartTextFlow.setBackGroundColor();
+            songVersePartTextFlow.setOpacity(minOpacity);
             StringBuilder selectedSongTitle = new StringBuilder();
             for (SongCollectionElement songCollectionElement : selectedSong.getSongCollectionElements()) {
                 SongCollection songCollection = getSongCollectionFromRepository(songCollectionElement);
@@ -533,78 +540,161 @@ public class SongController {
                 selectedSongTitle.append("\n");
             }
             selectedSongTitle.append(selectedSong.getTitle());
-            myTextFlow.setText2(selectedSongTitle.toString(), width1, size);
-            songListViewItems.add(myTextFlow);
+            songVersePartTextFlow.setText2(selectedSongTitle.toString(), width1, size);
+            songListViewItems.add(songVersePartTextFlow);
             for (SongVerse songVerse : selectedSongVerseList) {
-                myTextFlow = new MyTextFlow();
-                myTextFlow.setAutoHeight(true);
-                myTextFlow.disableStrokeFont();
-                aspectRatioCheckBoxSelected = aspectRatioCheckBox.isSelected();
-                if (aspectRatioCheckBoxSelected) {
-                    width1 = (size * width - 30) / height;
-                } else {
-                    width1 = (int) songListView.getWidth() - 30;
-                }
-                myTextFlow.setPrefWidth(width);
-                myTextFlow.setPrefHeight(size);
-                myTextFlow.setTextAlignment(TextAlignment.CENTER);
-                myTextFlow.setBackGroundColor();
-                myTextFlow.setOpacity(minOpacity);
-                String text = songVerse.getText();
-                myTextFlow.setText2(getColorizedStringByLastSearchedText(text), width1, size);
-                myTextFlow.setSecondText(songVerse.getSecondText());
-                myTextFlow.setRawText(text);
-                songListViewItems.add(myTextFlow);
+                addSongVerseParts(songVerse, size, width, height, songListViewItems);
             }
-            myTextFlow = new MyTextFlow();
-            myTextFlow.setAutoHeight(true);
-            myTextFlow.disableStrokeFont();
-            myTextFlow.setText2("", 100, size / 3);
-            myTextFlow.setPrefHeight(100);
-            myTextFlow.setBackGroundColor();
-            myTextFlow.setOpacity(minOpacity);
-            songListViewItems.add(myTextFlow);
-            songListView.getFocusModel().focus(0);
-            songListView.scrollTo(0);
-            if (activeSongVerseTime != null) {
-                previousSongVerseTimeList.add(activeSongVerseTime);
-            }
-            activeSongVerseTime = new SongVersTime(selectedSong.getTitle(), songListViewItems.size() - 1);
-            previousSelectedVerseIndex = -1;
-            times = songVersTimes.getAverageTimes(selectedSong.getTitle());
-            if (times == null) {
-                times = new double[songListViewItems.size() - 1];
-                for (int j = 0; j < times.length; ++j) {
-                    String i = songListViewItems.get(j).getRawText();
-                    i = i.replaceAll("[^" + vowels + "]", "");
-                    times[j] = i.length() * 0.72782;
-                }
-            } else {
-                for (int j = 0; j < times.length && j < songListViewItems.size(); ++j) {
-                    String i = songListViewItems.get(j).getRawText();
-                    i = i.replaceAll("[^" + vowels + "]", "");
-                    double v = i.length() * 0.72782;
-                    if (2 * v < times[j]) {
-                        times[j] = 2 * v;
-                    } else if (times[j] < v / 2) {
-                        times[j] = v / 2;
-                    }
-                }
-            }
-            if (songRemoteListener != null) {
-                songRemoteListener.onSongVerseListViewChanged(songListViewItems);
-            }
-            settingTheAuthor(selectedSong);
-            settingTheVerseOrder(selectedSong);
-            settingTheStarButtonBySong(selectedSong);
+            songLastSlide(size, songListViewItems);
+            onSongSelectedEnd(songListViewItems);
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
     }
 
+    private void addSongVerseParts(SongVerse songVerse, int size, int width, int height, ObservableList<SongVersePartTextFlow> songListViewItems) {
+        List<String> texts = getTextByMaxLine(songVerse);
+        for (String text : texts) {
+            addSongVersePart(songVerse, size, width, height, songListViewItems, text);
+        }
+    }
+
+    private List<String> getTextByMaxLine(SongVerse songVerse) {
+        try {
+            List<String> partTexts = new ArrayList<>();
+            String text = songVerse.getText();
+            int maxLine = maxLineSpinner.getValue();
+            if (maxLine < 1) {
+                return addAndReturn(partTexts, text);
+            }
+            String[] lines = text.split("\n");
+            int n = lines.length;
+            if (n <= maxLine) {
+                return addAndReturn(partTexts, text);
+            }
+            int count = (int) Math.ceil((double) n / maxLine);
+            int[] lineCounts = new int[count];
+            Arrays.fill(lineCounts, maxLine);
+            int remained = n % maxLine;
+            if (remained == 0) {
+                remained = maxLine;
+            }
+            lineCounts[count - 1] = remained;
+            int diff = maxLine - remained;
+            int j = count - 2;
+            while (diff > 0 && j >= 0 && lineCounts[j] - 2 >= lineCounts[count - 1]) {
+                --lineCounts[j--];
+                ++lineCounts[count - 1];
+                --diff;
+            }
+            int k = 0;
+            StringBuilder s = new StringBuilder();
+            for (int i = 0; i < n; ++i) {
+                if (k > 0) {
+                    s.append("\n");
+                }
+                ++k;
+                s.append(lines[i]);
+                if (k == lineCounts[partTexts.size()] || i + 1 == n) {
+                    partTexts.add(s.toString());
+                    s = new StringBuilder();
+                    k = 0;
+                }
+            }
+            return partTexts;
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+            List<String> partTexts = new ArrayList<>();
+            return getOneSongVerseTextAsList(songVerse, partTexts);
+        }
+    }
+
+    private static List<String> getOneSongVerseTextAsList(SongVerse songVerse, List<String> partTexts) {
+        try {
+            return addAndReturn(partTexts, songVerse.getText());
+        } catch (Exception e) {
+            return new ArrayList<>();
+        }
+    }
+
+    private static List<String> addAndReturn(List<String> partTexts, String text) {
+        partTexts.add(text);
+        return partTexts;
+    }
+
+    private void addSongVersePart(SongVerse songVerse, int size, int width, int height, ObservableList<SongVersePartTextFlow> songListViewItems, String text) {
+        SongVersePartTextFlow songVersePartTextFlow;
+        songVersePartTextFlow = new SongVersePartTextFlow();
+        songVersePartTextFlow.setAutoHeight(true);
+        songVersePartTextFlow.disableStrokeFont();
+        int width1;
+        if (aspectRatioCheckBox.isSelected()) {
+            width1 = (size * width - 30) / height;
+        } else {
+            width1 = (int) songListView.getWidth() - 30;
+        }
+        songVersePartTextFlow.setPrefWidth(width);
+        songVersePartTextFlow.setPrefHeight(size);
+        songVersePartTextFlow.setTextAlignment(TextAlignment.CENTER);
+        songVersePartTextFlow.setBackGroundColor();
+        songVersePartTextFlow.setOpacity(minOpacity);
+        songVersePartTextFlow.setText2(getColorizedStringByLastSearchedText(text), width1, size);
+        songVersePartTextFlow.setSecondText(songVerse.getSecondText());
+        songVersePartTextFlow.setRawText(text);
+        songListViewItems.add(songVersePartTextFlow);
+    }
+
+    private void songLastSlide(int size, ObservableList<SongVersePartTextFlow> songListViewItems) {
+        SongVersePartTextFlow songVersePartTextFlow;
+        songVersePartTextFlow = new SongVersePartTextFlow();
+        songVersePartTextFlow.setAutoHeight(true);
+        songVersePartTextFlow.disableStrokeFont();
+        songVersePartTextFlow.setText2("", 100, size / 3);
+        songVersePartTextFlow.setPrefHeight(100);
+        songVersePartTextFlow.setBackGroundColor();
+        songVersePartTextFlow.setOpacity(minOpacity);
+        songListViewItems.add(songVersePartTextFlow);
+        songListView.getFocusModel().focus(0);
+        songListView.scrollTo(0);
+    }
+
+    private void onSongSelectedEnd(ObservableList<SongVersePartTextFlow> songListViewItems) {
+        if (activeSongVerseTime != null) {
+            previousSongVerseTimeList.add(activeSongVerseTime);
+        }
+        activeSongVerseTime = new SongVersTime(selectedSong.getTitle(), songListViewItems.size() - 1);
+        previousSelectedVerseIndex = -1;
+        times = songVersTimes.getAverageTimes(selectedSong.getTitle());
+        if (times == null) {
+            times = new double[songListViewItems.size() - 1];
+            for (int j = 0; j < times.length; ++j) {
+                String i = songListViewItems.get(j).getRawText();
+                i = i.replaceAll("[^" + vowels + "]", "");
+                times[j] = i.length() * 0.72782;
+            }
+        } else {
+            for (int j = 0; j < times.length && j < songListViewItems.size(); ++j) {
+                String i = songListViewItems.get(j).getRawText();
+                i = i.replaceAll("[^" + vowels + "]", "");
+                double v = i.length() * 0.72782;
+                if (2 * v < times[j]) {
+                    times[j] = 2 * v;
+                } else if (times[j] < v / 2) {
+                    times[j] = v / 2;
+                }
+            }
+        }
+        if (songRemoteListener != null) {
+            songRemoteListener.onSongVerseListViewChanged(songListViewItems);
+        }
+        settingTheAuthor(selectedSong);
+        settingTheVerseOrder(selectedSong);
+        settingTheStarButtonBySong(selectedSong);
+    }
+
     private void initialization2() {
         try {
-            ObservableList<MyTextFlow> songListViewItems = songListView.getItems();
+            ObservableList<SongVersePartTextFlow> songListViewItems = songListView.getItems();
             initListViewMenuItem();
             initSongCollectionListViewMenuItem();
 
@@ -658,7 +748,7 @@ public class SongController {
         }
     }
 
-    private void songListViewInitialization(ObservableList<MyTextFlow> songListViewItems) {
+    private void songListViewInitialization(ObservableList<SongVersePartTextFlow> songListViewItems) {
         songSelectedItems = songListView.getSelectionModel().getSelectedItems();
         songListView.getSelectionModel().getSelectedIndices().addListener((ListChangeListener<Integer>) c -> {
             try {
@@ -684,9 +774,9 @@ public class SongController {
                         x /= 1000;
                         activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
                     }
-                    MyTextFlow myTextFlow = songListViewItems.get(selectedIndex);
-                    String text = myTextFlow.getRawText();
-                    text = getWithSecondText(myTextFlow, text);
+                    SongVersePartTextFlow SongVersePartTextFlow = songListViewItems.get(selectedIndex);
+                    String text = SongVersePartTextFlow.getRawText();
+                    text = getWithSecondText(SongVersePartTextFlow, text);
                     projectionScreenController.setText2(text, ProjectionType.SONG);
                     previousSelectedVerseIndex = selectedIndex;
                     if (selectedIndex + 1 == songListViewItems.size()) {
@@ -711,7 +801,7 @@ public class SongController {
                     projectionScreenController.setLineSize((double) lastIndex / (songListViewItems.size() - 2));
                     projectionScreenController.setText2(tmpTextBuffer.toString(), ProjectionType.SONG);
                 }
-                if (recentController != null && !recentController.getLastItemText().equals(activeSongVerseTime.getSongTitle()) && ob.size() > 0) {
+                if (recentController != null && !recentController.getLastItemText().equals(activeSongVerseTime.getSongTitle()) && !ob.isEmpty()) {
                     recentController.addRecentSong(activeSongVerseTime.getSongTitle(), ProjectionType.SONG);
                 }
                 opacityForSongVerse();
@@ -743,7 +833,7 @@ public class SongController {
                                 }
                                 double z = 1.0 - minOpacity;
                                 final double v = z * x / sum;
-                                for (MyTextFlow songListViewItem : songSelectedItems) {
+                                for (SongVersePartTextFlow songListViewItem : songSelectedItems) {
                                     double opacity = minOpacity + v;
                                     if (opacity > 1) {
                                         opacity = 1;
@@ -850,6 +940,18 @@ public class SongController {
         initializeVerseOrderList();
         hideOpenLPImportButton();
         initializeStarButton();
+        initializeMaxLineSpinner();
+    }
+
+    private void initializeMaxLineSpinner() {
+        SpinnerValueFactory.IntegerSpinnerValueFactory valueFactory =
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE);
+        maxLineSpinner.setValueFactory(valueFactory);
+        maxLineSpinner.valueProperty().addListener((observable, oldValue, newValue) -> reAddSelectedSong());
+    }
+
+    private void reAddSelectedSong() {
+        prepareSelectedSong(selectedSong);
     }
 
     private void checkForFavouriteInVersionGroup(List<Song> versionGroupSongs, Song selectedSong) {
@@ -972,8 +1074,8 @@ public class SongController {
     private void slideReSelect() {
         try {
             int selectedIndex = songListView.getSelectionModel().getSelectedIndex();
-            MyTextFlow myTextFlow = songListView.getItems().get(selectedIndex);
-            projectionScreenController.setText2(myTextFlow.getRawText(), ProjectionType.SONG);
+            SongVersePartTextFlow SongVersePartTextFlow = songListView.getItems().get(selectedIndex);
+            projectionScreenController.setText2(SongVersePartTextFlow.getRawText(), ProjectionType.SONG);
             timeStart = System.currentTimeMillis();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -985,9 +1087,9 @@ public class SongController {
         openLPImportButton.setManaged(false);
     }
 
-    private String getWithSecondText(MyTextFlow myTextFlow, String text) {
+    private String getWithSecondText(SongVersePartTextFlow SongVersePartTextFlow, String text) {
         if (settings.isShowSongSecondText()) {
-            String secondText = myTextFlow.getSecondText();
+            String secondText = SongVersePartTextFlow.getSecondText();
             if (secondText != null) {
                 text += "\n" + getColoredText(secondText, settings.getSongSecondTextColor());
             }
@@ -1024,7 +1126,7 @@ public class SongController {
             return;
         }
         synchronizingVerseOrderListSelection = true;
-        MultipleSelectionModel<MyTextFlow> selectionModel = songListView.getSelectionModel();
+        MultipleSelectionModel<SongVersePartTextFlow> selectionModel = songListView.getSelectionModel();
         int size = songListView.getItems().size();
         selectionModel.clearSelection();
         for (int index : ob) {
@@ -1143,7 +1245,7 @@ public class SongController {
 
     private void setSongCollection(Song song) {
         List<SongCollectionElement> songCollectionElements = ServiceManager.getSongCollectionElementService().findBySong(song);
-        if (songCollectionElements != null && songCollectionElements.size() > 0) {
+        if (songCollectionElements != null && !songCollectionElements.isEmpty()) {
             song.setSongCollectionElements(songCollectionElements);
             for (SongCollectionElement songCollectionElement : songCollectionElements) {
                 song.addToSongCollections(songCollectionElement.getSongCollection());
@@ -1178,7 +1280,7 @@ public class SongController {
                 url = getFirstBy(url);
                 addToSongByUuid(songs, url);
             }
-            if (songs.size() == 0) {
+            if (songs.isEmpty()) {
                 return null;
             }
             return songs;
@@ -1209,20 +1311,7 @@ public class SongController {
             songs.add(byUuid);
         } else {
             final Song[] song = {null};
-            Thread thread = new Thread(() -> {
-                try {
-                    SongApiBean songApiBean = new SongApiBean();
-                    song[0] = songApiBean.getSongByUuid(uuid);
-                    if (song[0] != null) {
-                        song[0].setDownloadedSeparately(true);
-                        ServiceManager.getSongService().create(song[0]);
-                        addSongToLanguagesComboBox(song[0]);
-                    }
-                } catch (Exception e) {
-                    LOG.error(e.getMessage(), e);
-                }
-            });
-            thread.start();
+            Thread thread = getThreadForSongFromApi(uuid, song);
             try {
                 thread.join(500);
             } catch (InterruptedException ignored) {
@@ -1231,6 +1320,24 @@ public class SongController {
                 songs.add(song[0]);
             }
         }
+    }
+
+    private Thread getThreadForSongFromApi(String uuid, Song[] song) {
+        Thread thread = new Thread(() -> {
+            try {
+                SongApiBean songApiBean = new SongApiBean();
+                song[0] = songApiBean.getSongByUuid(uuid);
+                if (song[0] != null) {
+                    song[0].setDownloadedSeparately(true);
+                    ServiceManager.getSongService().create(song[0]);
+                    addSongToLanguagesComboBox(song[0]);
+                }
+            } catch (Exception e) {
+                LOG.error(e.getMessage(), e);
+            }
+        });
+        thread.start();
+        return thread;
     }
 
     private void addSongToLanguagesComboBox(Song song) {
@@ -1407,7 +1514,7 @@ public class SongController {
                     }
                 }
                 all.setSongs(songs);
-                if (noLanguageSongs.size() > 0) {
+                if (!noLanguageSongs.isEmpty()) {
                     setLanguagesForSongs(noLanguageSongs);
                 }
                 languageComboBox.getItems().add(0, all);
@@ -1644,7 +1751,7 @@ public class SongController {
             return Integer.parseInt(br.readLine());
         } catch (FileNotFoundException | NumberFormatException ignored) {
             List<Song> all = songService.findAll();
-            if (all.size() == 0) {
+            if (all.isEmpty()) {
                 return 1;
             }
             for (Song song : all) {
@@ -1698,7 +1805,7 @@ public class SongController {
         try {
             nextButton.setOnAction(event -> {
                 try {
-                    final MultipleSelectionModel<MyTextFlow> selectionModel = songListView.getSelectionModel();
+                    final MultipleSelectionModel<SongVersePartTextFlow> selectionModel = songListView.getSelectionModel();
                     final int selectedIndex = selectionModel.getSelectedIndex();
                     if (selectedIndex >= 0) {
                         final int index = selectedIndex + 1;
@@ -1707,7 +1814,7 @@ public class SongController {
                             songListView.scrollTo(index);
                         }
                     } else {
-                        if (songListView.getItems().size() > 0) {
+                        if (!songListView.getItems().isEmpty()) {
                             selectionModel.clearAndSelect(0);
                             songListView.scrollTo(0);
                         }
@@ -1744,8 +1851,8 @@ public class SongController {
             } else {
                 width1 = (int) songListView.getWidth() - 30;
             }
-            for (MyTextFlow myTextFlow : songListView.getItems()) {
-                myTextFlow.setSize(width1, size);
+            for (SongVersePartTextFlow SongVersePartTextFlow : songListView.getItems()) {
+                SongVersePartTextFlow.setSize(width1, size);
             }
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
@@ -2618,7 +2725,7 @@ public class SongController {
         }
     }
 
-    public ListView<MyTextFlow> getSongListView() {
+    public ListView<SongVersePartTextFlow> getSongListView() {
         return songListView;
     }
 
@@ -2849,7 +2956,7 @@ public class SongController {
 
     private void selectFirstSong() {
         try {
-            if (searchedSongListView.getItems().size() > 0) {
+            if (!searchedSongListView.getItems().isEmpty()) {
                 searchedSongListView.getSelectionModel().clearAndSelect(0);
                 searchedSongListView.requestFocus();
             }
@@ -3082,7 +3189,7 @@ public class SongController {
 
     public void selectSongTitle() {
         try {
-            MultipleSelectionModel<MyTextFlow> selectionModel = songListView.getSelectionModel();
+            MultipleSelectionModel<SongVersePartTextFlow> selectionModel = songListView.getSelectionModel();
             if (selectionModel.getSelectedIndex() == 0) {
                 slideReSelect();
             } else {
