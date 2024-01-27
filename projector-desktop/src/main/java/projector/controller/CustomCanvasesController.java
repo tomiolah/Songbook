@@ -13,6 +13,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.controller.util.ProjectionScreenHolder;
 import projector.model.CustomCanvas;
 import projector.service.CustomCanvasService;
 
@@ -49,9 +50,23 @@ public class CustomCanvasesController {
             s += SEPARATOR + getNextNumber(customCanvases, size + 1);
         }
         customCanvas.setName(s);
+        copyLastScreenSettings(customCanvases, customCanvas);
         MyController.getInstance().createCustomCanvasStage(customCanvas);
         addCustomCanvas(customCanvas);
         customCanvases.add(customCanvas);
+    }
+
+    private void copyLastScreenSettings(ArrayList<CustomCanvas> customCanvases, CustomCanvas customCanvas) {
+        int size = customCanvases.size();
+        if (size == 0) {
+            return;
+        }
+        CustomCanvas lastCustomCanvas = customCanvases.get(size - 1);
+        ProjectionScreenHolder projectionScreenHolder = lastCustomCanvas.getProjectionScreenHolder();
+        if (projectionScreenHolder == null) {
+            return;
+        }
+        projectionScreenHolder.getProjectionScreenSettings().copyTo(customCanvas.getName());
     }
 
     private int getNextNumber(ArrayList<CustomCanvas> customCanvases, int k) {

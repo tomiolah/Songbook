@@ -13,9 +13,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.controller.SettingsController;
 import projector.controller.util.ProjectionScreenHolder;
+import projector.utils.AppProperties;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -24,6 +26,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class ProjectionScreenSettings {
@@ -282,12 +285,16 @@ public class ProjectionScreenSettings {
     }
 
     private String getFileName() {
-        String screensDirectory = "screens";
+        return getFileName(projectionScreenHolder.getName());
+    }
+
+    private String getFileName(String name) {
+        String screensDirectory = AppProperties.getInstance().getWorkDirectory() + "screens";
         try {
             Files.createDirectories(Paths.get(screensDirectory));
         } catch (IOException ignored) {
         }
-        return screensDirectory + "/" + projectionScreenHolder.getName() + ".json";
+        return screensDirectory + "/" + name + ".json";
     }
 
     public String getFontWeightString() {
@@ -459,6 +466,32 @@ public class ProjectionScreenSettings {
 
     public void setOnChangedListener(Listener listener) {
         this.onChangedListener = listener;
+    }
+
+    public void changingName(String newValue) {
+        try {
+            String fileName = getFileName();
+            File oldFile = new File(fileName);
+            File newFile = new File(getFileName(newValue));
+            boolean success = oldFile.renameTo(newFile);
+            if (!success) {
+                LOG.warn("Could not rename: " + fileName + " to " + newValue);
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    public void copyTo(String s) {
+        try {
+            Path sourcePath = Paths.get(getFileName());
+            Path destinationPath = Paths.get(getFileName(s));
+            if (!Files.exists(destinationPath)) {
+                Files.copy(sourcePath, destinationPath);
+            }
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
     public interface Listener {

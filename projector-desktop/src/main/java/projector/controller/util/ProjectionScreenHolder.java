@@ -1,10 +1,14 @@
 package projector.controller.util;
 
 import javafx.scene.layout.HBox;
+import javafx.stage.Stage;
 import projector.application.ProjectionScreenSettings;
 import projector.controller.ProjectionScreenController;
 import projector.controller.listener.OnMainPaneSizeChangeListener;
 import projector.controller.listener.PopupCreatedListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProjectionScreenHolder {
     private final ProjectionScreenSettings projectionScreenSettings;
@@ -18,6 +22,7 @@ public class ProjectionScreenHolder {
     private boolean openedAutomatically;
     private javafx.scene.layout.HBox HBox;
     private int doubleIndex;
+    private final List<OnResultListener> onNameChangeListeners = new ArrayList<>();
 
     public ProjectionScreenHolder(ProjectionScreenController projectionScreenController, String name) {
         this.projectionScreenController = projectionScreenController;
@@ -39,6 +44,13 @@ public class ProjectionScreenHolder {
 
     public void setName(String name) {
         this.name = name;
+        for (OnResultListener onNameChangeListener : onNameChangeListeners) {
+            onNameChangeListener.onResult();
+        }
+    }
+
+    public void addOnNameChangeListener(OnResultListener onNameChangeListener) {
+        onNameChangeListeners.add(onNameChangeListener);
     }
 
     public ProjectionScreenSettings getProjectionScreenSettings() {
@@ -103,5 +115,15 @@ public class ProjectionScreenHolder {
 
     public void setDoubleIndex(int doubleIndex) {
         this.doubleIndex = doubleIndex;
+    }
+
+    public void setStage(Stage stage) {
+        if (stage == null) {
+            return;
+        }
+        stage.titleProperty().addListener((observable, oldValue, newValue) -> {
+            projectionScreenSettings.changingName(newValue);
+            setName(newValue);
+        });
     }
 }

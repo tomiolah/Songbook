@@ -220,9 +220,14 @@ public class ProjectionScreensController {
 
     private void addLabel(ProjectionScreenHolder projectionScreenHolder, ObservableList<Node> hBoxChildren) {
         Label label = new Label();
-        label.setText(projectionScreenHolder.getName());
+        setLabelTextByHolder(label, projectionScreenHolder);
+        projectionScreenHolder.addOnNameChangeListener(() -> setLabelTextByHolder(label, projectionScreenHolder));
         HBox.setMargin(label, new Insets(0, 0, 0, 12));
         hBoxChildren.add(label);
+    }
+
+    private static void setLabelTextByHolder(Label label, ProjectionScreenHolder projectionScreenHolder) {
+        label.setText(projectionScreenHolder.getName());
     }
 
     private Button getSettingsButton(ProjectionScreenHolder projectionScreenHolder, ResourceBundle resourceBundle) {
@@ -265,7 +270,7 @@ public class ProjectionScreensController {
         hBox.setPrefHeight(50.0);
         hBox.setSpacing(10.0);
         Label sizeLabel = new Label();
-        sizeLabel.setText(projectionScreenHolder.getName());
+        setLabelTextByHolder(sizeLabel, projectionScreenHolder);
         projectionScreenHolder.setOnMainPaneSizeChangeListener((width, height) -> {
             ProjectionScreenController projectionScreenController = projectionScreenHolder.getProjectionScreenController();
             if (projectionScreenController != null) {

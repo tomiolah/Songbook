@@ -655,6 +655,8 @@ public class ProjectionScreenController {
                 Stage stage2 = getTransparentStage(getClass());
                 stage2.setTitle(customCanvas.getName());
                 ProjectionScreenHolder projectionScreenHolder = ProjectionScreensUtil.getInstance().addProjectionScreenController(customStageController, stage2.getTitle());
+                customCanvas.setProjectionScreenHolder(projectionScreenHolder);
+                projectionScreenHolder.setStage(stage2);
                 projectionScreenHolder.setScreenIndex(0);
                 customStageController.setScreen(Screen.getPrimary());
                 scene2.setFill(Color.TRANSPARENT);

@@ -3,6 +3,7 @@ package projector.model;
 import com.google.gson.annotations.Expose;
 import javafx.stage.Stage;
 import projector.controller.util.OnResultListener;
+import projector.controller.util.ProjectionScreenHolder;
 
 public class CustomCanvas {
 
@@ -19,6 +20,7 @@ public class CustomCanvas {
 
     private Stage stage;
     private OnResultListener closeListener;
+    private ProjectionScreenHolder projectionScreenHolder;
 
     public String getName() {
         return name;
@@ -91,5 +93,13 @@ public class CustomCanvas {
                 closeListener.onResult();
             }
         }
+    }
+
+    public void setProjectionScreenHolder(ProjectionScreenHolder projectionScreenHolder) {
+        this.projectionScreenHolder = projectionScreenHolder;
+    }
+
+    public ProjectionScreenHolder getProjectionScreenHolder() {
+        return projectionScreenHolder;
     }
 }
