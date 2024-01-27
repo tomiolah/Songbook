@@ -34,6 +34,7 @@ import projector.MainDesktop;
 import projector.application.ProjectionScreenSettings;
 import projector.application.ProjectionType;
 import projector.application.ProjectorState;
+import projector.application.ScreenProjectionAction;
 import projector.application.Settings;
 import projector.controller.listener.OnBlankListener;
 import projector.controller.listener.ViewChangedListener;
@@ -444,6 +445,9 @@ public class ProjectionScreenController {
                     }
                 }
             }
+            if (handleByProjectionScreenSettingsAction()) {
+                return;
+            }
             int width = (int) (mainPane.getWidth());
             int height = (int) mainPane.getHeight();
             if (projectionType == ProjectionType.REFERENCE) {
@@ -472,10 +476,39 @@ public class ProjectionScreenController {
         });
     }
 
+    private boolean handleByProjectionScreenSettingsAction() {
+        ScreenProjectionAction screenProjectionAction = projectionScreenSettings.getScreenProjectionAction(projectionType);
+        switch (screenProjectionAction) {
+            case DISPLAY -> {
+                return false;
+            }
+            case NO_ACTION -> {
+                return true;
+            }
+            case CLEAR -> {
+                clear();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void clear() {
+        textFlow.setText2("", 0, 10);
+        textFlow1.setText2("", 0, 10);
+        progressLine.setVisible(false);
+        hideCanvas();
+        onViewChanged();
+    }
+
     private void hideImageIfNotImageType(ProjectionType projectionType) {
         if (projectionType != ProjectionType.IMAGE) {
-            canvas.setVisible(false);
+            hideCanvas();
         }
+    }
+
+    private void hideCanvas() {
+        canvas.setVisible(false);
     }
 
     private String[] splitHalfByNewLine(String newText) {
@@ -971,26 +1004,36 @@ public class ProjectionScreenController {
             if (mainPane == null) {
                 return;
             }
-            double progressLineThickness = projectionScreenSettings.getProgressLineThickness();
-            progressLine.setStrokeLineCap(StrokeLineCap.BUTT);
-            if (!projectionScreenSettings.isProgressLinePositionIsTop()) {
-                double endY = mainPane.getHeight() - 1;
-                progressLine.setStartY(endY - progressLineThickness / 2);
-                progressLine.setEndY(endY - progressLineThickness / 2);
-            } else {
-                progressLine.setStartY(1 + progressLineThickness / 2);
-                progressLine.setEndY(1 + progressLineThickness / 2);
+            if (!handleByProjectionScreenSettingsAction()) {
+                setLineSizeMain(size);
             }
-            if (size == 0) {
-                progressLine.setStrokeWidth(0);
-            } else {
-                progressLine.setStrokeWidth(progressLineThickness);
-            }
-            final double width = mainPane.getWidth();
-            progressLine.setEndX(width * size);
-            for (ProjectionScreenController projectionScreenController : getDoubleAndCanvasProjectionScreenController()) {
-                projectionScreenController.setLineSize(size);
-            }
+            setLineSizeForOther(size);
+        }
+    }
+
+    private void setLineSizeMain(double size) {
+        double progressLineThickness = projectionScreenSettings.getProgressLineThickness();
+        progressLine.setStrokeLineCap(StrokeLineCap.BUTT);
+        if (!projectionScreenSettings.isProgressLinePositionIsTop()) {
+            double endY = mainPane.getHeight() - 1;
+            progressLine.setStartY(endY - progressLineThickness / 2);
+            progressLine.setEndY(endY - progressLineThickness / 2);
+        } else {
+            progressLine.setStartY(1 + progressLineThickness / 2);
+            progressLine.setEndY(1 + progressLineThickness / 2);
+        }
+        if (size == 0) {
+            progressLine.setStrokeWidth(0);
+        } else {
+            progressLine.setStrokeWidth(progressLineThickness);
+        }
+        final double width = mainPane.getWidth();
+        progressLine.setEndX(width * size);
+    }
+
+    private void setLineSizeForOther(double size) {
+        for (ProjectionScreenController projectionScreenController : getDoubleAndCanvasProjectionScreenController()) {
+            projectionScreenController.setLineSize(size);
         }
     }
 
@@ -1143,6 +1186,13 @@ public class ProjectionScreenController {
         this.projectionType = projectionType;
         this.fileImagePath = fileImagePath;
         this.lastImage = null;
+        if (!handleByProjectionScreenSettingsAction()) {
+            setImageMain(nextFileImagePath);
+        }
+        setImageForOthers(fileImagePath, projectionType, nextFileImagePath);
+    }
+
+    private void setImageMain(String nextFileImagePath) {
         ExecutorService executorService = getExecutorService();
         BackgroundTask backgroundTask = new BackgroundTask();
         executorService.submit(backgroundTask);
@@ -1152,6 +1202,9 @@ public class ProjectionScreenController {
                 ImageCacheService.getInstance().checkForImage(nextFileImagePath, (int) scaledSizes.width(), (int) scaledSizes.height());
             });
         }
+    }
+
+    private void setImageForOthers(String fileImagePath, ProjectionType projectionType, String nextFileImagePath) {
         if (previewProjectionScreenController != null) {
             previewProjectionScreenController.setImage(fileImagePath, projectionType, nextFileImagePath);
         }

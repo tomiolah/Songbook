@@ -28,6 +28,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+import static projector.application.ScreenProjectionType.copyList;
 
 public class ProjectionScreenSettings {
 
@@ -68,6 +72,8 @@ public class ProjectionScreenSettings {
     private Boolean progressLinePositionIsTop;
     @Expose
     private Boolean strokeFont;
+    @Expose
+    private List<ScreenProjectionType> screenProjectionTypes;
     private boolean useGlobalSettings = true;
     private Color strokeColor;
     private Double strokeSize;
@@ -105,6 +111,7 @@ public class ProjectionScreenSettings {
         this.projectionScreenHolder = projectionScreenSettings.projectionScreenHolder;
         this.useGlobalSettings = projectionScreenSettings.useGlobalSettings;
         this.strokeFont = projectionScreenSettings.strokeFont;
+        this.screenProjectionTypes = copyList(projectionScreenSettings.screenProjectionTypes);
         this.strokeColor = projectionScreenSettings.strokeColor;
         this.strokeSize = projectionScreenSettings.strokeSize;
         this.strokeType = projectionScreenSettings.strokeType;
@@ -278,6 +285,7 @@ public class ProjectionScreenSettings {
             this.songSecondTextColor = fromJson.songSecondTextColor;
             this.progressLinePositionIsTop = fromJson.progressLinePositionIsTop;
             this.strokeFont = fromJson.strokeFont;
+            this.screenProjectionTypes = fromJson.screenProjectionTypes;
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
@@ -494,7 +502,23 @@ public class ProjectionScreenSettings {
         }
     }
 
+    public ScreenProjectionAction getScreenProjectionAction(ProjectionType projectionType) {
+        for (ScreenProjectionType screenProjectionType : getScreenProjectionTypes()) {
+            if (screenProjectionType.getProjectionType().equals(projectionType)) {
+                return screenProjectionType.getScreenProjectionAction();
+            }
+        }
+        return ScreenProjectionAction.DISPLAY;
+    }
+
     public interface Listener {
         void onChanged();
+    }
+
+    public List<ScreenProjectionType> getScreenProjectionTypes() {
+        if (screenProjectionTypes == null) {
+            screenProjectionTypes = new ArrayList<>();
+        }
+        return screenProjectionTypes;
     }
 }

@@ -45,7 +45,7 @@ public class ColorUtil {
 
     public static Color getMainBorderColor() {
         if (settings.isDarkTheme()) {
-            return Color.rgb(40, 33, 33, 0.604);
+            return Color.rgb(70, 60, 60, 0.604);
         } else {
             return Color.rgb(182, 182, 182, 0.604);
         }

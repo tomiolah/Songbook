@@ -41,6 +41,7 @@ import java.util.ResourceBundle;
 
 import static projector.controller.CustomCanvasesController.openCustomCanvases;
 import static projector.controller.MyController.calculateSizeByScale;
+import static projector.controller.ProjectionTypeController.openProjectionType;
 import static projector.utils.SceneUtils.getCustomStage;
 
 public class ProjectionScreensController {
@@ -207,6 +208,7 @@ public class ProjectionScreensController {
         ResourceBundle resourceBundle = Settings.getInstance().getResourceBundle();
         Button settingsButton = getSettingsButton(projectionScreenHolder, resourceBundle);
         hBoxLeftChildren.add(settingsButton);
+        hBoxLeftChildren.add(getProjectionTypeButton(projectionScreenHolder, resourceBundle));
         ProjectionScreenController projectionScreenController = projectionScreenHolder.getProjectionScreenController();
         hBoxLeftChildren.add(getBlankButton(resourceBundle, projectionScreenController));
         addShowProjectionScreenButton(projectionScreenHolder, hBoxLeftChildren, projectionScreenController);
@@ -235,6 +237,22 @@ public class ProjectionScreensController {
         settingsButton.setText(resourceBundle.getString("Settings"));
         settingsButton.setOnAction(onSettingsAction(projectionScreenHolder));
         return settingsButton;
+    }
+
+    private Button getProjectionTypeButton(ProjectionScreenHolder projectionScreenHolder, ResourceBundle resourceBundle) {
+        Button projectionTypeButton = new Button();
+        projectionTypeButton.setText(resourceBundle.getString("Projection type"));
+        projectionTypeButton.setOnAction(onProjectionTypeAction(projectionScreenHolder));
+        return projectionTypeButton;
+    }
+
+    private EventHandler<ActionEvent> onProjectionTypeAction(ProjectionScreenHolder projectionScreenHolder) {
+        return new EventHandler<>() {
+            @Override
+            public void handle(ActionEvent event) {
+                openProjectionType(getClass(), projectionScreenHolder);
+            }
+        };
     }
 
     private ToggleButton getBlankButton(ResourceBundle resourceBundle, ProjectionScreenController projectionScreenController) {
