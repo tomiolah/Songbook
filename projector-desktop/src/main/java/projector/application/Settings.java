@@ -96,6 +96,7 @@ public class Settings {
     private double strokeSize = 4.0;
     private StrokeType strokeType = StrokeType.OUTSIDE;
     private ImageOrderMethod imageOrderMethod = ImageOrderMethod.BY_LAST_ACCESSED;
+    private Integer maxLine = 0;
 
     protected Settings() {
         load();
@@ -325,6 +326,7 @@ public class Settings {
             writeIntToFile(bw, "strokeType", strokeType.ordinal());
             bw.write("imageOrderMethod" + System.lineSeparator());
             bw.write(imageOrderMethod.name() + System.lineSeparator());
+            writeIntToFile(bw, "maxLine", maxLine);
             bw.close();
         } catch (IOException e) {
             LOG.warn("There is some error on settings save!", e);
@@ -488,6 +490,7 @@ public class Settings {
             strokeType = getStrokeTypeFromFile(br, strokeType);
             br.readLine();
             imageOrderMethod = ImageOrderMethod.valueOf(br.readLine());
+            maxLine = getIntFromFile(br, maxLine);
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -526,6 +529,20 @@ public class Settings {
                 return defaultValue;
             }
             return parseDouble(s);
+        } catch (Exception e) {
+            LOG.warn(e.getMessage(), e);
+            return defaultValue;
+        }
+    }
+
+    private int getIntFromFile(BufferedReader br, int defaultValue) {
+        try {
+            br.readLine();
+            String s = br.readLine();
+            if (s == null) {
+                return defaultValue;
+            }
+            return Integer.parseInt(s);
         } catch (Exception e) {
             LOG.warn(e.getMessage(), e);
             return defaultValue;
@@ -960,5 +977,13 @@ public class Settings {
 
     public void setImageOrderMethod(ImageOrderMethod imageOrderMethod) {
         this.imageOrderMethod = imageOrderMethod;
+    }
+
+    public void setMaxLine(int maxLine) {
+        this.maxLine = maxLine;
+    }
+
+    public int getMaxLine() {
+        return maxLine;
     }
 }

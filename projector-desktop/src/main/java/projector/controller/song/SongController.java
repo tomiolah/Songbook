@@ -31,6 +31,7 @@ import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
 import javafx.scene.control.SplitPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.Tooltip;
 import javafx.scene.effect.BlendMode;
@@ -93,6 +94,7 @@ import projector.service.ServiceManager;
 import projector.service.SongCollectionService;
 import projector.service.SongService;
 import projector.utils.CustomProperties;
+import projector.utils.IntegerFilter;
 import projector.utils.scene.text.SongVersePartTextFlow;
 
 import java.io.BufferedReader;
@@ -944,10 +946,22 @@ public class SongController {
     }
 
     private void initializeMaxLineSpinner() {
-        SpinnerValueFactory.IntegerSpinnerValueFactory valueFactory =
-                new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE);
-        maxLineSpinner.setValueFactory(valueFactory);
-        maxLineSpinner.valueProperty().addListener((observable, oldValue, newValue) -> reAddSelectedSong());
+        try {
+            SpinnerValueFactory.IntegerSpinnerValueFactory valueFactory =
+                    new SpinnerValueFactory.IntegerSpinnerValueFactory(0, Integer.MAX_VALUE);
+            valueFactory.setValue(settings.getMaxLine());
+            maxLineSpinner.setValueFactory(valueFactory);
+            maxLineSpinner.valueProperty().addListener((observable, oldValue, newValue) -> {
+                settings.setMaxLine(newValue);
+                reAddSelectedSong();
+            });
+            TextFormatter<Integer> textFormatter = new TextFormatter<>(new IntegerFilter(valueFactory));
+            TextField editor = maxLineSpinner.getEditor();
+            editor.setTextFormatter(textFormatter);
+            editor.textProperty().addListener((observable, oldValue, newValue) -> valueFactory.setValue(Integer.parseInt(newValue)));
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
     private void reAddSelectedSong() {
