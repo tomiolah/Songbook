@@ -76,6 +76,7 @@ public class ProjectionScreenController {
     private final List<ViewChangedListener> viewChangedListeners = new ArrayList<>();
     private final List<OnBlankListener> onBlankListeners = new ArrayList<>();
     private final String INITIAL_DOT_TEXT = "<color=\"0xffffff0c\">.</color>";
+    public Pane paneForMargins;
     private ExecutorService executorService = null;
     @FXML
     private Canvas canvas;
@@ -167,6 +168,7 @@ public class ProjectionScreenController {
     public void initialize() {
         settings = Settings.getInstance();
         progressLine.setVisible(false);
+        initializeMargins();
     }
 
     public void setOnMainProjectionEvent() {
@@ -319,6 +321,7 @@ public class ProjectionScreenController {
         if (isLock) {
             return;
         }
+        initializeMargins();
         if (projectionType == ProjectionType.IMAGE) {
             if (fileImagePath != null) {
                 setImage(fileImagePath, projectionType, null);
@@ -1128,6 +1131,20 @@ public class ProjectionScreenController {
 
     public void onSettingsChanged() {
         repaint();
+    }
+
+    private void initializeMargins() {
+        try {
+            Insets margins = new Insets(
+                    projectionScreenSettings.getTopMarginD(),
+                    projectionScreenSettings.getRightMarginD(),
+                    projectionScreenSettings.getBottomMarginD(),
+                    projectionScreenSettings.getLeftMarginD()
+            );
+            BorderPane.setMargin(paneForMargins, margins);
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
     }
 
     public Popup getPopup() {
