@@ -207,24 +207,29 @@
                         <VBox alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="23">
                             <BorderPane>
                                 <left>
-                                    <Label text="%Top"/>
+                                    <Label prefWidth="100.0" text="%Top"/>
                                 </left>
+                                <center>
+                                    <Label text="%Center"/>
+                                </center>
                                 <right>
-                                    <Label text="%Bottom"/>
+                                    <Label prefWidth="100.0" text="%Bottom" alignment="CENTER_RIGHT"/>
                                 </right>
                             </BorderPane>
                             <Slider fx:id="verticalAlignmentSlider" minorTickCount="7" prefHeight="31.0"
-                                    showTickLabels="true"
-                                    showTickMarks="true" snapToTicks="true"/>
+                                    showTickLabels="true" showTickMarks="true" snapToTicks="true"/>
                         </VBox>
                         <Label text="%Horizontal alignment" GridPane.rowIndex="24"/>
                         <VBox alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="24">
                             <BorderPane>
                                 <left>
-                                    <Label text="%Left"/>
+                                    <Label prefWidth="100.0" text="%Left"/>
                                 </left>
+                                <center>
+                                    <Label text="%Center"/>
+                                </center>
                                 <right>
-                                    <Label text="%Right"/>
+                                    <Label prefWidth="100.0" text="%Right" alignment="CENTER_RIGHT"/>
                                 </right>
                             </BorderPane>
                             <Slider fx:id="horizontalAlignmentSlider" minorTickCount="7" prefHeight="31.0"

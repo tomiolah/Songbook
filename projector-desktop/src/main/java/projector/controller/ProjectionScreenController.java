@@ -513,7 +513,10 @@ public class ProjectionScreenController {
         textFlow.setLayoutX(x);
     }
 
-    private static boolean shouldBeDefaultAlign(double alignment) {
+    private boolean shouldBeDefaultAlign(double alignment) {
+        if (!textFlow.getTextAlignment().equals(TextAlignment.CENTER)) {
+            return false;
+        }
         return Math.abs(alignment - 0.5) < 0.01;
     }
 

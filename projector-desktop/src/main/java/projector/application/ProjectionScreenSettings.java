@@ -141,7 +141,7 @@ public class ProjectionScreenSettings {
         this.rightMargin = projectionScreenSettings.rightMargin;
         this.bottomMargin = projectionScreenSettings.bottomMargin;
         this.leftMargin = projectionScreenSettings.leftMargin;
-
+        // Also copy fromJson in load method!!!
     }
 
     private static boolean isaBoolean(Boolean aBoolean) {
@@ -312,6 +312,16 @@ public class ProjectionScreenSettings {
             this.progressLinePositionIsTop = fromJson.progressLinePositionIsTop;
             this.strokeFont = fromJson.strokeFont;
             this.screenProjectionTypes = fromJson.screenProjectionTypes;
+            this.strokeColor = fromJson.strokeColor;
+            this.strokeSize = fromJson.strokeSize;
+            this.strokeType = fromJson.strokeType;
+            this.verticalAlignment = fromJson.verticalAlignment;
+            this.horizontalAlignment = fromJson.horizontalAlignment;
+            this.textAlignment = fromJson.textAlignment;
+            this.topMargin = fromJson.topMargin;
+            this.rightMargin = fromJson.rightMargin;
+            this.bottomMargin = fromJson.bottomMargin;
+            this.leftMargin = fromJson.leftMargin;
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);

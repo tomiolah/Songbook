@@ -347,7 +347,7 @@ public class ProjectionScreensController {
                     int height = gd.getDisplayMode().getHeight();
                     Scene scene = new Scene(root);
                     Stage settingsStage = getCustomStage(getClass(), scene);
-                    settingsStage.setWidth(1300);
+                    settingsStage.setWidth(743);
                     settingsStage.setHeight(calculateSizeByScale(height - 100));
                     settingsStage.setTitle(title);
                     ProjectionScreenSettingsController settingsController = loader.getController();

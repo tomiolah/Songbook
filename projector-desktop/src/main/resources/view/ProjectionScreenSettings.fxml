@@ -17,12 +17,10 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 <?import projector.ui.ResetButton?>
-<?import projector.utils.scene.text.MyTextFlow?>
-<BorderPane fx:id="mainBorderPain" prefHeight="800.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/17.0.2-ea"
+<BorderPane fx:id="mainBorderPain" prefHeight="800.0" prefWidth="743.0" xmlns="http://javafx.com/javafx/17.0.2-ea"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="projector.controller.ProjectionScreenSettingsController">
     <center>
         <ScrollPane fx:id="scrollPane" prefHeight="55.0" prefWidth="50.0" BorderPane.alignment="CENTER">
@@ -173,10 +171,13 @@
                             <VBox alignment="CENTER_LEFT">
                                 <BorderPane>
                                     <left>
-                                        <Label text="%Top"/>
+                                        <Label prefWidth="100.0" text="%Top"/>
                                     </left>
+                                    <center>
+                                        <Label text="%Center"/>
+                                    </center>
                                     <right>
-                                        <Label text="%Bottom"/>
+                                        <Label prefWidth="100.0" text="%Bottom" alignment="CENTER_RIGHT"/>
                                     </right>
                                 </BorderPane>
                                 <Slider fx:id="verticalAlignmentSlider" minorTickCount="7" prefWidth="440"
@@ -191,10 +192,13 @@
                             <VBox alignment="CENTER_LEFT">
                                 <BorderPane>
                                     <left>
-                                        <Label text="%Left"/>
+                                        <Label prefWidth="100.0" text="%Left"/>
                                     </left>
+                                    <center>
+                                        <Label text="%Center"/>
+                                    </center>
                                     <right>
-                                        <Label text="%Right"/>
+                                        <Label prefWidth="100.0" text="%Right" alignment="CENTER_RIGHT"/>
                                     </right>
                                 </BorderPane>
                                 <Slider fx:id="horizontalAlignmentSlider" minorTickCount="7" prefWidth="440"
@@ -252,9 +256,4 @@
             </padding>
         </HBox>
     </bottom>
-    <right>
-        <Pane fx:id="previewPane" prefHeight="755.0" prefWidth="557.0" BorderPane.alignment="CENTER">
-            <MyTextFlow fx:id="textFlow" prefHeight="436.0" prefWidth="562.0" textAlignment="CENTER"/>
-        </Pane>
-    </right>
 </BorderPane>

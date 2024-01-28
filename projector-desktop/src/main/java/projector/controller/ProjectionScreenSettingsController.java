@@ -18,7 +18,6 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.Pane;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -29,7 +28,6 @@ import projector.application.ProjectionScreenSettings;
 import projector.application.Settings;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.ui.ResetButton;
-import projector.utils.scene.text.MyTextFlow;
 
 import java.util.function.DoubleConsumer;
 
@@ -86,8 +84,7 @@ public class ProjectionScreenSettingsController {
     public ResetButton strokeSizeSpinnerReset;
     public ComboBox<StrokeType> strokeTypeComboBox;
     public ResetButton strokeTypeComboBoxReset;
-    public MyTextFlow textFlow;
-    public Pane previewPane;
+    // public MyTextFlow textFlow;
     public ToggleButton liveButton;
     public Slider verticalAlignmentSlider;
     public ResetButton verticalAlignmentSliderReset;
@@ -190,9 +187,9 @@ public class ProjectionScreenSettingsController {
         showSongSecondTextCheckBox.setSelected(projectionScreenSettings.isShowSongSecondText());
         songSecondTextColorPicker.setValue(projectionScreenSettings.getSongSecondTextColor());
         projectionScreenSettingsModel.setOnChangedListener(this::updatePreview);
-        textFlow.setProjectionScreenSettings(projectionScreenSettingsModel);
-        previewPane.widthProperty().addListener(getChangeListener());
-        previewPane.heightProperty().addListener(getChangeListener());
+        // textFlow.setProjectionScreenSettings(projectionScreenSettingsModel);
+        // previewPane.widthProperty().addListener(getChangeListener());
+        // previewPane.heightProperty().addListener(getChangeListener());
         updatePreview();
     }
 
@@ -286,6 +283,7 @@ public class ProjectionScreenSettingsController {
         );
     }
 
+    @SuppressWarnings("unused")
     private ChangeListener<Number> getChangeListener() {
         return (observable, oldValue, newValue) -> updatePreview();
     }
@@ -293,18 +291,18 @@ public class ProjectionScreenSettingsController {
     private void updatePreview() {
         ProjectionScreenSettings screenSettings = new ProjectionScreenSettings(projectionScreenSettingsModel);
         screenSettings.setUseGlobalSettings(true);
-        textFlow.setProjectionScreenSettings(screenSettings);
+        // textFlow.setProjectionScreenSettings(screenSettings);
         new Thread(() -> Platform.runLater(() -> {
-            BorderPane mainPane = projectionScreenHolder.getProjectionScreenController().getMainPane();
-            double projectionScreenWidth = Math.max(mainPane.getWidth(), 0.01);
-            double projectionScreenHeight = Math.max(mainPane.getHeight(), 0.01);
-            double width = previewPane.getWidth();
-            double height = projectionScreenHeight * width / projectionScreenWidth;
-            if (height > previewPane.getHeight()) {
-                height = previewPane.getHeight();
-                width = projectionScreenWidth * height / projectionScreenHeight;
-            }
-            textFlow.setText2(getPreviewText(), (int) width, (int) height);
+            // BorderPane mainPane = projectionScreenHolder.getProjectionScreenController().getMainPane();
+            // double projectionScreenWidth = Math.max(mainPane.getWidth(), 0.01);
+            // double projectionScreenHeight = Math.max(mainPane.getHeight(), 0.01);
+            // double width = previewPane.getWidth();
+            // double height = projectionScreenHeight * width / projectionScreenWidth;
+            // if (height > previewPane.getHeight()) {
+            //     height = previewPane.getHeight();
+            //     width = projectionScreenWidth * height / projectionScreenHeight;
+            // }
+            // textFlow.setText2(getPreviewText(), (int) width, (int) height);
             if (liveButton.isSelected()) {
                 ProjectionScreenController projectionScreenController = projectionScreenHolder.getProjectionScreenController();
                 projectionScreenController.setProjectionScreenSettings(screenSettings);
@@ -313,6 +311,7 @@ public class ProjectionScreenSettingsController {
         })).start();
     }
 
+    @SuppressWarnings("unused")
     private String getPreviewText() {
         return """
                 I love You, Lord
