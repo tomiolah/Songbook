@@ -97,6 +97,14 @@ public class Settings {
     private StrokeType strokeType = StrokeType.OUTSIDE;
     private ImageOrderMethod imageOrderMethod = ImageOrderMethod.BY_LAST_ACCESSED;
     private Integer maxLine = 0;
+    private final double MIDDLE = 0.5;
+    private double verticalAlignment = MIDDLE;
+    private double horizontalAlignment = MIDDLE;
+    private PTextAlignment textAlignment = PTextAlignment.CENTER;
+    private double topMargin = 0;
+    private double rightMargin = 0;
+    private double bottomMargin = 0;
+    private double leftMargin = 0;
 
     protected Settings() {
         load();
@@ -239,8 +247,7 @@ public class Settings {
             writeColorToFileWithText(bw, "color", color);
             bw.write("isImage" + System.lineSeparator());
             bw.write(isBackgroundImage + System.lineSeparator());
-            bw.write("imagePath" + System.lineSeparator());
-            bw.write(backgroundImagePath + System.lineSeparator());
+            writeAStringToFile(bw, "imagePath", backgroundImagePath);
             bw.write("isFastMode" + System.lineSeparator());
             bw.write(isFastMode + System.lineSeparator());
             bw.write("isParallel" + System.lineSeparator());
@@ -324,13 +331,24 @@ public class Settings {
             writeColorToFileWithText(bw, "strokeColor", strokeColor);
             writeDoubleToFile(bw, "strokeSize", strokeSize);
             writeIntToFile(bw, "strokeType", strokeType.ordinal());
-            bw.write("imageOrderMethod" + System.lineSeparator());
-            bw.write(imageOrderMethod.name() + System.lineSeparator());
+            writeAStringToFile(bw, "imageOrderMethod", imageOrderMethod.name());
             writeIntToFile(bw, "maxLine", maxLine);
+            writeDoubleToFile(bw, "verticalAlignment", verticalAlignment);
+            writeDoubleToFile(bw, "horizontalAlignment", horizontalAlignment);
+            writeAStringToFile(bw, "textAlignment", textAlignment.name());
+            writeDoubleToFile(bw, "topMargin", topMargin);
+            writeDoubleToFile(bw, "rightMargin", rightMargin);
+            writeDoubleToFile(bw, "bottomMargin", bottomMargin);
+            writeDoubleToFile(bw, "leftMargin", leftMargin);
             bw.close();
         } catch (IOException e) {
             LOG.warn("There is some error on settings save!", e);
         }
+    }
+
+    private void writeAStringToFile(BufferedWriter bw, String s, String name) throws IOException {
+        bw.write(s + System.lineSeparator());
+        bw.write(name + System.lineSeparator());
     }
 
     private void writeIntToFile(BufferedWriter bw, String s, int i) throws IOException {
@@ -491,6 +509,14 @@ public class Settings {
             br.readLine();
             imageOrderMethod = ImageOrderMethod.valueOf(br.readLine());
             maxLine = getIntFromFile(br, maxLine);
+            verticalAlignment = getDoubleFromFile(br, verticalAlignment);
+            horizontalAlignment = getDoubleFromFile(br, horizontalAlignment);
+            br.readLine();
+            textAlignment = PTextAlignment.valueOf(br.readLine());
+            topMargin = getDoubleFromFile(br, topMargin);
+            rightMargin = getDoubleFromFile(br, rightMargin);
+            bottomMargin = getDoubleFromFile(br, bottomMargin);
+            leftMargin = getDoubleFromFile(br, leftMargin);
             br.close();
         } catch (IOException | NullPointerException | IllegalArgumentException e) {
             try {
@@ -985,5 +1011,61 @@ public class Settings {
 
     public int getMaxLine() {
         return maxLine;
+    }
+
+    public void setVerticalAlignment(double verticalAlignment) {
+        this.verticalAlignment = verticalAlignment;
+    }
+
+    public double getVerticalAlignment() {
+        return verticalAlignment;
+    }
+
+    public void setHorizontalAlignment(double horizontalAlignment) {
+        this.horizontalAlignment = horizontalAlignment;
+    }
+
+    public double getHorizontalAlignment() {
+        return horizontalAlignment;
+    }
+
+    public void setTextAlignment(PTextAlignment textAlignment) {
+        this.textAlignment = textAlignment;
+    }
+
+    public PTextAlignment getTextAlignment() {
+        return textAlignment;
+    }
+
+    public void setTopMargin(double topMargin) {
+        this.topMargin = topMargin;
+    }
+
+    public double getTopMargin() {
+        return topMargin;
+    }
+
+    public void setRightMargin(double rightMargin) {
+        this.rightMargin = rightMargin;
+    }
+
+    public double getRightMargin() {
+        return rightMargin;
+    }
+
+    public void setBottomMargin(double bottomMargin) {
+        this.bottomMargin = bottomMargin;
+    }
+
+    public double getBottomMargin() {
+        return bottomMargin;
+    }
+
+    public void setLeftMargin(double leftMargin) {
+        this.leftMargin = leftMargin;
+    }
+
+    public double getLeftMargin() {
+        return leftMargin;
     }
 }

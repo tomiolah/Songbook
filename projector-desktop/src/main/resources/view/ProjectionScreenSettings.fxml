@@ -19,6 +19,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 <?import projector.ui.ResetButton?>
 <?import projector.utils.scene.text.MyTextFlow?>
 <BorderPane fx:id="mainBorderPain" prefHeight="800.0" prefWidth="1300.0" xmlns="http://javafx.com/javafx/17.0.2-ea"
@@ -54,6 +55,14 @@
                             <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
                                             vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
+                                            vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
+                                            vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
+                                            vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="65.0"
+                                            vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="65.0"
                                             vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
                                             vgrow="SOMETIMES"/>
@@ -158,21 +167,77 @@
                             <ComboBox fx:id="strokeTypeComboBox" prefWidth="150.0"/>
                             <ResetButton fx:id="strokeTypeComboBoxReset"/>
                         </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="14.0" visible="false" GridPane.rowIndex="13">
+
+                        <Label text="%Vertical alignment" GridPane.rowIndex="13"/>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="13">
+                            <VBox alignment="CENTER_LEFT">
+                                <BorderPane>
+                                    <left>
+                                        <Label text="%Top"/>
+                                    </left>
+                                    <right>
+                                        <Label text="%Bottom"/>
+                                    </right>
+                                </BorderPane>
+                                <Slider fx:id="verticalAlignmentSlider" minorTickCount="7" prefWidth="440"
+                                        prefHeight="31.0"
+                                        showTickLabels="true" snapToTicks="true"
+                                        showTickMarks="true"/>
+                            </VBox>
+                            <ResetButton fx:id="verticalAlignmentSliderReset"/>
+                        </HBox>
+                        <Label text="%Horizontal alignment" GridPane.rowIndex="14"/>
+                        <HBox alignment="CENTER_LEFT" spacing="4.0" GridPane.columnIndex="1" GridPane.rowIndex="14">
+                            <VBox alignment="CENTER_LEFT">
+                                <BorderPane>
+                                    <left>
+                                        <Label text="%Left"/>
+                                    </left>
+                                    <right>
+                                        <Label text="%Right"/>
+                                    </right>
+                                </BorderPane>
+                                <Slider fx:id="horizontalAlignmentSlider" minorTickCount="7" prefWidth="440"
+                                        prefHeight="31.0"
+                                        showTickLabels="true" snapToTicks="true"
+                                        showTickMarks="true"/>
+                            </VBox>
+                            <ResetButton fx:id="horizontalAlignmentSliderReset"/>
+                        </HBox>
+                        <Label text="%Text alignment" GridPane.rowIndex="15"/>
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1"
+                              GridPane.rowIndex="15">
+                            <ComboBox fx:id="textAlignmentComboBox" prefWidth="150.0"/>
+                            <ResetButton fx:id="textAlignmentComboBoxReset"/>
+                        </HBox>
+                        <Label text="%Margins" GridPane.rowIndex="16"/>
+                        <HBox alignment="CENTER_LEFT" spacing="16.0" GridPane.columnIndex="1"
+                              GridPane.rowIndex="16" styleClass="h-box">
+                            <Label text="%Top"/>
+                            <TextField fx:id="topMarginTextField" prefWidth="40.0"/>
+                            <Label text="%Right"/>
+                            <TextField fx:id="rightMarginTextField" prefWidth="40.0"/>
+                            <Label text="%Bottom"/>
+                            <TextField fx:id="bottomMarginTextField" prefWidth="40.0"/>
+                            <Label text="%Left"/>
+                            <TextField fx:id="leftMarginTextField" prefWidth="40.0"/>
+                            <ResetButton fx:id="marginsReset"/>
+                        </HBox>
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" visible="false" GridPane.rowIndex="17">
                             <CheckBox fx:id="showSongSecondTextCheckBox" mnemonicParsing="false"
                                       text="%Show song second text"/>
                             <ResetButton fx:id="showSongSecondTextCheckBoxReset"/>
                         </HBox>
                         <HBox alignment="CENTER_LEFT" spacing="14.0" visible="false" GridPane.columnIndex="1"
-                              GridPane.rowIndex="13">
+                              GridPane.rowIndex="17">
                             <ColorPicker fx:id="songSecondTextColorPicker" prefHeight="31.0" prefWidth="136.0"/>
                             <ResetButton fx:id="songSecondTextColorPickerReset"/>
                         </HBox>
-                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="14">
+                        <HBox alignment="CENTER_LEFT" spacing="14.0" GridPane.columnIndex="1" GridPane.rowIndex="18">
                             <ListView fx:id="fontListView" prefHeight="163.0" prefWidth="438.0"/>
                             <ResetButton fx:id="fontListViewReset"/>
                         </HBox>
-                        <Label text="%Font" GridPane.rowIndex="14"/>
+                        <Label text="%Font" GridPane.rowIndex="18"/>
                     </GridPane>
                 </left>
             </BorderPane>

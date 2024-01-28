@@ -24,6 +24,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.text.TextAlignment;
 import javafx.stage.Popup;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -464,14 +465,16 @@ public class ProjectionScreenController {
             if (projectionType == ProjectionType.REFERENCE) {
                 textFlow1.setText2(newText, width, height);
                 double v = projectionScreenSettings.getMaxFont() * 0.7;
-                if (textFlow1.getSize() < v && newText.length() > 100) {
+                int textFlow1Size = textFlow1.getSize();
+                if (textFlow1Size < v && newText.length() > 100) {
                     String[] split = splitHalfByNewLine(newText);
                     textFlow.setText2(split[0], width / 2, height);
                     textFlow1.setText2(split[1], width / 2, height);
-                    if (textFlow.getSize() > textFlow1.getSize()) {
-                        textFlow.setSizeAndAlign(textFlow1.getSize());
-                    } else if (textFlow.getSize() < textFlow1.getSize()) {
-                        textFlow1.setSizeAndAlign(textFlow.getSize());
+                    int textFlowSize = textFlow.getSize();
+                    if (textFlowSize > textFlow1Size) {
+                        textFlow.setSizeAndAlign(textFlow1Size);
+                    } else if (textFlowSize < textFlow1Size) {
+                        textFlow1.setSizeAndAlign(textFlowSize);
                     }
                     return;
                 }
@@ -482,9 +485,36 @@ public class ProjectionScreenController {
                 progressLine.setVisible(false);
             }
             textFlow.setText2(newText, width, height);
+            textFlow.setTextAlignment(projectionScreenSettings.getTextAlignmentT());
+            alignX();
             textFlow1.setText2("", 0, height);
             onViewChanged();
         });
+    }
+
+    private static double getHorizontalCorrigateByTextAlignment(TextAlignment textAlignment) {
+        if (textAlignment.equals(TextAlignment.CENTER)) {
+            return -0.5;
+        }
+        if (textAlignment.equals(TextAlignment.RIGHT)) {
+            return -1.0;
+        }
+        return 0.0;
+    }
+
+    private void alignX() {
+        double horizontalAlignment = projectionScreenSettings.getHorizontalAlignmentD();
+        if (shouldBeDefaultAlign(horizontalAlignment)) {
+            return;
+        }
+        double shift = textFlow.getWidth() - textFlow.getMaxLineWidth();
+        double corrigateByTextAlignment = getHorizontalCorrigateByTextAlignment(textFlow.getTextAlignment());
+        double x = shift * (horizontalAlignment + corrigateByTextAlignment);
+        textFlow.setLayoutX(x);
+    }
+
+    private static boolean shouldBeDefaultAlign(double alignment) {
+        return Math.abs(alignment - 0.5) < 0.01;
     }
 
     private boolean handleByProjectionScreenSettingsAction() {

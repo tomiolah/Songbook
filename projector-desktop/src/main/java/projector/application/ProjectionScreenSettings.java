@@ -9,6 +9,7 @@ import javafx.scene.layout.BackgroundImage;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.StrokeType;
 import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import projector.controller.SettingsController;
@@ -81,6 +82,20 @@ public class ProjectionScreenSettings {
     private Double strokeSize;
     @Expose
     private StrokeType strokeType;
+    @Expose
+    private Double verticalAlignment;
+    @Expose
+    private Double horizontalAlignment;
+    @Expose
+    private PTextAlignment textAlignment;
+    @Expose
+    private Double topMargin;
+    @Expose
+    private Double rightMargin;
+    @Expose
+    private Double bottomMargin;
+    @Expose
+    private Double leftMargin;
     private Listener onChangedListener = null;
 
     public ProjectionScreenSettings() {
@@ -119,6 +134,14 @@ public class ProjectionScreenSettings {
         this.strokeSize = projectionScreenSettings.strokeSize;
         this.strokeType = projectionScreenSettings.strokeType;
         this.onChangedListener = projectionScreenSettings.onChangedListener;
+        this.verticalAlignment = projectionScreenSettings.verticalAlignment;
+        this.horizontalAlignment = projectionScreenSettings.horizontalAlignment;
+        this.textAlignment = projectionScreenSettings.textAlignment;
+        this.topMargin = projectionScreenSettings.topMargin;
+        this.rightMargin = projectionScreenSettings.rightMargin;
+        this.bottomMargin = projectionScreenSettings.bottomMargin;
+        this.leftMargin = projectionScreenSettings.leftMargin;
+
     }
 
     private static boolean isaBoolean(Boolean aBoolean) {
@@ -451,11 +474,14 @@ public class ProjectionScreenSettings {
     }
 
     public double getStrokeSizeD() {
-        Double size = getStrokeSize();
-        if (size == null) {
+        return get_double(getStrokeSize());
+    }
+
+    private static double get_double(Double aDouble) {
+        if (aDouble == null) {
             return 0;
         }
-        return size;
+        return aDouble;
     }
 
     public void setStrokeSize(Double strokeSize) {
@@ -514,6 +540,10 @@ public class ProjectionScreenSettings {
         return ScreenProjectionAction.DISPLAY;
     }
 
+    public TextAlignment getTextAlignmentT() {
+        return getTextAlignmentN().asTextAlignment();
+    }
+
     public interface Listener {
         void onChanged();
     }
@@ -523,5 +553,121 @@ public class ProjectionScreenSettings {
             screenProjectionTypes = new ArrayList<>();
         }
         return screenProjectionTypes;
+    }
+
+    public Double getVerticalAlignment() {
+        if (verticalAlignment == null && useGlobalSettings) {
+            return settings.getVerticalAlignment();
+        }
+        return verticalAlignment;
+    }
+
+    public double getVerticalAlignmentD() {
+        return get_double(getVerticalAlignment());
+    }
+
+    public void setVerticalAlignment(Double verticalAlignment) {
+        this.verticalAlignment = verticalAlignment;
+        onChanged();
+    }
+
+    public Double getHorizontalAlignment() {
+        if (horizontalAlignment == null && useGlobalSettings) {
+            return settings.getHorizontalAlignment();
+        }
+        return horizontalAlignment;
+    }
+
+    public double getHorizontalAlignmentD() {
+        return get_double(getHorizontalAlignment());
+    }
+
+    public void setHorizontalAlignment(Double horizontalAlignment) {
+        this.horizontalAlignment = horizontalAlignment;
+        onChanged();
+    }
+
+    public PTextAlignment getTextAlignment() {
+        if (textAlignment == null && useGlobalSettings) {
+            return settings.getTextAlignment();
+        }
+        return textAlignment;
+    }
+
+    public PTextAlignment getTextAlignmentN() {
+        PTextAlignment textAlignment = getTextAlignment();
+        if (textAlignment == null) {
+            return PTextAlignment.CENTER;
+        }
+        return textAlignment;
+    }
+
+    public void setTextAlignment(PTextAlignment textAlignment) {
+        this.textAlignment = textAlignment;
+        onChanged();
+    }
+
+    public Double getTopMargin() {
+        if (topMargin == null && useGlobalSettings) {
+            return settings.getTopMargin();
+        }
+        return topMargin;
+    }
+
+    public double getTopMarginD() {
+        return get_double(getTopMargin());
+    }
+
+    public void setTopMargin(Double topMargin) {
+        this.topMargin = topMargin;
+        onChanged();
+    }
+
+    public Double getRightMargin() {
+        if (rightMargin == null && useGlobalSettings) {
+            return settings.getRightMargin();
+        }
+        return rightMargin;
+    }
+
+    public double getRightMarginD() {
+        return get_double(getRightMargin());
+    }
+
+    public void setRightMargin(Double rightMargin) {
+        this.rightMargin = rightMargin;
+        onChanged();
+    }
+
+    public Double getBottomMargin() {
+        if (bottomMargin == null && useGlobalSettings) {
+            return settings.getBottomMargin();
+        }
+        return bottomMargin;
+    }
+
+    public double getBottomMarginD() {
+        return get_double(getBottomMargin());
+    }
+
+    public void setBottomMargin(Double bottomMargin) {
+        this.bottomMargin = bottomMargin;
+        onChanged();
+    }
+
+    public Double getLeftMargin() {
+        if (leftMargin == null && useGlobalSettings) {
+            return settings.getLeftMargin();
+        }
+        return leftMargin;
+    }
+
+    public double getLeftMarginD() {
+        return get_double(getLeftMargin());
+    }
+
+    public void setLeftMargin(Double leftMargin) {
+        this.leftMargin = leftMargin;
+        onChanged();
     }
 }

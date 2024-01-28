@@ -21,6 +21,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 <?import java.lang.String?>
 <BorderPane fx:id="mainBorderPain" prefHeight="1500.0" prefWidth="850.0" xmlns="http://javafx.com/javafx/17.0.2-ea"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="projector.controller.SettingsController">
@@ -80,6 +81,14 @@
                                             vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
                                             vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="65.0"
+                                            vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="65.0"
+                                            vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
+                                            vgrow="SOMETIMES"/>
+                            <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
+                                            vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="40.0"
                                             vgrow="SOMETIMES"/>
                             <RowConstraints maxHeight="677.0" minHeight="200.0" prefHeight="677.0" vgrow="SOMETIMES"/>
@@ -118,8 +127,8 @@
                         <CheckBox fx:id="showReferenceOnlyCheckBox" mnemonicParsing="false" text="%Show reference only"
                                   GridPane.columnIndex="1" GridPane.rowIndex="17"/>
                         <ListView fx:id="listView" prefHeight="163.0" prefWidth="438.0" GridPane.columnIndex="1"
-                                  GridPane.rowIndex="24"/>
-                        <Label text="%Font" GridPane.rowIndex="24"/>
+                                  GridPane.rowIndex="28"/>
+                        <Label text="%Font" GridPane.rowIndex="28"/>
                         <Label text="%Color" GridPane.rowIndex="6"/>
                         <ColorPicker fx:id="colorPicker" prefHeight="31.0" prefWidth="134.0" GridPane.columnIndex="1"
                                      GridPane.rowIndex="6"/>
@@ -157,7 +166,8 @@
                                   GridPane.rowIndex="12"/>
                         <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="h-box" GridPane.rowIndex="13">
                             <CheckBox fx:id="strokeCheckbox" mnemonicParsing="false" text="%Stroke font"/>
-                            <ImageView fx:id="strokeWarningImageView" fitHeight="15.0" fitWidth="20.0" pickOnBounds="true" preserveRatio="true">
+                            <ImageView fx:id="strokeWarningImageView" fitHeight="15.0" fitWidth="20.0"
+                                       pickOnBounds="true" preserveRatio="true">
                                 <Image url="@../icons/warning.png"/>
                             </ImageView>
                             <padding>
@@ -193,7 +203,49 @@
                         <CheckBox fx:id="automaticProjectionScreensCheckBox" mnemonicParsing="false"
                                   text="%Automatically create projection screens" GridPane.columnIndex="1"
                                   GridPane.rowIndex="22"/>
-                        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="25">
+                        <Label text="%Vertical alignment" GridPane.rowIndex="23"/>
+                        <VBox alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="23">
+                            <BorderPane>
+                                <left>
+                                    <Label text="%Top"/>
+                                </left>
+                                <right>
+                                    <Label text="%Bottom"/>
+                                </right>
+                            </BorderPane>
+                            <Slider fx:id="verticalAlignmentSlider" minorTickCount="7" prefHeight="31.0"
+                                    showTickLabels="true"
+                                    showTickMarks="true" snapToTicks="true"/>
+                        </VBox>
+                        <Label text="%Horizontal alignment" GridPane.rowIndex="24"/>
+                        <VBox alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="24">
+                            <BorderPane>
+                                <left>
+                                    <Label text="%Left"/>
+                                </left>
+                                <right>
+                                    <Label text="%Right"/>
+                                </right>
+                            </BorderPane>
+                            <Slider fx:id="horizontalAlignmentSlider" minorTickCount="7" prefHeight="31.0"
+                                    showTickLabels="true" showTickMarks="true" snapToTicks="true"/>
+                        </VBox>
+                        <Label text="%Text alignment" GridPane.rowIndex="25"/>
+                        <ComboBox fx:id="textAlignmentComboBox" prefWidth="150.0" GridPane.columnIndex="1"
+                                  GridPane.rowIndex="25"/>
+                        <Label text="%Margins" GridPane.rowIndex="26"/>
+                        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="h-box" GridPane.columnIndex="1"
+                              GridPane.rowIndex="26">
+                            <Label text="%Top"/>
+                            <TextField fx:id="topMarginTextField" prefWidth="40.0"/>
+                            <Label text="%Right"/>
+                            <TextField fx:id="rightMarginTextField" prefWidth="40.0"/>
+                            <Label text="%Bottom"/>
+                            <TextField fx:id="bottomMarginTextField" prefWidth="40.0"/>
+                            <Label text="%Left"/>
+                            <TextField fx:id="leftMarginTextField" prefWidth="40.0"/>
+                        </HBox>
+                        <BorderPane prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="2" GridPane.rowIndex="29">
                             <center>
                                 <HBox alignment="CENTER_LEFT">
                                     <Button fx:id="shareOnLocalNetworkButton" text="%Share on local network"
@@ -217,7 +269,7 @@
                                 </HBox>
                             </center>
                         </BorderPane>
-                        <HBox GridPane.columnSpan="2" GridPane.rowIndex="26">
+                        <HBox GridPane.columnSpan="2" GridPane.rowIndex="30">
                             <ToggleButton fx:id="allowRemoteButton" onAction="#allowRemoteButtonOnAction"
                                           text="%Allow remote" visible="false"/>
                         </HBox>

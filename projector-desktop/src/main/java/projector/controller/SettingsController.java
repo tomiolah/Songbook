@@ -31,6 +31,7 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import projector.application.PTextAlignment;
 import projector.application.Settings;
 import projector.application.Updater;
 import projector.controller.song.SongController;
@@ -55,6 +56,13 @@ public class SettingsController {
     public ComboBox<StrokeType> strokeTypeComboBox;
     public ToggleButton liveButton;
     public ImageView strokeWarningImageView;
+    public Slider verticalAlignmentSlider;
+    public Slider horizontalAlignmentSlider;
+    public ComboBox<PTextAlignment> textAlignmentComboBox;
+    public TextField topMarginTextField;
+    public TextField rightMarginTextField;
+    public TextField bottomMarginTextField;
+    public TextField leftMarginTextField;
     @FXML
     private ColorPicker songSecondTextColorPicker;
     @FXML
@@ -250,11 +258,31 @@ public class SettingsController {
         strokeColorPicker.setValue(settings.getStrokeColor());
         strokeSizeSpinner.setValueFactory(getStrokeSizeFactory(settings.getStrokeSize()));
         initializeStrokeTypeComboBox_(strokeTypeComboBox, settings.getStrokeType());
+        initializeAlignmentComponents();
         switch (settings.getSceneStyleFile()) {
             case "application.css" -> appearanceComboBox.getSelectionModel().select(0);
             case "applicationDark.css" -> appearanceComboBox.getSelectionModel().select(1);
         }
         prepareChangeEvents();
+    }
+
+    private void initializeAlignmentComponents() {
+        try {
+            verticalAlignmentSlider.setValue(settings.getVerticalAlignment() * 100);
+            horizontalAlignmentSlider.setValue(settings.getHorizontalAlignment() * 100);
+            initializeTextAlignmentComboBox();
+            topMarginTextField.setText(settings.getTopMargin() + "");
+            rightMarginTextField.setText(settings.getRightMargin() + "");
+            bottomMarginTextField.setText(settings.getBottomMargin() + "");
+            leftMarginTextField.setText(settings.getLeftMargin() + "");
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private void initializeTextAlignmentComboBox() {
+        textAlignmentComboBox.getItems().addAll(PTextAlignment.values());
+        textAlignmentComboBox.getSelectionModel().select(settings.getTextAlignment());
     }
 
     public static SpinnerValueFactory.DoubleSpinnerValueFactory getStrokeSizeFactory(double initialValue) {
@@ -360,6 +388,21 @@ public class SettingsController {
         settings.setStrokeColor(strokeColorPicker.getValue());
         settings.setStrokeSize(strokeSizeSpinner.getValue());
         settings.setStrokeType(strokeTypeComboBox.getValue());
+        settings.setVerticalAlignment(verticalAlignmentSlider.getValue() / 100);
+        settings.setHorizontalAlignment(horizontalAlignmentSlider.getValue() / 100);
+        settings.setTextAlignment(textAlignmentComboBox.getSelectionModel().getSelectedItem());
+        settings.setTopMargin(getDoubleFromTextField(topMarginTextField));
+        settings.setRightMargin(getDoubleFromTextField(rightMarginTextField));
+        settings.setBottomMargin(getDoubleFromTextField(bottomMarginTextField));
+        settings.setLeftMargin(getDoubleFromTextField(leftMarginTextField));
+    }
+
+    public static double getDoubleFromTextField(TextField textField) {
+        try {
+            return Double.parseDouble(textField.getText());
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
     private void prepareChangeEvents() {
@@ -368,6 +411,8 @@ public class SettingsController {
         sliders.add(maxFontSlider);
         sliders.add(breakAfterSlider);
         sliders.add(slider);
+        sliders.add(verticalAlignmentSlider);
+        sliders.add(horizontalAlignmentSlider);
         for (Slider slider : sliders) {
             slider.valueProperty().addListener(numberChangeListener);
         }
@@ -384,7 +429,6 @@ public class SettingsController {
         checkBoxes.add(referenceChapterSorting);
         checkBoxes.add(referenceVerseSorting);
         checkBoxes.add(bibleShortNameCheckBox);
-        checkBoxes.add(strokeCheckbox);
         for (CheckBox checkBox : checkBoxes) {
             checkBox.selectedProperty().addListener(booleanChangeListener);
         }
@@ -409,8 +453,20 @@ public class SettingsController {
         fontWeightComboBox.valueProperty().addListener(stringChangeListener);
         languageComboBox.valueProperty().addListener(stringChangeListener);
         appearanceComboBox.valueProperty().addListener(stringChangeListener);
+
+        ChangeListener<PTextAlignment> pTextAlignmentChangeListener = (observable, oldValue, newValue) -> onChanged();
+        textAlignmentComboBox.valueProperty().addListener(pTextAlignmentChangeListener);
         ChangeListener<Integer> integerChangeListener = (observable, oldValue, newValue) -> onChanged();
         progressLineThicknessSpinner.valueProperty().addListener(integerChangeListener);
+
+        List<TextField> textFields = new ArrayList<>();
+        textFields.add(topMarginTextField);
+        textFields.add(rightMarginTextField);
+        textFields.add(bottomMarginTextField);
+        textFields.add(leftMarginTextField);
+        for (TextField textField : textFields) {
+            textField.textProperty().addListener(stringChangeListener);
+        }
     }
 
     private void onChanged() {

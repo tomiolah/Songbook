@@ -7,7 +7,7 @@ import java.util.List;
 
 public class Word {
 
-    private List<Text> letters = new ArrayList<>();
+    private final List<Text> letters = new ArrayList<>();
 
     public List<Text> getClonedLetters() {
         ArrayList<Text> list = new ArrayList<>(letters.size());
@@ -23,10 +23,6 @@ public class Word {
         return letters;
     }
 
-    public void setLetters(List<Text> letters) {
-        this.letters = letters;
-    }
-
     public void addLetter(Text letter) {
         letters.add(letter);
     }
@@ -34,7 +30,9 @@ public class Word {
     public double getWidth() {
         double sum = 0;
         for (Text letter : letters) {
-            sum += letter.getBoundsInLocal().getWidth();
+            // double width = letter.getBoundsInLocal().getWidth(); this contains also the font stroke size
+            double width = letter.getLayoutBounds().getWidth(); // we need to width of the occupied space of text
+            sum += width;
         }
         return sum;
     }

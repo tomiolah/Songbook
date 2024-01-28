@@ -94,6 +94,7 @@ public class MyTextFlow extends TextFlow {
         try {
             return m.invoke(obj, args);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+            //noinspection CallToPrintStackTrace
             e.printStackTrace();
         }
         return null;
@@ -275,7 +276,7 @@ public class MyTextFlow extends TextFlow {
             if (tmpTextFlow.getLineCount() > 1 + word.getNewLineCount()) {
                 nodes.clear();
                 nodes.addAll(word.getClonedLetters());
-                if (letters.getWords().size() > 0) {
+                if (!letters.getWords().isEmpty()) {
                     lines.add(letters);
                     letters = new Phrase();
                 }
@@ -374,9 +375,19 @@ public class MyTextFlow extends TextFlow {
             h = (int) bounds.getHeight();
             resize(width, height);
             setLayoutX((double) (trueWidth - w) / 2);
-            setLayoutY((double) (height - h) / 2);
+            alignY(height, h);
             setPrefHeight2(h);
         }
+    }
+
+    private void alignY(double textFlowHeight, double contentHeight) {
+        double verticalAlignment = projectionScreenSettings.getVerticalAlignmentD();
+        if (contentHeight > textFlowHeight) {
+            return;
+        }
+        double shift = textFlowHeight - contentHeight;
+        double y = shift * verticalAlignment;
+        setLayoutY(y);
     }
 
     private void setPrefHeight2(int height) {
@@ -678,11 +689,12 @@ public class MyTextFlow extends TextFlow {
         int w;
         int h;
         resize(width, 20);
-        w = (int) boundsInLocalProperty().getValue().getWidth();
-        h = (int) boundsInLocalProperty().getValue().getHeight();
+        Bounds bounds = boundsInLocalProperty().getValue();
+        w = (int) bounds.getWidth();
+        h = (int) bounds.getHeight();
         resize(width, height);
         setLayoutX((double) (width - w) / 2);
-        setLayoutY((double) (height - h) / 2);
+        alignY(height, h);
     }
 
     private void initializeTmpTextFlow() {
@@ -718,5 +730,16 @@ public class MyTextFlow extends TextFlow {
     public void disableStrokeFont() {
         // We are disabling stroke font because it is slow
         this.disabledStrokeFont = true;
+    }
+
+    public double getMaxLineWidth() {
+        double maxLineWidth = 0.0;
+        for (Phrase phrase : getPhrases()) {
+            double lineWidth = phrase.getWidth();
+            if (lineWidth > maxLineWidth) {
+                maxLineWidth = lineWidth;
+            }
+        }
+        return maxLineWidth;
     }
 }

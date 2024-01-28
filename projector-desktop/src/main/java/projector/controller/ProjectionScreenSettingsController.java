@@ -10,6 +10,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.SingleSelectionModel;
 import javafx.scene.control.Slider;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
@@ -23,13 +24,17 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import projector.application.PTextAlignment;
 import projector.application.ProjectionScreenSettings;
 import projector.application.Settings;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.ui.ResetButton;
 import projector.utils.scene.text.MyTextFlow;
 
+import java.util.function.DoubleConsumer;
+
 import static projector.controller.SettingsController.addFonts;
+import static projector.controller.SettingsController.getDoubleFromTextField;
 import static projector.controller.SettingsController.getFontWeightByString;
 import static projector.controller.SettingsController.getStrokeSizeFactory;
 import static projector.controller.SettingsController.imageBrowseWithTextFieldResult;
@@ -84,6 +89,17 @@ public class ProjectionScreenSettingsController {
     public MyTextFlow textFlow;
     public Pane previewPane;
     public ToggleButton liveButton;
+    public Slider verticalAlignmentSlider;
+    public ResetButton verticalAlignmentSliderReset;
+    public Slider horizontalAlignmentSlider;
+    public ResetButton horizontalAlignmentSliderReset;
+    public ComboBox<PTextAlignment> textAlignmentComboBox;
+    public ResetButton textAlignmentComboBoxReset;
+    public TextField topMarginTextField;
+    public TextField rightMarginTextField;
+    public TextField bottomMarginTextField;
+    public TextField leftMarginTextField;
+    public ResetButton marginsReset;
     private Stage stage;
     private ProjectionScreenSettings projectionScreenSettings;
     private ProjectionScreenSettings projectionScreenSettingsModel;
@@ -113,6 +129,13 @@ public class ProjectionScreenSettingsController {
         projectionScreenSettings.setShowSongSecondText(projectionScreenSettingsModel.getShowSongSecondText());
         projectionScreenSettings.setSongSecondTextColor(projectionScreenSettingsModel.getSongSecondTextColor());
         projectionScreenSettings.setFont(projectionScreenSettingsModel.getFont());
+        projectionScreenSettings.setVerticalAlignment(projectionScreenSettingsModel.getVerticalAlignment());
+        projectionScreenSettings.setHorizontalAlignment(projectionScreenSettingsModel.getHorizontalAlignment());
+        projectionScreenSettings.setTextAlignment(projectionScreenSettingsModel.getTextAlignment());
+        projectionScreenSettings.setTopMargin(projectionScreenSettingsModel.getTopMargin());
+        projectionScreenSettings.setRightMargin(projectionScreenSettingsModel.getRightMargin());
+        projectionScreenSettings.setBottomMargin(projectionScreenSettingsModel.getBottomMargin());
+        projectionScreenSettings.setLeftMargin(projectionScreenSettingsModel.getLeftMargin());
         projectionScreenSettings.save();
         projectionScreenHolder.getProjectionScreenController().onSettingsChanged();
         stage.close();
@@ -157,6 +180,10 @@ public class ProjectionScreenSettingsController {
         initializeStrokeColorCheckBox(settings);
         initializeStrokeSizeSpinner(settings);
         initializeStrokeTypeComboBox(settings);
+        initializeVerticalAlignmentSlider(settings);
+        initializeHorizontalAlignmentSlider(settings);
+        initializeTextAlignment(settings);
+        initializeMargins(settings);
         initializeShowSongSecondTextCheckBox(settings);
         initializeSongSecondTextColorPicker(settings);
         initializeFontListView(settings);
@@ -167,6 +194,96 @@ public class ProjectionScreenSettingsController {
         previewPane.widthProperty().addListener(getChangeListener());
         previewPane.heightProperty().addListener(getChangeListener());
         updatePreview();
+    }
+
+    private void initializeVerticalAlignmentSlider(Settings settings) {
+        verticalAlignmentSlider.setValue(projectionScreenSettings.getVerticalAlignmentD() * 100);
+        setVerticalAlignmentResetVisibility();
+        verticalAlignmentSliderReset.setOnAction2(event -> {
+            verticalAlignmentSlider.setValue(settings.getVerticalAlignment() * 100);
+            projectionScreenSettingsModel.setVerticalAlignment(null);
+        });
+        verticalAlignmentSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            projectionScreenSettingsModel.setVerticalAlignment(newValue.doubleValue() / 100);
+            setVerticalAlignmentResetVisibility();
+        });
+    }
+
+    private void setVerticalAlignmentResetVisibility() {
+        verticalAlignmentSliderReset.setVisible(projectionScreenSettingsModel.getVerticalAlignment() != null);
+    }
+
+    private void initializeHorizontalAlignmentSlider(Settings settings) {
+        horizontalAlignmentSlider.setValue(projectionScreenSettings.getHorizontalAlignmentD() * 100);
+        setHorizontalAlignmentResetVisibility();
+        horizontalAlignmentSliderReset.setOnAction2(event -> {
+            horizontalAlignmentSlider.setValue(settings.getHorizontalAlignment() * 100);
+            projectionScreenSettingsModel.setHorizontalAlignment(null);
+        });
+        horizontalAlignmentSlider.valueProperty().addListener((observable, oldValue, newValue) -> {
+            projectionScreenSettingsModel.setHorizontalAlignment(newValue.doubleValue() / 100);
+            setHorizontalAlignmentResetVisibility();
+        });
+    }
+
+    private void setHorizontalAlignmentResetVisibility() {
+        horizontalAlignmentSliderReset.setVisible(projectionScreenSettingsModel.getHorizontalAlignment() != null);
+    }
+
+    private void initializeTextAlignment(Settings settings) {
+        textAlignmentComboBox.getItems().addAll(PTextAlignment.values());
+        SingleSelectionModel<PTextAlignment> selectionModel = textAlignmentComboBox.getSelectionModel();
+        selectionModel.select(projectionScreenSettings.getTextAlignmentN());
+        setTextAlignmentComboBoxResetVisibility();
+        textAlignmentComboBoxReset.setOnAction2(event -> {
+            selectionModel.select(settings.getTextAlignment());
+            projectionScreenSettingsModel.setTextAlignment(null);
+        });
+        selectionModel.selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            projectionScreenSettingsModel.setTextAlignment(newValue);
+            setTextAlignmentComboBoxResetVisibility();
+        });
+    }
+
+    private void setTextAlignmentComboBoxResetVisibility() {
+        textAlignmentComboBoxReset.setVisible(projectionScreenSettingsModel.getTextAlignment() != null);
+    }
+
+    private void initializeMargins(Settings settings) {
+        topMarginTextField.setText(projectionScreenSettings.getTopMarginD() + "");
+        rightMarginTextField.setText(projectionScreenSettings.getRightMarginD() + "");
+        bottomMarginTextField.setText(projectionScreenSettings.getBottomMarginD() + "");
+        leftMarginTextField.setText(projectionScreenSettings.getLeftMarginD() + "");
+        setMarginsResetVisibility();
+        marginsReset.setOnAction2(event -> {
+            topMarginTextField.setText(settings.getTopMargin() + "");
+            rightMarginTextField.setText(settings.getRightMargin() + "");
+            bottomMarginTextField.setText(settings.getBottomMargin() + "");
+            leftMarginTextField.setText(settings.getLeftMargin() + "");
+            projectionScreenSettings.setTopMargin(null);
+            projectionScreenSettings.setRightMargin(null);
+            projectionScreenSettings.setBottomMargin(null);
+            projectionScreenSettings.setLeftMargin(null);
+        });
+        marginTextFieldBind(topMarginTextField, projectionScreenSettingsModel::setTopMargin);
+        marginTextFieldBind(rightMarginTextField, projectionScreenSettingsModel::setRightMargin);
+        marginTextFieldBind(bottomMarginTextField, projectionScreenSettingsModel::setBottomMargin);
+        marginTextFieldBind(leftMarginTextField, projectionScreenSettingsModel::setLeftMargin);
+    }
+
+    private void marginTextFieldBind(TextField marginTextField, DoubleConsumer doubleConsumer) {
+        marginTextField.textProperty().addListener((observable, oldValue, newValue) -> {
+            doubleConsumer.accept(getDoubleFromTextField(marginTextField));
+            setMarginsResetVisibility();
+        });
+    }
+
+    private void setMarginsResetVisibility() {
+        marginsReset.setVisible(projectionScreenSettingsModel.getTopMargin() != null ||
+                projectionScreenSettingsModel.getRightMargin() != null ||
+                projectionScreenSettingsModel.getBottomMargin() != null ||
+                projectionScreenSettingsModel.getLeftMargin() != null
+        );
     }
 
     private ChangeListener<Number> getChangeListener() {
