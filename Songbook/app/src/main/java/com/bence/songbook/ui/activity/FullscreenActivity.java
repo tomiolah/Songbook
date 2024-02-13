@@ -1,11 +1,11 @@
 package com.bence.songbook.ui.activity;
 
-import android.annotation.SuppressLint;
+import static com.bence.songbook.ui.activity.YoutubeActivity.logWithNullCheck;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -103,11 +103,6 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                     }
                 }
 
-                @SuppressLint("ClickableViewAccessibility")
-                public boolean onTouch(View v, MotionEvent event) {
-                    return gestureDetector.onTouchEvent(event);
-                }
-
                 @Override
                 public void performTouchLeftRight(MotionEvent event) {
                     int i = mContentView.getWidth() / 2;
@@ -137,7 +132,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
             thread.start();
             super.setContext(this);
         } catch (Exception e) {
-            Log.e(FullscreenActivity.class.getSimpleName(), e.getMessage());
+            logWithNullCheck(e, FullscreenActivity.class.getSimpleName());
         }
     }
 

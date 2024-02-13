@@ -111,16 +111,16 @@ public class YoutubeActivity extends AppCompatActivity {
                 textView.setTextColor(getResources().getColor(R.color.white));
             }
         } catch (Exception e) {
-            logWithNullCheck(e);
+            logWithNullCheck(e, YoutubeActivity.class.getSimpleName());
         }
     }
 
-    private static void logWithNullCheck(Exception e) {
+    public static void logWithNullCheck(Exception e, String simpleName) {
         String message = e.getMessage();
         if (message == null) {
             message = "";
         }
-        Log.e(YoutubeActivity.class.getSimpleName(), message);
+        Log.e(simpleName, message);
     }
 
     private boolean setNextVerseByPageUpDown(int keyCode) {
@@ -167,11 +167,6 @@ public class YoutubeActivity extends AppCompatActivity {
                     setPreviousVerse();
                 }
 
-                @SuppressLint("ClickableViewAccessibility")
-                public boolean onTouch(View v, MotionEvent event) {
-                    return gestureDetector.onTouchEvent(event);
-                }
-
                 @Override
                 public void performTouchLeftRight(MotionEvent event) {
                     //noinspection IntegerDivisionInFloatingPointContext
@@ -201,7 +196,7 @@ public class YoutubeActivity extends AppCompatActivity {
             Thread thread = new Thread(() -> songRepository = new SongRepositoryImpl(getApplicationContext()));
             thread.start();
         } catch (Exception e) {
-            Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
+            logWithNullCheck(e, YoutubeActivity.class.getSimpleName());
         }
     }
 
