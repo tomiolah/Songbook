@@ -111,7 +111,7 @@ public class YoutubeActivity extends AppCompatActivity {
                 textView.setTextColor(getResources().getColor(R.color.white));
             }
         } catch (Exception e) {
-            logWithNullCheck(e, YoutubeActivity.class.getSimpleName());
+            logE(e);
         }
     }
 
@@ -196,19 +196,28 @@ public class YoutubeActivity extends AppCompatActivity {
             Thread thread = new Thread(() -> songRepository = new SongRepositoryImpl(getApplicationContext()));
             thread.start();
         } catch (Exception e) {
-            logWithNullCheck(e, YoutubeActivity.class.getSimpleName());
+            logE(e);
         }
     }
 
     private void onCreate3() {
-        WebView webView = findViewById(R.id.webView);
-        if (webView == null) {
-            return;
+        try {
+            WebView webView = findViewById(R.id.webView);
+            if (webView == null) {
+                return;
+            }
+            if (song == null) {
+                return;
+            }
+            setYouTubeIFrameToWebView(webView, song.getYoutubeUrl());
+        } catch (Exception e) {
+            Toast.makeText(this, "Could not create webView. " + e.getMessage(), Toast.LENGTH_LONG).show();
+            logE(e);
         }
-        if (song == null) {
-            return;
-        }
-        setYouTubeIFrameToWebView(webView, song.getYoutubeUrl());
+    }
+
+    private static void logE(Exception e) {
+        logWithNullCheck(e, YoutubeActivity.class.getSimpleName());
     }
 
     @Override

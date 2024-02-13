@@ -1031,7 +1031,7 @@ public class MainActivity extends AppCompatActivity
                 if (sA.length() > k && sB.length() > k && sA.charAt(k) != sB.charAt(k)) {
                     newA = new StringBuilder();
                     for (int j = 0; j < splitB.length; ++j) {
-                        newA.append((splitB[j].charAt(0) + "").toUpperCase());
+                        newA.append((String.valueOf(splitB[j].charAt(0))).toUpperCase());
                         if (j == i) {
                             newA.append(splitB[j].substring(1, k + 1).toLowerCase());
                         }
@@ -1732,7 +1732,7 @@ public class MainActivity extends AppCompatActivity
         searchItem.expandActionView();
         searchItem.setOnActionExpandListener(new MenuItem.OnActionExpandListener() {
             @Override
-            public boolean onMenuItemActionExpand(MenuItem item) {
+            public boolean onMenuItemActionExpand(@NonNull MenuItem item) {
                 searchItem.getActionView().requestFocusFromTouch();
                 mSearchView.setIconified(false);
                 showKeyboard();
@@ -1740,7 +1740,7 @@ public class MainActivity extends AppCompatActivity
             }
 
             @Override
-            public boolean onMenuItemActionCollapse(MenuItem item) {
+            public boolean onMenuItemActionCollapse(@NonNull MenuItem item) {
                 hideKeyboard();
                 return true;
             }
@@ -2342,7 +2342,11 @@ public class MainActivity extends AppCompatActivity
         share.putExtra(Intent.EXTRA_TITLE, string);
         StringBuilder ids = new StringBuilder();
         for (QueueSong queueSong : memory.getQueue()) {
-            String uuid = queueSong.getSong().getUuid();
+            Song song = queueSong.getSong();
+            if (song == null) {
+                continue;
+            }
+            String uuid = song.getUuid();
             if (uuid != null) {
                 ids.append(",").append(uuid);
             }
