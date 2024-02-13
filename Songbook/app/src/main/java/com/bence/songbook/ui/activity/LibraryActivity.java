@@ -2,13 +2,12 @@ package com.bence.songbook.ui.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 
 import com.bence.songbook.Memory;
 import com.bence.songbook.R;
@@ -40,17 +39,11 @@ public class LibraryActivity extends AppCompatActivity {
         final List<SongList> songLists = songListRepository.findAll();
         SongListAdapter songListAdapter = new SongListAdapter(this, R.layout.song_list_row, songLists);
         listView.setAdapter(songListAdapter);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view,
-                                    int position, long id) {
-                SongList songList = songLists.get(position);
-                Intent intent = new Intent(LibraryActivity.this, SongListActivity.class);
-                Memory.getInstance().setPassingSongList(songList);
-                startActivityForResult(intent, NEW_SONG_LIST_REQUEST_CODE);
-            }
-
+        listView.setOnItemClickListener((parent, view, position, id) -> {
+            SongList songList = songLists.get(position);
+            Intent intent = new Intent(LibraryActivity.this, SongListActivity.class);
+            Memory.getInstance().setPassingSongList(songList);
+            startActivityForResult(intent, NEW_SONG_LIST_REQUEST_CODE);
         });
     }
 
@@ -63,14 +56,11 @@ public class LibraryActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        switch (itemId) {
-            case android.R.id.home:
-                finish();
-                break;
-            case R.id.action_newSongList:
-                Intent intent = new Intent(this, NewSongListActivity.class);
-                startActivityForResult(intent, NEW_SONG_LIST_REQUEST_CODE);
-                break;
+        if (itemId == android.R.id.home) {
+            finish();
+        } else if (itemId == R.id.action_newSongList) {
+            Intent intent = new Intent(this, NewSongListActivity.class);
+            startActivityForResult(intent, NEW_SONG_LIST_REQUEST_CODE);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -78,17 +68,15 @@ public class LibraryActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case NEW_SONG_LIST_REQUEST_CODE:
-                if (resultCode == 1) {
-                    recreate();
-                }
-                if (resultCode == 2) {
-                    recreate();
-                    Intent intent = new Intent(LibraryActivity.this, SongListActivity.class);
-                    startActivityForResult(intent, NEW_SONG_LIST_REQUEST_CODE);
-                }
-                break;
+        if (requestCode == NEW_SONG_LIST_REQUEST_CODE) {
+            if (resultCode == 1) {
+                recreate();
+            }
+            if (resultCode == 2) {
+                recreate();
+                Intent intent = new Intent(LibraryActivity.this, SongListActivity.class);
+                startActivityForResult(intent, NEW_SONG_LIST_REQUEST_CODE);
+            }
         }
     }
 

@@ -12,6 +12,7 @@ import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.Html;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AnimationUtils;
@@ -110,8 +111,43 @@ public class YoutubeActivity extends AppCompatActivity {
                 textView.setTextColor(getResources().getColor(R.color.white));
             }
         } catch (Exception e) {
-            Log.e(YoutubeActivity.class.getSimpleName(), e.getMessage());
+            logWithNullCheck(e);
         }
+    }
+
+    private static void logWithNullCheck(Exception e) {
+        String message = e.getMessage();
+        if (message == null) {
+            message = "";
+        }
+        Log.e(YoutubeActivity.class.getSimpleName(), message);
+    }
+
+    private boolean setNextVerseByPageUpDown(int keyCode) {
+        if (keyCode == KeyEvent.KEYCODE_PAGE_UP) {
+            setPreviousVerse();
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN) {
+            setNextVerse();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (consumePageUpDown(event)) {
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private boolean consumePageUpDown(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            int keyCode = event.getKeyCode();
+            return setNextVerseByPageUpDown(keyCode);
+        }
+        return false;
     }
 
     @SuppressLint("ClickableViewAccessibility")

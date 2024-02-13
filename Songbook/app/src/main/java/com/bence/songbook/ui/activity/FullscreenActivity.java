@@ -118,7 +118,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
                     }
                 }
             });
-
+            mContentView.setOnKeyListener((view, i, keyEvent) -> consumePageUpDown(keyEvent));
             SharedPreferences sharedPreferences = settingTitleSlide();
             blank_switch = sharedPreferences.getBoolean("blank_switch", false);
             if (blank_switch) {
@@ -139,6 +139,33 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
         } catch (Exception e) {
             Log.e(FullscreenActivity.class.getSimpleName(), e.getMessage());
         }
+    }
+
+    private boolean setNextVerseByPageUpDown(int keyCode) {
+        if (keyCode == KeyEvent.KEYCODE_PAGE_UP) {
+            setPreviousVerse();
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN) {
+            setNextVerse();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (consumePageUpDown(event)) {
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private boolean consumePageUpDown(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            int keyCode = event.getKeyCode();
+            return setNextVerseByPageUpDown(keyCode);
+        }
+        return false;
     }
 
     private void calculateVerseIndexBySongVerse(SongVerse songVerse) {

@@ -143,54 +143,49 @@ public class SongListActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int itemId = item.getItemId();
-        switch (itemId) {
-            case android.R.id.home:
-                finish();
-                break;
-            case R.id.action_add_to_queue:
-                QueueSongRepositoryImpl queueSongRepository = new QueueSongRepositoryImpl(this);
-                List<QueueSong> newQueueSongs = new ArrayList<>(songListElements.size());
-                for (SongListElement element : songListElements) {
-                    QueueSong queueSong = new QueueSong();
-                    queueSong.setSong(element.getSong());
-                    memory.addSongToQueue(queueSong);
-                    newQueueSongs.add(queueSong);
-                }
-                queueSongRepository.save(newQueueSongs);
-                showToaster(getString(R.string.added_to_queue));
-                break;
-            case R.id.action_share:
-                songList.setPublish(true);
-                songListRepository.save(songList);
-                if (songList.getUuid() != null) {
-                    Thread thread = new Thread(() -> {
-                        SongListApiBean songListApiBean = new SongListApiBean(SongListActivity.this);
-                        songListApiBean.uploadSongList(songList);
-                    });
-                    thread.start();
-                    shareSongList();
-                } else {
-                    Thread thread = new Thread(() -> {
-                        SongListApiBean songListApiBean = new SongListApiBean(SongListActivity.this);
-                        SongListDTO songListDTO = songListApiBean.uploadSongList(songList);
-                        if (songListDTO != null) {
-                            songList.setUuid(songListDTO.getUuid());
-                            songListRepository.save(songList);
-                            shareSongList();
-                        }
-                    });
-                    thread.start();
-                }
-                break;
-            case R.id.action_edit:
-                edit(NEW_SONG_LIST_REQUEST_CODE);
-                break;
-            case R.id.action_delete:
-                SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
-                songListRepository.delete(songList);
-                setResult(1);
-                finish();
-                break;
+        if (itemId == android.R.id.home) {
+            finish();
+        } else if (itemId == R.id.action_add_to_queue) {
+            QueueSongRepositoryImpl queueSongRepository = new QueueSongRepositoryImpl(this);
+            List<QueueSong> newQueueSongs = new ArrayList<>(songListElements.size());
+            for (SongListElement element : songListElements) {
+                QueueSong queueSong = new QueueSong();
+                queueSong.setSong(element.getSong());
+                memory.addSongToQueue(queueSong);
+                newQueueSongs.add(queueSong);
+            }
+            queueSongRepository.save(newQueueSongs);
+            showToaster(getString(R.string.added_to_queue));
+        } else if (itemId == R.id.action_share) {
+            songList.setPublish(true);
+            songListRepository.save(songList);
+            if (songList.getUuid() != null) {
+                Thread thread = new Thread(() -> {
+                    SongListApiBean songListApiBean = new SongListApiBean(SongListActivity.this);
+                    songListApiBean.uploadSongList(songList);
+                });
+                thread.start();
+                shareSongList();
+            } else {
+                Thread thread = new Thread(() -> {
+                    SongListApiBean songListApiBean = new SongListApiBean(SongListActivity.this);
+                    SongListDTO songListDTO = songListApiBean.uploadSongList(songList);
+                    if (songListDTO != null) {
+                        songList.setUuid(songListDTO.getUuid());
+                        songListRepository.save(songList);
+                        shareSongList();
+                    }
+                });
+                thread.start();
+            }
+
+        } else if (itemId == R.id.action_edit) {
+            edit(NEW_SONG_LIST_REQUEST_CODE);
+        } else if (itemId == R.id.action_delete) {
+            SongListRepositoryImpl songListRepository = new SongListRepositoryImpl(this);
+            songListRepository.delete(songList);
+            setResult(1);
+            finish();
         }
         return super.onOptionsItemSelected(item);
     }

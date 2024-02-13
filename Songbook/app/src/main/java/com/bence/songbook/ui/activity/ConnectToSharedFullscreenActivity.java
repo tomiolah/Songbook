@@ -1,6 +1,5 @@
 package com.bence.songbook.ui.activity;
 
-import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -40,6 +39,33 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
         }
     }
 
+    private boolean setNextVerseByPageUpDown(int keyCode) {
+        if (keyCode == KeyEvent.KEYCODE_PAGE_UP) {
+            setPreviousVerse();
+            return true;
+        } else if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN) {
+            setNextVerse();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean dispatchKeyEvent(KeyEvent event) {
+        if (consumePageUpDown(event)) {
+            return true;
+        }
+        return super.dispatchKeyEvent(event);
+    }
+
+    private boolean consumePageUpDown(KeyEvent event) {
+        if (event.getAction() == KeyEvent.ACTION_DOWN) {
+            int keyCode = event.getKeyCode();
+            return setNextVerseByPageUpDown(keyCode);
+        }
+        return false;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,11 +85,6 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
 
             public void onSwipeRight() {
                 setPreviousVerse();
-            }
-
-            @SuppressLint("ClickableViewAccessibility")
-            public boolean onTouch(View v, MotionEvent event) {
-                return gestureDetector.onTouchEvent(event);
             }
 
             @Override

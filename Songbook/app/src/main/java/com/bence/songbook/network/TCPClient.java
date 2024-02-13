@@ -101,8 +101,14 @@ public class TCPClient {
     public synchronized static void close() {
         try {
             if (outToServer != null) {
-                outToServer.writeBytes("Finished\n");
-                outToServer.close();
+                new Thread(() -> {
+                    try {
+                        outToServer.writeBytes("Finished\n");
+                        outToServer.close();
+                    } catch (IOException e) {
+                        Log.e(TAG, e.getMessage(), e);
+                    }
+                }).start();
             }
             if (inFromServer != null) {
                 inFromServer.close();
