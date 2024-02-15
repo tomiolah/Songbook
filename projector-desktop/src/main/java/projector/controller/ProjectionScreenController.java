@@ -1,6 +1,7 @@
 package projector.controller;
 
 import com.bence.projector.common.dto.ProjectionDTO;
+import com.bence.projector.common.dto.SongVerseProjectionDTO;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -424,7 +425,33 @@ public class ProjectionScreenController {
     }
 
     public void setText(String newText, ProjectionType projectionType, ProjectionDTO projectionDTO) {
+        if (projectionType == ProjectionType.SONG) {
+            setSongVerseProjection(projectionDTO, newText);
+        } else {
+            setText4(newText, projectionType, projectionDTO);
+        }
+    }
+
+    private void setText4(String newText, ProjectionType projectionType, ProjectionDTO projectionDTO) {
         setText3(newText, projectionType, projectionDTO, false);
+    }
+
+    private void setSongVerseProjection(ProjectionDTO projectionDTO, String text) {
+        SongVerseProjectionDTO songVerseProjectionDTO = projectionDTO.getSongVerseProjectionDTO();
+        if (songVerseProjectionDTO != null) {
+            if (projectionScreenSettings.isFocusOnSongPart()) {
+                String focusedText = songVerseProjectionDTO.getFocusedText();
+                if (focusedText != null && !focusedText.isEmpty()) {
+                    setText4(focusedText, ProjectionType.SONG, projectionDTO);
+                    return;
+                }
+            }
+            String wholeWithFocusedText = songVerseProjectionDTO.getWholeWithFocusedText();
+            if (wholeWithFocusedText != null) {
+                text = wholeWithFocusedText;
+            }
+        }
+        setText4(text, ProjectionType.SONG, projectionDTO);
     }
 
     private void setText3(String newText, ProjectionType projectionType, ProjectionDTO projectionDTO, boolean onlyForRepaint) {

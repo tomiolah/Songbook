@@ -96,6 +96,8 @@ public class ProjectionScreenSettings {
     private Double bottomMargin;
     @Expose
     private Double leftMargin;
+    @Expose
+    private Boolean focusOnSongPart;
     private Listener onChangedListener = null;
 
     public ProjectionScreenSettings() {
@@ -141,6 +143,7 @@ public class ProjectionScreenSettings {
         this.rightMargin = projectionScreenSettings.rightMargin;
         this.bottomMargin = projectionScreenSettings.bottomMargin;
         this.leftMargin = projectionScreenSettings.leftMargin;
+        this.focusOnSongPart = projectionScreenSettings.focusOnSongPart;
         // Also copy fromJson in load method!!!
     }
 
@@ -322,6 +325,7 @@ public class ProjectionScreenSettings {
             this.rightMargin = fromJson.rightMargin;
             this.bottomMargin = fromJson.bottomMargin;
             this.leftMargin = fromJson.leftMargin;
+            this.focusOnSongPart = fromJson.focusOnSongPart;
         } catch (FileNotFoundException ignored) {
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
@@ -679,5 +683,13 @@ public class ProjectionScreenSettings {
     public void setLeftMargin(Double leftMargin) {
         this.leftMargin = leftMargin;
         onChanged();
+    }
+
+    public void setFocusOnSongPart(Boolean focusOnSongPart) {
+        this.focusOnSongPart = focusOnSongPart;
+    }
+
+    public boolean isFocusOnSongPart() {
+        return focusOnSongPart != null && focusOnSongPart;
     }
 }

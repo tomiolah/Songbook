@@ -2,6 +2,7 @@ package projector.controller;
 
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.SingleSelectionModel;
@@ -28,10 +29,13 @@ public class ProjectionTypeController {
 
     private static final Logger LOG = LoggerFactory.getLogger(ProjectionTypeController.class);
     public VBox vBox;
+    public CheckBox focusOnSongPartCheckBox;
 
     public void setProjectionScreenHolder(ProjectionScreenHolder projectionScreenHolder) {
         ProjectionScreenSettings projectionScreenSettings = projectionScreenHolder.getProjectionScreenSettings();
+        focusOnSongPartCheckBox.setSelected(projectionScreenSettings.isFocusOnSongPart());
         addProjectionTypesToVBox(projectionScreenSettings);
+        focusOnSongPartCheckBox.selectedProperty().addListener((observable, oldValue, newValue) -> projectionScreenSettings.setFocusOnSongPart(newValue));
     }
 
     private void addProjectionTypesToVBox(ProjectionScreenSettings projectionScreenSettings) {

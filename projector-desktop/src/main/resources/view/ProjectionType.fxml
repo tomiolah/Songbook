@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.CheckBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
@@ -9,7 +10,10 @@
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="projector.controller.ProjectionTypeController"
             styleClass="border-pane">
     <top>
-        <Label text="%Select projection types:"/>
+        <VBox spacing="4">
+            <CheckBox fx:id="focusOnSongPartCheckBox" text="Focus on Song Part"/>
+            <Label text="%Select projection types:"/>
+        </VBox>
     </top>
     <center>
         <ScrollPane>

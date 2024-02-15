@@ -821,8 +821,10 @@ public class SongController {
                     if ((settings.isShareOnNetwork() || settings.isAllowRemote()) && projectionTextChangeListeners != null && !projectionScreenController.isLock()) {
                         try {
                             String secondText = getSecondText(selectedIndex - 1);
-                            for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
-                                projectionTextChangeListener.onSetText(secondText, ProjectionType.SONG, null);
+                            if (secondText != null && !secondText.isEmpty()) {
+                                for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
+                                    projectionTextChangeListener.onSetText(secondText, ProjectionType.SONG, null);
+                                }
                             }
                         } catch (Exception e) {
                             LOG.error(e.getMessage(), e);
@@ -872,13 +874,6 @@ public class SongController {
 
     private void setSongVerseProjection(SongVersePartTextFlow songVersePartTextFlow, String text) {
         ProjectionDTO projectionDTO = getProjectionDTOForSongVersePart(songVersePartTextFlow);
-        SongVerseProjectionDTO songVerseProjectionDTO = projectionDTO.getSongVerseProjectionDTO();
-        if (songVerseProjectionDTO != null) {
-            String wholeWithFocusedText = songVerseProjectionDTO.getWholeWithFocusedText();
-            if (wholeWithFocusedText != null) {
-                text = wholeWithFocusedText;
-            }
-        }
         projectionScreenController.setText(text, ProjectionType.SONG, projectionDTO);
     }
 
@@ -1795,23 +1790,16 @@ public class SongController {
     private String getSecondText(int selectedIndex) {
         try {
             if (selectedIndex < 0) {
-                if (selectedIndex == -1) {
-                    return songListView.getItems().get(0).getMyTextFlow().getRawText();
-                }
-                return "";
+                return null;
             }
             if (selectedIndex >= selectedSongVerseList.size()) {
-                return "";
+                return null;
             }
             SongVerse songVerse = selectedSongVerseList.get(selectedIndex);
-            String secondText = songVerse.getSecondText();
-            if (secondText == null || secondText.trim().isEmpty()) {
-                secondText = songVerse.getText();
-            }
-            return secondText;
+            return songVerse.getSecondText();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
-            return "";
+            return null;
         }
     }
 
