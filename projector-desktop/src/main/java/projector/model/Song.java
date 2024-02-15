@@ -38,7 +38,6 @@ public class Song extends BaseEntity {
     //	@Transient
     private String fileText;
     //	@Transient
-    private double[] versTimes;
     //	@ManyToMany(fetch = FetchType.LAZY, mappedBy = "songs")
     private List<SongBook> songBooks;
     @Expose
@@ -71,11 +70,10 @@ public class Song extends BaseEntity {
     public Song() {
     }
 
-    public Song(String title, List<SongVerse> verses, String fileText, double[] versTimes, List<SongBook> songBooks) {
+    public Song(String title, List<SongVerse> verses, String fileText, List<SongBook> songBooks) {
         this.title = title;
         this.verses = SongVerse.cloneList(verses);
         this.fileText = fileText;
-        this.versTimes = versTimes == null ? null : versTimes.clone();
         this.songBooks = songBooks;
     }
 
@@ -90,7 +88,6 @@ public class Song extends BaseEntity {
         this.serverModifiedDate = song.serverModifiedDate;
         this.deleted = song.deleted;
         this.fileText = song.fileText;
-        this.versTimes = song.versTimes;
         this.songBooks = song.songBooks;
         this.publish = song.publish;
         this.published = song.published;
@@ -248,7 +245,7 @@ public class Song extends BaseEntity {
     public String getVersesText() {
         StringBuilder stringBuilder = new StringBuilder();
         for (SongVerse songVerse : getVerses()) {
-            if (stringBuilder.length() > 0) {
+            if (!stringBuilder.isEmpty()) {
                 stringBuilder.append("\n\n");
             }
             stringBuilder.append(songVerse.getText());
@@ -464,7 +461,7 @@ public class Song extends BaseEntity {
 
     public boolean hasSongCollection() {
         List<SongCollectionElement> songCollectionElements = getSongCollectionElements();
-        return songCollectionElements != null && songCollectionElements.size() > 0;
+        return songCollectionElements != null && !songCollectionElements.isEmpty();
     }
 
     public boolean isDownloadedSeparately() {

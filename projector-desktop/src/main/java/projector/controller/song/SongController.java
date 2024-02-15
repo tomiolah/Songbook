@@ -66,8 +66,8 @@ import projector.api.retrofit.ApiManager;
 import projector.application.ProjectionType;
 import projector.application.ProjectorState;
 import projector.application.Settings;
-import projector.application.SongVersTime;
-import projector.application.SongVersTimes;
+import projector.application.SongVerseTime;
+import projector.application.SongVerseTimeService;
 import projector.controller.MyController;
 import projector.controller.ProjectionScreenController;
 import projector.controller.ProjectionTextChangeListener;
@@ -127,10 +127,14 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.bence.projector.common.converter.OpenLPXmlConverter.getXmlSongs;
 import static java.lang.Math.min;
-import static projector.application.SongVersTimes.getSongVersTimesFilePath;
+import static projector.application.SongVerseTimeService.getSongVersTimesFilePath;
 import static projector.controller.MessageDialogController.confirmDeletion;
 import static projector.utils.ColorUtil.getCollectionNameColor;
 import static projector.utils.ColorUtil.getSongTitleColor;
@@ -226,13 +230,13 @@ public class SongController {
     private ScheduleController scheduleController;
     private List<Song> songs = new ArrayList<>();
     private String lastSearchText = "";
-    private SongVersTime activeSongVerseTime;
+    private SongVerseTime activeSongVerseTime;
     private long timeStart;
-    private List<SongVersTime> previousSongVerseTimeList;
+    private List<SongVerseTime> previousSongVerseTimeList;
     private int previousSelectedVerseIndex;
     private ObservableList<SongVersePartTextFlow> songSelectedItems;
-    private Thread previousLineThread;
-    private SongVersTimes songVersTimes;
+    private ScheduledExecutorService opacityScheduler;
+    private SongVerseTimeService songVerseTimeService;
     private double[] times;
     private MyController mainController;
     private boolean isBlank = false;
@@ -381,7 +385,7 @@ public class SongController {
         }
         initialized = true;
         try {
-            songVersTimes = SongVersTimes.getInstance();
+            songVerseTimeService = SongVerseTimeService.getInstance();
             previousSongVerseTimeList = new LinkedList<>();
             songListView.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
             newSongButton.setFocusTraversable(false);
@@ -479,10 +483,10 @@ public class SongController {
             if (selectedSong1 == null) {
                 return;
             }
-            if (activeSongVerseTime != null && activeSongVerseTime.getVersTimes() != null && activeSongVerseTime.getVersTimes().length > previousSelectedVerseIndex && previousSelectedVerseIndex >= 0 && activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] == 0.0) {
+            if (activeSongVerseTime != null && activeSongVerseTime.getVerseTimes() != null && activeSongVerseTime.getVerseTimes().length > previousSelectedVerseIndex && previousSelectedVerseIndex >= 0 && activeSongVerseTime.getVerseTimes()[previousSelectedVerseIndex] == 0.0) {
                 double x = System.currentTimeMillis() - timeStart;
                 x /= 1000;
-                activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
+                activeSongVerseTime.getVerseTimes()[previousSelectedVerseIndex] = x;
             }
             ObservableList<SongVersePartTextFlow> songListViewItems = songListView.getItems();
             songListViewItems.clear();
@@ -705,25 +709,26 @@ public class SongController {
         if (activeSongVerseTime != null) {
             previousSongVerseTimeList.add(activeSongVerseTime);
         }
-        activeSongVerseTime = new SongVersTime(selectedSong.getTitle(), songListViewItems.size() - 1);
+        int LAST_EMPTY_SLIDE = 1;
+        int n = songListViewItems.size() - LAST_EMPTY_SLIDE;
+        activeSongVerseTime = new SongVerseTime(selectedSong.getTitle(), n);
+        activeSongVerseTime.setSong(selectedSong);
         previousSelectedVerseIndex = -1;
-        times = songVersTimes.getAverageTimes(selectedSong.getTitle());
+        times = songVerseTimeService.getAverageTimes(selectedSong, n);
         if (times == null) {
-            times = new double[songListViewItems.size() - 1];
+            times = new double[n];
             for (int j = 0; j < times.length; ++j) {
-                String i = songListViewItems.get(j).getMyTextFlow().getRawText();
-                i = i.replaceAll("[^" + vowels + "]", "");
-                times[j] = i.length() * 0.72782;
+                double estimatedSeconds = getEstimatedSeconds(songListViewItems, j);
+                times[j] = estimatedSeconds;
             }
         } else {
             for (int j = 0; j < times.length && j < songListViewItems.size(); ++j) {
-                String i = songListViewItems.get(j).getMyTextFlow().getRawText();
-                i = i.replaceAll("[^" + vowels + "]", "");
-                double v = i.length() * 0.72782;
-                if (2 * v < times[j]) {
-                    times[j] = 2 * v;
-                } else if (times[j] < v / 2) {
-                    times[j] = v / 2;
+                double estimatedSeconds = getEstimatedSeconds(songListViewItems, j);
+                double time = times[j];
+                if (2 * estimatedSeconds < time) {
+                    times[j] = 2 * estimatedSeconds;
+                } else if (time < estimatedSeconds / 2) {
+                    times[j] = estimatedSeconds / 2;
                 }
             }
         }
@@ -733,6 +738,17 @@ public class SongController {
         settingTheAuthor(selectedSong);
         settingTheVerseOrder(selectedSong);
         settingTheStarButtonBySong(selectedSong);
+    }
+
+    private double getEstimatedSeconds(ObservableList<SongVersePartTextFlow> songListViewItems, int j) {
+        SongVersePartTextFlow songVersePartTextFlow = songListViewItems.get(j);
+        return getEstimatedSecondsForSongVersePart(songVersePartTextFlow);
+    }
+
+    private double getEstimatedSecondsForSongVersePart(SongVersePartTextFlow songVersePartTextFlow) {
+        String text = songVersePartTextFlow.getMyTextFlow().getRawText();
+        text = text.replaceAll("[^" + vowels + "]", "");
+        return text.length() * 0.72782;
     }
 
     private void initialization2() {
@@ -812,10 +828,10 @@ public class SongController {
                             LOG.error(e.getMessage(), e);
                         }
                     }
-                    if (timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
+                    if (timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVerseTimes().length) {
                         double x = System.currentTimeMillis() - timeStart;
                         x /= 1000;
-                        activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
+                        activeSongVerseTime.getVerseTimes()[previousSelectedVerseIndex] = x;
                     }
                     SongVersePartTextFlow songVersePartTextFlow = songListViewItems.get(selectedIndex);
                     String text = songVersePartTextFlow.getMyTextFlow().getRawText();
@@ -874,50 +890,39 @@ public class SongController {
 
     private void opacityForSongVerse() {
         timeStart = System.currentTimeMillis();
-        if (previousLineThread == null) {
-            Thread thread = new Thread() {
-
-                @Override
-                synchronized public void run() {
-                    try {
-                        double x;
-                        //noinspection InfiniteLoopStatement
-                        do {
-                            if (!isBlank && timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVersTimes().length) {
-                                x = System.currentTimeMillis() - timeStart;
-                                x /= 1000;
-                                double sum = 0.0;
-                                for (int i : songListView.getSelectionModel().getSelectedIndices()) {
-                                    if (times.length > i && i >= 0) {
-                                        sum += times[i];
-                                    }
-                                }
-                                double z = 1.0 - minOpacity;
-                                final double v = z * x / sum;
-                                for (SongVersePartTextFlow songListViewItem : songSelectedItems) {
-                                    double opacity = minOpacity + v;
-                                    if (opacity > 1) {
-                                        opacity = 1;
-                                    }
-                                    songListViewItem.setOpacity(opacity);
-                                }
+        if (opacityScheduler == null) {
+            opacityScheduler = Executors.newSingleThreadScheduledExecutor();
+            AtomicInteger logCount = new AtomicInteger();
+            opacityScheduler.scheduleAtFixedRate(() -> {
+                try {
+                    if (!isBlank && timeStart != 0 && previousSelectedVerseIndex >= 0 && previousSelectedVerseIndex < activeSongVerseTime.getVerseTimes().length) {
+                        double elapsedSeconds = System.currentTimeMillis() - timeStart;
+                        elapsedSeconds /= 1000;
+                        double estimatedSeconds = 0.0;
+                        for (int i : songListView.getSelectionModel().getSelectedIndices()) {
+                            if (times.length > i && i >= 0) {
+                                estimatedSeconds += times[i];
                             }
-                            wait(39);
-                        } while (true);
-                    } catch (InterruptedException ignored) {
-                    } catch (Exception e) {
-                        LOG.error(e.getMessage(), e);
-                        try {
-                            //noinspection CallToThreadRun
-                            run();
-                        } catch (Exception e2) {
-                            LOG.error(e2.getMessage(), e2);
+                        }
+                        double z = 1.0 - minOpacity;
+                        final double v = z * elapsedSeconds / estimatedSeconds;
+                        for (SongVersePartTextFlow songListViewItem : songSelectedItems) {
+                            double opacity = minOpacity + v;
+                            if (opacity > 1) {
+                                opacity = 1;
+                            }
+                            double previousOpacity = songListViewItem.getOpacity();
+                            if (Math.abs(previousOpacity - opacity) > 0.0005) {
+                                songListViewItem.setOpacity(opacity);
+                            }
                         }
                     }
+                } catch (Exception e) {
+                    if (logCount.getAndIncrement() < 10) {
+                        LOG.error(e.getMessage(), e);
+                    }
                 }
-            };
-            thread.start();
-            previousLineThread = thread;
+            }, 0, 39, TimeUnit.MILLISECONDS);
         }
     }
 
@@ -2969,8 +2974,8 @@ public class SongController {
 
     public void onClose() {
         try {
-            if (previousLineThread != null) {
-                previousLineThread.interrupt();
+            if (opacityScheduler != null) {
+                opacityScheduler.shutdown();
             }
             saveSongVerseTimes();
             saveSomethingsInSettings();
@@ -2992,31 +2997,27 @@ public class SongController {
                 previousSongVerseTimeList.add(activeSongVerseTime);
             }
             int minSec = 10;
-            for (SongVersTime tmp : previousSongVerseTimeList) {
-                double x = 0;
-                for (double j : tmp.getVersTimes()) {
-                    x += j;
-                }
-                if (x > minSec) {
+            for (SongVerseTime songVerseTime : previousSongVerseTimeList) {
+                double totalTime = songVerseTime.getTotalTime();
+                if (totalTime > minSec) {
                     wasSong = true;
                     break;
                 }
             }
             if (wasSong) {
                 bw.write(date + System.lineSeparator());
-                for (SongVersTime tmp : previousSongVerseTimeList) {
-                    double x = 0;
-                    for (double j : tmp.getVersTimes()) {
-                        x += j;
-                    }
-                    if (x > minSec) {
-                        bw.write(tmp.getSongTitle() + System.lineSeparator());
-                        for (double j : tmp.getVersTimes()) {
-                            bw.write(j + " ");
-                        }
-                        bw.write(System.lineSeparator());
+                SongVerseTimeService songVerseTimeService = SongVerseTimeService.getInstance();
+                if (!songVerseTimeService.isLastVersionWasSaved()) {
+                    bw.write(songVerseTimeService.getLastVersionLine() + System.lineSeparator());
+                }
+                StringBuilder s = new StringBuilder();
+                for (SongVerseTime songVerseTime : previousSongVerseTimeList) {
+                    double totalTime = songVerseTime.getTotalTime();
+                    if (totalTime > minSec) {
+                        s.append(getSongVerseTimeStringForFile(songVerseTime));
                     }
                 }
+                bw.write(s.toString());
                 bw.write(System.lineSeparator());
                 bw.write(System.lineSeparator());
             }
@@ -3024,6 +3025,18 @@ public class SongController {
         } catch (IOException e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private static String getSongVerseTimeStringForFile(SongVerseTime songVerseTime) throws IOException {
+        StringBuilder songVerseTimeText = new StringBuilder(songVerseTime.getSongTitle() + System.lineSeparator());
+        for (double verseTime : songVerseTime.getVerseTimes()) {
+            songVerseTimeText.append(verseTime).append(" ");
+        }
+        songVerseTimeText.append(System.lineSeparator());
+        songVerseTimeText.append(songVerseTime.getSongUuid()).append(System.lineSeparator());
+        songVerseTimeText.append(songVerseTime.getSongId()).append(System.lineSeparator());
+        songVerseTimeText.append(songVerseTime.getSongTextLength()).append(System.lineSeparator());
+        return songVerseTimeText.toString();
     }
 
     private void saveSomethingsInSettings() {
@@ -3057,10 +3070,10 @@ public class SongController {
     public void onBlankButtonSelected(boolean isSelected) {
         try {
             if (isSelected) {
-                if (activeSongVerseTime != null && activeSongVerseTime.getVersTimes() != null && activeSongVerseTime.getVersTimes().length > previousSelectedVerseIndex && previousSelectedVerseIndex >= 0 && activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] == 0.0) {
+                if (activeSongVerseTime != null && activeSongVerseTime.getVerseTimes() != null && activeSongVerseTime.getVerseTimes().length > previousSelectedVerseIndex && previousSelectedVerseIndex >= 0 && activeSongVerseTime.getVerseTimes()[previousSelectedVerseIndex] == 0.0) {
                     double x = System.currentTimeMillis() - timeStart;
                     x /= 1000;
-                    activeSongVerseTime.getVersTimes()[previousSelectedVerseIndex] = x;
+                    activeSongVerseTime.getVerseTimes()[previousSelectedVerseIndex] = x;
                 }
             } else {
                 timeStart = System.currentTimeMillis();

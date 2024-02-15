@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static projector.application.Settings.getSettingFilePath;
-import static projector.application.SongVersTimes.getSongVersTimesFilePath;
+import static projector.application.SongVerseTimeService.getSongVersTimesFilePath;
 import static projector.controller.RecentController.getRecentFilePath;
 import static projector.utils.AlertUtil.getAppAlert;
 
