@@ -18,6 +18,8 @@ public class ProjectionDTO {
     private int selectedPart;
     @Expose
     private List<Integer> verseIndicesByPart;
+    @Expose
+    private SongVerseProjectionDTO songVerseProjectionDTO;
 
     public List<Long> getVerseIndices() {
         return verseIndices;
@@ -65,5 +67,13 @@ public class ProjectionDTO {
 
     public void setVerseIndicesByPart(List<Integer> verseIndicesByPart) {
         this.verseIndicesByPart = verseIndicesByPart;
+    }
+
+    public SongVerseProjectionDTO getSongVerseProjectionDTO() {
+        return songVerseProjectionDTO;
+    }
+
+    public void setSongVerseProjectionDTO(SongVerseProjectionDTO songVerseProjectionDTO) {
+        this.songVerseProjectionDTO = songVerseProjectionDTO;
     }
 }

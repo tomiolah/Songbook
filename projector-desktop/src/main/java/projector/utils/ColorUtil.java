@@ -27,6 +27,14 @@ public class ColorUtil {
         }
     }
 
+    public static Color getSubduedTextColor() {
+        if (settings.isDarkTheme()) {
+            return getGeneralTextColor().darker();
+        } else {
+            return Color.rgb(21, 21, 21, 0.7);
+        }
+    }
+
     public static Color getReferenceTextColor() {
         if (settings.isDarkTheme()) {
             return Color.rgb(200, 224, 255);
@@ -48,6 +56,22 @@ public class ColorUtil {
             return Color.rgb(70, 60, 60, 0.604);
         } else {
             return Color.rgb(182, 182, 182, 0.604);
+        }
+    }
+
+    public static Color getSongVerseBorderColor() {
+        if (settings.isDarkTheme()) {
+            return Color.rgb(0, 0, 0, 0.604);
+        } else {
+            return Color.rgb(77, 77, 77, 0.5);
+        }
+    }
+
+    public static Color getSubduedColor(Color color) {
+        if (settings.isDarkTheme()) {
+            return color.darker();
+        } else {
+            return color.brighter();
         }
     }
 }

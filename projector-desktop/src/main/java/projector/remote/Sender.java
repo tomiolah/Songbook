@@ -13,7 +13,6 @@ import projector.controller.ProjectionTextChangeListener;
 import projector.controller.song.SongController;
 import projector.controller.song.util.SearchedSong;
 import projector.model.Song;
-import projector.utils.scene.text.MyTextFlow;
 import projector.utils.scene.text.SongVersePartTextFlow;
 
 import java.io.BufferedReader;
@@ -80,8 +79,8 @@ public class Sender {
                     try {
                         StringBuilder s = new StringBuilder("start onSongVerseListViewChanged\n" +
                                 newList.size() + "\n");
-                        for (MyTextFlow textFlow : newList) {
-                            s.append(textFlow.getRawText().replaceAll("\n", "`~'newLinew'~`")).append("\n");
+                        for (SongVersePartTextFlow songVersePartTextFlow : newList) {
+                            s.append(songVersePartTextFlow.getMyTextFlow().getRawText().replaceAll("\n", "`~'newLinew'~`")).append("\n");
                         }
                         s.append("end\n");
                         outToClient.write(s.toString().getBytes(StandardCharsets.UTF_8));
