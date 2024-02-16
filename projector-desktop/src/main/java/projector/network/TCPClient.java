@@ -200,7 +200,14 @@ public class TCPClient {
     }
 
     private static List<VerseIndex> getFromIntegers(List<Long> verseIndexIntegers) {
-        List<VerseIndex> indices = new ArrayList<>(verseIndexIntegers.size());
+        int size = 0;
+        if (verseIndexIntegers != null) {
+            size = verseIndexIntegers.size();
+        }
+        List<VerseIndex> indices = new ArrayList<>(size);
+        if (verseIndexIntegers == null) {
+            return indices;
+        }
         for (Long aLong : verseIndexIntegers) {
             VerseIndex verseIndex = new VerseIndex();
             verseIndex.setIndexNumber(aLong);
