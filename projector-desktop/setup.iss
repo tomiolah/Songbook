@@ -1,7 +1,7 @@
 [Setup]
 AppName=Projector
 AppId=Projector_3
-AppVersion=3.5.0
+AppVersion=3.5.1
 AppVerName=Projector
 AppPublisher=SongPraise.com
 AppPublisherURL=http://www.songpraise.com/#/desktop-app
@@ -53,7 +53,6 @@ Source: ".\build\jpackage\Projector\app\slf4j-api-1.7.25.jar"; DestDir: "{app}\a
 Source: ".\build\jpackage\Projector\app\sqlite-jdbc-3.39.3.0.jar"; DestDir: "{app}\app"
 Source: ".\build\jpackage\Projector\runtime\release"; DestDir: "{app}\runtime"
 Source: ".\build\jpackage\Projector\runtime\bin\api-ms-win-core-console-l1-1-0.dll"; DestDir: "{app}\runtime\bin"
-Source: ".\build\jpackage\Projector\runtime\bin\api-ms-win-core-console-l1-2-0.dll"; DestDir: "{app}\runtime\bin"
 Source: ".\build\jpackage\Projector\runtime\bin\api-ms-win-core-datetime-l1-1-0.dll"; DestDir: "{app}\runtime\bin"
 Source: ".\build\jpackage\Projector\runtime\bin\api-ms-win-core-debug-l1-1-0.dll"; DestDir: "{app}\runtime\bin"
 Source: ".\build\jpackage\Projector\runtime\bin\api-ms-win-core-errorhandling-l1-1-0.dll"; DestDir: "{app}\runtime\bin"
@@ -120,6 +119,7 @@ Source: ".\build\jpackage\Projector\runtime\bin\rmiregistry.exe"; DestDir: "{app
 Source: ".\build\jpackage\Projector\runtime\bin\splashscreen.dll"; DestDir: "{app}\runtime\bin"
 Source: ".\build\jpackage\Projector\runtime\bin\ucrtbase.dll"; DestDir: "{app}\runtime\bin"
 Source: ".\build\jpackage\Projector\runtime\bin\vcruntime140.dll"; DestDir: "{app}\runtime\bin"
+Source: ".\build\jpackage\Projector\runtime\bin\vcruntime140_1.dll"; DestDir: "{app}\runtime\bin"
 Source: ".\build\jpackage\Projector\runtime\bin\verify.dll"; DestDir: "{app}\runtime\bin"
 Source: ".\build\jpackage\Projector\runtime\bin\zip.dll"; DestDir: "{app}\runtime\bin"
 Source: ".\build\jpackage\Projector\runtime\bin\server\jvm.dll"; DestDir: "{app}\runtime\bin\server"
