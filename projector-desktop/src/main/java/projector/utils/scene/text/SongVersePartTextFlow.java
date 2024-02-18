@@ -60,15 +60,21 @@ public class SongVersePartTextFlow extends HBox {
         timerImageView = getTimerImageView();
         setVisibility(timerImageView, false);
         AnchorPane anchorPane = new AnchorPane();
-        // anchorPane.setPrefHeight(0);
         ObservableList<Node> anchorPaneChildren = anchorPane.getChildren();
         MyTextFlow textFlow = getMyTextFlow();
+        textFlow.setSizeAndAlign(1);
 
-        AnchorPane.setTopAnchor(textFlow, 0.0);
-        AnchorPane.setBottomAnchor(textFlow, 0.0);
-        AnchorPane.setLeftAnchor(textFlow, 0.0);
-        AnchorPane.setRightAnchor(textFlow, 0.0);
-        anchorPaneChildren.add(textFlow);
+        HBox hBox = new HBox();
+        hBox.setAlignment(Pos.CENTER);
+        ObservableList<Node> hBoxChildren = hBox.getChildren();
+        hBoxChildren.add(descriptionBorderPane);
+        hBoxChildren.add(textFlow);
+
+        AnchorPane.setTopAnchor(hBox, 0.0);
+        AnchorPane.setBottomAnchor(hBox, 0.0);
+        AnchorPane.setLeftAnchor(hBox, 0.0);
+        AnchorPane.setRightAnchor(hBox, 0.0);
+        anchorPaneChildren.add(hBox);
 
         AnchorPane.setBottomAnchor(timerImageView, 0.0);
         AnchorPane.setRightAnchor(timerImageView, 0.0);
@@ -77,7 +83,6 @@ public class SongVersePartTextFlow extends HBox {
         descriptionBorderPane.setCenter(vBox);
         setSpacing(SPACING);
 
-        nodes.add(descriptionBorderPane);
         nodes.add(anchorPane);
     }
 

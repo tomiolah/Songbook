@@ -584,6 +584,7 @@ public class SongController {
             songVerseProjectionDTO.setFocusedText(text);
             songVerseProjectionDTO.setSongVerseIndex(songVerseIndex);
             addSongVersePart(songVerse, size, width, height, songListViewItems, songVerseProjectionDTO);
+            ++k;
         }
     }
 
