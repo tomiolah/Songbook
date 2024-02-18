@@ -161,6 +161,8 @@ public class BibleController {
     private boolean initialized = false;
     private boolean wasSelectionChange;
     private boolean splitDividersInitialized = false;
+    private final List<BibleVerseTextFlow> foundedBibleVerseTextFlows = new ArrayList<>();
+    private int currentIterationFoundBibleVerseTextFlowIndex = 0;
 
     private static String strip(String s) {
         try {
@@ -216,12 +218,12 @@ public class BibleController {
         try {
             Settings.getInstance().getBibleController().setStyleFile(scene);
         } catch (Exception e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
     }
 
     private static Integer getFirstFromSelectedIndices(ObservableList<Integer> ob) {
-        if (ob == null || ob.size() == 0) {
+        if (ob == null || ob.isEmpty()) {
             return -1;
         }
         return ob.get(0);
@@ -229,7 +231,7 @@ public class BibleController {
 
     public static List<BibleVerse> getVersesByIndices(List<VerseIndex> verseIndices, Bible bible, int selectedBook, int selectedPart, List<Integer> ob) {
         ServiceManager.getBibleService().checkHasVerseIndices(bible);
-        if (verseIndices != null && verseIndices.size() > 0 && bible.hasVerseIndices()) {
+        if (verseIndices != null && !verseIndices.isEmpty() && bible.hasVerseIndices()) {
             return getVersesByIndices_(verseIndices, bible);
         }
         List<BibleVerse> verses = new ArrayList<>();
@@ -291,7 +293,7 @@ public class BibleController {
         reference.setBible(bible);
         StringBuilder result = new StringBuilder();
         for (BibleVerse bibleVerse : bibleVerses) {
-            if (result.length() > 0) {
+            if (!result.isEmpty()) {
                 result.append("\n");
             }
             if (bibleVerses.size() > 1) {
@@ -301,7 +303,7 @@ public class BibleController {
             reference.addVerse(bibleVerse.getChapter().getBook(), bibleVerse.getChapter().getNumber(), bibleVerse.getNumber());
         }
         String versesText = result.toString();
-        if (versesText.length() == 0) {
+        if (versesText.isEmpty()) {
             return "";
         }
         result.append("\n");
@@ -383,7 +385,7 @@ public class BibleController {
                         if (partI >= 0) {
                             partListView.getSelectionModel().select(partI);
                             partListView.scrollTo(partI);
-                            if (verseI.size() > 0) {
+                            if (!verseI.isEmpty()) {
                                 setSelecting(true);
                                 for (Integer aVerseI : verseI) {
                                     if (aVerseI > bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size() - 1) {
@@ -434,9 +436,9 @@ public class BibleController {
                             partTextField.requestFocus();
                         }
                     } else if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
-                        if (bookListView.getItems().size() > 0) {
+                        if (!bookListView.getItems().isEmpty()) {
                             bookListView.getSelectionModel().select(0);
-                            if (!partTextField.getText().equals("")) {
+                            if (!partTextField.getText().isEmpty()) {
                                 oldReplace = true;
                                 partTextField.setText("");
                             }
@@ -467,7 +469,7 @@ public class BibleController {
                                 if (tmp * 10 > partListView.getItems().size()) {
                                     // oldReplace = true;
                                     // verseTextField.setText("1");
-                                    if (!verseTextField.getText().equals("")) {
+                                    if (!verseTextField.getText().isEmpty()) {
                                         oldReplace = true;
                                         verseTextField.setText("");
                                     }
@@ -507,7 +509,7 @@ public class BibleController {
                             if (tmp <= partListView.getItems().size() && tmp > 0) {
                                 partListView.scrollTo(tmp - 2);
                                 partListView.getSelectionModel().select(tmp - 1);
-                                if (!verseTextField.getText().equals("")) {
+                                if (!verseTextField.getText().isEmpty()) {
                                     oldReplace = true;
                                     verseTextField.setText("");
                                 }
@@ -1023,7 +1025,7 @@ public class BibleController {
                             return;
                         }
                         ObservableList<? extends Integer> integers = c.getList();
-                        if (integers == null || integers.size() < 1) {
+                        if (integers == null || integers.isEmpty()) {
                             return;
                         }
                         int selectedIndex = integers.get(0);
@@ -1057,12 +1059,68 @@ public class BibleController {
             partLabel.setText("");
             foundLabel.setText("");
             searchTextField.textProperty().addListener((observable, oldValue, newValue) -> search(newValue));
-            searchTextField.setOnKeyPressed(event -> mainController.globalKeyEventHandler().handle(event));
+            searchTextField.setOnKeyPressed(event -> {
+                mainController.globalKeyEventHandler().handle(event);
+                try {
+                    if (event.getCode() == KeyCode.F3) {
+                        if (event.isShiftDown()) {
+                            goToPreviousFoundBibleVerse();
+                        } else {
+                            goToNextFoundBibleVerse();
+                        }
+                        event.consume();
+                    }
+                } catch (Exception e) {
+                    LOG.error(e.getMessage(), e);
+                }
+            });
             verseFont = Font.font(settings.getVerseListViewFontSize());
             initializeDecreaseIncreaseButtons();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
         }
+    }
+
+    private void goToPreviousFoundBibleVerse() {
+        --currentIterationFoundBibleVerseTextFlowIndex;
+        goToChangedFoundBibleVerse();
+    }
+
+    private void goToNextFoundBibleVerse() {
+        ++currentIterationFoundBibleVerseTextFlowIndex;
+        goToChangedFoundBibleVerse();
+    }
+
+    private void goToChangedFoundBibleVerse() {
+        int size = foundedBibleVerseTextFlows.size();
+        if (size == 0) {
+            return;
+        }
+        if (currentIterationFoundBibleVerseTextFlowIndex >= size) {
+            currentIterationFoundBibleVerseTextFlowIndex = 0;
+        }
+        if (currentIterationFoundBibleVerseTextFlowIndex < 0) {
+            currentIterationFoundBibleVerseTextFlowIndex = size - 1;
+        }
+        scrollToCurrentIterationFoundBibleVerseTextFlow();
+    }
+
+    private void scrollToCurrentIterationFoundBibleVerseTextFlow() {
+        BibleVerseTextFlow currentIterationFoundBibleVerseTextFlow = getCurrentIterationFoundBibleVerseTextFlow();
+        if (currentIterationFoundBibleVerseTextFlow != null) {
+            verseListView.scrollTo(currentIterationFoundBibleVerseTextFlow);
+        }
+    }
+
+    private BibleVerseTextFlow getCurrentIterationFoundBibleVerseTextFlow() {
+        int size = foundedBibleVerseTextFlows.size();
+        if (currentIterationFoundBibleVerseTextFlowIndex >= size) {
+            return null;
+        }
+        if (currentIterationFoundBibleVerseTextFlowIndex < 0) {
+            return null;
+        }
+        return foundedBibleVerseTextFlows.get(currentIterationFoundBibleVerseTextFlowIndex);
     }
 
     private void setBibleListViewOnMouseClicked() {
@@ -1206,6 +1264,9 @@ public class BibleController {
                         final Chapter chapter = bible.getBooks().get(selectedBook).getChapters().get(selectedPart);
                         int found = 0;
                         List<BibleVerse> bibleVerses = chapter.getVerses();
+                        BibleVerse firstFoundedVerse = null;
+                        BibleVerseTextFlow currentIterationFoundBibleVerseTextFlow = getCurrentIterationFoundBibleVerseTextFlow();
+                        foundedBibleVerseTextFlows.clear();
                         for (int i = 0; i < bibleVerses.size(); ++i) {
                             BibleVerse bibleVerse = bibleVerses.get(i);
                             String verse = bibleVerse.getText();
@@ -1219,6 +1280,7 @@ public class BibleController {
                             int verseIndex = 0;
                             int fromIndex = 0;
                             int lastAddedIndex = 0;
+                            boolean founded = false;
                             for (int j = 0; j < chars.length; ++j) {
                                 if ('a' <= chars[j] && chars[j] <= 'z') {
                                     if (chars[j] == searchTextChars[verseIndex]) {
@@ -1239,7 +1301,11 @@ public class BibleController {
                                             addTextWithBackGround(textFlow, foundText);
                                             lastAddedIndex = j + 1;
                                             verseIndex = 0;
+                                            founded = true;
                                             ++found;
+                                            if (firstFoundedVerse == null) {
+                                                firstFoundedVerse = bibleVerse;
+                                            }
                                         }
                                     } else {
                                         if (verseIndex != 0) {
@@ -1257,19 +1323,33 @@ public class BibleController {
                             }
                             textFlow.setTextAlignment(TextAlignment.LEFT);
                             textFlow.setPrefWidth(verseListView.getWidth() - verseRightMargin);
-                            tmpSearchListView.add(new BibleVerseTextFlow(textFlow, bibleVerse));
-//                    }
+                            BibleVerseTextFlow bibleVerseTextFlow = new BibleVerseTextFlow(textFlow, bibleVerse);
+                            tmpSearchListView.add(bibleVerseTextFlow);
+                            if (founded) {
+                                foundedBibleVerseTextFlows.add(bibleVerseTextFlow);
+                            }
                         }
+
                         int finalFound = found;
                         Platform.runLater(() -> {
                             try {
                                 final String found1 = settings.getResourceBundle().getString("Found");
                                 foundLabel.setText(found1 + ": " + finalFound);
                                 //TODO try not to clear
-                                verseListView.getItems().clear();
-                                for (BibleVerseTextFlow textFlow : tmpSearchListView) {
-                                    verseListView.getItems().add(textFlow);
+                                ObservableList<BibleVerseTextFlow> items = verseListView.getItems();
+                                items.clear();
+                                items.addAll(tmpSearchListView);
+                                int index = 0;
+                                currentIterationFoundBibleVerseTextFlowIndex = 0;
+                                if (currentIterationFoundBibleVerseTextFlow != null) {
+                                    for (BibleVerseTextFlow bibleVerseTextFlow : foundedBibleVerseTextFlows) {
+                                        if (isSameBibleVerse(bibleVerseTextFlow, currentIterationFoundBibleVerseTextFlow)) {
+                                            currentIterationFoundBibleVerseTextFlowIndex = index;
+                                        }
+                                        ++index;
+                                    }
                                 }
+                                scrollToCurrentIterationFoundBibleVerseTextFlow();
                             } catch (Exception e) {
                                 LOG.error(e.getMessage(), e);
                             }
@@ -1282,6 +1362,15 @@ public class BibleController {
             thread.start();
         } catch (Exception e) {
             LOG.error(e.getMessage(), e);
+        }
+    }
+
+    private boolean isSameBibleVerse(BibleVerseTextFlow bibleVerseTextFlow, BibleVerseTextFlow previousIterationFoundBibleVerseTextFlow) {
+        try {
+            return bibleVerseTextFlow.getBibleVerse().getId().equals(previousIterationFoundBibleVerseTextFlow.getBibleVerse().getId());
+        } catch (Exception e) {
+            LOG.error(e.getMessage(), e);
+            return false;
         }
     }
 
@@ -1320,7 +1409,7 @@ public class BibleController {
         List<Bible> bibles = bibleService.findAll();
         bibleService.sort(bibles);
         bibles.sort((o1, o2) -> Integer.compare(o2.getUsage(), o1.getUsage()));
-        if (bibles.size() == 0) {
+        if (bibles.isEmpty()) {
             bibleListView.getItems().clear();
             downloadBibles();
             return null;
@@ -1610,7 +1699,7 @@ public class BibleController {
                 String verseNumbers = text.substring(string.lastIndexOf(":") + 1, string.length()).replace("]", "").replace("</color>", "");
                 recentController.addRecentBibleVerse(text, selectedBook, selectedPart, iVerse, verseNumbers, tmp);
             }
-            if (string.length() > 0) {
+            if (!string.isEmpty()) {
                 if (!settings.isShowReferenceOnly()) {
                     //noinspection ConstantConditions
                     projectionScreenController.setText(text, ProjectionType.BIBLE, projectionDTO);
@@ -1661,8 +1750,7 @@ public class BibleController {
                 while (searchSelected == 1) {
                     try {
                         TimeUnit.MILLISECONDS.sleep(1);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    } catch (InterruptedException ignored) {
                     }
                 }
                 bookListView.scrollTo(book);
@@ -1676,8 +1764,7 @@ public class BibleController {
                     while (searchSelected == 2) {
                         try {
                             TimeUnit.MILLISECONDS.sleep(1);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                        } catch (InterruptedException ignored) {
                         }
                     }
                     partListView.scrollTo(part);
