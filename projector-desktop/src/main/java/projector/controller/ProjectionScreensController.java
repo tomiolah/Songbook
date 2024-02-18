@@ -31,6 +31,7 @@ import projector.application.Settings;
 import projector.controller.listener.ProjectionScreenListener;
 import projector.controller.util.ProjectionScreenHolder;
 import projector.controller.util.ProjectionScreensUtil;
+import projector.utils.ImageUtil;
 
 import java.awt.*;
 import java.io.IOException;
@@ -79,11 +80,7 @@ public class ProjectionScreensController {
     }
 
     private ImageView getImageView(ProjectionScreenHolder projectionScreenHolder) {
-        ImageView imageView = new ImageView();
-        imageView.setFitWidth(400);
-        imageView.setFitHeight(200);
-        imageView.setPickOnBounds(true);
-        imageView.setPreserveRatio(true);
+        ImageView imageView = ImageUtil.getImageView(400, 200);
         ProjectionScreenController projectionScreenController = projectionScreenHolder.getProjectionScreenController();
         BorderPane mainPane = projectionScreenController.getMainPane();
         Bunch bunch = new Bunch();

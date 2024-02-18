@@ -4,6 +4,8 @@ import com.bence.projector.common.dto.SongVerseProjectionDTO;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.Border;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.BorderStroke;
@@ -18,8 +20,10 @@ import projector.application.Settings;
 import projector.model.SongVerse;
 import projector.utils.ColorUtil;
 
+import static projector.controller.MyController.scaleByPrimaryScreen;
 import static projector.utils.ColorUtil.getGeneralTextColor;
 import static projector.utils.ColorUtil.getSubduedTextColor;
+import static projector.utils.ImageUtil.getImageView;
 
 public class SongVersePartTextFlow extends HBox {
 
@@ -32,6 +36,8 @@ public class SongVersePartTextFlow extends HBox {
     private final Text sectionTypeText;
     private final BorderPane descriptionBorderPane;
     private final Settings settings = Settings.getInstance();
+    private final ImageView timerImageView;
+    private double estimatedSeconds;
 
     public SongVersePartTextFlow() {
         ObservableList<Node> nodes = getChildren();
@@ -51,16 +57,43 @@ public class SongVersePartTextFlow extends HBox {
         ObservableList<Node> vBoxChildren = vBox.getChildren();
         vBoxChildren.add(sectionTypeText);
         vBoxChildren.add(splittedIndexText);
+        timerImageView = getTimerImageView();
+        setVisibility(timerImageView, false);
+        AnchorPane anchorPane = new AnchorPane();
+        // anchorPane.setPrefHeight(0);
+        ObservableList<Node> anchorPaneChildren = anchorPane.getChildren();
+        MyTextFlow textFlow = getMyTextFlow();
+
+        AnchorPane.setTopAnchor(textFlow, 0.0);
+        AnchorPane.setBottomAnchor(textFlow, 0.0);
+        AnchorPane.setLeftAnchor(textFlow, 0.0);
+        AnchorPane.setRightAnchor(textFlow, 0.0);
+        anchorPaneChildren.add(textFlow);
+
+        AnchorPane.setBottomAnchor(timerImageView, 0.0);
+        AnchorPane.setRightAnchor(timerImageView, 0.0);
+        anchorPaneChildren.add(timerImageView);
+
         descriptionBorderPane.setCenter(vBox);
         setSpacing(SPACING);
 
         nodes.add(descriptionBorderPane);
-        nodes.add(getMyTextFlow());
+        nodes.add(anchorPane);
     }
 
-    private void setVisibility(Text text, boolean visible) {
-        text.setVisible(visible);
-        text.setManaged(visible);
+    private ImageView getTimerImageView() {
+        String imageName;
+        if (settings.isDarkTheme()) {
+            imageName = "timer_white";
+        } else {
+            imageName = "timer";
+        }
+        return getImageView(21, 21, imageName, getClass());
+    }
+
+    private void setVisibility(Node node, boolean visible) {
+        node.setVisible(visible);
+        node.setManaged(visible);
     }
 
 
@@ -116,6 +149,7 @@ public class SongVersePartTextFlow extends HBox {
     public MyTextFlow getMyTextFlow() {
         if (myTextFlow == null) {
             myTextFlow = new MyTextFlow();
+            myTextFlow.setMaxFontSize((int) Math.round(scaleByPrimaryScreen(40)));
         }
         return myTextFlow;
     }
@@ -130,5 +164,21 @@ public class SongVersePartTextFlow extends HBox {
 
     public void setText2(String string, int width1, int size) {
         getMyTextFlow().setText2(string, (int) getAWidth(width1), size);
+    }
+
+    public void showTimer() {
+        setVisibility(timerImageView, true);
+    }
+
+    public void onSelectionRemoved() {
+        setVisibility(timerImageView, false);
+    }
+
+    public void setEstimatedSeconds(double estimatedSeconds) {
+        this.estimatedSeconds = estimatedSeconds;
+    }
+
+    public double getEstimatedSeconds() {
+        return estimatedSeconds;
     }
 }

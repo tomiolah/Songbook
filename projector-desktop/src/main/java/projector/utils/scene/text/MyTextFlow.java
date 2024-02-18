@@ -79,6 +79,7 @@ public class MyTextFlow extends TextFlow {
     private ProjectionScreenSettings projectionScreenSettings;
     private boolean autoHeight = false;
     private boolean disabledStrokeFont = false;
+    private Integer maxFontSize;
 
     public MyTextFlow() {
         projectionScreenSettings = new ProjectionScreenSettings();
@@ -501,6 +502,7 @@ public class MyTextFlow extends TextFlow {
         if (size2 > size) {
             size = size2;
         }
+        size = Math.min(size, getMaxFont());
         int prefMinSize = (int) (size * (((double) projectionScreenSettings.getBreakAfter()) / 100));
         int a = 2, b = size;
         boolean b2 = !projectionScreenSettings.isBreakLines();
@@ -576,6 +578,13 @@ public class MyTextFlow extends TextFlow {
                 }
             } while (true);
         }
+    }
+
+    private int getMaxFont() {
+        if (maxFontSize != null) {
+            return maxFontSize;
+        }
+        return Integer.MAX_VALUE;
     }
 
     private static double getRelativeWidthValue(double width, double v) {
@@ -704,6 +713,11 @@ public class MyTextFlow extends TextFlow {
         }
     }
 
+    public MyTextFlow getTmpTextFlow() {
+        initializeTmpTextFlow();
+        return tmpTextFlow;
+    }
+
     public String getSecondText() {
         return secondText;
     }
@@ -741,5 +755,12 @@ public class MyTextFlow extends TextFlow {
             }
         }
         return maxLineWidth;
+    }
+
+    public void setMaxFontSize(Integer maxFontSize) {
+        this.maxFontSize = maxFontSize;
+        if (!tmp) {
+            getTmpTextFlow().setMaxFontSize(maxFontSize);
+        }
     }
 }

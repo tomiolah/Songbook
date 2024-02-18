@@ -19,7 +19,7 @@ public class ProjectionDTO {
     @Expose
     private List<Integer> verseIndicesByPart;
     @Expose
-    private SongVerseProjectionDTO songVerseProjectionDTO;
+    private List<SongVerseProjectionDTO> songVerseProjectionDTOS;
 
     public List<Long> getVerseIndices() {
         return verseIndices;
@@ -69,11 +69,11 @@ public class ProjectionDTO {
         this.verseIndicesByPart = verseIndicesByPart;
     }
 
-    public SongVerseProjectionDTO getSongVerseProjectionDTO() {
-        return songVerseProjectionDTO;
+    public List<SongVerseProjectionDTO> getSongVerseProjectionDTOS() {
+        return songVerseProjectionDTOS;
     }
 
-    public void setSongVerseProjectionDTO(SongVerseProjectionDTO songVerseProjectionDTO) {
-        this.songVerseProjectionDTO = songVerseProjectionDTO;
+    public void setSongVerseProjectionDTOS(List<SongVerseProjectionDTO> songVerseProjectionDTO) {
+        this.songVerseProjectionDTOS = songVerseProjectionDTO;
     }
 }

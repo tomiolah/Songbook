@@ -2,10 +2,10 @@ package com.bence.projector.common.dto;
 
 import com.google.gson.annotations.Expose;
 
+import java.util.List;
+
 public class SongVerseProjectionDTO {
 
-    @Expose
-    private String wholeWithFocusedText;
     @Expose
     private String focusedText;
     @Expose
@@ -16,6 +16,8 @@ public class SongVerseProjectionDTO {
     private Integer songVerseIndex;
     @Expose
     private boolean lastOne;
+    @Expose
+    private List<String> texts;
 
 
     public String getFocusedText() {
@@ -24,14 +26,6 @@ public class SongVerseProjectionDTO {
 
     public void setFocusedText(String focusedText) {
         this.focusedText = focusedText;
-    }
-
-    public String getWholeWithFocusedText() {
-        return wholeWithFocusedText;
-    }
-
-    public void setWholeWithFocusedText(String wholeWithFocusedText) {
-        this.wholeWithFocusedText = wholeWithFocusedText;
     }
 
     public void setFocusedTextIndex(Integer focusedTextIndex) {
@@ -64,5 +58,13 @@ public class SongVerseProjectionDTO {
 
     public boolean isLastOne() {
         return lastOne;
+    }
+
+    public void setTexts(List<String> texts) {
+        this.texts = texts;
+    }
+
+    public List<String> getTexts() {
+        return texts;
     }
 }

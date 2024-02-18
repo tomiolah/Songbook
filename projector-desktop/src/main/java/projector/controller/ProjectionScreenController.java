@@ -52,6 +52,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -437,21 +438,64 @@ public class ProjectionScreenController {
     }
 
     private void setSongVerseProjection(ProjectionDTO projectionDTO, String text) {
-        SongVerseProjectionDTO songVerseProjectionDTO = projectionDTO.getSongVerseProjectionDTO();
-        if (songVerseProjectionDTO != null) {
-            if (projectionScreenSettings.isFocusOnSongPart()) {
-                String focusedText = songVerseProjectionDTO.getFocusedText();
-                if (focusedText != null && !focusedText.isEmpty()) {
-                    setText4(focusedText, ProjectionType.SONG, projectionDTO);
-                    return;
+        if (projectionDTO != null) {
+            List<SongVerseProjectionDTO> songVerseProjectionDTOS = projectionDTO.getSongVerseProjectionDTOS();
+            if (songVerseProjectionDTOS != null) {
+                if (projectionScreenSettings.isFocusOnSongPart()) {
+                    String focusedText = getFocusedText(songVerseProjectionDTOS);
+                    if (!focusedText.isEmpty()) {
+                        setText4(focusedText, ProjectionType.SONG, projectionDTO);
+                        return;
+                    }
                 }
-            }
-            String wholeWithFocusedText = songVerseProjectionDTO.getWholeWithFocusedText();
-            if (wholeWithFocusedText != null) {
-                text = wholeWithFocusedText;
+                String wholeWithFocusedText = getWholeWithFocusedText(songVerseProjectionDTOS);
+                if (!wholeWithFocusedText.trim().isEmpty()) {
+                    text = wholeWithFocusedText;
+                }
             }
         }
         setText4(text, ProjectionType.SONG, projectionDTO);
+    }
+
+    private static String getWholeWithFocusedText(List<SongVerseProjectionDTO> songVerseProjectionDTOS) {
+        HashMap<Integer, Boolean> songVerseIndexMap = new HashMap<>();
+        StringBuilder wholeWithFocusedText = new StringBuilder();
+        boolean first = true;
+        HashMap<Integer, HashMap<Integer, Boolean>> focusedIndicesMap = new HashMap<>();
+        for (SongVerseProjectionDTO songVerseProjectionDTO : songVerseProjectionDTOS) {
+            Integer songVerseIndex = songVerseProjectionDTO.getSongVerseIndex();
+            HashMap<Integer, Boolean> focusedIndices = focusedIndicesMap.computeIfAbsent(songVerseIndex, k -> new HashMap<>());
+            focusedIndices.put(songVerseProjectionDTO.getFocusedTextIndex(), true);
+        }
+        for (SongVerseProjectionDTO songVerseProjectionDTO : songVerseProjectionDTOS) {
+            Integer songVerseIndex = songVerseProjectionDTO.getSongVerseIndex();
+            if (songVerseIndexMap.containsKey(songVerseIndex)) {
+                continue;
+            }
+            songVerseIndexMap.put(songVerseIndex, true);
+            if (!first) {
+                wholeWithFocusedText.append("\n");
+            } else {
+                first = false;
+            }
+            HashMap<Integer, Boolean> focusedIndices = focusedIndicesMap.get(songVerseIndex);
+            wholeWithFocusedText.append(SongController.getWholeWithFocusedText(songVerseProjectionDTO.getTexts(), focusedIndices));
+        }
+        return wholeWithFocusedText.toString();
+    }
+
+    private static String getFocusedText(List<SongVerseProjectionDTO> songVerseProjectionDTOS) {
+        StringBuilder focusedText = new StringBuilder();
+        boolean first = true;
+        for (SongVerseProjectionDTO songVerseProjectionDTO : songVerseProjectionDTOS) {
+            if (!first) {
+                focusedText.append("\n");
+            } else {
+                first = false;
+            }
+            focusedText.append(songVerseProjectionDTO.getFocusedText());
+        }
+        return focusedText.toString();
     }
 
     private void setText3(String newText, ProjectionType projectionType, ProjectionDTO projectionDTO, boolean onlyForRepaint) {
@@ -1372,6 +1416,10 @@ public class ProjectionScreenController {
             projectionScreenControllers.add(previewProjectionScreenController);
         }
         return projectionScreenControllers;
+    }
+
+    public String getActiveText() {
+        return activeText;
     }
 
     private record ScaledSizes(double width, double height) {

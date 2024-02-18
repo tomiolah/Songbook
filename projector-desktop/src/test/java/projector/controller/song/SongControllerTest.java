@@ -7,11 +7,13 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.Pane;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import projector.BaseTest;
+import projector.controller.MyController;
 import projector.controller.song.util.SearchedSong;
 import projector.model.Language;
 import projector.model.Song;
@@ -19,6 +21,7 @@ import projector.model.SongVerse;
 import projector.service.LanguageService;
 import projector.service.ServiceManager;
 import projector.service.SongService;
+import projector.utils.scene.text.SongVersePartTextFlow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,6 +29,7 @@ import java.util.List;
 public class SongControllerTest extends BaseTest {
 
     private static final String test_songTitle = "Test song";
+    private static final String SONG_VERSE_TEXT = "this is a song verse which I wrote";
     private final String il_iubesc_pe_el = "Il iubesc pe El";
     private final String songAuthor = "Pinter Bela";
 
@@ -54,14 +58,19 @@ public class SongControllerTest extends BaseTest {
         Song testSong = new Song();
         testSong.setTitle(il_iubesc_pe_el);
         List<SongVerse> testVerses = new ArrayList<>();
+        createAndAddSongVerse(testVerses);
+        createAndAddSongVerse(testVerses);
         testSong.setVerses(testVerses);
-        SongVerse testSongVerse = new SongVerse();
-        testVerses.add(testSongVerse);
-        testSongVerse.setText("this is a song verse which I wrote");
         testSong.setAuthor(songAuthor);
         testSong.setLanguage(language);
         SongService songService = ServiceManager.getSongService();
         songService.create(testSong);
+    }
+
+    private static void createAndAddSongVerse(List<SongVerse> testVerses) {
+        SongVerse testSongVerse = new SongVerse();
+        testVerses.add(testSongVerse);
+        testSongVerse.setText(SONG_VERSE_TEXT);
     }
 
     @Test
@@ -100,11 +109,29 @@ public class SongControllerTest extends BaseTest {
         deleteASong();
     }
 
+
+    private void searchForASong() {
+        clickOn("#searchTextField").write(il_iubesc_pe_el);
+    }
+
     @Test
     public void checkAuthorTextField() {
-        clickOn("#searchTextField").write(il_iubesc_pe_el);
+        searchForASong();
         TextField authorTextField = find("#authorTextField");
         Assert.assertEquals(songAuthor, authorTextField.getText());
+    }
+
+    @Test
+    public void checkDoubleSelectedSongVerse() {
+        searchForASong();
+        final ListView<SongVersePartTextFlow> songListView = find("#songListView");
+        Bounds boundsInScene = songListView.localToScene(songListView.getBoundsInLocal());
+        clickOn("#songListView");
+        final double x = boundsInScene.getMinX() + 10;
+        final double y = boundsInScene.getMinY() + 60;
+        clickOn(x, y).sleep(100).press(KeyCode.SHIFT).clickOn(x + 7, y + 20).release(KeyCode.SHIFT);
+        String activeText = MyController.getInstance().getProjectionScreenController().getActiveText();
+        Assert.assertTrue(activeText.length() > SONG_VERSE_TEXT.length() * 2);
     }
 
     //	@Test
