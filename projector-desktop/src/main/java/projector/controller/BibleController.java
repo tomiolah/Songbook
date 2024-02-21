@@ -387,16 +387,19 @@ public class BibleController {
                             partListView.scrollTo(partI);
                             if (!verseI.isEmpty()) {
                                 setSelecting(true);
-                                for (Integer aVerseI : verseI) {
-                                    if (aVerseI > bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size() - 1) {
-                                        verseListViewSelectionModel.select(bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size() - 1);
-                                        break;
-                                    } else {
-                                        verseListViewSelectionModel.select(aVerseI);
+                                try {
+                                    for (Integer aVerseI : verseI) {
+                                        if (aVerseI > bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size() - 1) {
+                                            verseListViewSelectionModel.select(bible.getBooks().get(bookI).getChapters().get(partI).getVerses().size() - 1);
+                                            break;
+                                        } else {
+                                            verseListViewSelectionModel.select(aVerseI);
+                                        }
                                     }
+                                    verseListView.scrollTo(verseI.get(0));
+                                } finally {
+                                    setSelecting(false);
                                 }
-                                verseListView.scrollTo(verseI.get(0));
-                                setSelecting(false);
                             }
                         }
                     }

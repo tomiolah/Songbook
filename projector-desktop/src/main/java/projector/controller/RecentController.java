@@ -5,6 +5,8 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import projector.application.ProjectionType;
 import projector.controller.song.SongController;
 import projector.utils.AppProperties;
@@ -24,6 +26,7 @@ import static projector.controller.BibleController.setGeneralTextColor;
 
 public class RecentController {
 
+    private static final Logger LOG = LoggerFactory.getLogger(RecentController.class);
     private final boolean isBlank = false;
     @FXML
     private ListView<String> listView;
@@ -32,7 +35,7 @@ public class RecentController {
     private List<ProjectionType> typeList;
     private List<Integer> bookI;
     private List<Integer> partI;
-    private List<Integer> versI;
+    private List<Integer> verseI;
     private List<String> songTitles;
     private List<String> verseNumbersListText;
     private List<List<Integer>> verseNumbersList;
@@ -54,7 +57,7 @@ public class RecentController {
         typeList = new LinkedList<>();
         bookI = new LinkedList<>();
         partI = new LinkedList<>();
-        versI = new LinkedList<>();
+        verseI = new LinkedList<>();
         songTitles = new LinkedList<>();
         verseNumbersListText = new LinkedList<>();
         verseNumbersList = new ArrayList<>();
@@ -70,7 +73,7 @@ public class RecentController {
                             try {
                                 TimeUnit.MILLISECONDS.sleep(1);
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                LOG.error(e.getMessage(), e);
                             }
                         }
                         if (bibleController.getBookListView().getSelectionModel().getSelectedIndex() != bookI
@@ -84,7 +87,7 @@ public class RecentController {
                             try {
                                 TimeUnit.MILLISECONDS.sleep(1);
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                LOG.error(e.getMessage(), e);
                             }
                         }
                         bibleController.getBookListView().scrollTo(bookI.get(index));
@@ -100,19 +103,20 @@ public class RecentController {
                             try {
                                 TimeUnit.MILLISECONDS.sleep(1);
                             } catch (InterruptedException e) {
-                                e.printStackTrace();
+                                LOG.error(e.getMessage(), e);
                             }
                         }
                         bibleController.getPartListView().scrollTo(partI.get(index));
                         bibleController.getVerseListView().getSelectionModel().clearSelection();
-                        // bibleController.getFullVersListView().getSelectionModel().clearSelection();
                         bibleController.setSelecting(true);
-                        for (Integer i : verseNumbersList.get(index)) {
-                            bibleController.getVerseListView().getSelectionModel().select(i);
+                        try {
+                            for (Integer i : verseNumbersList.get(index)) {
+                                bibleController.getVerseListView().getSelectionModel().select(i);
+                            }
+                        } finally {
+                            bibleController.setSelecting(false);
                         }
-                        bibleController.setSelecting(false);
-                        bibleController.getVerseListView().scrollTo(versI.get(index));
-                        // bibleController.getFullVersListView().scrollTo(versI.get(index));
+                        bibleController.getVerseListView().scrollTo(verseI.get(index));
                     }
                 }
             }
@@ -142,7 +146,7 @@ public class RecentController {
                 songTitles.add(text);
                 bookI.add(-1);
                 partI.add(0);
-                versI.add(0);
+                verseI.add(0);
                 verseNumbersListText.add("");
                 ArrayList<Integer> tmp = new ArrayList<>();
                 tmp.add(-1);
@@ -152,7 +156,7 @@ public class RecentController {
     }
 
     public String getLastItemText() {
-        if (listView.getItems().size() > 0) {
+        if (!listView.getItems().isEmpty()) {
             return listView.getItems().get(listView.getItems().size() - 1);
         } else {
             return "";
@@ -184,7 +188,7 @@ public class RecentController {
             FileOutputStream fileOutputStream = new FileOutputStream(getRecentFilePath(), true);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fileOutputStream, StandardCharsets.UTF_8));
             Date date = new Date();
-            if (bookI.size() > 0 || songTitles.size() > 0) {
+            if (!bookI.isEmpty() || !songTitles.isEmpty()) {
                 bw.write(date + System.lineSeparator());
                 for (int i = 0; i < bookI.size(); ++i) {
                     if (bookI.get(i) != -1) {
@@ -199,7 +203,7 @@ public class RecentController {
             }
             bw.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.error(e.getMessage(), e);
         }
     }
 
@@ -211,7 +215,7 @@ public class RecentController {
                 listView.getItems().add(text);
                 bookI.add(iBook);
                 partI.add(iPart);
-                versI.add(iVerse);
+                verseI.add(iVerse);
                 verseNumbersListText.add(verseNumbers);
                 verseNumbersList.add(tmpVerseNumberList);
             }

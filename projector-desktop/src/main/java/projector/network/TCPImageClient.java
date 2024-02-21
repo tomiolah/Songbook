@@ -11,6 +11,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.net.SocketException;
 
@@ -57,6 +58,10 @@ public class TCPImageClient {
                         }
                     });
                     reader.start();
+                }
+            } catch (ConnectException e) {
+                if (!e.getMessage().contains("refused")) {
+                    LOG.error(e.getMessage(), e);
                 }
             } catch (Exception e) {
                 LOG.error(e.getMessage(), e);
