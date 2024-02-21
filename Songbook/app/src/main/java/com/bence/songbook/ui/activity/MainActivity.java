@@ -183,6 +183,7 @@ public class MainActivity extends AppCompatActivity
     private String previouslyTitleSearchText = "";
     private String previouslyInSongSearchText = "";
     private Thread lastSearchThread;
+    private boolean suggestionStackUploaded = false;
 
     public static String stripAccents(String s) {
         String nfdNormalizedString = Normalizer.normalize(s, Normalizer.Form.NFD);
@@ -205,6 +206,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void uploadExceptionStack(Exception e) {
+        try {
+            if (!suggestionStackUploaded) {
+                suggestionStackUploaded = true;
+            } else {
+                return; // we only upload once per run
+            }
+            uploadExceptionStack_(e);
+        } catch (Exception e2) {
+            Log.e(TAG, e2.getMessage());
+        }
+    }
+
+    private void uploadExceptionStack_(Exception e) {
         e.printStackTrace();
         StringWriter writer = new StringWriter();
         PrintWriter printWriter = new PrintWriter(writer);
@@ -1478,6 +1492,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void inSongSearch(final String title) {
+        try {
+            inSongSearch_(title);
+        } catch (Exception e) {
+            uploadExceptionStack(e);
+        }
+    }
+
+    private void inSongSearch_(final String title) {
         if (!searchInSongTextIsAvailable) {
             titleSearch(title);
             return;
