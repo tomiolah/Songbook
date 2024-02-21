@@ -1,5 +1,6 @@
 package com.bence.songbook.ui.activity;
 
+import static com.bence.songbook.Memory.onTextForListeners;
 import static com.bence.songbook.ui.activity.MainActivity.pairSongWithSongCollectionElement;
 import static com.bence.songbook.ui.activity.VersionsActivity.getSongFromMemory;
 import static com.bence.songbook.ui.utils.SaveFavouriteInGoogleDrive.REQUEST_CODE_SIGN_IN;
@@ -48,7 +49,6 @@ import com.bence.songbook.models.SongCollection;
 import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongList;
 import com.bence.songbook.models.SongListElement;
-import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.repository.FavouriteSongRepository;
 import com.bence.songbook.repository.SongCollectionRepository;
 import com.bence.songbook.repository.SongRepository;
@@ -395,6 +395,7 @@ public class SongActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
+        super.onBackPressed();
         onBackButtonClick(null);
     }
 
@@ -439,12 +440,7 @@ public class SongActivity extends AppCompatActivity {
 
     private void setBlank() {
         if (memory.isShareOnNetwork()) {
-            List<ProjectionTextChangeListener> projectionTextChangeListeners = memory.getProjectionTextChangeListeners();
-            if (projectionTextChangeListeners != null) {
-                for (int i = 0; i < projectionTextChangeListeners.size(); ++i) {
-                    projectionTextChangeListeners.get(i).onSetText("");
-                }
-            }
+            onTextForListeners("");
         }
     }
 

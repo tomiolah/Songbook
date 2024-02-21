@@ -99,9 +99,9 @@ public class ConnectToSharedFullscreenActivity extends AbstractFullscreenActivit
         });
         try {
             Intent intent = getIntent();
-            String connectToShared = intent.getStringExtra("connectToShared");
-            if (connectToShared != null && !connectToShared.isEmpty()) {
-                TCPClient.connectToShared(this, connectToShared, text -> {
+            String connectToSharedIp = intent.getStringExtra("connectToShared");
+            if (connectToSharedIp != null && !connectToSharedIp.isEmpty()) {
+                TCPClient.connectToShared(this, connectToSharedIp, text -> {
                     try {
                         runOnUiThread(() -> {
                             setText(text);

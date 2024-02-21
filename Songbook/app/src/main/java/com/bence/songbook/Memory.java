@@ -1,5 +1,7 @@
 package com.bence.songbook;
 
+import static com.bence.songbook.ui.activity.YoutubeActivity.logWithNullCheck;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
@@ -69,10 +71,6 @@ public class Memory {
 
     public void setSongCollections(List<SongCollection> songCollections) {
         this.songCollections = songCollections;
-    }
-
-    public List<ProjectionTextChangeListener> getProjectionTextChangeListeners() {
-        return projectionTextChangeListeners;
     }
 
     public void setProjectionTextChangeListeners(List<ProjectionTextChangeListener> projectionTextChangeListeners) {
@@ -211,6 +209,25 @@ public class Memory {
 
     public void setPassingLanguages(List<Language> passingLanguages) {
         this.passingLanguages = passingLanguages;
+    }
+
+    public void onText(String text) {
+        try {
+            if (projectionTextChangeListeners != null) {
+                for (ProjectionTextChangeListener projectionTextChangeListener : projectionTextChangeListeners) {
+                    projectionTextChangeListener.onSetText(text);
+                }
+            }
+        } catch (Exception e) {
+            logWithNullCheck(e, Memory.class.getSimpleName());
+        }
+    }
+
+    public static void onTextForListeners(String text) {
+        Memory memory = Memory.getInstance();
+        if (memory != null) {
+            memory.onText(text);
+        }
     }
 
     public interface Listener {

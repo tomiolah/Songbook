@@ -2,6 +2,8 @@ package com.bence.songbook.network;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -21,7 +23,7 @@ class Sender {
     private final Thread reader;
     private final BufferedReader inFromClient;
 
-    Sender(Socket connectionSocket, final List<ProjectionTextChangeListener> projectionTextChangeListeners) throws IOException {
+    Sender(Socket connectionSocket, final List<ProjectionTextChangeListener> projectionTextChangeListeners, String lastText) throws IOException {
         this.connectionSocket = connectionSocket;
         outToClient = new DataOutputStream(connectionSocket.getOutputStream());
         inFromClient = new BufferedReader(new InputStreamReader(connectionSocket.getInputStream()));
@@ -32,55 +34,65 @@ class Sender {
                 ProjectionTextChangeListener projectionTextChangeListener = new ProjectionTextChangeListener() {
                     @Override
                     public void onSetText(String text) {
-                        try {
-                            String s = "start 'text'\n"
-                                    + text + "\n"
-                                    + "end 'text'\n"
-                                    + "start 'projectionType'\n"
-                                    + "SONG" + "\n"
-                                    + "end 'projectionType'\n";
-                            //noinspection CharsetObjectCanBeUsed
-                            byte[] bytes = s.getBytes("UTF-8");
-                            outToClient.write(bytes);
-                        } catch (SocketException e) {
-                            String message = e.getMessage();
-                            if (message != null) {
-                                if (message.equals("Socket closed")) {
-                                    projectionTextChangeListeners.remove(this);
-                                    close();
-                                    return;
-                                } else if (!message.equals("Connection reset by peer: socket write error") &&
-                                        !message.equals("Software caused connection abort: socket write error")) {
-                                    Log.e(TAG, message, e);
-                                }
-                            }
-                            projectionTextChangeListeners.remove(this);
-                        } catch (Exception e) {
-                            Log.e(TAG, e.getMessage(), e);
-                            projectionTextChangeListeners.remove(this);
-                            close();
-                        }
+                        sendTextOverNetwork(text, projectionTextChangeListeners, this);
                     }
                 };
                 projectionTextChangeListeners.add(projectionTextChangeListener);
+                if (lastText != null) {
+                    projectionTextChangeListener.onSetText(lastText);
+                }
             }
         });
         writer.start();
+        reader = initializeReader();
+    }
+
+    private void sendTextOverNetwork(String text, List<ProjectionTextChangeListener> projectionTextChangeListeners, ProjectionTextChangeListener projectionTextChangeListener) {
+        new Thread(() -> {
+            try {
+                String s = "start 'text'\n"
+                        + text + "\n"
+                        + "end 'text'\n"
+                        + "start 'projectionType'\n"
+                        + "SONG" + "\n"
+                        + "end 'projectionType'\n";
+                //noinspection CharsetObjectCanBeUsed
+                byte[] bytes = s.getBytes("UTF-8");
+                outToClient.write(bytes);
+            } catch (SocketException e) {
+                String message = e.getMessage();
+                if (message != null) {
+                    if (message.equals("Socket closed")) {
+                        projectionTextChangeListeners.remove(projectionTextChangeListener);
+                        close();
+                        return;
+                    } else if (!message.equals("Connection reset by peer: socket write error") && !message.equals("Software caused connection abort: socket write error")) {
+                        Log.e(TAG, message, e);
+                    }
+                }
+                projectionTextChangeListeners.remove(projectionTextChangeListener);
+            } catch (Exception e) {
+                Log.e(TAG, e.getMessage(), e);
+                projectionTextChangeListeners.remove(projectionTextChangeListener);
+                close();
+            }
+        }).start();
+    }
+
+    @NonNull
+    private Thread initializeReader() {
+        final Thread reader;
         reader = new Thread(() -> {
             try {
                 inFromClient.readLine();
-//                while (!s.equals("Finished")) {
-//                    s = inFromClient.readLine();
-//                }
                 close();
-            } catch (SocketException e) {
-//                    if (e.getMessage().equals("Socket closed")) {
-//                    }
+            } catch (SocketException ignored) {
             } catch (Exception e) {
                 close();
             }
         });
         reader.start();
+        return reader;
     }
 
     private void close() {

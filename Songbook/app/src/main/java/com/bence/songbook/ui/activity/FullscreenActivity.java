@@ -1,5 +1,6 @@
 package com.bence.songbook.ui.activity;
 
+import static com.bence.songbook.Memory.onTextForListeners;
 import static com.bence.songbook.ui.activity.YoutubeActivity.logWithNullCheck;
 
 import android.content.Intent;
@@ -21,7 +22,6 @@ import com.bence.songbook.models.QueueSong;
 import com.bence.songbook.models.Song;
 import com.bence.songbook.models.SongCollectionElement;
 import com.bence.songbook.models.SongVerse;
-import com.bence.songbook.network.ProjectionTextChangeListener;
 import com.bence.songbook.repository.impl.ormLite.SongRepositoryImpl;
 import com.bence.songbook.ui.utils.OnSwipeTouchListener;
 
@@ -42,7 +42,6 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
     private long startTime;
     private long duration = 0;
     private SongRepositoryImpl songRepository;
-    private List<ProjectionTextChangeListener> projectionTextChangeListeners;
     private boolean sharedOnNetwork = false;
     private Date lastDatePressedAtEnd = null;
     private boolean show_title_switch;
@@ -73,7 +72,6 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
         try {
             if (memory.isShareOnNetwork()) {
                 sharedOnNetwork = true;
-                projectionTextChangeListeners = memory.getProjectionTextChangeListeners();
             }
             song = memory.getPassingSong();
             setVerseList();
@@ -392,9 +390,7 @@ public class FullscreenActivity extends AbstractFullscreenActivity {
 
     private synchronized void sendTextToListeners(final String text) {
         if (sharedOnNetwork) {
-            for (int i = 0; i < projectionTextChangeListeners.size(); ++i) {
-                projectionTextChangeListeners.get(i).onSetText(text);
-            }
+            onTextForListeners(text);
         }
     }
 }

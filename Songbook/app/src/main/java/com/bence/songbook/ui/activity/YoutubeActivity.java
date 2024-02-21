@@ -1,6 +1,7 @@
 package com.bence.songbook.ui.activity;
 
 import static android.graphics.text.LineBreaker.BREAK_STRATEGY_SIMPLE;
+import static com.bence.songbook.Memory.onTextForListeners;
 import static com.bence.songbook.ui.activity.FullscreenActivity.getTextForTitleSlide;
 import static com.bence.songbook.ui.utils.YouTubeIFrame.setYouTubeIFrameToWebView;
 
@@ -248,6 +249,7 @@ public class YoutubeActivity extends AppCompatActivity {
     }
 
     void setText(String text) {
+        onTextForListeners(text);
         String s = text.replaceAll("<color=\"0x(.{0,6})..\">", "<font color='0x$1'>")
                 .replaceAll("</color>", "</font>")
                 .replaceAll("\\[", "<i>")
