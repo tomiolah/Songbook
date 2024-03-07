@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ApiManager {
 
-    public static final String DOMAIN = "localhost:8080";
+    public static final String DOMAIN = "www.songpraise.com";
     public static final String BASE_URL = "http://" + DOMAIN;
     public static final String BASE_URL_S = "http://" + DOMAIN;
 
