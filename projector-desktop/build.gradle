@@ -1,8 +1,19 @@
+buildscript {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    dependencies {
+        classpath "gradle.plugin.com.github.johnrengelman:shadow:7.1.2"
+    }
+}
+
 plugins {
     id 'java'
     id 'application'
     id 'org.openjfx.javafxplugin' version '0.0.13'
     id 'org.beryx.runtime' version '1.12.7'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 group 'projector'
@@ -59,6 +70,9 @@ dependencies {
     testImplementation "org.testfx:testfx-core:4.0.+"
     testImplementation "org.testfx:testfx-junit:4.0.+"
     testImplementation group: 'org.loadui', name: 'testFx', version: '3.1.2'
+
+    implementation group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    implementation group: 'org.slf4j', name: 'slf4j-simple', version: '1.7.25'
 }
 
 runtime {
@@ -66,7 +80,7 @@ runtime {
 
 // Uncomment and adjust the code below if you want to generate images for multiple platforms.
 // (You need to also uncomment the line 'targetPlatformName = ...' in the jpackage block.)
-/*
+
     targetPlatform("lin") {
         jdkHome = jdkDownload("https://github.com/AdoptOpenJDK/openjdk15-binaries/releases/download/jdk-15.0.2%2B7/OpenJDK15U-jdk_x64_linux_hotspot_15.0.2_7.tar.gz")
     }
@@ -84,14 +98,14 @@ runtime {
     targetPlatform("win") {
         jdkHome = jdkDownload("https://github.com/AdoptOpenJDK/openjdk15-binaries/releases/download/jdk-15.0.2%2B7/OpenJDK15U-jdk_x64_windows_hotspot_15.0.2_7.zip")
     }
-*/
+
 
     launcher {
         noConsole = false
     }
     jpackage {
         // Uncomment and adjust the following line if your runtime task is configured to generate images for multiple platforms
-        // targetPlatformName = "mac"
+         targetPlatformName = "mac"
 
         def currentOs = org.gradle.internal.os.OperatingSystem.current()
         def imgType = currentOs.windows ? 'ico' : currentOs.macOsX ? 'icns' : 'png'
@@ -115,5 +129,29 @@ runtime {
 }
 
 task installationTask(type: Exec, dependsOn: ['jpackageImage']) {
-    commandLine '"C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe"', 'setup.iss'
+    def currentOs = org.gradle.internal.os.OperatingSystem.current()
+    if (currentOs.windows) {
+        commandLine '"C:\\Program Files (x86)\\Inno Setup 6\\ISCC.exe"', 'setup.iss';
+        return;
+    }
+}
+
+jar {
+    manifest {
+        attributes "Main-Class": "projector.Main"
+    }
+
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
+
+task customFatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'projector.Main'
+    }
+    archiveBaseName = 'all-in-one-jar'
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
